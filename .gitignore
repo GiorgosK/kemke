@@ -10,6 +10,7 @@
 # Ignore scaffolded Drupal site files that are environment-specific.
 /web/sites/*/settings*.php
 /web/sites/*/services*.yml
+!/web/sites/default/settings.php
 /web/sites/*/files
 /web/sites/*/private
 /web/sites/simpletest
