@@ -1,0 +1,22 @@
+uuid: 07c5598f-167b-4867-96db-1fbde7ba291f
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - kemke
+_core:
+  default_config_hash: erQSEZF2XUjNmgTl0uNRBzmg18ZGXwUcw2FhApoeuHk
+id: kemke_content
+theme: kemke
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  label_display: '0'
+  provider: system
+visibility: {  }

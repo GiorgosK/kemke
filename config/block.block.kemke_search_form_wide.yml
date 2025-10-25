@@ -1,0 +1,23 @@
+uuid: 4cc7eb00-2a7e-48e0-9355-e877bf1cac07
+langcode: en
+status: true
+dependencies:
+  module:
+    - search
+  theme:
+    - kemke
+_core:
+  default_config_hash: pbbed0hdqGDF-_QWVVTWRAwgDIotFuAvWH5mWUZu0fA
+id: kemke_search_form_wide
+theme: kemke
+region: secondary_menu
+weight: -5
+provider: null
+plugin: search_form_block
+settings:
+  id: search_form_block
+  label: 'Search form (wide)'
+  label_display: '0'
+  provider: search
+  page_id: null
+visibility: {  }

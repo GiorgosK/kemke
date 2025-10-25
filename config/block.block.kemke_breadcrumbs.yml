@@ -1,0 +1,22 @@
+uuid: 9b021a93-6e3e-4bf0-a1c0-1cf067ebcf04
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - kemke
+_core:
+  default_config_hash: VhBzWb7lMRtIOg9G7VSw_0uopi-7zXeHq4vXqqV1HFE
+id: kemke_breadcrumbs
+theme: kemke
+region: breadcrumb
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: Breadcrumbs
+  label_display: '0'
+  provider: system
+visibility: {  }
