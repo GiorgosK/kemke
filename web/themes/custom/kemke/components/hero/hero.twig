@@ -1,0 +1,11 @@
+{% set attributes = attributes ?? create_attribute() %}
+<section{{ attributes.addClass('hero') }}>
+  {% if heading %}
+    <h2 class="hero__title">{{ heading }}</h2>
+  {% endif %}
+  {% if block('content') is defined %}
+    <div class="hero__content">
+      {% block content %}{% endblock %}
+    </div>
+  {% endif %}
+</section>

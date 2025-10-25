@@ -60,6 +60,14 @@
   <main role="main">
     <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
 
+    {% embed 'kemke:hero' with {
+      heading: 'Welcome to Kemke'|t
+    } only %}
+      {% block content %}
+        <p>{{ 'Single Directory Components are ready to use in the Kemke theme.'|t }}</p>
+      {% endblock %}
+    {% endembed %}
+
     <div class="layout-content">
       {{ page.content }}
     </div>{# /.layout-content #}

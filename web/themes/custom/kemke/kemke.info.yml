@@ -23,6 +23,4 @@ libraries-extend:
 description: ''
 core_version_requirement: ^11
 generator: 'starterkit_theme:11.2.5'
-twig:
-  namespace:
-    components: components
+
