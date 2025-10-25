@@ -7,6 +7,7 @@ libraries:
   - kemke/base
   - kemke/messages
   - core/normalize
+  - kemke/digigov
 libraries-extend:
   user/drupal.user:
     - kemke/user
