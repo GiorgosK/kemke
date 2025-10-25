@@ -1,0 +1,42 @@
+# Ignore Composer-installed dependencies.
+/vendor/
+/web/drush/contrib/
+/web/core/
+/web/modules/contrib/
+/web/themes/contrib/
+/web/profiles/contrib/
+/web/libraries/
+
+# Ignore scaffolded Drupal site files that are environment-specific.
+/web/sites/*/settings*.php
+/web/sites/*/services*.yml
+/web/sites/*/files
+/web/sites/*/private
+/web/sites/simpletest
+
+# Ignore local caches and logs created by Drupal or tooling.
+/web/sites/*/translations
+.cache/
+.tmp/
+
+# Ignore common IDE/editor metadata.
+.DS_Store
+.idea/
+*.swp
+
+# Ignore OS-specific files.
+Thumbs.db
+
+
+# Ignore .env files as they are personal
+/.env
+
+
+# Ignore others
+/_*
+db.*
+*.sql
+/.editorconfig
+/.gitattributes
+
+.well-known/
