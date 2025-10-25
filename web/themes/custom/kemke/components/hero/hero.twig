@@ -1,11 +1,19 @@
 {% set attributes = attributes ?? create_attribute() %}
+{% set slot_content = '' %}
+{% if block('content') is defined %}
+  {% set slot_content = block('content') %}
+{% endif %}
+
 <section{{ attributes.addClass('hero') }}>
   {% if heading %}
     <h2 class="hero__title">{{ heading }}</h2>
   {% endif %}
-  {% if block('content') is defined %}
+
+  {% if slot_content|trim %}
     <div class="hero__content">
-      {% block content %}{% endblock %}
+      {{ slot_content|raw }}
     </div>
+  {% elseif body %}
+    <p class="hero__body">{{ body }}</p>
   {% endif %}
 </section>

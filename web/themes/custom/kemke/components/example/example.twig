@@ -1,0 +1,22 @@
+{% include 'kemke:notice' with {
+  message: 'This is the message'|t,
+} %}
+
+{% include 'kemke:hero' with {
+  heading: 'Welcome to Kemke'|t,
+  body: 'Single Directory Components are ready to use in the Kemke theme.'|t
+} %}
+
+{% embed 'kemke:hero' with {
+  heading: 'Reusable component with slot content'|t
+} only %}
+  {% block content %}
+    <div class="hero__list-wrapper">
+      <ul class="hero__list">
+        <li>{{ 'Render rich markup by embedding the component.'|t }}</li>
+        <li>{{ 'Slots let you pass entire blocks of HTML or other components.'|t }}</li>
+        <li>{{ 'Include still works for simple text props.'|t }}</li>
+      </ul>
+    </div>
+  {% endblock %}
+{% endembed %}

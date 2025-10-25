@@ -1,0 +1,6 @@
+{% set attributes = attributes ?? create_attribute() %}
+{% set tone_class = 'notice--' ~ (tone|default('info')) %}
+
+<div{{ attributes.addClass('notice', tone_class) }}>
+  <p class="notice__message">{{ message }}</p>
+</div>

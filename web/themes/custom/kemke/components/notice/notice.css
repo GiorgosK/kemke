@@ -1,0 +1,35 @@
+.notice {
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  font-size: 1rem;
+}
+
+.notice__message {
+  margin: 0;
+}
+
+.notice--info {
+  background-color: #e8f1ff;
+  border-color: #8bb8ff;
+  color: #0b4fa3;
+}
+
+.notice--success {
+  background-color: #e5f6ed;
+  border-color: #92d4a8;
+  color: #1c7b3a;
+}
+
+.notice--warning {
+  background-color: #fff8e6;
+  border-color: #ffdd94;
+  color: #7d5a00;
+}
+
+.notice--danger {
+  background-color: #ffe9e9;
+  border-color: #ff9b9b;
+  color: #b30000;
+}

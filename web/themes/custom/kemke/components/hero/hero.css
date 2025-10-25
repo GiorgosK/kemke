@@ -14,9 +14,21 @@
   font-weight: 600;
 }
 
-.hero__content {
+.hero__body {
   max-width: 44rem;
   margin: 0 auto;
   font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.hero__content {
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.hero__list {
+  margin: 0;
+  padding-left: 1.25rem;
   line-height: 1.6;
 }

@@ -1,16 +1,21 @@
 $schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
 name: 'Hero Banner'
-description: 'A simple hero banner with a heading and supporting content.'
+description: 'A flexible hero banner supporting direct body text or slot content.'
 props:
   type: object
   properties:
     heading:
       type: string
       title: 'Heading'
+      description: 'Primary heading displayed in the hero.'
+    body:
+      type: string
+      title: 'Body text'
+      description: 'Descriptive text displayed beneath the heading.'
 slots:
   content:
-    title: 'Additional content'
-    description: 'Optional body text for the hero banner.'
+    title: 'Custom content'
+    description: 'Optional slot used when the component is embedded to supply complex markup.'
     required: false
 library:
   css:

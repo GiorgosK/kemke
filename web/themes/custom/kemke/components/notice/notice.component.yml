@@ -1,0 +1,24 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: 'Notice Banner'
+description: 'Displays an informational notice message.'
+props:
+  type: object
+  properties:
+    message:
+      type: string
+      title: 'Message'
+      description: 'Text to display inside the notice.'
+    tone:
+      type: string
+      title: 'Tone'
+      enum:
+        - info
+        - success
+        - warning
+        - danger
+      default: info
+slots: {}
+library:
+  css:
+    component:
+      notice.css: {}
