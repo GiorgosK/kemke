@@ -1,0 +1,28 @@
+name: kemke
+type: theme
+base theme: false
+single_directory_component: true
+version: 1.0.0
+libraries:
+  - kemke/base
+  - kemke/messages
+  - core/normalize
+libraries-extend:
+  user/drupal.user:
+    - kemke/user
+  core/drupal.dropbutton:
+    - kemke/dropbutton
+  core/drupal.dialog:
+    - kemke/dialog
+  file/drupal.file:
+    - kemke/file
+  core/drupal.progress:
+    - kemke/progress
+  core/drupal.tablesort:
+    - kemke/drupal.tablesort
+description: ''
+core_version_requirement: ^11
+generator: 'starterkit_theme:11.2.5'
+twig:
+  namespace:
+    components: components
