@@ -1,0 +1,7 @@
+{
+  "name": "kemke-theme",
+  "private": true,
+  "scripts": {
+    "build:digigov": "node build/build-digigov.js"
+  }
+}

@@ -109,3 +109,13 @@ user:
     component:
       css/components/user.css:
         weight: -10
+
+digigov:
+  version: VERSION
+  css:
+    theme:
+      digigov/digigov.css: { }
+  js:
+    digigov/dist/digigov.globals.js: { }
+  dependencies:
+    - core/drupal
