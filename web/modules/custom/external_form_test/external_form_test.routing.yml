@@ -1,0 +1,7 @@
+external_form_test.form:
+  path: '/external-form'
+  defaults:
+    _form: '\Drupal\external_form_test\Form\ExternalApiForm'
+    _title: 'External API form'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,5 @@
+name: External Form Test
+type: module
+description: Provides a demo form that posts data to an external API endpoint.
+core_version_requirement: ^11
+package: Custom

@@ -1,0 +1,6 @@
+external_form_test.form:
+  title: 'External API form'
+  description: 'Test form that posts to external API.'
+  route_name: external_form_test.form
+  parent: system.main_content
+  weight: 100
