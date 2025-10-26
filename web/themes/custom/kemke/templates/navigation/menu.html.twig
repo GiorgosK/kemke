@@ -30,7 +30,7 @@
   {% import _self as menus %}
   {% if items %}
     {% if menu_level == 0 %}
-      <ul{{ attributes.addClass('menu') }}>
+      <ul{{ attributes.addClass('menu govgr-nav__list') }}>
     {% else %}
       <ul class="menu">
     {% endif %}
@@ -38,13 +38,14 @@
       {%
         set classes = [
           'menu-item',
+          'govgr-nav__list-item',
           item.is_expanded ? 'menu-item--expanded',
           item.is_collapsed ? 'menu-item--collapsed',
           item.in_active_trail ? 'menu-item--active-trail',
         ]
       %}
       <li{{ item.attributes.addClass(classes) }}>
-        {{ link(item.title, item.url) }}
+        {{ link(item.title, item.url,create_attribute({'class': ['govgr-nav__list-item-link', 'govgr-link']})) }}
         {% if item.below %}
           {{ menus.menu_links(item.below, attributes, menu_level + 1) }}
         {% endif %}
