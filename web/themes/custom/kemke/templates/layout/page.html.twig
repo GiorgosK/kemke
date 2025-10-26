@@ -60,36 +60,35 @@
   <div class="govgr-layout-wrapper govgr-layout-wrapper__full-height">
     <div class="govgr-width-container">
 
+      {{ page.primary_menu }}
+      {{ page.secondary_menu }}
 
-  {{ page.primary_menu }}
-  {{ page.secondary_menu }}
+      {{ page.breadcrumb }}
 
-  {{ page.breadcrumb }}
+      {{ page.highlighted }}
 
-  {{ page.highlighted }}
-
-  {{ page.help }}
+      {{ page.help }}
   
       <div class="govgr-main-wrapper" role="main">
         <main class="govgr-grid-column-two-thirds">
 
-    <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
+          <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
 
-    <div class="layout-content">
-      {{ page.content }}
-    </div>{# /.layout-content #}
+          <div class="layout-content">
+            {{ page.content }}
+          </div>{# /.layout-content #}
 
-    {% if page.sidebar_first %}
-      <aside class="layout-sidebar-first" role="complementary">
-        {{ page.sidebar_first }}
-      </aside>
-    {% endif %}
+          {% if page.sidebar_first %}
+            <aside class="layout-sidebar-first" role="complementary">
+              {{ page.sidebar_first }}
+            </aside>
+          {% endif %}
 
-    {% if page.sidebar_second %}
-      <aside class="layout-sidebar-second" role="complementary">
-        {{ page.sidebar_second }}
-      </aside>
-    {% endif %}
+          {% if page.sidebar_second %}
+            <aside class="layout-sidebar-second" role="complementary">
+              {{ page.sidebar_second }}
+            </aside>
+          {% endif %}
 
         </main>
       </div>
