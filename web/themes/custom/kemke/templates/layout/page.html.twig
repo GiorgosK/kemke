@@ -44,8 +44,20 @@
 #}
 <div class="layout-container">
 
-  <header role="banner">
-    {{ page.header }}
+  <header class="govgr-header" role="banner">
+    <div class="govgr-header__container">
+      <div class="govgr-header__content">
+        <a href="https://www.gov.gr/">
+          <img class="govgr-header__logo" src="https://www.gov.gr/gov_gr_logo.svg" alt="gov.gr logo" />
+        </a>  
+        <a href="https://www.gov.gr/">
+          <img class="govgr-header__secondary-logo" src="https://dilosi.services.gov.gr/minedu-logo.svg" alt="minedu logo" />
+        </a>
+        <a href="/" class="govgr-header__title">KEMKE</a>
+        {{ page.header }}
+      </div>
+        <svg class="govgr-svg-icon govgr-svg-icon--burger" focusable="true" viewBox="0 0 24 24" aria-hidden="true" > <rect id="govgr-svg-icon--burger__line-1" width="20" height="3.3"/><rect id="govgr-svg-icon--burger__line-2" width="20" height="3.3"/><rect id="govgr-svg-icon--burger__line-3" width="20" height="3.3"/></svg>
+    </div>
   </header>
 
   {{ page.primary_menu }}
