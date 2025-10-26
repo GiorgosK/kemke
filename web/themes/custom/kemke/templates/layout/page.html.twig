@@ -60,6 +60,10 @@
     </div>
   </header>
 
+  <div class="govgr-layout-wrapper govgr-layout-wrapper__full-height">
+    <div class="govgr-width-container">
+
+
   {{ page.primary_menu }}
   {{ page.secondary_menu }}
 
@@ -68,8 +72,10 @@
   {{ page.highlighted }}
 
   {{ page.help }}
+  
+      <div class="govgr-main-wrapper" role="main">
+        <main class="govgr-grid-column-two-thirds">
 
-  <main role="main">
     <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
 
     <div class="layout-content">
@@ -88,7 +94,10 @@
       </aside>
     {% endif %}
 
-  </main>
+        </main>
+      </div>
+    </div>
+  <div>  
 
 
   <footer class="govgr-footer" role="contentinfo">
