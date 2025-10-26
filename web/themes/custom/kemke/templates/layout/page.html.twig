@@ -78,10 +78,35 @@
 
   </main>
 
-  {% if page.footer %}
-    <footer role="contentinfo">
-      {{ page.footer }}
-    </footer>
-  {% endif %}
+
+  <footer class="govgr-footer" role="contentinfo">
+    <div class="govgr-width-container">
+      <div class="govgr-footer__meta">
+        <div class="govgr-footer__meta-item govgr-footer__meta-item--grow">
+          <div class="govgr-footer__content">
+            {% if page.footer %}
+              <div class="govgr-pb-7">
+                {{ page.footer }}
+              </div>
+            {% endif %}
+            <h2 class="govgr-visually-hidden">Σύνδεσμοι</h2>
+            <ul class="govgr-footer__inline-list">
+              <li class="govgr-footer__inline-list-item">
+                <a class="govgr-footer__link" href="/">Αρχική</a>
+              </li>
+            </ul>
+            <p class="govgr-footer__licence-description">
+              Υλοποίηση από το 
+              <a href="https://grnet.gr" target="_blank" rel="noreferrer noopener" class="govgr-link">ΕΔΥΤΕ<span class="govgr-visually-hidden">(ανοίγει σε καινούρια καρτέλα)</span></a> για το
+              <a href="https://mindigital.gr/" target="_blank" rel="noreferrer noopener" class="govgr-link"> Υπουργείο Ψηφιακής Διακυβέρνησης <span class="govgr-visually-hidden">(ανοίγει σε καινούρια καρτέλα)</span></a>
+            </p>
+          </div>
+        </div>
+        <div class="govgr-footer__meta-item">
+          <img class="govgr-footer__government-logo" src="/themes/custom/kemke/digigov/img/government-logo2.svg" alt="government logo" />
+        </div>
+      </div>
+    </div>
+  </footer>
 
 </div>{# /.layout-container #}
