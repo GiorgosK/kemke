@@ -1,0 +1,7 @@
+mock_api.records:
+  path: '/mock-api/records'
+  defaults:
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handle'
+  requirements:
+    _permission: 'access content'
+  methods: [GET, POST]

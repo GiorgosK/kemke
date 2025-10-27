@@ -1,0 +1,7 @@
+name: Mock API
+type: module
+description: 'Provides a simple JSON API backed by SQLite for storing mock form submissions.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:serialization

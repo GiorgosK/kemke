@@ -1,0 +1,6 @@
+services:
+  mock_api.storage:
+    class: Drupal\mock_api\Service\MockApiStorage
+    arguments:
+      - '@file_system'
+      - '@datetime.time'
