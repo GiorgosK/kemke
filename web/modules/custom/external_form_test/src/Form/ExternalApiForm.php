@@ -13,6 +13,8 @@ class ExternalApiForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $form['#theme'] = 'external_form_test_form';
+
     $form['name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Your name'),
@@ -82,7 +84,7 @@ class ExternalApiForm extends FormBase {
       }
     }
     catch (RequestException $e) {
-      watchdog_exception('external_form_test', $e);
+      \Drupal::logger('external_form_test')->error($e->getMessage());
       $this->messenger()->addError($this->t('Error sending to API: @msg', ['@msg' => $e->getMessage()]));
     }
   }

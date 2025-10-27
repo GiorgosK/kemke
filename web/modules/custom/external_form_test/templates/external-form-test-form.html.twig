@@ -1,0 +1,73 @@
+{#
+/**
+ * @file
+ * Theme override for the External API Test form.
+ */
+#}
+{% set name = form.name|merge({'#title_display': 'none'}) %}
+{% set email = form.email|merge({'#title_display': 'none'}) %}
+{% set message = form.message|merge({'#title_display': 'none'}) %}
+
+<form{{ form.attributes }}>
+  {{ form.form_build_id }}
+  {{ form.form_token }}
+  {{ form.form_id }}
+
+  <div class="govgr-field govgr-field--name">
+    <label class="govgr-label" for="{{ name['#id'] }}">
+      <span role="heading" aria-level="3" class="govgr-heading-md">
+        {{ name['#title'] }}
+        {% if name['#required'] %}
+          <span class="form-required" aria-hidden="true">*</span>
+        {% endif %}
+      </span>
+      {% if name['#description'] is defined and name['#description'] %}
+        <p class="govgr-hint">
+          {{ name['#description']['#markup']|default(name['#description']) }}
+        </p>
+      {% endif %}
+      {{ name|add_class('govgr-input') }}
+    </label>
+  </div>
+
+  <div class="govgr-field govgr-field--email">
+    <label class="govgr-label" for="{{ email['#id'] }}">
+      <span role="heading" aria-level="3" class="govgr-heading-md">
+        {{ email['#title'] }}
+        {% if email['#required'] %}
+          <span class="form-required" aria-hidden="true">*</span>
+        {% endif %}
+      </span>
+      {% if email['#description'] is defined and email['#description'] %}
+        <p class="govgr-hint">
+          {{ email['#description']['#markup']|default(email['#description']) }}
+        </p>
+      {% endif %}
+      {{ email|add_class('govgr-input') }}
+    </label>
+  </div>
+
+  <div class="govgr-field govgr-field--message">
+    <label class="govgr-label" for="{{ message['#id'] }}">
+      <span role="heading" aria-level="3" class="govgr-heading-md">
+        {{ message['#title'] }}
+        {% if message['#required'] %}
+          <span class="form-required" aria-hidden="true">*</span>
+        {% endif %}
+      </span>
+      {% if message['#description'] is defined and message['#description'] %}
+        <p class="govgr-hint">
+          {{ message['#description']['#markup']|default(message['#description']) }}
+        </p>
+      {% endif %}
+      {{ message|add_class('govgr-textarea') }}
+    </label>
+  </div>
+
+  <div class="govgr-actions">
+    {{ form.actions.submit|add_class(['govgr-btn', 'govgr-btn-primary']) }}
+    {{ form.actions|without('submit') }}
+  </div>
+
+  {{ form|without('form_build_id', 'form_token', 'form_id', 'name', 'email', 'message', 'actions') }}
+</form>

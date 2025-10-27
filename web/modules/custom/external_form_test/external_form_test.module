@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Theme hooks for the External Form Test module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function external_form_test_theme($existing, $type, $theme, $path) {
+  return [
+    'external_form_test_form' => [
+      'render element' => 'form',
+      'path' => $path . '/templates',
+      'template' => 'external-form-test-form',
+    ],
+  ];
+}
