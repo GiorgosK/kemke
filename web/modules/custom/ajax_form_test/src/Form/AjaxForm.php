@@ -22,7 +22,8 @@ class AjaxForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    // Wrap the entire form so the AJAX callback can refresh it in place.
+    $form['#theme'] = 'ajax_form_test_form';
+    $form['#attached']['library'][] = 'core/drupal.ajax';
     $form['#prefix'] = '<div id="ajax-form-test-wrapper">';
     $form['#suffix'] = '</div>';
 
