@@ -63,7 +63,8 @@ class ExternalApiForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->cleanValues()->getValues();
     $client = \Drupal::httpClient();
-    $endpoint = 'https://httpbin.org/post'; // Test echo endpoint
+    //$endpoint = 'https://httpbin.org/post'; // Test echo endpoint
+    $endpoint = 'https://kemke.ddev.site/mock-api/records';
 
     try {
       $response = $client->post($endpoint, [
