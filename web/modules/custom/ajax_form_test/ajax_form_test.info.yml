@@ -1,0 +1,5 @@
+name: Ajax Form Test
+type: module
+description: Simple Ajax form that posts to external API.
+core_version_requirement: ^11
+package: Custom

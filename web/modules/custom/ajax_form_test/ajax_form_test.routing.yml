@@ -1,0 +1,15 @@
+ajax_form_test.page:
+  path: '/ajax-form'
+  defaults:
+    _controller: '\Drupal\ajax_form_test\Controller\AjaxFormController::page'
+    _title: 'Ajax Form Example'
+  requirements:
+    _permission: 'access content'
+
+ajax_form_test.api:
+  path: '/ajax-form/api'
+  defaults:
+    _controller: '\Drupal\ajax_form_test\Controller\ApiProxyController::submit'
+  methods: [POST]
+  requirements:
+    _permission: 'access content'
