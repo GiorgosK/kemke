@@ -115,6 +115,7 @@ digigov:
   css:
     theme:
       digigov/digigov.css: { }
+      digigov/digigov-overrides.css: {}
   js:
     digigov/dist/digigov.globals.js: { }
   dependencies:
