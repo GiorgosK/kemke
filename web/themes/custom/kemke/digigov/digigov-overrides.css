@@ -30,3 +30,7 @@
 .region-header {
   margin-left: auto
 }
+
+.govgr-layout-grey {
+  background-color: var(--color-base-200);
+}
