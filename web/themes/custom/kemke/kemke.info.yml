@@ -4,7 +4,6 @@ base theme: false
 single_directory_component: true
 version: 1.0.0
 libraries:
-  - kemke/base
   - kemke/messages
   - core/normalize
   - kemke/digigov
