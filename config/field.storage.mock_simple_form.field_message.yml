@@ -1,0 +1,19 @@
+uuid: 44ba526f-a534-43b6-92a6-f9a2319fd693
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+    - text
+id: mock_simple_form.field_message
+field_name: field_message
+entity_type: mock_simple_form
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

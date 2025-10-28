@@ -1,0 +1,38 @@
+uuid: 2c1b8294-6435-4ae4-8e5f-e38f44c48f6b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.mock_simple_form.mock_simple_form.field_message
+  module:
+    - external_entities
+    - text
+id: mock_simple_form.mock_simple_form.default
+targetEntityType: mock_simple_form
+bundle: mock_simple_form
+mode: default
+content:
+  field_message:
+    type: text_textarea
+    weight: 121
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 120
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 3
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

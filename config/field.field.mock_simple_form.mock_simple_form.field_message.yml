@@ -1,0 +1,23 @@
+uuid: b2795844-2d9e-4096-a404-2412dd8934ff
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.mock_simple_form.field_message
+    - external_entities.external_entity_type.mock_simple_form
+  module:
+    - external_entities
+    - text
+id: mock_simple_form.mock_simple_form.field_message
+field_name: field_message
+entity_type: mock_simple_form
+bundle: mock_simple_form
+label: message
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long
