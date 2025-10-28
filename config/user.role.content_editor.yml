@@ -9,6 +9,7 @@ dependencies:
   module:
     - comment
     - contextual
+    - external_entities
     - file
     - node
     - path
@@ -29,10 +30,12 @@ permissions:
   - 'access toolbar'
   - 'administer url aliases'
   - 'create article content'
+  - 'create mock_simple_form external entity'
   - 'create page content'
   - 'create terms in tags'
   - 'create url aliases'
   - 'delete article revisions'
+  - 'delete mock_simple_form external entity'
   - 'delete own article content'
   - 'delete own files'
   - 'delete own page content'
@@ -42,6 +45,9 @@ permissions:
   - 'edit own page content'
   - 'edit terms in tags'
   - 'revert all revisions'
+  - 'update mock_simple_form external entity'
   - 'view all revisions'
+  - 'view mock_simple_form external entity'
+  - 'view mock_simple_form external entity collection'
   - 'view own unpublished content'
   - 'view the administration theme'
