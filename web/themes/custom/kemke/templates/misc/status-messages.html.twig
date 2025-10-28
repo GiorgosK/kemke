@@ -28,10 +28,56 @@
       'messages--' ~ type,
     ]
   %}
-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
-    {% if type == 'error' %}
-      <div role="alert">
-    {% endif %}
+  {%
+    set message_attributes = attributes.addClass(classes)|without('role', 'aria-label')
+  %}
+
+  {% if type == 'status' %}
+    {% set title = messages|first %}
+    {% set remaining_messages = messages|length > 1 ? messages|slice(1) : [] %}
+    <div class="govgr-panel govgr-panel--confirmation" role="status" aria-label="{{ status_headings[type] }}">
+      {% if title %}
+        <h1 class="govgr-panel__title">{{ title }}</h1>
+      {% endif %}
+      {% if remaining_messages %}
+        <div class="govgr-panel__body">
+          <ul class="govgr-list govgr-list--bullet">
+            {% for message in remaining_messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  {% elseif type == 'warning' %}
+    {% for message in messages %}
+      <div class="govgr-warning-text" role="alert" aria-label="{{ status_headings[type] }}">
+        <span class="govgr-warning-text__icon" aria-hidden="true">!</span>
+        <strong class="govgr-warning-text__text">
+          {% if status_headings[type] %}
+            <span class="govgr-warning-text__assistive">{{ status_headings[type] }}</span>
+          {% endif %}
+          {{ message }}
+        </strong>
+      </div>
+    {% endfor %}
+  {% elseif type == 'error' %}
+    <div class="govgr-error-summary" role="alert" aria-label="{{ status_headings[type] }}">
+      {% if status_headings[type] %}
+        <h3 class="govgr-heading-sm">{{ status_headings[type] }}</h3>
+      {% endif %}
+      {% if messages|length > 1 %}
+        <ul class="govgr-list govgr-list--bullet">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>{{ messages|first }}</p>
+      {% endif %}
+    </div>
+  {% else %}
+    <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ message_attributes }}>
       {% if status_headings[type] %}
         <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
       {% endif %}
@@ -44,10 +90,8 @@
       {% else %}
         {{ messages|first }}
       {% endif %}
-    {% if type == 'error' %}
-      </div>
-    {% endif %}
-  </div>
+    </div>
+  {% endif %}
   {# Remove type specific classes. #}
   {% set attributes = attributes.removeClass(classes) %}
 {% endfor %}
