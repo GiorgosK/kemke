@@ -18,6 +18,9 @@
     title_display == 'invisible' ? 'visually-hidden',
     required ? 'js-form-required',
     required ? 'form-required',
+    'govgr-label',
+    title_display == 'after' ? 'govgr-checkboxes__label',
+    title_display == 'after' ? 'govgr-radios__label',
   ]
 %}
 {% if title is not empty or required -%}

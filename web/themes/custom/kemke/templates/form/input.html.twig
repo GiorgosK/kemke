@@ -10,4 +10,40 @@
  * @see template_preprocess_input()
  */
 #}
-<input{{ attributes }} />{{ children }}
+{%
+  set is_button = attributes.hasClass('button') or attributes.hasClass('form-submit')
+%}
+{%
+  set is_text_input = attributes.hasClass('form-text')
+    or attributes.hasClass('form-email')
+    or attributes.hasClass('form-number')
+    or attributes.hasClass('form-url')
+    or attributes.hasClass('form-tel')
+    or attributes.hasClass('form-search')
+    or attributes.hasClass('form-password')
+    or attributes.hasClass('form-date')
+    or attributes.hasClass('form-time')
+    or attributes.hasClass('form-autocomplete')
+%}
+{%
+  set is_checkbox = attributes.hasClass('form-checkbox')
+%}
+{%
+  set is_radio = attributes.hasClass('form-radio')
+%}
+{%
+  set classes = []
+%}
+{% if is_button %}
+  {% set classes = classes|merge(['govgr-btn', 'govgr-btn-primary']) %}
+{% endif %}
+{% if is_text_input %}
+  {% set classes = classes|merge(['govgr-input']) %}
+{% endif %}
+{% if is_checkbox %}
+  {% set classes = classes|merge(['govgr-checkboxes__input']) %}
+{% endif %}
+{% if is_radio %}
+  {% set classes = classes|merge(['govgr-radios__input']) %}
+{% endif %}
+<input{{ attributes.addClass(classes) }} />{{ children }}

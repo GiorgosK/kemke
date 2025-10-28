@@ -32,6 +32,7 @@
     'form-item',
     'js-form-wrapper',
     'form-wrapper',
+    'govgr-fieldset',
   ]
 %}
 <fieldset{{ attributes.addClass(classes) }}>
@@ -40,18 +41,19 @@
       'fieldset-legend',
       required ? 'js-form-required',
       required ? 'form-required',
+      'govgr-fieldset__legend',
     ]
   %}
   {# Always wrap fieldset legends in a <span> for CSS positioning. #}
   <legend{{ legend.attributes }}>
     <span{{ legend_span.attributes.addClass(legend_span_classes) }}>{{ legend.title }}</span>
   </legend>
-  <div class="fieldset-wrapper">
+  <div class="fieldset-wrapper govgr-fieldset__body">
     {% if description_display == 'before' and description.content %}
-      <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+      <div{{ description.attributes.addClass(['description', 'govgr-hint']) }}>{{ description.content }}</div>
     {% endif %}
     {% if errors %}
-      <div class="form-item--error-message">
+      <div class="form-item--error-message govgr-error-message">
         <strong>{{ errors }}</strong>
       </div>
     {% endif %}
@@ -63,7 +65,7 @@
       <span class="field-suffix">{{ suffix }}</span>
     {% endif %}
     {% if description_display in ['after', 'invisible'] and description.content %}
-      <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+      <div{{ description.attributes.addClass(['description', 'govgr-hint']) }}>{{ description.content }}</div>
     {% endif %}
   </div>
 </fieldset>

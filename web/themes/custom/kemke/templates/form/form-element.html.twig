@@ -52,13 +52,16 @@
     'form-type-' ~ type|clean_class,
     'js-form-item-' ~ name|clean_class,
     'form-item-' ~ name|clean_class,
+    'govgr-field',
     title_display not in ['after', 'before'] ? 'form-no-label',
     disabled == 'disabled' ? 'form-disabled',
     errors ? 'form-item--error',
+    errors ? 'govgr-field--error',
   ]
 %}
 {%
   set description_classes = [
+    'govgr-hint',
     'description',
     description_display == 'invisible' ? 'visually-hidden',
   ]
@@ -83,7 +86,7 @@
     {{ label }}
   {% endif %}
   {% if errors %}
-    <div class="form-item--error-message">
+    <div class="form-item--error-message govgr-error-message">
       <strong>{{ errors }}</strong>
     </div>
   {% endif %}
