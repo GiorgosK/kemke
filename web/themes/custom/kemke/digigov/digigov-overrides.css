@@ -15,3 +15,18 @@
 .form-actions {
   display: flex;
 }
+
+.govgr-header__content {
+  width: 100%;
+}
+.govgr-header .govgr-nav {
+  position: relative;
+}
+@media (min-width: 640px) {
+  .govgr-nav {
+    background-color: transparent;
+  }
+}
+.region-header {
+  margin-left: auto
+}
