@@ -1,3 +1,13 @@
 .govgr-grid-column-three-thirds {
   grid-column: span 3 / span 3;
 }
+
+.form-required {
+  position: relative;
+  display: inline-block;
+}
+.form-required::after {
+  position: absolute;
+  right: -10px;
+  margin: 0;
+}
