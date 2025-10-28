@@ -1,0 +1,5 @@
+mock_simple_form_support.mock_simple_form_add:
+  route_name: entity.mock_simple_form.add_form
+  title: 'Add mock API record'
+  appears_on:
+    - entity.mock_simple_form.collection

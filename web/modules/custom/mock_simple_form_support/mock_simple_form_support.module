@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\external_entities\Form\ExternalEntityForm;
+
+/**
+ * Implements hook_entity_presave().
+ */
+function mock_simple_form_support_entity_presave(EntityInterface $entity): void {
+  if ($entity->getEntityTypeId() !== 'mock_simple_form') {
+    return;
+  }
+
+  // Ensure new records default to the current user for provenance.
+  if ($entity->isNew() && $entity->hasField('uid') && $entity->get('uid')->isEmpty()) {
+    $entity->setOwnerId(\Drupal::currentUser()->id());
+  }
+
+  // Trim the reference id before it is sent to the external endpoint.
+  if ($entity->hasField('field_reference_id') && !$entity->get('field_reference_id')->isEmpty()) {
+    $entity->set('field_reference_id', trim((string) $entity->get('field_reference_id')->value));
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function mock_simple_form_support_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof ExternalEntityForm) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if ($entity->getEntityTypeId() !== 'mock_simple_form') {
+    return;
+  }
+
+  if (!isset($form['id'])) {
+    return;
+  }
+
+  if ($entity->isNew()) {
+    // Hide the identifier field when creating a record; the API supplies it.
+    $form['id']['#access'] = FALSE;
+  }
+  else {
+    // Prevent manual edits on existing entities.
+    $form['id']['#disabled'] = TRUE;
+  }
+}
