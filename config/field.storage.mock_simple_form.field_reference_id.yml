@@ -1,0 +1,21 @@
+uuid: 6f5d560e-ebed-4ac8-8903-64abef39a650
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+id: mock_simple_form.field_reference_id
+field_name: field_reference_id
+entity_type: mock_simple_form
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

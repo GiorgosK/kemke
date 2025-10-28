@@ -25,6 +25,19 @@ field_mappers:
             description: ''
       format: basic_html
       debug_level: 1
+  field_reference_id:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: reference_id
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 1
   id:
     id: generic
     config:
