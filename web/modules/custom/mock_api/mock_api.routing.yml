@@ -5,3 +5,12 @@ mock_api.records:
   requirements:
     _permission: 'access content'
   methods: [GET, POST]
+
+mock_api.record:
+  path: '/mock-api/records/{id}'
+  defaults:
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handleItem'
+  requirements:
+    _permission: 'access content'
+    id: '\d+'
+  methods: [GET, PUT, PATCH, DELETE]

@@ -131,14 +131,99 @@ final class MockApiStorage {
       return [];
     }
 
-    return array_map(static function (array $row): array {
-      $row['id'] = (int) $row['id'];
-      $row['created_at'] = (int) $row['created_at'];
-      $row['updated_at'] = (int) $row['updated_at'];
-      $row['uid'] = isset($row['uid']) ? (int) $row['uid'] : NULL;
-      $row['data'] = json_decode($row['data'] ?? '{}', TRUE) ?? [];
-      return $row;
-    }, $rows);
+    return array_map(fn(array $row): array => $this->mapRow($row), $rows);
+  }
+
+  /**
+   * Loads a single record by ID.
+   *
+   * @param int $id
+   *   The record identifier.
+   *
+   * @return array|null
+   *   The record data or NULL if not found.
+   */
+  public function loadRecord(int $id): ?array {
+    $statement = $this->connection->prepare(
+      'SELECT id, uid, reference_id, data, created_at, updated_at FROM records WHERE id = :id'
+    );
+    $statement->execute([':id' => $id]);
+
+    $row = $statement->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+      return NULL;
+    }
+
+    return $this->mapRow($row);
+  }
+
+  /**
+   * Updates an existing record.
+   *
+   * @param int $id
+   *   The record identifier.
+   * @param int $uid
+   *   The associated user ID.
+   * @param string $referenceId
+   *   The reference ID value to store.
+   * @param array $data
+   *   Arbitrary payload data.
+   * @param bool $merge
+   *   When TRUE, merge the payload with existing data (PATCH semantics).
+   *
+   * @return array
+   *   The updated record data.
+   */
+  public function updateRecord(int $id, int $uid, string $referenceId, array $data, bool $merge = FALSE): array {
+    $existing = $this->loadRecord($id);
+    if ($existing === NULL) {
+      throw new \InvalidArgumentException('Record not found.');
+    }
+    if ($uid <= 0) {
+      throw new \InvalidArgumentException('UID must be a positive integer.');
+    }
+    if ($referenceId === '') {
+      throw new \InvalidArgumentException('Reference ID is required.');
+    }
+
+    $currentData = is_array($existing['data']) ? $existing['data'] : [];
+    $payloadData = $merge ? array_replace($currentData, $data) : $data;
+
+    $now = $this->time->getRequestTime();
+
+    $statement = $this->connection->prepare(
+      'UPDATE records SET uid = :uid, reference_id = :reference_id, data = :data, updated_at = :updated_at WHERE id = :id'
+    );
+    $statement->execute([
+      ':uid' => $uid,
+      ':reference_id' => $referenceId,
+      ':data' => json_encode($payloadData, \JSON_THROW_ON_ERROR),
+      ':updated_at' => $now,
+      ':id' => $id,
+    ]);
+
+    $existing['uid'] = $uid;
+    $existing['reference_id'] = $referenceId;
+    $existing['data'] = $payloadData;
+    $existing['updated_at'] = $now;
+
+    return $existing;
+  }
+
+  /**
+   * Deletes a record by ID.
+   *
+   * @param int $id
+   *   The record identifier.
+   *
+   * @return bool
+   *   TRUE if a record was removed, otherwise FALSE.
+   */
+  public function deleteRecord(int $id): bool {
+    $statement = $this->connection->prepare('DELETE FROM records WHERE id = :id');
+    $statement->execute([':id' => $id]);
+
+    return (bool) $statement->rowCount();
   }
 
   /**
@@ -201,6 +286,18 @@ final class MockApiStorage {
     }
 
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_uid ON records (uid)');
+  }
+
+  /**
+   * Converts a raw database row into a structured record array.
+   */
+  private function mapRow(array $row): array {
+    $row['id'] = (int) $row['id'];
+    $row['created_at'] = (int) $row['created_at'];
+    $row['updated_at'] = (int) $row['updated_at'];
+    $row['uid'] = isset($row['uid']) ? (int) $row['uid'] : NULL;
+    $row['data'] = json_decode($row['data'] ?? '{}', TRUE) ?? [];
+    return $row;
   }
 
 }

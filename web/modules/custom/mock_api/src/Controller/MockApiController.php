@@ -83,7 +83,7 @@ final class MockApiController extends ControllerBase {
       return $this->errorResponse('Unable to persist data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    return new JsonResponse($record, Response::HTTP_OK);
+    return new JsonResponse(MockApiStorage::flattenData($record), Response::HTTP_OK);
   }
 
   /**
@@ -112,10 +112,77 @@ final class MockApiController extends ControllerBase {
   }
 
   /**
+   * Handles operations on an individual record.
+   */
+  public function handleItem(Request $request, int $id): JsonResponse {
+    if ($request->isMethod(Request::METHOD_DELETE)) {
+      try {
+        $deleted = $this->storage->deleteRecord($id);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('mock_api')->error('Failed to delete mock API record: @message', ['@message' => $exception->getMessage()]);
+        return $this->errorResponse('Unable to delete data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      if (!$deleted) {
+        return $this->errorResponse('Record not found.', Response::HTTP_NOT_FOUND);
+      }
+
+      return new JsonResponse(['status' => 'deleted'], Response::HTTP_OK);
+    }
+
+    try {
+      $record = $this->storage->loadRecord($id);
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('mock_api')->error('Failed to load mock API record: @message', ['@message' => $exception->getMessage()]);
+      return $this->errorResponse('Unable to load data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    if ($record === NULL) {
+      return $this->errorResponse('Record not found.', Response::HTTP_NOT_FOUND);
+    }
+
+    if ($request->isMethod(Request::METHOD_GET)) {
+      return new JsonResponse(MockApiStorage::flattenData($record));
+    }
+
+    if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
+      $data = $this->extractPayload($request);
+      if ($data === []) {
+        return $this->errorResponse('Request body is empty or malformed.', Response::HTTP_BAD_REQUEST);
+      }
+
+      $referenceId = $this->detectReferenceId($data, $request, FALSE);
+      if ($referenceId === '') {
+        $referenceId = $record['reference_id'];
+      }
+
+      $uid = $this->determineUid($data, isset($record['uid']) ? (int) $record['uid'] : NULL);
+      $merge = $request->isMethod(Request::METHOD_PATCH);
+
+      try {
+        $updated = $this->storage->updateRecord($id, $uid, $referenceId, $data, $merge);
+      }
+      catch (\InvalidArgumentException $exception) {
+        return $this->errorResponse($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('mock_api')->error('Failed to update mock API record: @message', ['@message' => $exception->getMessage()]);
+        return $this->errorResponse('Unable to update data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      return new JsonResponse(MockApiStorage::flattenData($updated));
+    }
+
+    return $this->errorResponse('Unsupported method.', Response::HTTP_METHOD_NOT_ALLOWED);
+  }
+
+  /**
    * Determines the UID to associate with the payload.
    */
-  private function determineUid(array $data): int {
-    $uid = $this->currentUser->id();
+  private function determineUid(array $data, ?int $defaultUid = NULL): int {
+    $uid = $defaultUid ?? (int) $this->currentUser->id();
     $candidates = ['uid', 'user_id', 'userId'];
 
     foreach ($candidates as $candidate) {
@@ -127,7 +194,7 @@ final class MockApiController extends ControllerBase {
       }
     }
 
-    return (int) $uid;
+    return $uid;
   }
 
   /**
@@ -157,7 +224,7 @@ final class MockApiController extends ControllerBase {
   /**
    * Attempts to determine a reference ID from the payload.
    */
-  private function detectReferenceId(array $data, Request $request): string {
+  private function detectReferenceId(array $data, Request $request, bool $allowFallback = TRUE): string {
     $candidates = [
       'reference_id',
       'form_id',
@@ -171,12 +238,16 @@ final class MockApiController extends ControllerBase {
       }
     }
 
-    $referer = $request->headers->get('referer');
-    if (is_string($referer) && $referer !== '') {
-      return $referer;
+    if ($allowFallback) {
+      $referer = $request->headers->get('referer');
+      if (is_string($referer) && $referer !== '') {
+        return $referer;
+      }
+
+      return $request->getSchemeAndHttpHost() . $request->getPathInfo();
     }
 
-    return $request->getSchemeAndHttpHost() . $request->getPathInfo();
+    return '';
   }
 
   /**
