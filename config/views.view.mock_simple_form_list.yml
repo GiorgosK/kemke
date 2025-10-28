@@ -410,7 +410,7 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: "<a href=\"/mock-simple-form/{{ id }}?destination=/mock-simple-form-list\">View</a>\r\n<a href=\"/mock-simple-form/{{ id }}/edit?destination=/mock-simple-form-list\">Edit</a>\r\n<a href=\"/mock-simple-form/{{ id }}/delete?destination=/mock-simple-form-list\">Delete</a>\r\n"
+            text: "<a href=\"/mock-simple-form/{{ id }}?destination=/mock-simple-form\">View</a>\r\n<a href=\"/mock-simple-form/{{ id }}/edit?destination=/mock-simple-form\">Edit</a>\r\n<a href=\"/mock-simple-form/{{ id }}/delete?destination=/mock-simple-form\">Delete</a>\r\n"
             make_link: false
             path: ''
             absolute: false
