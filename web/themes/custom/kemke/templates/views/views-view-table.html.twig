@@ -32,7 +32,16 @@
  */
 #}
 {%
-  set classes = [
+  set container_classes = [
+    'govgr-table-container',
+    'govgr-table-container--border',
+  ]
+%}
+{%
+  set table_classes = [
+    'govgr-table',
+    'govgr-table--zebra',
+    'govgr-table--dark',
     'views-table',
     'views-view-table',
     'cols-' ~ header|length,
@@ -40,9 +49,10 @@
     sticky ? 'sticky-header',
   ]
 %}
-<table{{ attributes.addClass(classes) }}>
+<div class="{{ container_classes|join(' ') }}">
+<table{{ attributes.addClass(table_classes) }}>
   {% if caption_needed %}
-    <caption>
+    <caption class="govgr-table__caption">
     {% if caption %}
       {{ caption }}
     {% else %}
@@ -54,16 +64,19 @@
     </caption>
   {% endif %}
   {% if header %}
-    <thead>
-      <tr>
+    <thead class="govgr-table__head">
+      <tr class="govgr-table__row">
         {% for key, column in header %}
+          {%
+            set column_classes = [
+              'govgr-table__header'
+            ]
+          %}
           {% if column.default_classes %}
-            {%
-              set column_classes = [
-                'views-field',
-                'views-field-' ~ fields[key],
-              ]
-            %}
+            {% set column_classes = column_classes|merge([
+              'views-field',
+              'views-field-' ~ fields[key],
+            ]) %}
           {% endif %}
           <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col') }}>
             {%- if column.wrapper_element -%}
@@ -86,16 +99,18 @@
       </tr>
     </thead>
   {% endif %}
-  <tbody>
+  <tbody class="govgr-table__body">
     {% for row in rows %}
-      <tr{{ row.attributes }}>
+      {% set row_classes = ['govgr-table__row'] %}
+      <tr{{ row.attributes.addClass(row_classes) }}>
         {% for key, column in row.columns %}
+          {%
+            set column_classes = [
+              'govgr-table__cell'
+            ]
+          %}
           {% if column.default_classes %}
-            {%
-              set column_classes = [
-                'views-field'
-              ]
-            %}
+            {% set column_classes = column_classes|merge(['views-field']) %}
             {% for field in column.fields %}
               {% set column_classes = column_classes|merge(['views-field-' ~ field]) %}
             {% endfor %}
@@ -118,3 +133,4 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
