@@ -34,14 +34,14 @@ function kemke_preprocess_link(array &$variables): void {
     $existing_classes = $class_attribute->value();
   }
   $class_string = implode(' ', $existing_classes);
-  if (!str_contains(' ' . $class_string . ' ', ' govgr-back-link ')) {
-    $variables['attributes']->addClass('govgr-back-link');
+  if (!str_contains(' ' . $class_string . ' ', 'govgr-btn')) {
+    $variables['attributes']->addClass('govgr-btn govgr-btn-secondary');
   }
 
   // Explicitly cover the delete link in edit forms which may bypass the theme.
   $id_attribute = $variables['attributes']->offsetGet('id');
   if ($id_attribute instanceof \Drupal\Core\Template\AttributeValueBase && $id_attribute->value() === 'edit-delete') {
-    $variables['attributes']->addClass('govgr-back-link');
+    $variables['attributes']->addClass('govgr-btn govgr-btn-warning');
   }
 }
 
@@ -60,8 +60,12 @@ function kemke_form_alter(array &$form, FormStateInterface $form_state, $form_id
  */
 function _kemke_attach_govgr_link_classes(array &$element): void {
   if (isset($element['#type']) && $element['#type'] === 'link') {
-    $element['#options']['attributes']['class'][] = 'govgr-back-link';
-    $element['#attributes']['class'][] = 'govgr-back-link';
+    if (isset($element["#button_type"]) && $element["#button_type"] === 'danger') {
+      $element['#attributes']['class'][] = 'govgr-btn govgr-btn-warning';
+    } else {
+      $element['#options']['attributes']['class'][] = 'govgr-btn govgr-btn-secondary';
+      $element['#attributes']['class'][] = 'govgr-btn govgr-btn-secondary';
+    }
   }
 
   foreach (Element::children($element) as $child) {
