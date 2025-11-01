@@ -18,7 +18,7 @@ field_mappers:
         value:
           id: simple
           config:
-            mapping: signature_date
+            mapping: file_completion_date
             required_field: false
             main_property: true
             data_processors:
