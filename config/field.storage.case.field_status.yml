@@ -12,13 +12,13 @@ type: list_string
 settings:
   allowed_values:
     -
-      value: finalised
+      value: FINALISED
       label: FINALISED
     -
-      value: rejected
+      value: REJECTED
       label: REJECTED
     -
-      value: validated
+      value: VALIDATED
       label: VALIDATED
   allowed_values_function: ''
 module: options
