@@ -49,3 +49,12 @@
 .govgr-heading-xl {
   max-width: none;
 }
+
+.govgr-btn {
+  margin-right: 0.5rem;
+}
+
+pre {
+  background: rgba(var(--color-base-300-rgb));
+  padding: 0.5rem;
+}
