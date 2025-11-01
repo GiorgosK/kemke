@@ -1,0 +1,22 @@
+uuid: aac09267-7947-49e3-bc79-83339a451334
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.case.field_file_completion_date
+    - external_entities.external_entity_type.case
+  module:
+    - datetime
+    - external_entities
+id: case.case.field_file_completion_date
+field_name: field_file_completion_date
+entity_type: case
+bundle: case
+label: file_completion_date
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

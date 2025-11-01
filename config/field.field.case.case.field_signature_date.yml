@@ -1,0 +1,22 @@
+uuid: 17375cb8-b950-404b-a17a-e4f18732d885
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.case.field_signature_date
+    - external_entities.external_entity_type.case
+  module:
+    - datetime
+    - external_entities
+id: case.case.field_signature_date
+field_name: field_signature_date
+entity_type: case
+bundle: case
+label: signature_date
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -1,0 +1,21 @@
+uuid: 99993a1c-7d29-49e5-a08c-e6fb336bd967
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.case.field_transparency_requirement
+    - external_entities.external_entity_type.case
+  module:
+    - external_entities
+id: case.case.field_transparency_requirement
+field_name: field_transparency_requirement
+entity_type: case
+bundle: case
+label: transparency_requirement
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

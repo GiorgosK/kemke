@@ -1,0 +1,21 @@
+uuid: 9b68015d-8b11-46c5-abdc-6291be56da02
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+id: case.field_thematic_unit
+field_name: field_thematic_unit
+entity_type: case
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

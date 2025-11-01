@@ -1,0 +1,21 @@
+uuid: d92c5b5e-9633-4454-b3be-6ea128421343
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.case.field_kemke_officer_assignment
+    - external_entities.external_entity_type.case
+  module:
+    - external_entities
+id: case.case.field_kemke_officer_assignment
+field_name: field_kemke_officer_assignment
+entity_type: case
+bundle: case
+label: kemke_officer_assignment
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

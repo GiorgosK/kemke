@@ -1,0 +1,21 @@
+uuid: 6799882e-222f-4416-a6bd-879a18160445
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.case.field_sani_user
+    - external_entities.external_entity_type.case
+  module:
+    - external_entities
+id: case.case.field_sani_user
+field_name: field_sani_user
+entity_type: case
+bundle: case
+label: sani_user
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
