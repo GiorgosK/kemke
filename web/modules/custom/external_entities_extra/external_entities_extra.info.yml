@@ -1,0 +1,7 @@
+name: 'External entities extra'
+type: module
+description: 'Provides helper tooling for custom external entity integrations.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:external_entities

@@ -1,4 +1,4 @@
-mock_simple_form_support.admin_mock_simple_form_list:
+external_entities_extra.admin_mock_simple_form_list:
   title: 'Mock simple form records'
   description: 'Review and create records stored by the mock API.'
   route_name: entity.mock_simple_form.collection

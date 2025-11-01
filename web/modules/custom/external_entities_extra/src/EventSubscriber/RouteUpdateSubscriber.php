@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\mock_simple_form_support\EventSubscriber;
+namespace Drupal\external_entities_extra\EventSubscriber;
 
 use Drupal\Component\EventDispatcher\Event;
 use Drupal\external_entities\EventSubscriber\RouteUpdateSubscriber as ExternalEntitiesRouteUpdateSubscriber;

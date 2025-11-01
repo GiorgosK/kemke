@@ -9,7 +9,7 @@ use Drupal\external_entities\Form\ExternalEntityForm;
 /**
  * Implements hook_entity_presave().
  */
-function mock_simple_form_support_entity_presave(EntityInterface $entity): void {
+function external_entities_extra_entity_presave(EntityInterface $entity): void {
   if ($entity->getEntityTypeId() !== 'mock_simple_form') {
     return;
   }
@@ -28,7 +28,7 @@ function mock_simple_form_support_entity_presave(EntityInterface $entity): void 
 /**
  * Implements hook_form_alter().
  */
-function mock_simple_form_support_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+function external_entities_extra_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $form_object = $form_state->getFormObject();
   if (!$form_object instanceof ExternalEntityForm) {
     return;

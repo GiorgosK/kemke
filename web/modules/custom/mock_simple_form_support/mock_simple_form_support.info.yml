@@ -1,7 +1,0 @@
-name: 'Mock simple form support'
-type: module
-description: 'Provides presave hooks and UI helpers for the mock_simple_form external entity.'
-package: Custom
-core_version_requirement: ^10 || ^11
-dependencies:
-  - drupal:external_entities
