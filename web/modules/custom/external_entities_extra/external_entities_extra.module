@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\external_entities\Form\ExternalEntityForm;
+use Drupal\external_entities_extra\Form\ExternalEntityTypeForm as ExternalEntityTypeFormExtra;
 
 /**
  * Implements hook_entity_presave().
@@ -30,25 +31,35 @@ function external_entities_extra_entity_presave(EntityInterface $entity): void {
  */
 function external_entities_extra_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $form_object = $form_state->getFormObject();
-  if (!$form_object instanceof ExternalEntityForm) {
+
+  if ($form_object instanceof ExternalEntityForm) {
+    $entity = $form_object->getEntity();
+    if ($entity->getEntityTypeId() !== 'mock_simple_form' || !isset($form['id'])) {
+      return;
+    }
+
+    if ($entity->isNew()) {
+      // Hide the identifier field when creating a record; the API supplies it.
+      $form['id']['#access'] = FALSE;
+    }
+    else {
+      // Prevent manual edits on existing entities.
+      $form['id']['#disabled'] = TRUE;
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function external_entities_extra_entity_type_alter(array &$entity_types): void {
+  if (!isset($entity_types['external_entity_type'])) {
     return;
   }
 
-  $entity = $form_object->getEntity();
-  if ($entity->getEntityTypeId() !== 'mock_simple_form') {
-    return;
-  }
-
-  if (!isset($form['id'])) {
-    return;
-  }
-
-  if ($entity->isNew()) {
-    // Hide the identifier field when creating a record; the API supplies it.
-    $form['id']['#access'] = FALSE;
-  }
-  else {
-    // Prevent manual edits on existing entities.
-    $form['id']['#disabled'] = TRUE;
+  $entity_type = $entity_types['external_entity_type'];
+  if (method_exists($entity_type, 'setFormClass')) {
+    $entity_type->setFormClass('add', ExternalEntityTypeFormExtra::class);
+    $entity_type->setFormClass('edit', ExternalEntityTypeFormExtra::class);
   }
 }
