@@ -14,3 +14,20 @@ mock_api.record:
     _permission: 'access content'
     id: '\d+'
   methods: [GET, PUT, PATCH, DELETE]
+
+mock_api.cases:
+  path: '/mock-api/cases'
+  defaults:
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handleCases'
+  requirements:
+    _permission: 'access content'
+  methods: [GET, POST]
+
+mock_api.case:
+  path: '/mock-api/cases/{id}'
+  defaults:
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handleCaseItem'
+  requirements:
+    _permission: 'access content'
+    id: '\d+'
+  methods: [GET, PUT, PATCH, DELETE]

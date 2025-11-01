@@ -242,6 +242,17 @@ final class MockApiStorage {
     );
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_uid ON records (uid)');
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_reference ON records (reference_id)');
+
+    $this->connection->exec(
+      'CREATE TABLE IF NOT EXISTS cases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )'
+    );
+    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_cases_updated_at ON cases (updated_at)');
+
     $this->ensureSchemaUpToDate();
   }
 
@@ -286,6 +297,7 @@ final class MockApiStorage {
     }
 
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_uid ON records (uid)');
+    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_cases_updated_at ON cases (updated_at)');
   }
 
   /**
@@ -298,6 +310,109 @@ final class MockApiStorage {
     $row['uid'] = isset($row['uid']) ? (int) $row['uid'] : NULL;
     $row['data'] = json_decode($row['data'] ?? '{}', TRUE) ?? [];
     return $row;
+  }
+
+  /**
+   * Stores a case payload as JSON.
+   */
+  public function saveCase(array $data): array {
+    $now = $this->time->getRequestTime();
+    $statement = $this->connection->prepare(
+      'INSERT INTO cases (data, created_at, updated_at) VALUES (:data, :created_at, :updated_at)'
+    );
+    $statement->execute([
+      ':data' => json_encode($data, \JSON_THROW_ON_ERROR),
+      ':created_at' => $now,
+      ':updated_at' => $now,
+    ]);
+
+    return [
+      'id' => (int) $this->connection->lastInsertId(),
+      'data' => $data,
+      'created_at' => $now,
+      'updated_at' => $now,
+    ];
+  }
+
+  /**
+   * Loads all stored cases ordered by most recent update.
+   */
+  public function loadCases(): array {
+    $query = 'SELECT id, data, created_at, updated_at FROM cases ORDER BY updated_at DESC';
+    $statement = $this->connection->query($query);
+    $rows = $statement ? $statement->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    return array_map(fn(array $row): array => $this->mapCaseRow($row), $rows ?: []);
+  }
+
+  /**
+   * Loads a single case by identifier.
+   */
+  public function loadCase(int $id): ?array {
+    $statement = $this->connection->prepare('SELECT id, data, created_at, updated_at FROM cases WHERE id = :id');
+    $statement->execute([':id' => $id]);
+    $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+    return $row ? $this->mapCaseRow($row) : NULL;
+  }
+
+  /**
+   * Updates an existing case record.
+   */
+  public function updateCase(int $id, array $data, bool $merge = FALSE): array {
+    $existing = $this->loadCase($id);
+    if ($existing === NULL) {
+      throw new \InvalidArgumentException('Case not found.');
+    }
+
+    $payloadData = $merge ? array_replace($existing['data'], $data) : $data;
+    $now = $this->time->getRequestTime();
+
+    $statement = $this->connection->prepare(
+      'UPDATE cases SET data = :data, updated_at = :updated_at WHERE id = :id'
+    );
+    $statement->execute([
+      ':data' => json_encode($payloadData, \JSON_THROW_ON_ERROR),
+      ':updated_at' => $now,
+      ':id' => $id,
+    ]);
+
+    $existing['data'] = $payloadData;
+    $existing['updated_at'] = $now;
+
+    return $existing;
+  }
+
+  /**
+   * Deletes a case by identifier.
+   */
+  public function deleteCase(int $id): bool {
+    $statement = $this->connection->prepare('DELETE FROM cases WHERE id = :id');
+    $statement->execute([':id' => $id]);
+
+    return (bool) $statement->rowCount();
+  }
+
+  /**
+   * Converts a raw cases table row into a structured array.
+   */
+  private function mapCaseRow(array $row): array {
+    return [
+      'id' => (int) $row['id'],
+      'data' => json_decode($row['data'] ?? '{}', TRUE) ?? [],
+      'created_at' => (int) $row['created_at'],
+      'updated_at' => (int) $row['updated_at'],
+    ];
+  }
+
+  /**
+   * Flattens a stored case into a single-level array for responses.
+   */
+  public static function flattenCase(array $case): array {
+    $data = $case['data'] ?? [];
+    unset($case['data']);
+
+    return $case + (is_array($data) ? $data : []);
   }
 
 }

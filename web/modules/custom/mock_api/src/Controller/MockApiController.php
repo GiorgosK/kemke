@@ -179,6 +179,100 @@ final class MockApiController extends ControllerBase {
   }
 
   /**
+   * Handles collection operations for cases.
+   */
+  public function handleCases(Request $request): JsonResponse {
+    if ($request->isMethod(Request::METHOD_POST)) {
+      $data = $this->extractPayload($request);
+      if ($data === []) {
+        return $this->errorResponse('Request body is empty or malformed.', Response::HTTP_BAD_REQUEST);
+      }
+
+      try {
+        $stored = $this->storage->saveCase($data);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('mock_api')->error('Failed to persist mock API case: @message', ['@message' => $exception->getMessage()]);
+        return $this->errorResponse('Unable to persist data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      return new JsonResponse(MockApiStorage::flattenCase($stored), Response::HTTP_CREATED);
+    }
+
+    try {
+      $cases = $this->storage->loadCases();
+      $cases = array_map(static fn(array $case): array => MockApiStorage::flattenCase($case), $cases);
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('mock_api')->error('Failed to load mock API cases: @message', ['@message' => $exception->getMessage()]);
+      return $this->errorResponse('Unable to load data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    return new JsonResponse(['items' => $cases]);
+  }
+
+  /**
+   * Handles item-level operations for cases.
+   */
+  public function handleCaseItem(Request $request, int $id): JsonResponse {
+    if ($request->isMethod(Request::METHOD_DELETE)) {
+      try {
+        $deleted = $this->storage->deleteCase($id);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('mock_api')->error('Failed to delete mock API case: @message', ['@message' => $exception->getMessage()]);
+        return $this->errorResponse('Unable to delete data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      if (!$deleted) {
+        return $this->errorResponse('Case not found.', Response::HTTP_NOT_FOUND);
+      }
+
+      return new JsonResponse(['status' => 'deleted'], Response::HTTP_OK);
+    }
+
+    try {
+      $case = $this->storage->loadCase($id);
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('mock_api')->error('Failed to load mock API case: @message', ['@message' => $exception->getMessage()]);
+      return $this->errorResponse('Unable to load data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    if ($case === NULL) {
+      return $this->errorResponse('Case not found.', Response::HTTP_NOT_FOUND);
+    }
+
+    if ($request->isMethod(Request::METHOD_GET)) {
+      return new JsonResponse(MockApiStorage::flattenCase($case));
+    }
+
+    if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
+      $data = $this->extractPayload($request);
+      if ($data === []) {
+        return $this->errorResponse('Request body is empty or malformed.', Response::HTTP_BAD_REQUEST);
+      }
+
+      $merge = $request->isMethod(Request::METHOD_PATCH);
+
+      try {
+        $updated = $this->storage->updateCase($id, $data, $merge);
+      }
+      catch (\InvalidArgumentException $exception) {
+        return $this->errorResponse($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('mock_api')->error('Failed to update mock API case: @message', ['@message' => $exception->getMessage()]);
+        return $this->errorResponse('Unable to update data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      return new JsonResponse(MockApiStorage::flattenCase($updated));
+    }
+
+    return $this->errorResponse('Unsupported method.', Response::HTTP_METHOD_NOT_ALLOWED);
+  }
+
+  /**
    * Determines the UID to associate with the payload.
    */
   private function determineUid(array $data, ?int $defaultUid = NULL): int {
