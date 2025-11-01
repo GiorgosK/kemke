@@ -14,4 +14,33 @@
  * @see template_preprocess_menu_local_task()
  */
 #}
-<li{{ attributes.addClass(is_active ? 'is-active') }}>{{ link }}</li>
+{%
+  set link_options = link['#options']|default({})
+%}
+{%
+  set link_attributes = link_options['attributes']|default({})
+%}
+{%
+  set link_classes = (link_attributes.class|default([]))|merge(['govgr-tabs__tab'])
+%}
+{%
+  set link_attributes = link_attributes|merge({
+    'class': link_classes,
+    'role': 'tab',
+    'aria-selected': is_active ? 'true' : 'false',
+    'tabindex': is_active ? '0' : '-1'
+  })
+%}
+{%
+  set link_options = link_options|merge({'attributes': link_attributes})
+%}
+{%
+  set link = link|merge({'#options': link_options})
+%}
+{%
+  set item_attributes = attributes.addClass('govgr-tabs__list-item').setAttribute('role', 'presentation')
+%}
+{%
+  set item_attributes = is_active ? item_attributes.addClass(['is-active', 'govgr-tabs__list-item-selected']) : item_attributes
+%}
+<li{{ item_attributes }}>{{ link }}</li>
