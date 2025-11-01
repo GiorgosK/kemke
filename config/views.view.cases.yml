@@ -479,7 +479,7 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: "<a href=\"/cases/{{ id }}?destination=/cases\">View</a>\r\n<a href=\"/cases/{{ id }}/edit?destination=/cases\">Edit</a>\r\n<a href=\"/cases/{{ id }}/delete?destination=/cases\">Delete</a>"
+            text: "       <a class=\"govgr-link\" href=\"/cases/{{ id }}?destination=/cases\">View</a>\r\n        <a class=\"govgr-link\" href=\"/cases/{{ id }}/edit?destination=/cases\">Edit</a>\r\n        <a class=\"govgr-link\" href=\"/cases/{{ id }}/delete?destination=/cases\">Delete</a>\r\n"
             make_link: false
             path: ''
             absolute: false
