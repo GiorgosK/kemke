@@ -1,0 +1,10 @@
+services:
+  external_entities.route_update_subscriber:
+    class: Drupal\mock_simple_form_support\EventSubscriber\RouteUpdateSubscriber
+    arguments:
+      - '@messenger'
+      - '@logger.channel.external_entities'
+      - '@entity_type.manager'
+      - '@router.route_provider'
+    tags:
+      - { name: event_subscriber }
