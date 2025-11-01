@@ -40,3 +40,8 @@
   border-width: 0 0 1px 0;
   border-color: rgba(var(--color-base-400-rgb), var(--tw-border-opacity));
 }
+
+.field__label {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
