@@ -238,7 +238,7 @@ data_aggregator:
       -
         id: rest
         config:
-          endpoint: 'https://kemke.ddev.site/mock-api/cases'
+          endpoint: 'https://kemke.webx2.com/mock-api/cases'
           endpoint_options:
             single: 'https://kemke.ddev.site/mock-api/cases/{id}'
             count: ''
