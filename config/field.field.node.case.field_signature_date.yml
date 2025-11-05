@@ -1,0 +1,21 @@
+uuid: 918569c3-65b9-44e5-a22e-b2afb6b56849
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_signature_date
+    - node.type.case
+  module:
+    - datetime
+id: node.case.field_signature_date
+field_name: field_signature_date
+entity_type: node
+bundle: case
+label: 'Signature date'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

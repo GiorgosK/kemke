@@ -1,0 +1,141 @@
+uuid: b83ea226-670c-427a-be5e-a0a5e5fb92ce
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.case.field_completion_date
+    - field.field.node.case.field_forwarding_date
+    - field.field.node.case.field_kemke_officer_assignment
+    - field.field.node.case.field_notes
+    - field.field.node.case.field_sa_number
+    - field.field.node.case.field_sani_user
+    - field.field.node.case.field_signature_date
+    - field.field.node.case.field_start_date
+    - field.field.node.case.field_status
+    - field.field.node.case.field_taa_project
+    - field.field.node.case.field_thematic_unit
+    - field.field.node.case.field_transparency_requirement
+    - field.field.node.case.field_working_days
+    - node.type.case
+  module:
+    - datetime
+    - options
+    - user
+id: node.case.default
+targetEntityType: node
+bundle: case
+mode: default
+content:
+  field_completion_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_forwarding_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_kemke_officer_assignment:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_notes:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_sa_number:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 106
+    region: content
+  field_sani_user:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_signature_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 107
+    region: content
+  field_start_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 108
+    region: content
+  field_status:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 109
+    region: content
+  field_taa_project:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 110
+    region: content
+  field_thematic_unit:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 111
+    region: content
+  field_transparency_requirement:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 112
+    region: content
+  field_working_days:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 113
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

@@ -1,0 +1,30 @@
+uuid: 4714a0e6-4abf-46f5-8caf-dfa9002bbd1f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_status
+field_name: field_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: finalised
+      label: FINALISED
+    -
+      value: validated
+      label: VALIDATED
+    -
+      value: rejected
+      label: REJECTED
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

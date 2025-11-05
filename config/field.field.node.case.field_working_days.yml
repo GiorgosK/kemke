@@ -1,0 +1,23 @@
+uuid: 881b8fcf-bca3-4a8e-ac6e-0ffb1c2a4c14
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_working_days
+    - node.type.case
+id: node.case.field_working_days
+field_name: field_working_days
+entity_type: node
+bundle: case
+label: 'Working days'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

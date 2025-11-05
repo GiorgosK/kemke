@@ -1,0 +1,21 @@
+uuid: fbec3119-3bb8-4d3d-ada2-764d2196586e
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_thematic_unit
+field_name: field_thematic_unit
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
