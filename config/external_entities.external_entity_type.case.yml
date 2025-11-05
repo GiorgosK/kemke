@@ -5,7 +5,7 @@ dependencies: {  }
 id: case
 label: case
 label_plural: cases
-base_path: cases
+base_path: cases-ext
 description: ''
 content_class: Drupal\external_entities\Entity\ExternalEntity
 read_only: false
@@ -238,9 +238,9 @@ data_aggregator:
       -
         id: rest
         config:
-          endpoint: 'https://kemke.webx2.com/mock-api/cases'
+          endpoint: 'https://kemke.ddev.site/mock-api/cases'
           endpoint_options:
-            single: 'https://kemke.webx2.com/mock-api/cases/{id}'
+            single: 'https://kemke.ddev.site/mock-api/cases/{id}'
             count: ''
             count_mode: entities
             cache: true

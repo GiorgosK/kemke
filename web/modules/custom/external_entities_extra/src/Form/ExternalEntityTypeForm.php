@@ -18,7 +18,7 @@ final class ExternalEntityTypeForm extends ExternalEntityTypeFormBase {
    * @var array<string, string[]>
    */
   private const IGNORED_CONFLICTS = [
-    'cases' => ['view.cases.page_1'],
+    'cases-ext' => ['view.cases_ext.page_1'],
   ];
 
   /**

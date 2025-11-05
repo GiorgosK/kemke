@@ -1,4 +1,4 @@
-uuid: 1da02d07-4058-4da6-bc3a-57453a7049e8
+uuid: 30bb5bb4-1d2d-46a8-8a2f-823e411b15c6
 langcode: en
 status: true
 dependencies:
@@ -10,10 +10,9 @@ dependencies:
   module:
     - datetime
     - options
-    - user
     - xntt_views
-id: cases
-label: Cases
+id: cases_ext
+label: 'cases ext'
 module: views
 description: ''
 tag: ''
@@ -26,7 +25,7 @@ display:
     display_plugin: default
     position: 0
     display_options:
-      title: Cases
+      title: 'cases ext'
       fields:
         counter:
           id: counter
@@ -143,70 +142,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: 0
-        field_status:
-          id: field_status
-          table: xntt_views_case
-          field: field_status
-          relationship: none
-          group_type: group
-          admin_label: ''
-          entity_type: case
-          entity_field: field_status
-          plugin_id: xnttfield
-          label: status
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: list_default
-          settings: {  }
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: 0
         title:
           id: title
           table: xntt_views_case
@@ -262,6 +197,70 @@ display:
           type: string
           settings:
             link_to_entity: 0
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: 0
+        field_status:
+          id: field_status
+          table: xntt_views_case
+          field: field_status
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: case
+          entity_field: field_status
+          plugin_id: xnttfield
+          label: status
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: list_default
+          settings: {  }
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -392,7 +391,7 @@ display:
           type: datetime_default
           settings:
             timezone_override: ''
-            format_type: medium
+            format_type: olivero_medium
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -480,7 +479,7 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: "       <a class=\"govgr-link\" href=\"/cases/{{ id }}?destination=/cases\">View</a>\r\n        <a class=\"govgr-link\" href=\"/cases/{{ id }}/edit?destination=/cases\">Edit</a>\r\n        <a class=\"govgr-link\" href=\"/cases/{{ id }}/delete?destination=/cases\">Delete</a>\r\n"
+            text: "       <a class=\"govgr-link\" href=\"/cases-ext/{{ id }}?destination=/cases-ext\">View</a>\r\n        <a class=\"govgr-link\" href=\"/cases-ext/{{ id }}/edit?destination=/cases-ext\">Edit</a>\r\n        <a class=\"govgr-link\" href=\"/cases-ext/{{ id }}/delete?destination=/cases-ext\">Delete</a>\r\n"
             make_link: false
             path: ''
             absolute: false
@@ -547,11 +546,10 @@ display:
           sort_asc_label: Asc
           sort_desc_label: Desc
       access:
-        type: perm
-        options:
-          perm: 'view case external entity collection'
-      cache:
         type: none
+        options: {  }
+      cache:
+        type: tag
         options: {  }
       empty: {  }
       sorts: {  }
@@ -559,6 +557,36 @@ display:
       filters: {  }
       style:
         type: table
+        options:
+          grouping: {  }
+          row_class: ''
+          default_row_class: true
+          columns:
+            rendered_entity: rendered_entity
+            counter: counter
+          default: '-1'
+          info:
+            rendered_entity:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            counter:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          override: true
+          sticky: false
+          summary: ''
+          empty_table: false
+          caption: ''
+          description: ''
+          class: ''
       row:
         type: fields
       query:
@@ -573,7 +601,6 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
-        - user.permissions
       tags:
         - 'config:field.storage.case.field_sa_number'
         - 'config:field.storage.case.field_sani_user'
@@ -586,13 +613,12 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: cases
+      path: cases-ext
     cache_metadata:
       max-age: -1
       contexts:
         - 'languages:language_interface'
         - url.query_args
-        - user.permissions
       tags:
         - 'config:field.storage.case.field_sa_number'
         - 'config:field.storage.case.field_sani_user'

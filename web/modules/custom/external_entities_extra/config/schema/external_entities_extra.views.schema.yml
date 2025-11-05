@@ -1,0 +1,6 @@
+# Schema for Views plugins and configuration adjustments provided by the
+# external_entities_extra module.
+
+views.field.xnttfield:
+  type: views.field.field
+  label: 'External entity field'

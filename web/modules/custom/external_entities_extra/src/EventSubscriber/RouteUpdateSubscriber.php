@@ -21,8 +21,8 @@ final class RouteUpdateSubscriber extends ExternalEntitiesRouteUpdateSubscriber 
     'mock-simple-form' => [
       'view.mock_simple_form_list.page_1',
     ],
-    'cases' => [
-      'view.cases.page_1',
+    'cases-ext' => [
+      'view.cases_ext.page_1',
     ],
   ];
 
