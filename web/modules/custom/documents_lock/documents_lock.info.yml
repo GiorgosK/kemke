@@ -1,0 +1,7 @@
+name: 'Documents paragraph lock'
+type: module
+description: 'Blocks editing for saved Documents paragraphs.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:paragraphs

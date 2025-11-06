@@ -1,0 +1,19 @@
+<?php
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\paragraphs\ParagraphInterface;
+
+/**
+ * Implements hook_entity_access().
+ */
+function documents_lock_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
+  if ($entity instanceof ParagraphInterface && $entity->bundle() === 'documents') {
+    if ($operation === 'update' && !$entity->isNew()) {
+      return AccessResult::forbidden()->addCacheableDependency($entity);
+    }
+  }
+
+  return AccessResult::neutral();
+}
