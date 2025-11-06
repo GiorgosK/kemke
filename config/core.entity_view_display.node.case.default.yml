@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.case.field_completion_date
+    - field.field.node.case.field_documents
     - field.field.node.case.field_forwarding_date
     - field.field.node.case.field_kemke_officer_assignment
     - field.field.node.case.field_notes
@@ -19,6 +20,7 @@ dependencies:
     - node.type.case
   module:
     - datetime
+    - entity_reference_revisions
     - options
     - user
 id: node.case.default
@@ -34,6 +36,15 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 101
+    region: content
+  field_documents:
+    type: entity_reference_revisions_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings: {  }
+    weight: 114
     region: content
   field_forwarding_date:
     type: datetime_default

@@ -1,0 +1,32 @@
+uuid: 88fe04c3-0bc8-45b6-9283-b7dbf09a4116
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.documents.field_files
+    - field.field.paragraph.documents.field_protocol
+    - paragraphs.paragraphs_type.documents
+  module:
+    - file
+id: paragraph.documents.default
+targetEntityType: paragraph
+bundle: documents
+mode: default
+content:
+  field_files:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_protocol:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }
