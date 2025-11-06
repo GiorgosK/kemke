@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.restricted_html
   module:
+    - case_api
     - comment
     - contact
     - filter
@@ -20,5 +21,6 @@ permissions:
   - 'access comments'
   - 'access content'
   - 'access site-wide contact form'
+  - 'create case via api'
   - 'search content'
   - 'use text format restricted_html'

@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.basic_html
   module:
+    - case_api
     - comment
     - contact
     - file
@@ -23,6 +24,7 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'access site-wide contact form'
+  - 'create case via api'
   - 'delete own files'
   - 'post comments'
   - 'search content'
