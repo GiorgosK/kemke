@@ -1,0 +1,13 @@
+services:
+  logger.channel.case_api:
+    parent: logger.channel_base
+    arguments: ['case_api']
+
+  case_api.chunk_upload_manager:
+    class: Drupal\case_api\Service\ChunkUploadManager
+    arguments:
+      - '@keyvalue'
+      - '@file_system'
+      - '@uuid'
+      - '@datetime.time'
+      - '@logger.channel.case_api'

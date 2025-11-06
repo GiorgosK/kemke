@@ -5,3 +5,35 @@ case_api.case.create:
   methods: [POST]
   requirements:
     _permission: 'create case via api'
+
+case_api.file_upload.init:
+  path: '/api/cases/files/init'
+  defaults:
+    _controller: '\Drupal\case_api\Controller\FileUploadController::init'
+  methods: [POST]
+  requirements:
+    _permission: 'create case via api'
+
+case_api.file_upload.chunk:
+  path: '/api/cases/files/chunk'
+  defaults:
+    _controller: '\Drupal\case_api\Controller\FileUploadController::uploadChunk'
+  methods: [POST]
+  requirements:
+    _permission: 'create case via api'
+
+case_api.file_upload.complete:
+  path: '/api/cases/files/complete'
+  defaults:
+    _controller: '\Drupal\case_api\Controller\FileUploadController::complete'
+  methods: [POST]
+  requirements:
+    _permission: 'create case via api'
+
+case_api.file_upload.cancel:
+  path: '/api/cases/files/cancel'
+  defaults:
+    _controller: '\Drupal\case_api\Controller\FileUploadController::cancel'
+  methods: [POST]
+  requirements:
+    _permission: 'create case via api'

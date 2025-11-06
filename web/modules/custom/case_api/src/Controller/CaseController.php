@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\case_api\Service\ChunkUploadManager;
 use Drupal\file\FileRepositoryInterface;
 use Drupal\file\FileUsage\FileUsageInterface;
 use Drupal\node\NodeInterface;
@@ -45,9 +46,9 @@ final class CaseController extends ControllerBase {
   private FileUsageInterface $fileUsage;
 
   /**
-   * The current user.
+   * Chunk upload manager.
    */
-  protected $currentUser;
+  private ChunkUploadManager $chunkUploadManager;
 
   /**
    * Constructs the controller.
@@ -58,12 +59,14 @@ final class CaseController extends ControllerBase {
     FileRepositoryInterface $fileRepository,
     FileUsageInterface $fileUsage,
     AccountProxyInterface $current_user,
+    ChunkUploadManager $chunkUploadManager,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
     $this->fileRepository = $fileRepository;
     $this->fileUsage = $fileUsage;
     $this->currentUser = $current_user;
+    $this->chunkUploadManager = $chunkUploadManager;
   }
 
   /**
@@ -76,6 +79,7 @@ final class CaseController extends ControllerBase {
       $container->get('file.repository'),
       $container->get('file.usage'),
       $container->get('current_user'),
+      $container->get('case_api.chunk_upload_manager'),
     );
   }
 
@@ -354,6 +358,20 @@ final class CaseController extends ControllerBase {
     $fileStorage = $this->entityTypeManager->getStorage('file');
 
     foreach ($filesPayload as $file) {
+      if (!empty($file['upload_id']) && is_string($file['upload_id'])) {
+        try {
+          $files[] = $this->chunkUploadManager->completeUpload($file['upload_id'], $this->currentUser ? (int) $this->currentUser->id() : NULL);
+          continue;
+        }
+        catch (\Throwable $exception) {
+          $this->getLogger('case_api')->error('Unable to finalise upload "@id": @message', [
+            '@id' => $file['upload_id'],
+            '@message' => $exception->getMessage(),
+          ]);
+          continue;
+        }
+      }
+
       if (!empty($file['fid'])) {
         $entity = $fileStorage->load((int) $file['fid']);
         if ($entity) {
