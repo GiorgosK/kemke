@@ -1,0 +1,9 @@
+uuid: ee1bcb79-308a-44de-9125-7a0d0bc3019b
+langcode: en
+status: true
+dependencies: {  }
+id: amke_user
+label: 'Χρήστης ΑΜΚΕ'
+weight: 10
+is_admin: false
+permissions: {  }

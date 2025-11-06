@@ -1,0 +1,9 @@
+uuid: 8543b24d-bdb2-4f7e-abea-98239ee82e75
+langcode: en
+status: true
+dependencies: {  }
+id: director_supervisor
+label: 'Προϊστάμενος Διεύθυνσης'
+weight: 6
+is_admin: false
+permissions: {  }

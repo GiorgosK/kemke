@@ -1,0 +1,9 @@
+uuid: a989973f-36ae-4a7b-912e-e84ff5cdd87c
+langcode: en
+status: true
+dependencies: {  }
+id: reporter
+label: 'Εισηγητής'
+weight: 8
+is_admin: false
+permissions: {  }

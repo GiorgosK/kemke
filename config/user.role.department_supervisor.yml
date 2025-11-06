@@ -1,0 +1,9 @@
+uuid: 62d12294-b9c4-4d1f-a67c-170c4a86c67b
+langcode: en
+status: true
+dependencies: {  }
+id: department_supervisor
+label: 'Προϊστάμενος Τμήματος'
+weight: 7
+is_admin: false
+permissions: {  }
