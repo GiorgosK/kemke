@@ -25,6 +25,7 @@ module:
   external_entities: 0
   external_entities_extra: 0
   external_form_test: 0
+  content_moderation: 0
   field: 0
   field_ui: 0
   file: 0
@@ -46,6 +47,7 @@ module:
   serialization: 0
   shortcut: 0
   system: 0
+  workflows: 0
   taxonomy: 0
   text: 0
   toolbar: 0

@@ -1,9 +1,13 @@
 uuid: 8543b24d-bdb2-4f7e-abea-98239ee82e75
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - workflows.workflow.case_processing
 id: director_supervisor
 label: 'Προϊστάμενος Διεύθυνσης'
 weight: 6
 is_admin: false
-permissions: {  }
+permissions:
+  - 'use case_processing transition save_director_pending'
+  - 'view latest version'

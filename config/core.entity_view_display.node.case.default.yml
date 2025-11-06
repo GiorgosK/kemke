@@ -9,6 +9,7 @@ dependencies:
     - field.field.node.case.field_kemke_officer_assignment
     - field.field.node.case.field_notes
     - field.field.node.case.field_sa_number
+    - field.field.node.case.field_secretariat_assignee
     - field.field.node.case.field_sani_user
     - field.field.node.case.field_signature_date
     - field.field.node.case.field_start_date
@@ -18,7 +19,9 @@ dependencies:
     - field.field.node.case.field_transparency_requirement
     - field.field.node.case.field_working_days
     - node.type.case
+    - workflows.workflow.case_processing
   module:
+    - content_moderation
     - datetime
     - entity_reference_revisions
     - options
@@ -77,6 +80,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 106
+    region: content
+  field_secretariat_assignee:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 115
     region: content
   field_sani_user:
     type: string
@@ -149,4 +160,5 @@ content:
     third_party_settings: {  }
     weight: 100
     region: content
-hidden: {  }
+hidden:
+  moderation_state: true

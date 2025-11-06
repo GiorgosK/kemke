@@ -1,9 +1,15 @@
 uuid: 62d12294-b9c4-4d1f-a67c-170c4a86c67b
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - workflows.workflow.case_processing
 id: department_supervisor
 label: 'Προϊστάμενος Τμήματος'
 weight: 7
 is_admin: false
-permissions: {  }
+permissions:
+  - 'use case_processing transition request_secretariat_rework'
+  - 'use case_processing transition escalate_to_director'
+  - 'use case_processing transition save_awaiting_department_head'
+  - 'view latest version'

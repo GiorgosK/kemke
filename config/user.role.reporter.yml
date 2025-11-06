@@ -1,9 +1,14 @@
 uuid: a989973f-36ae-4a7b-912e-e84ff5cdd87c
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - workflows.workflow.case_processing
 id: reporter
 label: 'Εισηγητής'
 weight: 8
 is_admin: false
-permissions: {  }
+permissions:
+  - 'use case_processing transition assign_secretariat'
+  - 'use case_processing transition save_draft'
+  - 'view latest version'

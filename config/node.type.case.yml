@@ -9,6 +9,9 @@ third_party_settings:
     available_menus:
       - main
     parent: 'main:'
+  content_moderation:
+    enabled: true
+    workflow: case_processing
 name: case
 type: case
 description: null
