@@ -1,0 +1,9 @@
+name: 'Case API'
+type: module
+description: 'Provides JSON endpoints for creating case content.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node
+  - drupal:paragraphs
+  - drupal:file

@@ -1,0 +1,7 @@
+case_api.case.create:
+  path: '/api/cases'
+  defaults:
+    _controller: '\Drupal\case_api\Controller\CaseController::createCase'
+  methods: [POST]
+  requirements:
+    _permission: 'create case via api'
