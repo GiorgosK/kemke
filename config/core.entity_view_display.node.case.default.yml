@@ -31,6 +31,11 @@ targetEntityType: node
 bundle: case
 mode: default
 content:
+  content_moderation_control:
+    settings: {  }
+    third_party_settings: {  }
+    weight: -20
+    region: content
   field_completion_date:
     type: datetime_default
     label: above
@@ -81,14 +86,6 @@ content:
     third_party_settings: {  }
     weight: 106
     region: content
-  field_secretariat_assignee:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: false
-    third_party_settings: {  }
-    weight: 115
-    region: content
   field_sani_user:
     type: string
     label: above
@@ -96,6 +93,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 105
+    region: content
+  field_secretariat_assignee:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 115
     region: content
   field_signature_date:
     type: datetime_default
@@ -160,5 +165,4 @@ content:
     third_party_settings: {  }
     weight: 100
     region: content
-hidden:
-  moderation_state: true
+hidden: {  }

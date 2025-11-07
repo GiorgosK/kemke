@@ -11,10 +11,12 @@ module:
   block_content: 0
   breakpoint: 0
   case_api: 0
+  case_workflow: 0
   ckeditor5: 0
   comment: 0
   config: 0
   contact: 0
+  content_moderation: 0
   contextual: 0
   datetime: 0
   dblog: 0
@@ -25,7 +27,6 @@ module:
   external_entities: 0
   external_entities_extra: 0
   external_form_test: 0
-  content_moderation: 0
   field: 0
   field_ui: 0
   file: 0
@@ -47,13 +48,13 @@ module:
   serialization: 0
   shortcut: 0
   system: 0
-  workflows: 0
   taxonomy: 0
   text: 0
   toolbar: 0
   update: 0
   user: 0
   views_ui: 0
+  workflows: 0
   xntt_views: 0
   views: 10
   paragraphs: 11

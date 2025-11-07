@@ -91,6 +91,14 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_sani_user:
+    type: string_textfield
+    weight: 125
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_secretariat_assignee:
     type: entity_reference_autocomplete
     weight: 20
@@ -98,14 +106,6 @@ content:
     settings:
       match_operator: CONTAINS
       match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_sani_user:
-    type: string_textfield
-    weight: 125
-    region: content
-    settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
@@ -158,15 +158,15 @@ content:
     settings:
       placeholder: ''
     third_party_settings: {  }
-  path:
-    type: path
-    weight: 30
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   moderation_state:
     type: moderation_state_default
     weight: 25
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 30
     region: content
     settings: {  }
     third_party_settings: {  }

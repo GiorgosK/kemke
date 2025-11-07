@@ -1,3 +1,4 @@
+uuid: 90954e7f-fd8e-4d2a-b9ed-527d6afa3d57
 langcode: en
 status: true
 dependencies:
@@ -10,19 +11,9 @@ label: 'Διαχείριση Υπόθεσης'
 type: content_moderation
 type_settings:
   states:
-    draft:
-      label: 'Προς χρέωση'
-      weight: 0
-      published: true
-      default_revision: true
     assigned_secretariat:
-      label: 'Χρεωμένη'
+      label: Χρεωμένη
       weight: 1
-      published: true
-      default_revision: true
-    secretariat_in_progress:
-      label: 'Σε Επεξεργασία Γραμματείας'
-      weight: 2
       published: true
       default_revision: true
     awaiting_department_head:
@@ -30,14 +21,24 @@ type_settings:
       weight: 3
       published: true
       default_revision: true
-    secretariat_rework:
-      label: 'Περαταίρω Επεξεργασία Γραμματείας'
-      weight: 4
+    draft:
+      label: 'Προς χρέωση'
+      weight: 0
       published: true
       default_revision: true
     published:
       label: 'Προς υπογραφή απο Προϊστάμενος Διεύθυνσης'
       weight: 5
+      published: true
+      default_revision: true
+    secretariat_in_progress:
+      label: 'Σε Επεξεργασία Γραμματείας'
+      weight: 2
+      published: true
+      default_revision: true
+    secretariat_rework:
+      label: 'Περαταίρω Επεξεργασία Γραμματείας'
+      weight: 4
       published: true
       default_revision: true
   transitions:
@@ -47,12 +48,54 @@ type_settings:
         - draft
       to: assigned_secretariat
       weight: 0
+    escalate_to_director:
+      label: 'Αποστολή σε Προϊστάμενο Διεύθυνσης'
+      from:
+        - awaiting_department_head
+      to: published
+      weight: 4
+    request_secretariat_rework:
+      label: 'Επιστροφή για Περαταίρω Επεξεργασία Γραμματείας'
+      from:
+        - awaiting_department_head
+      to: secretariat_rework
+      weight: 3
+    save_assigned_secretariat:
+      label: 'Αποθήκευση χωρίς αλλαγή'
+      from:
+        - assigned_secretariat
+      to: assigned_secretariat
+      weight: 6
+    save_awaiting_department_head:
+      label: 'Αποθήκευση χωρίς αλλαγή'
+      from:
+        - awaiting_department_head
+      to: awaiting_department_head
+      weight: 9
+    save_director_pending:
+      label: 'Αποθήκευση χωρίς αλλαγή'
+      from:
+        - published
+      to: published
+      weight: 10
     save_draft:
       label: 'Αποθήκευση χωρίς αλλαγή'
       from:
         - draft
       to: draft
       weight: 5
+    save_secretariat_in_progress:
+      label: 'Αποθήκευση χωρίς αλλαγή'
+      from:
+        - secretariat_in_progress
+      to: secretariat_in_progress
+      weight: 8
+    save_secretariat_rework:
+      label: 'Αποθήκευση χωρίς αλλαγή'
+      from:
+        - secretariat_rework
+      to: secretariat_rework
+      weight: 7
     start_secretariat_work:
       label: 'Έναρξη επεξεργασίας Γραμματείας'
       from:
@@ -60,54 +103,12 @@ type_settings:
         - secretariat_rework
       to: secretariat_in_progress
       weight: 1
-    save_assigned_secretariat:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - assigned_secretariat
-      to: assigned_secretariat
-      weight: 6
-    save_secretariat_rework:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - secretariat_rework
-      to: secretariat_rework
-      weight: 7
-    save_secretariat_in_progress:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - secretariat_in_progress
-      to: secretariat_in_progress
-      weight: 8
     submit_to_department:
       label: 'Αποστολή σε Προϊστάμενο Τμήματος'
       from:
         - secretariat_in_progress
       to: awaiting_department_head
       weight: 2
-    save_awaiting_department_head:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - awaiting_department_head
-      to: awaiting_department_head
-      weight: 9
-    request_secretariat_rework:
-      label: 'Επιστροφή για Περαταίρω Επεξεργασία Γραμματείας'
-      from:
-        - awaiting_department_head
-      to: secretariat_rework
-      weight: 3
-    escalate_to_director:
-      label: 'Αποστολή σε Προϊστάμενο Διεύθυνσης'
-      from:
-        - awaiting_department_head
-      to: published
-      weight: 4
-    save_director_pending:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - published
-      to: published
-      weight: 10
   entity_types:
     node:
       - case

@@ -9,7 +9,7 @@ label: 'Προϊστάμενος Τμήματος'
 weight: 7
 is_admin: false
 permissions:
-  - 'use case_processing transition request_secretariat_rework'
   - 'use case_processing transition escalate_to_director'
+  - 'use case_processing transition request_secretariat_rework'
   - 'use case_processing transition save_awaiting_department_head'
   - 'view latest version'

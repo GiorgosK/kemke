@@ -5,7 +5,7 @@ dependencies:
   config:
     - workflows.workflow.case_processing
 id: reporter
-label: 'Εισηγητής'
+label: Εισηγητής
 weight: 8
 is_admin: false
 permissions:
