@@ -229,6 +229,7 @@ final class CaseController extends ControllerBase {
     ]);
 
     $this->applySimpleFields($node, $payload);
+    $this->applyCaseTypeField($node, $payload);
     $this->applyDateFields($node, $payload);
     $documents = $this->buildDocuments($payload['field_documents'] ?? []);
     if ($documents !== []) {
@@ -254,6 +255,63 @@ final class CaseController extends ControllerBase {
     }
 
     return $node;
+  }
+
+  /**
+   * Applies the case type taxonomy term based on ID or name.
+   */
+  private function applyCaseTypeField(NodeInterface $node, array $payload): void {
+    if (!array_key_exists('field_case_type', $payload)) {
+      return;
+    }
+
+    $termId = $this->resolveCaseTypeTermId($payload['field_case_type']);
+    if ($termId === NULL) {
+      $this->getLogger('case_api')->warning('Unable to resolve case type from value "@value".', [
+        '@value' => is_scalar($payload['field_case_type']) ? (string) $payload['field_case_type'] : json_encode($payload['field_case_type'], \JSON_UNESCAPED_UNICODE),
+      ]);
+      return;
+    }
+
+    $node->set('field_case_type', ['target_id' => $termId]);
+  }
+
+  /**
+   * Resolves a case type term ID from various payload formats.
+   *
+   * @param mixed $value
+   *   The incoming payload value.
+   */
+  private function resolveCaseTypeTermId($value): ?int {
+    $termStorage = $this->entityTypeManager->getStorage('taxonomy_term');
+
+    if (is_array($value)) {
+      if (isset($value['target_id']) && is_numeric($value['target_id'])) {
+        $value = (int) $value['target_id'];
+      }
+      elseif (isset($value['name']) && is_string($value['name'])) {
+        $value = $value['name'];
+      }
+    }
+
+    if (is_numeric($value)) {
+      $term = $termStorage->load((int) $value);
+      return $term ? (int) $term->id() : NULL;
+    }
+
+    if (is_string($value) && trim($value) !== '') {
+      $candidates = $termStorage->loadByProperties([
+        'vid' => 'case_type',
+        'name' => $value,
+      ]);
+      if ($candidates !== []) {
+        /** @var \Drupal\taxonomy\TermInterface $term */
+        $term = reset($candidates);
+        return $term ? (int) $term->id() : NULL;
+      }
+    }
+
+    return NULL;
   }
 
   /**
