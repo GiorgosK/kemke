@@ -264,6 +264,7 @@ final class CaseController extends ControllerBase {
     $fieldMap = [
       'field_case_type' => 'case_type',
       'field_responsible_entity' => 'responsible_entity',
+      'field_priority' => 'priority',
     ];
 
     foreach ($fieldMap as $fieldName => $vocabularyId) {
