@@ -229,7 +229,7 @@ final class CaseController extends ControllerBase {
     ]);
 
     $this->applySimpleFields($node, $payload);
-    $this->applyCaseTypeField($node, $payload);
+    $this->applyTaxonomyReferenceFields($node, $payload);
     $this->applyDateFields($node, $payload);
     $documents = $this->buildDocuments($payload['field_documents'] ?? []);
     if ($documents !== []) {
@@ -258,31 +258,41 @@ final class CaseController extends ControllerBase {
   }
 
   /**
-   * Applies the case type taxonomy term based on ID or name.
+   * Applies taxonomy reference fields that accept IDs or names.
    */
-  private function applyCaseTypeField(NodeInterface $node, array $payload): void {
-    if (!array_key_exists('field_case_type', $payload)) {
-      return;
-    }
+  private function applyTaxonomyReferenceFields(NodeInterface $node, array $payload): void {
+    $fieldMap = [
+      'field_case_type' => 'case_type',
+      'field_responsible_entity' => 'responsible_entity',
+    ];
 
-    $termId = $this->resolveCaseTypeTermId($payload['field_case_type']);
-    if ($termId === NULL) {
-      $this->getLogger('case_api')->warning('Unable to resolve case type from value "@value".', [
-        '@value' => is_scalar($payload['field_case_type']) ? (string) $payload['field_case_type'] : json_encode($payload['field_case_type'], \JSON_UNESCAPED_UNICODE),
-      ]);
-      return;
-    }
+    foreach ($fieldMap as $fieldName => $vocabularyId) {
+      if (!array_key_exists($fieldName, $payload)) {
+        continue;
+      }
 
-    $node->set('field_case_type', ['target_id' => $termId]);
+      $termId = $this->resolveVocabularyTermId($payload[$fieldName], $vocabularyId);
+      if ($termId === NULL) {
+        $this->getLogger('case_api')->warning('Unable to resolve "@field" value from "@value".', [
+          '@field' => $fieldName,
+          '@value' => is_scalar($payload[$fieldName]) ? (string) $payload[$fieldName] : json_encode($payload[$fieldName], \JSON_UNESCAPED_UNICODE),
+        ]);
+        continue;
+      }
+
+      $node->set($fieldName, ['target_id' => $termId]);
+    }
   }
 
   /**
-   * Resolves a case type term ID from various payload formats.
+   * Resolves a taxonomy term ID for the provided vocabulary.
    *
    * @param mixed $value
    *   The incoming payload value.
+   * @param string $vocabularyId
+   *   The taxonomy vocabulary machine name.
    */
-  private function resolveCaseTypeTermId($value): ?int {
+  private function resolveVocabularyTermId($value, string $vocabularyId): ?int {
     $termStorage = $this->entityTypeManager->getStorage('taxonomy_term');
 
     if (is_array($value)) {
@@ -301,7 +311,7 @@ final class CaseController extends ControllerBase {
 
     if (is_string($value) && trim($value) !== '') {
       $candidates = $termStorage->loadByProperties([
-        'vid' => 'case_type',
+        'vid' => $vocabularyId,
         'name' => $value,
       ]);
       if ($candidates !== []) {
