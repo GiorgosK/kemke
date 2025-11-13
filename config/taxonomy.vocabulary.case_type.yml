@@ -1,0 +1,9 @@
+uuid: 42b39a29-a118-43cc-9314-c53f3d4193b4
+langcode: en
+status: true
+dependencies: {  }
+name: 'Case type'
+vid: case_type
+description: null
+weight: 0
+new_revision: false
