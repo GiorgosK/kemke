@@ -3,14 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.case.field_case_type
     - field.field.node.case.field_completion_date
     - field.field.node.case.field_documents
     - field.field.node.case.field_forwarding_date
     - field.field.node.case.field_kemke_officer_assignment
     - field.field.node.case.field_notes
     - field.field.node.case.field_sa_number
-    - field.field.node.case.field_secretariat_assignee
     - field.field.node.case.field_sani_user
+    - field.field.node.case.field_secretariat_assignee
     - field.field.node.case.field_signature_date
     - field.field.node.case.field_start_date
     - field.field.node.case.field_status
@@ -19,9 +20,7 @@ dependencies:
     - field.field.node.case.field_transparency_requirement
     - field.field.node.case.field_working_days
     - node.type.case
-    - workflows.workflow.case_processing
   module:
-    - content_moderation
     - datetime
     - entity_reference_revisions
     - options
@@ -35,6 +34,14 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: -20
+    region: content
+  field_case_type:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 116
     region: content
   field_completion_date:
     type: datetime_default
