@@ -310,14 +310,34 @@ final class CaseController extends ControllerBase {
     }
 
     if (is_string($value) && trim($value) !== '') {
+      $name = trim($value);
       $candidates = $termStorage->loadByProperties([
         'vid' => $vocabularyId,
-        'name' => $value,
+        'name' => $name,
       ]);
       if ($candidates !== []) {
         /** @var \Drupal\taxonomy\TermInterface $term */
         $term = reset($candidates);
         return $term ? (int) $term->id() : NULL;
+      }
+
+      // insert term to the vocabulary if term name not found
+      try {
+        /** @var \Drupal\taxonomy\TermInterface $term */
+        $term = $termStorage->create([
+          'vid' => $vocabularyId,
+          'name' => $name,
+        ]);
+        $term->save();
+        return (int) $term->id();
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('case_api')->error('Unable to create taxonomy term "@name" in vocabulary "@vid": @message', [
+          '@name' => $name,
+          '@vid' => $vocabularyId,
+          '@message' => $exception->getMessage(),
+        ]);
+        return NULL;
       }
     }
 
