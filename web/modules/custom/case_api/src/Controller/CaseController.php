@@ -351,6 +351,7 @@ final class CaseController extends ControllerBase {
   private function applySimpleFields(NodeInterface $node, array $payload): void {
     $simpleFields = [
       'field_sa_number',
+      'field_protocol_incoming',
       'field_sender',
       'field_subject',
       'field_sani_user',
