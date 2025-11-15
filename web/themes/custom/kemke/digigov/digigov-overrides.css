@@ -59,6 +59,8 @@ pre {
   padding: 0.5rem;
 }
 
+
+.node-case-edit-form details,
 .node--type-case details {
   background-color: #eee;
   padding: 1rem;
