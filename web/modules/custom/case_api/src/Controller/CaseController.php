@@ -351,7 +351,8 @@ final class CaseController extends ControllerBase {
   private function applySimpleFields(NodeInterface $node, array $payload): void {
     $simpleFields = [
       'field_sa_number',
-      'field_kemke_officer_assignment',
+      'field_sender',
+      'field_subject',
       'field_sani_user',
       'field_taa_project',
       'field_thematic_unit',
@@ -377,9 +378,8 @@ final class CaseController extends ControllerBase {
   private function applyDateFields(NodeInterface $node, array $payload): void {
     $dateFields = [
       'field_completion_date',
-      'field_forwarding_date',
-      'field_signature_date',
-      'field_start_date',
+      'field_requested_deadline',
+      'field_entry_date',
     ];
     $definitions = $this->entityFieldManager->getFieldDefinitions('node', 'case');
 
