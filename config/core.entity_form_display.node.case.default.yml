@@ -18,7 +18,6 @@ dependencies:
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
     - field.field.node.case.field_sani_user
-    - field.field.node.case.field_secretariat_assignee
     - field.field.node.case.field_sender
     - field.field.node.case.field_status
     - field.field.node.case.field_subject
@@ -185,16 +184,6 @@ content:
     weight: 24
     region: content
     settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_secretariat_assignee:
-    type: entity_reference_autocomplete
-    weight: 32
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
