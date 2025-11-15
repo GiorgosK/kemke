@@ -70,15 +70,18 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
     return;
   }
 
-  foreach ($bundle_map[$bundle] as $field_name) {
-    if (!$node->hasField($field_name)) {
+  foreach ($bundle_map[$bundle] as $field_key => $field_definition) {
+    $field_config = field_non_empty_lock_normalize_field_definition($field_key, $field_definition);
+    $field_name = $field_config['field_name'];
+
+    if (empty($field_config['skip_field_check']) && !$node->hasField($field_name)) {
       continue;
     }
-    if (!isset($form[$field_name]['widget']) || $node->get($field_name)->isEmpty()) {
+    if (!field_non_empty_lock_field_has_value($node, $field_config)) {
       continue;
     }
 
-    field_non_empty_lock_disable_widget($form[$field_name]['widget']);
+    field_non_empty_lock_disable_widget_at_path($form, $field_config['widget_path']);
   }
 }
 
@@ -301,6 +304,51 @@ function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph
 }
 
 /**
+ * Normalizes configuration entries for locked node fields.
+ */
+function field_non_empty_lock_normalize_field_definition($field_key, $field_definition) {
+  if (is_int($field_key)) {
+    $field_name = $field_definition;
+    $field_definition = [];
+  }
+  elseif (is_string($field_key) && is_array($field_definition)) {
+    $field_name = $field_key;
+  }
+  else {
+    $field_name = $field_definition;
+    $field_definition = [];
+  }
+
+  if (!is_array($field_definition)) {
+    $field_definition = [];
+  }
+
+  $field_definition += [
+    'field_name' => $field_name,
+    'widget_path' => [$field_name, 'widget'],
+    'is_empty_callback' => NULL,
+    'skip_field_check' => FALSE,
+  ];
+
+  return $field_definition;
+}
+
+/**
+ * Determines whether a field already holds a value.
+ */
+function field_non_empty_lock_field_has_value(NodeInterface $node, array $field_config) {
+  if (!empty($field_config['is_empty_callback']) && is_callable($field_config['is_empty_callback'])) {
+    return !call_user_func($field_config['is_empty_callback'], $node, $field_config);
+  }
+
+  if ($node->hasField($field_config['field_name'])) {
+    return !$node->get($field_config['field_name'])->isEmpty();
+  }
+
+  return FALSE;
+}
+
+/**
  * Disables a widget recursively so it remains visible but not editable.
  *
  * @param array $widget
@@ -312,6 +360,23 @@ function field_non_empty_lock_disable_widget(array &$widget) {
     if (is_array($widget[$child])) {
       field_non_empty_lock_disable_widget($widget[$child]);
     }
+  }
+}
+
+/**
+ * Disables a widget located via a form array path.
+ */
+function field_non_empty_lock_disable_widget_at_path(array &$form, array $path) {
+  $element =& $form;
+  foreach ($path as $part) {
+    if (!is_array($element) || !array_key_exists($part, $element)) {
+      return;
+    }
+    $element =& $element[$part];
+  }
+
+  if (is_array($element)) {
+    field_non_empty_lock_disable_widget($element);
   }
 }
 
@@ -329,7 +394,12 @@ function field_non_empty_lock_get_node_field_map() {
       'field_protocol_incoming',
       'field_sender',
       'field_responsible_entity',
-      'field_requested_deadline'
+      'field_requested_deadline',
+      // Base field widgets can live deeper in the form array, so provide
+      // explicit paths to keep them future-proof.
+      'title' => [
+        'widget_path' => ['title', 'widget', 0, 'value'],
+      ],
     ],
   ];
 }
