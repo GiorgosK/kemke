@@ -1,27 +1,57 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
 
 /**
  * Implements hook_form_FORM_ID_alter() for the case content type form.
  */
 function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateInterface $form_state) {
-  field_non_empty_lock_lock_case_fields($form, $form_state);
+  field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
+  field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
 }
 
 /**
  * Implements hook_form_FORM_ID_alter() for the case edit form.
  */
 function field_non_empty_lock_form_node_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
-  field_non_empty_lock_lock_case_fields($form, $form_state);
+  field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
+  field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
 }
 
 /**
- * Locks selected case fields once they have been populated.
+ * Implements hook_form_BASE_FORM_ID_alter() for paragraph forms.
  */
-function field_non_empty_lock_lock_case_fields(array &$form, FormStateInterface $form_state) {
+function field_non_empty_lock_form_paragraph_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\paragraphs\ParagraphInterface $paragraph */
+  $paragraph = $form_object->getEntity();
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  $bundle = $paragraph->bundle();
+  $bundle_map = field_non_empty_lock_get_paragraph_field_map();
+  if (empty($bundle_map[$bundle])) {
+    return;
+  }
+
+  field_non_empty_lock_apply_paragraph_field_locks($form, $paragraph, $bundle_map[$bundle]);
+}
+
+/**
+ * Locks selected node fields once they have been populated.
+ */
+function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface $form_state, $bundle) {
   $form_object = $form_state->getFormObject();
   if (!$form_object) {
     return;
@@ -33,12 +63,12 @@ function field_non_empty_lock_lock_case_fields(array &$form, FormStateInterface 
     return;
   }
 
-  $fields_to_lock = [
-    'field_entry_date',
-    'field_protocol_incoming',
-  ];
+  $bundle_map = field_non_empty_lock_get_node_field_map();
+  if (empty($bundle_map[$bundle])) {
+    return;
+  }
 
-  foreach ($fields_to_lock as $field_name) {
+  foreach ($bundle_map[$bundle] as $field_name) {
     if (!$node->hasField($field_name)) {
       continue;
     }
@@ -48,6 +78,156 @@ function field_non_empty_lock_lock_case_fields(array &$form, FormStateInterface 
 
     field_non_empty_lock_disable_widget($form[$field_name]['widget']);
   }
+}
+
+/**
+ * Locks selected paragraph sub-fields embedded within node forms.
+ */
+function field_non_empty_lock_lock_embedded_paragraph_fields(array &$form, FormStateInterface $form_state) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeInterface $node */
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  $paragraph_map = field_non_empty_lock_get_node_paragraph_field_map();
+  if (!$paragraph_map) {
+    return;
+  }
+
+  foreach ($paragraph_map as $node_field => $bundle_fields) {
+    if (!$node->hasField($node_field) || empty($form[$node_field]['widget'])) {
+      continue;
+    }
+
+    foreach ($node->get($node_field) as $delta => $item) {
+      if ($item->isEmpty()) {
+        continue;
+      }
+      $paragraph = $item->entity;
+      if (!$paragraph instanceof ParagraphInterface) {
+        continue;
+      }
+      $bundle = $paragraph->bundle();
+      if (empty($bundle_fields[$bundle])) {
+        continue;
+      }
+      if (empty($form[$node_field]['widget'][$delta]['subform'])) {
+        continue;
+      }
+
+      field_non_empty_lock_apply_paragraph_field_locks(
+        $form[$node_field]['widget'][$delta]['subform'],
+        $paragraph,
+        $bundle_fields[$bundle]
+      );
+    }
+  }
+}
+
+/**
+ * Applies lock behavior for paragraph fields in a subform render array.
+ *
+ * @param array $subform
+ *   The paragraph subform render array.
+ * @param \Drupal\paragraphs\ParagraphInterface $paragraph
+ *   The paragraph entity.
+ * @param array $fields
+ *   The list of field names to lock.
+ */
+function field_non_empty_lock_apply_paragraph_field_locks(array &$subform, ParagraphInterface $paragraph, array $fields) {
+  foreach ($fields as $field_name) {
+    if (!$paragraph->hasField($field_name)) {
+      continue;
+    }
+    if (!isset($subform[$field_name])) {
+      continue;
+    }
+
+    $paragraph_field = $paragraph->get($field_name);
+    $field_is_empty = $paragraph_field->isEmpty();
+
+    if (!$field_is_empty && isset($subform[$field_name])) {
+      // Hide the widget once the field has a saved value.
+      $subform[$field_name]['#access'] = FALSE;
+    }
+
+    // Append a preview listing for non-empty fields in the subform.
+    if (!$field_is_empty && isset($subform[$field_name])) {
+      $subform[$field_name . '_display'] = [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['field-non-empty-lock-display']],
+        '#weight' => ($subform[$field_name]['#weight'] ?? 0) + 0.01,
+        'content' => field_non_empty_lock_render_field_preview($paragraph, $field_name),
+      ];
+    }
+  }
+}
+
+/**
+ * Builds a render array that previews the locked field value.
+ *
+ * @param \Drupal\paragraphs\ParagraphInterface $paragraph
+ *   The paragraph entity.
+ * @param string $field_name
+ *   The field to render.
+ *
+ * @return array
+ *   A render array displaying the field value.
+ */
+function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph, $field_name) {
+  $definition = $paragraph->getFieldDefinition($field_name);
+  if (!$definition) {
+    return [];
+  }
+
+  if ($definition->getType() === 'file') {
+    $items = [];
+    $file_url_generator = \Drupal::service('file_url_generator');
+    foreach ($paragraph->get($field_name) as $file_item) {
+      /** @var \Drupal\file\FileInterface|null $file */
+      $file = $file_item->entity;
+      if (!$file instanceof FileInterface) {
+        continue;
+      }
+      $file_url = $file_url_generator->generateAbsoluteString($file->getFileUri());
+      $url = Url::fromUri($file_url);
+      $url->setOption('attributes', ['target' => '_blank']);
+      $items[] = Link::fromTextAndUrl($file->getFilename(), $url)->toRenderable();
+    }
+
+    return [
+      '#theme' => 'item_list',
+      '#title' => $definition->getLabel(),
+      '#items' => $items,
+      '#attributes' => ['class' => ['field-non-empty-lock-files']],
+    ];
+  }
+
+  $values = [];
+  foreach ($paragraph->get($field_name)->getValue() as $delta => $value) {
+    if (isset($value['value']) && $value['value'] !== '') {
+      $values[] = [
+        '#markup' => $value['value'],
+      ];
+    }
+  }
+
+  if (empty($values)) {
+    return [];
+  }
+
+  return [
+    '#theme' => 'item_list',
+    '#title' => $definition->getLabel(),
+    '#items' => $values,
+    '#attributes' => ['class' => ['field-non-empty-lock-text']],
+  ];
 }
 
 /**
@@ -63,4 +243,52 @@ function field_non_empty_lock_disable_widget(array &$widget) {
       field_non_empty_lock_disable_widget($widget[$child]);
     }
   }
+}
+
+/**
+ * Provides a per-node-bundle map of fields that lock once populated.
+ *
+ * @return array
+ *   An array keyed by node bundle with values of field machine names.
+ */
+function field_non_empty_lock_get_node_field_map() {
+  return [
+    'case' => [
+      'field_entry_date',
+      'field_protocol_incoming',
+    ],
+  ];
+}
+
+/**
+ * Provides a per-paragraph-bundle map of fields that lock once populated.
+ *
+ * @return array
+ *   An array keyed by paragraph bundle with values of field machine names.
+ */
+function field_non_empty_lock_get_paragraph_field_map() {
+  return [
+    'documents' => [
+      'field_protocol',
+      'field_files',
+    ],
+  ];
+}
+
+/**
+ * Provides a map of node paragraph reference fields to paragraph field locks.
+ *
+ * @return array
+ *   Array keyed by node field machine names, with values keyed by paragraph
+ *   bundle and listing field machine names to hide once populated.
+ */
+function field_non_empty_lock_get_node_paragraph_field_map() {
+  return [
+    'field_documents' => [
+      'documents' => [
+        'field_protocol',
+        'field_files',
+      ],
+    ],
+  ];
 }
