@@ -3,20 +3,31 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.case.field_basic_operator
     - field.field.node.case.field_case_type
     - field.field.node.case.field_completion_date
     - field.field.node.case.field_documents
+    - field.field.node.case.field_entry_date
     - field.field.node.case.field_forwarding_date
+    - field.field.node.case.field_interim_deadline
     - field.field.node.case.field_kemke_officer_assignment
+    - field.field.node.case.field_legal_deadline
     - field.field.node.case.field_notes
+    - field.field.node.case.field_operators
     - field.field.node.case.field_priority
+    - field.field.node.case.field_protocol_incoming
+    - field.field.node.case.field_protocol_kemke
+    - field.field.node.case.field_requested_deadline
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
     - field.field.node.case.field_sani_user
     - field.field.node.case.field_secretariat_assignee
+    - field.field.node.case.field_sender
     - field.field.node.case.field_signature_date
     - field.field.node.case.field_start_date
     - field.field.node.case.field_status
+    - field.field.node.case.field_subject
+    - field.field.node.case.field_supervisor
     - field.field.node.case.field_taa_project
     - field.field.node.case.field_thematic_unit
     - field.field.node.case.field_transparency_requirement
@@ -36,6 +47,14 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: -20
+    region: content
+  field_basic_operator:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 127
     region: content
   field_case_type:
     type: entity_reference_label
@@ -63,6 +82,15 @@ content:
     third_party_settings: {  }
     weight: 114
     region: content
+  field_entry_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 126
+    region: content
   field_forwarding_date:
     type: datetime_default
     label: above
@@ -72,6 +100,15 @@ content:
     third_party_settings: {  }
     weight: 102
     region: content
+  field_interim_deadline:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 124
+    region: content
   field_kemke_officer_assignment:
     type: string
     label: above
@@ -80,12 +117,29 @@ content:
     third_party_settings: {  }
     weight: 103
     region: content
+  field_legal_deadline:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 122
+    region: content
   field_notes:
     type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
     weight: 104
+    region: content
+  field_operators:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 128
     region: content
   field_priority:
     type: entity_reference_label
@@ -94,6 +148,31 @@ content:
       link: true
     third_party_settings: {  }
     weight: 118
+    region: content
+  field_protocol_incoming:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 121
+    region: content
+  field_protocol_kemke:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 125
+    region: content
+  field_requested_deadline:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 123
     region: content
   field_responsible_entity:
     type: entity_reference_label
@@ -127,6 +206,14 @@ content:
     third_party_settings: {  }
     weight: 115
     region: content
+  field_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 120
+    region: content
   field_signature_date:
     type: datetime_default
     label: above
@@ -151,6 +238,21 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 109
+    region: content
+  field_subject:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 119
+    region: content
+  field_supervisor:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 129
     region: content
   field_taa_project:
     type: string

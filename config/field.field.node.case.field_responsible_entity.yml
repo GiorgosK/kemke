@@ -10,7 +10,7 @@ id: node.case.field_responsible_entity
 field_name: field_responsible_entity
 entity_type: node
 bundle: case
-label: 'Responsible Entity'
+label: 'Φορέας Ευθύνης'
 description: ''
 required: false
 translatable: false

@@ -10,7 +10,7 @@ id: node.case.field_case_type
 field_name: field_case_type
 entity_type: node
 bundle: case
-label: 'Case type'
+label: 'Είδος Υπόθεσης'
 description: ''
 required: false
 translatable: false

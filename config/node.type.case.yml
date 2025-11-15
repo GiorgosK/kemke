@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   module:
+    - content_moderation
     - menu_ui
 third_party_settings:
   menu_ui:
@@ -12,7 +13,7 @@ third_party_settings:
   content_moderation:
     enabled: true
     workflow: case_processing
-name: case
+name: Υπόθεση
 type: case
 description: null
 help: null

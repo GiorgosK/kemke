@@ -1,0 +1,20 @@
+uuid: b3408973-b276-45d6-84e0-62a8bf17bcaa
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+id: node.field_interim_deadline
+field_name: field_interim_deadline
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

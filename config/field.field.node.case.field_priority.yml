@@ -10,7 +10,7 @@ id: node.case.field_priority
 field_name: field_priority
 entity_type: node
 bundle: case
-label: Priority
+label: Προτεραιότητα
 description: ''
 required: false
 translatable: false

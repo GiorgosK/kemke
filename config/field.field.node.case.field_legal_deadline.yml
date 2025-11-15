@@ -1,17 +1,17 @@
-uuid: 2f1f25af-8265-4c0c-a659-d5fe7955762f
+uuid: 2b849c90-7046-4baf-818b-a880885f4172
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_completion_date
+    - field.storage.node.field_legal_deadline
     - node.type.case
   module:
     - datetime
-id: node.case.field_completion_date
-field_name: field_completion_date
+id: node.case.field_legal_deadline
+field_name: field_legal_deadline
 entity_type: node
 bundle: case
-label: 'Ημερομηνία πληρότητας'
+label: 'Νόμιμη προθεσμία'
 description: ''
 required: false
 translatable: false
