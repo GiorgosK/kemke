@@ -1,6 +1,6 @@
 uuid: 443e3e5c-b2ed-4c2d-8009-27d40f1b8200
 langcode: en
-status: false
+status: true
 dependencies:
   config:
     - field.storage.node.field_case_type
