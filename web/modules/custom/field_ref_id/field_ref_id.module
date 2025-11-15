@@ -1,0 +1,26 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_entity_presave().
+ */
+function field_ref_id_entity_presave(EntityInterface $entity) {
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+  if (!$entity->hasField('field_ref_id') || !$entity->get('field_ref_id')->isEmpty()) {
+    return;
+  }
+
+  $entity->set('field_ref_id', field_ref_id_generate_value($entity));
+}
+
+/**
+ * Returns an auto-generated ID for the field_ref_id field.
+ */
+function field_ref_id_generate_value(NodeInterface $node) {
+  // Use the node UUID to guarantee uniqueness and stability across edits.
+  return "REF-" . (1000 + $node->id());
+}

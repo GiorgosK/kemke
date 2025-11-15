@@ -1,0 +1,7 @@
+name: 'Field Ref ID'
+type: module
+description: 'Autogenerates field_ref_id for nodes when empty.'
+core_version_requirement: '^10 || ^11'
+package: Custom
+dependencies:
+  - drupal:node
