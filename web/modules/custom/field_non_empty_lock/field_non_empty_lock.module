@@ -395,6 +395,7 @@ function field_non_empty_lock_get_node_field_map() {
       'field_sender',
       'field_responsible_entity',
       'field_requested_deadline',
+      'field_case_type',
       // Base field widgets can live deeper in the form array, so provide
       // explicit paths to keep them future-proof.
       'title' => [
