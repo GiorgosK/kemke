@@ -14,6 +14,7 @@ use Drupal\paragraphs\ParagraphInterface;
 function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateInterface $form_state) {
   field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
+  field_non_empty_lock_customize_paragraph_widget($form, $form_state, 'field_documents');
 }
 
 /**
@@ -22,6 +23,7 @@ function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateI
 function field_non_empty_lock_form_node_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
   field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
+  field_non_empty_lock_customize_paragraph_widget($form, $form_state, 'field_documents');
 }
 
 /**
@@ -131,6 +133,74 @@ function field_non_empty_lock_lock_embedded_paragraph_fields(array &$form, FormS
 }
 
 /**
+ * Strips extraneous UI controls from a paragraph reference widget.
+ *
+ * @param array $form
+ *   The form array.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The form state.
+ * @param string $field_name
+ *   The paragraph reference field machine name.
+ */
+function field_non_empty_lock_customize_paragraph_widget(array &$form, FormStateInterface $form_state, $field_name) {
+  if (empty($form[$field_name]['widget'])) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+
+  $widget =& $form[$field_name]['widget'];
+
+  if (isset($widget['header_actions'])) {
+    $widget['header_actions']['#access'] = FALSE;
+    unset($widget['header_actions']);
+  }
+
+  if (isset($widget['#tabledrag'])) {
+    unset($widget['#tabledrag']);
+  }
+  if (!empty($widget['#attributes']['class'])) {
+    $widget['#attributes']['class'] = array_values(array_diff($widget['#attributes']['class'], ['draggable-table']));
+  }
+  if (isset($widget['top']['actions']['dropdown_actions']['dragdrop_mode'])) {
+    unset($widget['top']['actions']['dropdown_actions']['dragdrop_mode']);
+  }
+
+  foreach (Element::children($widget) as $delta) {
+    if (!isset($widget[$delta]) || !is_array($widget[$delta])) {
+      continue;
+    }
+    $element =& $widget[$delta];
+
+    if (!empty($element['#attributes']['class'])) {
+      $element['#attributes']['class'] = array_values(array_diff($element['#attributes']['class'], ['draggable', 'drag']));
+    }
+
+    // Remove top level controls and labels.
+    if (isset($element['top'])) {
+      $element['top']['#access'] = FALSE;
+    }
+    if (isset($element['actions'])) {
+      $element['actions']['#access'] = FALSE;
+    }
+    if (isset($element['title'])) {
+      $element['title']['#access'] = FALSE;
+    }
+    if (isset($element['weight'])) {
+      $element['weight']['#access'] = FALSE;
+    }
+
+  }
+}
+
+/**
  * Applies lock behavior for paragraph fields in a subform render array.
  *
  * @param array $subform
@@ -203,7 +273,7 @@ function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph
 
     return [
       '#theme' => 'item_list',
-      '#title' => $definition->getLabel(),
+      '#title' => NULL,
       '#items' => $items,
       '#attributes' => ['class' => ['field-non-empty-lock-files']],
     ];
@@ -224,7 +294,7 @@ function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph
 
   return [
     '#theme' => 'item_list',
-    '#title' => $definition->getLabel(),
+    '#title' => NULL,
     '#items' => $values,
     '#attributes' => ['class' => ['field-non-empty-lock-text']],
   ];
@@ -291,4 +361,46 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
       ],
     ],
   ];
+}
+
+/**
+ * Implements hook_preprocess_field_multiple_value_form().
+ */
+function field_non_empty_lock_preprocess_field_multiple_value_form(array &$variables) {
+  $element = $variables['element'];
+  if (empty($element['#field_name']) || $element['#field_name'] !== 'field_documents') {
+    return;
+  }
+  if (empty($variables['multiple']) || empty($variables['table']['#rows'])) {
+    return;
+  }
+
+  $filtered_rows = [];
+  foreach ($variables['table']['#rows'] as $row) {
+    $first_cell_data = $row['data'][0]['data'] ?? NULL;
+    if (is_array($first_cell_data) && (($first_cell_data['#type'] ?? NULL) === 'paragraphs_actions' || ($first_cell_data['#theme'] ?? NULL) === 'paragraphs_actions')) {
+      continue;
+    }
+    if (!empty($row['data'])) {
+      array_shift($row['data']);
+    }
+    if (!empty($row['data'])) {
+      array_pop($row['data']);
+    }
+    if (!empty($row['class'])) {
+      $row['class'] = array_values(array_diff($row['class'], ['draggable']));
+    }
+    $filtered_rows[] = $row;
+  }
+  $variables['table']['#rows'] = $filtered_rows;
+
+  if (!empty($variables['table']['#header'])) {
+    // Remove "Order" column and adjust label column span.
+    array_pop($variables['table']['#header']);
+    if (isset($variables['table']['#header'][0]['colspan'])) {
+      $variables['table']['#header'][0]['colspan'] = 1;
+    }
+  }
+
+  unset($variables['table']['#tabledrag']);
 }
