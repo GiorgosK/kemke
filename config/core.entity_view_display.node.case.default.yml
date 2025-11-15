@@ -16,7 +16,6 @@ dependencies:
     - field.field.node.case.field_operators
     - field.field.node.case.field_priority
     - field.field.node.case.field_protocol_incoming
-    - field.field.node.case.field_protocol_kemke
     - field.field.node.case.field_requested_deadline
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
@@ -156,14 +155,6 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 121
-    region: content
-  field_protocol_kemke:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 125
     region: content
   field_requested_deadline:
     type: datetime_default

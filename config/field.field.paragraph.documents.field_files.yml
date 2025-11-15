@@ -11,7 +11,7 @@ id: paragraph.documents.field_files
 field_name: field_files
 entity_type: paragraph
 bundle: documents
-label: Files
+label: Αρχεία
 description: ''
 required: false
 translatable: false

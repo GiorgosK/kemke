@@ -9,7 +9,7 @@ id: paragraph.documents.field_protocol
 field_name: field_protocol
 entity_type: paragraph
 bundle: documents
-label: Protocol
+label: 'Πρωτόκολλο ΚΕΜΚΕ'
 description: ''
 required: false
 translatable: false
