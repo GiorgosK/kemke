@@ -1,11 +1,10 @@
 uuid: 443e3e5c-b2ed-4c2d-8009-27d40f1b8200
 langcode: en
-status: true
+status: false
 dependencies:
   config:
     - field.storage.node.field_case_type
     - field.storage.node.field_completion_date
-    - field.storage.node.field_start_date
     - field.storage.node.field_status
     - node.type.case
   module:
@@ -178,70 +177,6 @@ display:
           click_sort_column: value
           type: list_default
           settings: {  }
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
-        field_start_date:
-          id: field_start_date
-          table: node__field_start_date
-          field: field_start_date
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: field
-          label: 'Start date'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: datetime_default
-          settings:
-            timezone_override: ''
-            format_type: olivero_medium
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -533,7 +468,6 @@ display:
       tags:
         - 'config:field.storage.node.field_case_type'
         - 'config:field.storage.node.field_completion_date'
-        - 'config:field.storage.node.field_start_date'
         - 'config:field.storage.node.field_status'
   page_1:
     id: page_1
@@ -554,5 +488,4 @@ display:
       tags:
         - 'config:field.storage.node.field_case_type'
         - 'config:field.storage.node.field_completion_date'
-        - 'config:field.storage.node.field_start_date'
         - 'config:field.storage.node.field_status'

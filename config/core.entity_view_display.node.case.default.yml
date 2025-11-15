@@ -8,9 +8,7 @@ dependencies:
     - field.field.node.case.field_completion_date
     - field.field.node.case.field_documents
     - field.field.node.case.field_entry_date
-    - field.field.node.case.field_forwarding_date
     - field.field.node.case.field_interim_deadline
-    - field.field.node.case.field_kemke_officer_assignment
     - field.field.node.case.field_legal_deadline
     - field.field.node.case.field_notes
     - field.field.node.case.field_operators
@@ -22,8 +20,6 @@ dependencies:
     - field.field.node.case.field_sani_user
     - field.field.node.case.field_secretariat_assignee
     - field.field.node.case.field_sender
-    - field.field.node.case.field_signature_date
-    - field.field.node.case.field_start_date
     - field.field.node.case.field_status
     - field.field.node.case.field_subject
     - field.field.node.case.field_supervisor
@@ -90,15 +86,6 @@ content:
     third_party_settings: {  }
     weight: 126
     region: content
-  field_forwarding_date:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 102
-    region: content
   field_interim_deadline:
     type: datetime_default
     label: above
@@ -107,14 +94,6 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 124
-    region: content
-  field_kemke_officer_assignment:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 103
     region: content
   field_legal_deadline:
     type: datetime_default
@@ -204,24 +183,6 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 120
-    region: content
-  field_signature_date:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 107
-    region: content
-  field_start_date:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 108
     region: content
   field_status:
     type: list_default
