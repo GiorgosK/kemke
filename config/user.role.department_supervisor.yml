@@ -3,7 +3,11 @@ langcode: en
 status: true
 dependencies:
   config:
+    - node.type.case
     - workflows.workflow.case_processing
+  module:
+    - content_moderation
+    - node
 id: department_supervisor
 label: 'Προϊστάμενος Τμήματος'
 weight: 7
@@ -12,4 +16,5 @@ permissions:
   - 'use case_processing transition escalate_to_director'
   - 'use case_processing transition request_secretariat_rework'
   - 'use case_processing transition save_awaiting_department_head'
+  - 'view case revisions'
   - 'view latest version'

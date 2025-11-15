@@ -3,11 +3,16 @@ langcode: en
 status: true
 dependencies:
   config:
+    - node.type.case
     - workflows.workflow.case_processing
+  module:
+    - content_moderation
+    - node
 id: director_supervisor
 label: 'Προϊστάμενος Διεύθυνσης'
 weight: 6
 is_admin: false
 permissions:
   - 'use case_processing transition save_director_pending'
+  - 'view case revisions'
   - 'view latest version'

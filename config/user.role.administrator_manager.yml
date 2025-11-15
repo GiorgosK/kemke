@@ -1,9 +1,14 @@
 uuid: 451a8978-16ba-43c8-b6cf-006c83eb25ec
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - node.type.case
+  module:
+    - node
 id: administrator_manager
 label: Διαχειριστής
 weight: 5
 is_admin: false
-permissions: {  }
+permissions:
+  - 'view case revisions'
