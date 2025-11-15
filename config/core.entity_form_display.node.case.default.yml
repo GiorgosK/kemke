@@ -37,8 +37,31 @@ dependencies:
   module:
     - content_moderation
     - datetime
+    - field_group
     - paragraphs
     - path
+third_party_settings:
+  field_group:
+    group_status:
+      children:
+        - field_status
+        - field_requested_deadline
+        - field_legal_deadline
+        - field_interim_deadline
+        - field_completion_date
+      label: Κατασταση
+      region: content
+      parent_name: ''
+      weight: 13
+      format_type: details
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        open: true
+        description: ''
+        required_fields: true
 id: node.case.default
 targetEntityType: node
 bundle: case
@@ -46,13 +69,13 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 13
+    weight: 15
     region: content
     settings: {  }
     third_party_settings: {  }
   field_basic_operator:
     type: entity_reference_autocomplete
-    weight: 10
+    weight: 11
     region: content
     settings:
       match_operator: CONTAINS
@@ -62,19 +85,19 @@ content:
     third_party_settings: {  }
   field_case_type:
     type: options_select
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
   field_completion_date:
     type: datetime_default
-    weight: 19
+    weight: 31
     region: content
     settings: {  }
     third_party_settings: {  }
   field_documents:
     type: paragraphs
-    weight: 32
+    weight: 2
     region: content
     settings:
       title: Paragraph
@@ -92,25 +115,25 @@ content:
     third_party_settings: {  }
   field_entry_date:
     type: datetime_default
-    weight: 2
+    weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
   field_forwarding_date:
     type: datetime_default
-    weight: 20
+    weight: 21
     region: content
     settings: {  }
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 36
+    weight: 30
     region: content
     settings: {  }
     third_party_settings: {  }
   field_kemke_officer_assignment:
     type: string_textfield
-    weight: 21
+    weight: 22
     region: content
     settings:
       size: 60
@@ -118,13 +141,13 @@ content:
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_default
-    weight: 34
+    weight: 29
     region: content
     settings: {  }
     third_party_settings: {  }
   field_notes:
     type: string_textarea
-    weight: 22
+    weight: 23
     region: content
     settings:
       rows: 5
@@ -132,7 +155,7 @@ content:
     third_party_settings: {  }
   field_operators:
     type: entity_reference_autocomplete
-    weight: 11
+    weight: 12
     region: content
     settings:
       match_operator: CONTAINS
@@ -142,13 +165,13 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 8
+    weight: 9
     region: content
     settings: {  }
     third_party_settings: {  }
   field_protocol_incoming:
     type: string_textfield
-    weight: 3
+    weight: 4
     region: content
     settings:
       size: 60
@@ -164,19 +187,19 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
-    weight: 35
+    weight: 28
     region: content
     settings: {  }
     third_party_settings: {  }
   field_responsible_entity:
     type: options_select
-    weight: 5
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   field_sa_number:
     type: string_textfield
-    weight: 24
+    weight: 25
     region: content
     settings:
       size: 60
@@ -184,7 +207,7 @@ content:
     third_party_settings: {  }
   field_sani_user:
     type: string_textfield
-    weight: 23
+    weight: 24
     region: content
     settings:
       size: 60
@@ -192,7 +215,7 @@ content:
     third_party_settings: {  }
   field_secretariat_assignee:
     type: entity_reference_autocomplete
-    weight: 33
+    weight: 32
     region: content
     settings:
       match_operator: CONTAINS
@@ -202,7 +225,7 @@ content:
     third_party_settings: {  }
   field_sender:
     type: string_textfield
-    weight: 6
+    weight: 7
     region: content
     settings:
       size: 60
@@ -210,13 +233,13 @@ content:
     third_party_settings: {  }
   field_signature_date:
     type: datetime_default
-    weight: 25
+    weight: 26
     region: content
     settings: {  }
     third_party_settings: {  }
   field_start_date:
     type: datetime_default
-    weight: 26
+    weight: 27
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -228,7 +251,7 @@ content:
     third_party_settings: {  }
   field_subject:
     type: string_textarea
-    weight: 4
+    weight: 5
     region: content
     settings:
       rows: 5
@@ -236,7 +259,7 @@ content:
     third_party_settings: {  }
   field_supervisor:
     type: entity_reference_autocomplete
-    weight: 9
+    weight: 10
     region: content
     settings:
       match_operator: CONTAINS
@@ -277,33 +300,33 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: moderation_state_default
-    weight: 16
+    weight: 18
     region: content
     settings: {  }
     third_party_settings: {  }
   path:
     type: path
-    weight: 17
+    weight: 19
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 14
+    weight: 16
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 18
+    weight: 20
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 15
+    weight: 17
     region: content
     settings:
       display_label: true
@@ -318,7 +341,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 12
+    weight: 14
     region: content
     settings:
       match_operator: CONTAINS
