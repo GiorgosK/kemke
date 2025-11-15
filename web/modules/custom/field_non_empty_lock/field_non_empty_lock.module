@@ -391,6 +391,7 @@ function field_non_empty_lock_get_node_field_map() {
     'case' => [
       'field_ref_id',
       'field_entry_date',
+      'field_legal_deadline',
       'field_protocol_incoming',
       'field_sender',
       'field_responsible_entity',
