@@ -11,4 +11,5 @@ label: Διαχειριστής
 weight: 5
 is_admin: false
 permissions:
+  - 'edit any case content'
   - 'view case revisions'

@@ -13,6 +13,7 @@ label: 'Προϊστάμενος Διεύθυνσης'
 weight: 6
 is_admin: false
 permissions:
+  - 'edit any case content'
   - 'use case_processing transition save_director_pending'
   - 'view case revisions'
   - 'view latest version'
