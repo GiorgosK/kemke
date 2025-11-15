@@ -58,3 +58,9 @@ pre {
   background: rgba(var(--color-base-300-rgb));
   padding: 0.5rem;
 }
+
+.node--type-case details {
+  background-color: #eee;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
