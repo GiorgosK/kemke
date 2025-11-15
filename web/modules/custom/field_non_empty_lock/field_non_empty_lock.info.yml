@@ -1,0 +1,5 @@
+name: 'Field non-empty lock'
+type: module
+description: 'Keeps specific fields editable until they have a value.'
+package: Custom
+core_version_requirement: ^10 || ^11
