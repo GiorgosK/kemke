@@ -23,6 +23,7 @@
         "drupal/core-recipe-unpack": "^11.2",
         "drupal/core-recommended": "^11.2",
         "drupal/external_entities": "^3.0@beta",
+        "drupal/field_group": "^4.0",
         "drupal/field_permissions": "^1.4",
         "drupal/paragraphs": "^1.19",
         "drush/drush": "^13.6",

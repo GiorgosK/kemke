@@ -27,6 +27,7 @@ module:
   external_entities_extra: 0
   external_form_test: 0
   field: 0
+  field_group: 0
   field_permissions: 0
   field_ui: 0
   file: 0
