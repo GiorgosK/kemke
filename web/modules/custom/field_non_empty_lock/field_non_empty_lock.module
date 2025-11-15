@@ -327,6 +327,9 @@ function field_non_empty_lock_get_node_field_map() {
       'field_ref_id',
       'field_entry_date',
       'field_protocol_incoming',
+      'field_sender',
+      'field_responsible_entity',
+      'field_requested_deadline'
     ],
   ];
 }
