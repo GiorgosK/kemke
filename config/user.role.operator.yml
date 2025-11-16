@@ -1,0 +1,9 @@
+uuid: 2ca420a9-728e-434a-b785-3ea8a8ce81c0
+langcode: en
+status: true
+dependencies: {  }
+id: operator
+label: Χειριστής
+weight: 11
+is_admin: false
+permissions: {  }
