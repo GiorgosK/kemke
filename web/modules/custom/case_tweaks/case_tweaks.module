@@ -1,6 +1,10 @@
 <?php
 
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\node\NodeInterface;
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter() for node forms.
@@ -8,12 +12,62 @@ use Drupal\Core\Form\FormStateInterface;
 function case_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
   $current_user = \Drupal::currentUser();
 
-  if ($current_user->hasPermission('administer nodes')) {
+  if (!$current_user->hasPermission('administer nodes') && isset($form['revision_information'])) {
+    // Remove revision tab entirely for non-admin users.
+    $form['revision_information']['#access'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function case_tweaks_entity_presave(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'case') {
     return;
   }
 
-  if (isset($form['revision_information'])) {
-    // Remove the revision tab entirely for non-admin users.
-    $form['revision_information']['#access'] = FALSE;
+  $baseline = NULL;
+  if ($entity->get('field_entry_date')->isEmpty()) {
+    $entry_date = new DrupalDateTime('now');
+    $entry_date->setTime(0, 0, 0);
+    $entity->set('field_entry_date', [
+      'value' => $entry_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
+    $baseline = clone $entry_date;
   }
+  else {
+    $entry_item = $entity->get('field_entry_date')->first();
+    if ($entry_item && $entry_item->getDateTime()) {
+      $baseline = clone $entry_item->getDateTime();
+    }
+  }
+  $baseline = $baseline ?: new DrupalDateTime('now');
+  $baseline->setTime(0, 0, 0);
+
+  if ($entity->get('field_legal_deadline')->isEmpty()) {
+    $deadline = case_tweaks_calculate_workday_deadline(20, $baseline);
+    $entity->set('field_legal_deadline', [
+      'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
+  }
+}
+
+/**
+ * Calculates a date N working days from today.
+ */
+function case_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime $start_date = NULL): DrupalDateTime {
+  $deadline = $start_date ? clone $start_date : new DrupalDateTime('now');
+  $deadline->setTime(0, 0, 0);
+  $added_days = 0;
+
+  while ($added_days < $work_days) {
+    $deadline->modify('+1 day');
+    // Skip Saturdays (6) and Sundays (7).
+    if (in_array((int) $deadline->format('N'), [6, 7], TRUE)) {
+      continue;
+    }
+    $added_days++;
+  }
+
+  return $deadline;
 }
