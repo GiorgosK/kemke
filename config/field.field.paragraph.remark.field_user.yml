@@ -1,0 +1,29 @@
+uuid: 1004f8a4-668a-4af7-a4db-c40d6ebe3408
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_user
+    - paragraphs.paragraphs_type.remark
+id: paragraph.remark.field_user
+field_name: field_user
+entity_type: paragraph
+bundle: remark
+label: Χρήστης
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    target_bundles: null
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: true
+field_type: entity_reference

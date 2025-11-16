@@ -1,0 +1,51 @@
+uuid: 95d5ae91-bba0-4779-b0fe-bc9809bc1a17
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.remark.field_comment
+    - field.field.paragraph.remark.field_datetime
+    - field.field.paragraph.remark.field_user
+    - paragraphs.paragraphs_type.remark
+id: paragraph.remark.default
+targetEntityType: paragraph
+bundle: remark
+mode: default
+content:
+  field_comment:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_datetime:
+    type: timestamp
+    label: hidden
+    settings:
+      date_format: medium
+      custom_date_format: ''
+      timezone: ''
+      tooltip:
+        date_format: long
+        custom_date_format: ''
+      time_diff:
+        enabled: false
+        future_format: '@interval hence'
+        past_format: '@interval ago'
+        granularity: 2
+        refresh: 60
+        description: ''
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_user:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden: {  }

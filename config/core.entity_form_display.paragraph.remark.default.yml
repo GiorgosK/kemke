@@ -1,0 +1,27 @@
+uuid: 4da56795-00e1-4cc1-b2da-2eff1ed605f5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.remark.field_comment
+    - field.field.paragraph.remark.field_datetime
+    - field.field.paragraph.remark.field_user
+    - paragraphs.paragraphs_type.remark
+id: paragraph.remark.default
+targetEntityType: paragraph
+bundle: remark
+mode: default
+content:
+  field_comment:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_datetime: true
+  field_user: true
+  status: true

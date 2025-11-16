@@ -16,6 +16,7 @@ dependencies:
     - field.field.node.case.field_protocol_incoming
     - field.field.node.case.field_ref_id
     - field.field.node.case.field_related_case
+    - field.field.node.case.field_remarks
     - field.field.node.case.field_requested_deadline
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
@@ -74,7 +75,6 @@ third_party_settings:
         weight: 0
     group_status:
       children:
-        - field_status
         - field_priority
         - field_requested_deadline
         - field_legal_deadline
@@ -94,6 +94,22 @@ third_party_settings:
         description: ''
         required_fields: false
         formatter: closed
+    group_remarks:
+      children:
+        - field_remarks
+      label: Παρατηρήσεις
+      parent_name: ''
+      region: content
+      weight: 18
+      format_type: details
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        open: false
+        description: ''
+        required_fields: false
 id: node.case.default
 targetEntityType: node
 bundle: case
@@ -102,7 +118,7 @@ content:
   content_moderation_control:
     settings: {  }
     third_party_settings: {  }
-    weight: 11
+    weight: 21
     region: content
   field_basic_operator:
     type: entity_reference_label
@@ -210,6 +226,15 @@ content:
     settings:
       link: true
     third_party_settings: {  }
+    weight: 17
+    region: content
+  field_remarks:
+    type: entity_reference_revisions_entity_view
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings: {  }
     weight: 19
     region: content
   field_requested_deadline:
@@ -235,7 +260,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 14
+    weight: 12
     region: content
   field_sani_user:
     type: string
@@ -243,7 +268,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 13
+    weight: 11
     region: content
   field_sender:
     type: string
@@ -274,7 +299,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 15
+    weight: 13
     region: content
   field_thematic_unit:
     type: string
@@ -282,7 +307,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 16
+    weight: 14
     region: content
   field_transparency_requirement:
     type: string
@@ -290,7 +315,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 17
+    weight: 15
     region: content
   field_working_days:
     type: number_integer
@@ -299,11 +324,11 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 18
+    weight: 16
     region: content
   links:
     settings: {  }
     third_party_settings: {  }
-    weight: 12
+    weight: 20
     region: content
 hidden: {  }

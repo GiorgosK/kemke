@@ -1,0 +1,10 @@
+uuid: 0a2ba509-be1c-44a5-a12e-d709cf2a32ce
+langcode: en
+status: true
+dependencies: {  }
+id: remark
+label: Παρατηρήση
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }
