@@ -14,7 +14,7 @@ use Drupal\paragraphs\ParagraphInterface;
 function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateInterface $form_state) {
   field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
-  field_non_empty_lock_customize_paragraph_widget($form, $form_state, 'field_documents');
+  field_non_empty_lock_customize_paragraph_widgets($form, $form_state);
 }
 
 /**
@@ -23,7 +23,7 @@ function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateI
 function field_non_empty_lock_form_node_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
   field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
-  field_non_empty_lock_customize_paragraph_widget($form, $form_state, 'field_documents');
+  field_non_empty_lock_customize_paragraph_widgets($form, $form_state);
 }
 
 /**
@@ -200,6 +200,35 @@ function field_non_empty_lock_customize_paragraph_widget(array &$form, FormState
       $element['weight']['#access'] = FALSE;
     }
 
+    // Hide configured fields directly within the widget subform to cover new
+    // paragraphs that lack saved entities.
+    if (!empty($element['subform']) && is_array($element['subform'])) {
+      $bundle = $element['#paragraph_bundle']
+        ?? $element['#paragraph_type']
+        ?? $element['subform']['#paragraph_bundle']
+        ?? $element['subform']['#paragraph_type']
+        ?? NULL;
+      if (!$bundle && isset($element['subform']['#entity']) && $element['subform']['#entity'] instanceof ParagraphInterface) {
+        $bundle = $element['subform']['#entity']->bundle();
+      }
+      if ($bundle) {
+        field_non_empty_lock_hide_paragraph_fields($element['subform'], $bundle);
+      }
+    }
+  }
+}
+
+/**
+ * Applies widget customizations to all managed paragraph reference fields.
+ */
+function field_non_empty_lock_customize_paragraph_widgets(array &$form, FormStateInterface $form_state) {
+  $paragraph_field_map = field_non_empty_lock_get_node_paragraph_field_map();
+  if (!$paragraph_field_map) {
+    return;
+  }
+
+  foreach (array_keys($paragraph_field_map) as $field_name) {
+    field_non_empty_lock_customize_paragraph_widget($form, $form_state, $field_name);
   }
 }
 
@@ -214,6 +243,9 @@ function field_non_empty_lock_customize_paragraph_widget(array &$form, FormState
  *   The list of field names to lock.
  */
 function field_non_empty_lock_apply_paragraph_field_locks(array &$subform, ParagraphInterface $paragraph, array $fields) {
+  $hidden_fields_map = field_non_empty_lock_get_paragraph_hidden_field_map();
+  $hidden_fields = $hidden_fields_map[$paragraph->bundle()] ?? [];
+
   foreach ($fields as $field_name) {
     if (!$paragraph->hasField($field_name)) {
       continue;
@@ -225,7 +257,11 @@ function field_non_empty_lock_apply_paragraph_field_locks(array &$subform, Parag
     $paragraph_field = $paragraph->get($field_name);
     $field_is_empty = $paragraph_field->isEmpty();
 
-    if (!$field_is_empty && isset($subform[$field_name])) {
+    // Hide the widget entirely if configured, regardless of value.
+    if (in_array($field_name, $hidden_fields, TRUE)) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+    elseif (!$field_is_empty) {
       // Hide the widget once the field has a saved value.
       $subform[$field_name]['#access'] = FALSE;
     }
@@ -238,6 +274,23 @@ function field_non_empty_lock_apply_paragraph_field_locks(array &$subform, Parag
         '#weight' => ($subform[$field_name]['#weight'] ?? 0) + 0.01,
         'content' => field_non_empty_lock_render_field_preview($paragraph, $field_name),
       ];
+    }
+  }
+}
+
+/**
+ * Hides fields that should never be shown in paragraph subforms.
+ */
+function field_non_empty_lock_hide_paragraph_fields(array &$subform, $bundle) {
+  $hidden_fields_map = field_non_empty_lock_get_paragraph_hidden_field_map();
+  $hidden_fields = $hidden_fields_map[$bundle] ?? [];
+  if (empty($hidden_fields)) {
+    return;
+  }
+
+  foreach ($hidden_fields as $field_name) {
+    if (isset($subform[$field_name])) {
+      $subform[$field_name]['#access'] = FALSE;
     }
   }
 }
@@ -282,14 +335,7 @@ function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph
     ];
   }
 
-  $values = [];
-  foreach ($paragraph->get($field_name)->getValue() as $delta => $value) {
-    if (isset($value['value']) && $value['value'] !== '') {
-      $values[] = [
-        '#markup' => $value['value'],
-      ];
-    }
-  }
+  $values = field_non_empty_lock_render_generic_preview_values($paragraph, $field_name, $definition->getType());
 
   if (empty($values)) {
     return [];
@@ -301,6 +347,48 @@ function field_non_empty_lock_render_field_preview(ParagraphInterface $paragraph
     '#items' => $values,
     '#attributes' => ['class' => ['field-non-empty-lock-text']],
   ];
+}
+
+/**
+ * Builds preview render elements for non-file field types.
+ */
+function field_non_empty_lock_render_generic_preview_values(ParagraphInterface $paragraph, $field_name, $field_type) {
+  $values = [];
+
+  switch ($field_type) {
+    case 'entity_reference':
+      foreach ($paragraph->get($field_name) as $item) {
+        if ($item->entity) {
+          $values[] = [
+            '#markup' => $item->entity->label(),
+          ];
+        }
+      }
+      break;
+
+    case 'timestamp':
+      $date_formatter = \Drupal::service('date.formatter');
+      foreach ($paragraph->get($field_name) as $item) {
+        if ($item->value) {
+          $values[] = [
+            '#markup' => $date_formatter->format($item->value, 'medium'),
+          ];
+        }
+      }
+      break;
+
+    default:
+      foreach ($paragraph->get($field_name)->getValue() as $value) {
+        if (isset($value['value']) && $value['value'] !== '') {
+          $values[] = [
+            '#markup' => $value['value'],
+          ];
+        }
+      }
+      break;
+  }
+
+  return $values;
 }
 
 /**
@@ -418,6 +506,11 @@ function field_non_empty_lock_get_paragraph_field_map() {
       'field_protocol',
       'field_files',
     ],
+    'remark' => [
+      'field_comment',
+      'field_user',
+      'field_datetime',
+    ],
   ];
 }
 
@@ -436,6 +529,25 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
         'field_files',
       ],
     ],
+    'field_remarks' => [
+      'remark' => [
+        'field_comment',
+        'field_user',
+        'field_datetime',
+      ],
+    ],
+  ];
+}
+
+/**
+ * Provides fields that should always be hidden in paragraph subforms.
+ */
+function field_non_empty_lock_get_paragraph_hidden_field_map() {
+  return [
+    'remark' => [
+      'field_user',
+      'field_datetime',
+    ],
   ];
 }
 
@@ -444,7 +556,13 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
  */
 function field_non_empty_lock_preprocess_field_multiple_value_form(array &$variables) {
   $element = $variables['element'];
-  if (empty($element['#field_name']) || $element['#field_name'] !== 'field_documents') {
+  if (empty($element['#field_name'])) {
+    return;
+  }
+
+  $paragraph_field_map = field_non_empty_lock_get_node_paragraph_field_map();
+  $target_fields = array_keys($paragraph_field_map);
+  if (!$target_fields || !in_array($element['#field_name'], $target_fields, TRUE)) {
     return;
   }
   if (empty($variables['multiple']) || empty($variables['table']['#rows'])) {

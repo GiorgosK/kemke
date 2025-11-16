@@ -20,8 +20,22 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_datetime:
+    type: datetime_timestamp
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_user:
+    type: entity_reference_autocomplete
+    weight: 1
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
 hidden:
   created: true
-  field_datetime: true
-  field_user: true
   status: true
