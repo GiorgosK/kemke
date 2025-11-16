@@ -12,6 +12,10 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
     ],
     "require": {
@@ -28,8 +32,11 @@
         "drupal/field_group": "^4.0",
         "drupal/field_permissions": "^1.4",
         "drupal/paragraphs": "^1.19",
+        "drupal/select2": "^2.0",
         "drush/drush": "^13.6",
-        "mglaman/composer-drupal-lenient": "^1.0"
+        "mglaman/composer-drupal-lenient": "^1.0",
+        "npm-asset/select2": "4.1.0-rc.0",
+        "oomphinc/composer-installers-extender": "^2.0"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -45,6 +52,7 @@
             "drupal/core-project-message": true,
             "drupal/core-recipe-unpack": true,
             "mglaman/composer-drupal-lenient": true,
+            "oomphinc/composer-installers-extender": true,
             "php-http/discovery": true,
             "php-tuf/composer-integration": true,
             "phpstan/extension-installer": true
@@ -62,7 +70,9 @@
                 "type:drupal-core"
             ],
             "web/libraries/{$name}": [
-                "type:drupal-library"
+                "type:drupal-library",
+                "type:bower-asset",
+                "type:npm-asset"
             ],
             "web/modules/contrib/{$name}": [
                 "type:drupal-module"
@@ -89,6 +99,7 @@
                 "type:drupal-recipe"
             ]
         },
+        "installer-types": ["bower-asset", "npm-asset"],
         "drupal-core-project-message": {
             "include-keys": [
                 "homepage",
