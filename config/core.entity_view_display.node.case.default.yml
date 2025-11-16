@@ -21,7 +21,6 @@ dependencies:
     - field.field.node.case.field_sa_number
     - field.field.node.case.field_sani_user
     - field.field.node.case.field_sender
-    - field.field.node.case.field_status
     - field.field.node.case.field_subject
     - field.field.node.case.field_supervisor
     - field.field.node.case.field_taa_project
@@ -33,7 +32,6 @@ dependencies:
     - datetime
     - entity_reference_revisions
     - field_group
-    - options
     - user
 third_party_settings:
   field_group:
@@ -254,13 +252,6 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 6
-    region: content
-  field_status:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 10
     region: content
   field_subject:
     type: basic_string

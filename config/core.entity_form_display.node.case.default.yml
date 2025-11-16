@@ -21,7 +21,6 @@ dependencies:
     - field.field.node.case.field_sa_number
     - field.field.node.case.field_sani_user
     - field.field.node.case.field_sender
-    - field.field.node.case.field_status
     - field.field.node.case.field_subject
     - field.field.node.case.field_supervisor
     - field.field.node.case.field_taa_project
@@ -254,12 +253,6 @@ content:
     settings:
       size: 60
       placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: options_select
-    weight: 10
-    region: content
-    settings: {  }
     third_party_settings: {  }
   field_subject:
     type: string_textarea
