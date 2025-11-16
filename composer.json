@@ -33,6 +33,7 @@
         "drupal/field_permissions": "^1.4",
         "drupal/paragraphs": "^1.19",
         "drupal/select2": "^2.0",
+        "drupal/token": "^1.16",
         "drush/drush": "^13.6",
         "mglaman/composer-drupal-lenient": "^1.0",
         "npm-asset/select2": "4.1.0-rc.0",
