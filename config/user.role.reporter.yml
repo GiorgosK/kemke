@@ -4,15 +4,16 @@ status: true
 dependencies:
   config:
     - node.type.case
-    - workflows.workflow.case_processing
   module:
     - content_moderation
     - node
+    - system
 id: reporter
 label: Εισηγητής
 weight: 8
 is_admin: false
 permissions:
+  - 'access content'
   - 'edit any case content'
   - 'view all revisions'
   - 'view any unpublished content'
