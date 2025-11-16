@@ -1,0 +1,21 @@
+uuid: de2fbd66-13eb-451b-b7c3-471cb5d9d25b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_absences
+  module:
+    - datetime_range
+    - user
+id: user.user.field_absences
+field_name: field_absences
+entity_type: user
+bundle: user
+label: Αδειες
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: daterange
