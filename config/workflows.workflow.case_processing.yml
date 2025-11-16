@@ -120,24 +120,6 @@ type_settings:
         - for_signature
       to: signed
       weight: 9
-    supervisor_assigned:
-      label: 'Χρεωμένη σε προϊστάμενο'
-      from:
-        - to_be_assigned
-      to: supervisor_assigned
-      weight: 1
-    to_be_assigned:
-      label: 'Προς χρέωση'
-      from:
-        - draft
-      to: to_be_assigned
-      weight: 0
-    to_supervisor_assigned:
-      label: 'Προς έγκριση από προϊστάμενο '
-      from:
-        - under_processing
-      to: for_supervisor_approval
-      weight: 5
     stay_approved:
       label: 'Αναμονή Εγκεκριμένη'
       from:
@@ -210,6 +192,24 @@ type_settings:
         - under_processing
       to: under_processing
       weight: -50
+    supervisor_assigned:
+      label: 'Χρεωμένη σε προϊστάμενο'
+      from:
+        - to_be_assigned
+      to: supervisor_assigned
+      weight: 1
+    to_be_assigned:
+      label: 'Προς χρέωση'
+      from:
+        - draft
+      to: to_be_assigned
+      weight: 0
+    to_supervisor_assigned:
+      label: 'Προς έγκριση από προϊστάμενο '
+      from:
+        - under_processing
+      to: for_supervisor_approval
+      weight: 5
   entity_types:
     node:
       - case
