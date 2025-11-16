@@ -11,6 +11,11 @@ label: 'Διαχείριση Υπόθεσης'
 type: content_moderation
 type_settings:
   states:
+    approval_rejection:
+      label: 'Απόρριψη έγκρισης'
+      weight: -2
+      published: false
+      default_revision: false
     approved:
       label: Εγκεκριμένη
       weight: 2
@@ -18,7 +23,7 @@ type_settings:
       default_revision: false
     draft:
       label: Εισερχόμενη
-      weight: -6
+      weight: -7
       published: false
       default_revision: false
     for_director_approval:
@@ -38,12 +43,12 @@ type_settings:
       default_revision: false
     fullness_check:
       label: 'Έλεγχος πληρότητας'
-      weight: -3
+      weight: -4
       published: false
       default_revision: false
     pending_issues:
       label: 'Με εκκρεμότητες'
-      weight: -2
+      weight: -3
       published: false
       default_revision: false
     published:
@@ -58,12 +63,12 @@ type_settings:
       default_revision: false
     supervisor_assigned:
       label: 'Χρεωμένη σε προϊστάμενο'
-      weight: -4
+      weight: -5
       published: false
       default_revision: false
     to_be_assigned:
       label: 'Προς χρέωση'
-      weight: -5
+      weight: -6
       published: false
       default_revision: false
     under_processing:
@@ -72,6 +77,13 @@ type_settings:
       published: false
       default_revision: false
   transitions:
+    approval_rejection:
+      label: 'Απόρριψη έγκρισης'
+      from:
+        - for_director_approval
+        - for_supervisor_approval
+      to: approval_rejection
+      weight: 11
     approved:
       label: Εγκεκριμένη
       from:
@@ -99,7 +111,9 @@ type_settings:
     fullness_approved:
       label: 'Πληρότητα φακέλου'
       from:
+        - approval_rejection
         - fullness_check
+        - pending_issues
       to: under_processing
       weight: 4
     fullness_check:
@@ -120,78 +134,84 @@ type_settings:
         - for_signature
       to: signed
       weight: 9
+    stay_approval_rejection:
+      label: 'Αναμονή Απόρριψη έγκρισης'
+      from:
+        - approval_rejection
+      to: approval_rejection
+      weight: -10
     stay_approved:
       label: 'Αναμονή Εγκεκριμένη'
       from:
         - approved
       to: approved
-      weight: -50
+      weight: -12
     stay_draft:
       label: 'Αναμονή Εισερχόμενη'
       from:
         - draft
       to: draft
-      weight: -50
+      weight: -11
     stay_for_director_approval:
       label: 'Αναμονή Προς έγκριση από διευθυντή'
       from:
         - for_director_approval
       to: for_director_approval
-      weight: -50
+      weight: -7
     stay_for_signature:
       label: 'Αναμονή Προς υπογραφή'
       from:
         - for_signature
       to: for_signature
-      weight: -50
+      weight: -5
     stay_for_supervisor_approval:
       label: 'Αναμονή Προς έγκριση από προϊστάμενο'
       from:
         - for_supervisor_approval
       to: for_supervisor_approval
-      weight: -50
+      weight: -6
     stay_fullness_check:
       label: 'Αναμονή Έλεγχος πληρότητας'
       from:
         - fullness_check
       to: fullness_check
-      weight: -50
+      weight: -13
     stay_pending_issues:
       label: 'Αναμονή Με εκκρεμότητες'
       from:
         - pending_issues
       to: pending_issues
-      weight: -50
+      weight: -9
     stay_published:
       label: 'Αναμονή Ολοκληρωμένη υπόθεση'
       from:
         - published
       to: published
-      weight: -50
+      weight: -8
     stay_signed:
       label: 'Αναμονή Υπογεγραμμένη'
       from:
         - signed
       to: signed
-      weight: -50
+      weight: -3
     stay_supervisor_assigned:
       label: 'Αναμονή Χρεωμένη σε προϊστάμενο'
       from:
         - supervisor_assigned
       to: supervisor_assigned
-      weight: -50
+      weight: -1
     stay_to_be_assigned:
       label: 'Αναμονή Προς χρέωση'
       from:
         - to_be_assigned
       to: to_be_assigned
-      weight: -50
+      weight: -4
     stay_under_processing:
       label: 'Αναμονή Υπό επεξεργασία'
       from:
         - under_processing
       to: under_processing
-      weight: -50
+      weight: -2
     supervisor_assigned:
       label: 'Χρεωμένη σε προϊστάμενο'
       from:
@@ -207,6 +227,7 @@ type_settings:
     to_supervisor_assigned:
       label: 'Προς έγκριση από προϊστάμενο '
       from:
+        - approval_rejection
         - under_processing
       to: for_supervisor_approval
       weight: 5
