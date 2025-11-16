@@ -1,4 +1,4 @@
-uuid: 90954e7f-fd8e-4d2a-b9ed-527d6afa3d57
+uuid: 2b94a649-fb28-4301-a7bd-06d3c3052e64
 langcode: en
 status: true
 dependencies:
@@ -11,104 +11,133 @@ label: 'Διαχείριση Υπόθεσης'
 type: content_moderation
 type_settings:
   states:
-    assigned_secretariat:
-      label: Χρεωμένη
-      weight: 1
-      published: true
-      default_revision: true
-    awaiting_department_head:
-      label: 'Προς υπογραφή απο Προϊστάμενος Τμήματος'
-      weight: 3
-      published: true
-      default_revision: true
+    approved:
+      label: Εγκεκριμένη
+      weight: 2
+      published: false
+      default_revision: false
     draft:
-      label: 'Προς χρέωση'
+      label: Εισερχόμενη
+      weight: -6
+      published: false
+      default_revision: false
+    for_director_approval:
+      label: 'Προς έγκριση από διευθυντή'
+      weight: 1
+      published: false
+      default_revision: false
+    for_signature:
+      label: 'Προς υπογραφή'
+      weight: 3
+      published: false
+      default_revision: false
+    for_supervisor_approval:
+      label: 'Προς έγκριση από προϊστάμενο'
       weight: 0
-      published: true
-      default_revision: true
+      published: false
+      default_revision: false
+    fullness_check:
+      label: 'Έλεγχος πληρότητας'
+      weight: -3
+      published: false
+      default_revision: false
+    pending_issues:
+      label: 'Με εκκρεμότητες'
+      weight: -2
+      published: false
+      default_revision: false
     published:
-      label: 'Προς υπογραφή απο Προϊστάμενος Διεύθυνσης'
+      label: 'Ολοκληρωμένη υπόθεση'
       weight: 5
       published: true
       default_revision: true
-    secretariat_in_progress:
-      label: 'Σε Επεξεργασία Γραμματείας'
-      weight: 2
-      published: true
-      default_revision: true
-    secretariat_rework:
-      label: 'Περαταίρω Επεξεργασία Γραμματείας'
+    signed:
+      label: Υπογεγραμμένη
       weight: 4
-      published: true
-      default_revision: true
+      published: false
+      default_revision: false
+    supervisor_assigned:
+      label: 'Χρεωμένη σε προϊστάμενο'
+      weight: -4
+      published: false
+      default_revision: false
+    to_be_assigned:
+      label: 'Προς χρέωση'
+      weight: -5
+      published: false
+      default_revision: false
+    under_processing:
+      label: 'Υπό επεξεργασία'
+      weight: -1
+      published: false
+      default_revision: false
   transitions:
-    assign_secretariat:
-      label: 'Ανάθεση στη Γραμματεία'
+    approved:
+      label: Εγκεκριμένη
       from:
-        - draft
-      to: assigned_secretariat
-      weight: 0
-    escalate_to_director:
-      label: 'Αποστολή σε Προϊστάμενο Διεύθυνσης'
+        - for_director_approval
+      to: approved
+      weight: 7
+    completed:
+      label: 'Ολοκληρωμένη υπόθεση'
       from:
-        - awaiting_department_head
-      to: published
-      weight: 4
-    request_secretariat_rework:
-      label: 'Επιστροφή για Περαταίρω Επεξεργασία Γραμματείας'
-      from:
-        - awaiting_department_head
-      to: secretariat_rework
-      weight: 3
-    save_assigned_secretariat:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - assigned_secretariat
-      to: assigned_secretariat
-      weight: 6
-    save_awaiting_department_head:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - awaiting_department_head
-      to: awaiting_department_head
-      weight: 9
-    save_director_pending:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - published
+        - signed
       to: published
       weight: 10
-    save_draft:
-      label: 'Αποθήκευση χωρίς αλλαγή'
+    for_director_approval:
+      label: 'Προς έγκριση από διευθυντή'
+      from:
+        - for_supervisor_approval
+      to: for_director_approval
+      weight: 6
+    for_signature:
+      label: 'Προς υπογραφή'
+      from:
+        - approved
+      to: for_signature
+      weight: 8
+    fullness_approved:
+      label: 'Πληρότητα φακέλου'
+      from:
+        - fullness_check
+      to: under_processing
+      weight: 4
+    fullness_check:
+      label: 'Έλεγχος πληρότητας '
+      from:
+        - to_be_assigned
+      to: fullness_check
+      weight: 2
+    pending_issues:
+      label: 'Με εκκρεμότητες'
+      from:
+        - fullness_check
+      to: pending_issues
+      weight: 3
+    signed:
+      label: Υπογεγραμμένη
+      from:
+        - for_signature
+      to: signed
+      weight: 9
+    supervisor_assigned:
+      label: 'Χρεωμένη σε προϊστάμενο'
+      from:
+        - to_be_assigned
+      to: supervisor_assigned
+      weight: 1
+    to_be_assigned:
+      label: 'Προς χρέωση'
       from:
         - draft
-      to: draft
+      to: to_be_assigned
+      weight: 0
+    to_supervisor_assigned:
+      label: 'Προς έγκριση από προϊστάμενο '
+      from:
+        - under_processing
+      to: for_supervisor_approval
       weight: 5
-    save_secretariat_in_progress:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - secretariat_in_progress
-      to: secretariat_in_progress
-      weight: 8
-    save_secretariat_rework:
-      label: 'Αποθήκευση χωρίς αλλαγή'
-      from:
-        - secretariat_rework
-      to: secretariat_rework
-      weight: 7
-    start_secretariat_work:
-      label: 'Έναρξη επεξεργασίας Γραμματείας'
-      from:
-        - assigned_secretariat
-        - secretariat_rework
-      to: secretariat_in_progress
-      weight: 1
-    submit_to_department:
-      label: 'Αποστολή σε Προϊστάμενο Τμήματος'
-      from:
-        - secretariat_in_progress
-      to: awaiting_department_head
-      weight: 2
   entity_types:
     node:
       - case
