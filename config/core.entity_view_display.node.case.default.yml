@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.case.field_priority
     - field.field.node.case.field_protocol_incoming
     - field.field.node.case.field_ref_id
+    - field.field.node.case.field_related_case
     - field.field.node.case.field_requested_deadline
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
@@ -204,6 +205,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 0
+    region: content
+  field_related_case:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 19
     region: content
   field_requested_deadline:
     type: datetime_default

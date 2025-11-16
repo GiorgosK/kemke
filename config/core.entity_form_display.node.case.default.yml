@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.case.field_priority
     - field.field.node.case.field_protocol_incoming
     - field.field.node.case.field_ref_id
+    - field.field.node.case.field_related_case
     - field.field.node.case.field_requested_deadline
     - field.field.node.case.field_responsible_entity
     - field.field.node.case.field_sa_number
@@ -28,7 +29,9 @@ dependencies:
     - field.field.node.case.field_transparency_requirement
     - field.field.node.case.field_working_days
     - node.type.case
+    - workflows.workflow.case_processing
   module:
+    - content_moderation
     - datetime
     - field_group
     - paragraphs
@@ -64,7 +67,7 @@ third_party_settings:
       label: Υπεύθυνοι
       region: content
       parent_name: ''
-      weight: 18
+      weight: 20
       format_type: details
       format_settings:
         classes: ''
@@ -206,6 +209,16 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_related_case:
+    type: entity_reference_autocomplete
+    weight: 19
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
     weight: 12
@@ -333,7 +346,7 @@ content:
     third_party_settings: {  }
   path:
     type: path
-    weight: 16
+    weight: 17
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -346,7 +359,7 @@ content:
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 17
+    weight: 18
     region: content
     settings:
       display_label: true
