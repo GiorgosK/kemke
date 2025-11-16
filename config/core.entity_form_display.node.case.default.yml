@@ -39,7 +39,6 @@ third_party_settings:
   field_group:
     group_status:
       children:
-        - field_status
         - field_priority
         - field_requested_deadline
         - field_legal_deadline
@@ -109,14 +108,10 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_basic_operator:
-    type: entity_reference_autocomplete
+    type: options_select
     weight: 9
     region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
+    settings: {  }
     third_party_settings: {  }
   field_case_type:
     type: options_select
@@ -177,14 +172,10 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_operators:
-    type: entity_reference_autocomplete
+    type: options_select
     weight: 10
     region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
+    settings: {  }
     third_party_settings: {  }
   field_priority:
     type: options_select
