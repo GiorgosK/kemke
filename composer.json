@@ -18,6 +18,7 @@
         "composer/installers": "^2.3",
         "cweagans/composer-patches": "^2.0",
         "drupal/admin_toolbar": "^3.6",
+        "drupal/conditional_fields": "^4.0@alpha",
         "drupal/core-composer-scaffold": "^11.2",
         "drupal/core-project-message": "^11.2",
         "drupal/core-recipe-unpack": "^11.2",
