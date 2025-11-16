@@ -17,5 +17,7 @@ permissions:
   - 'use case_processing transition escalate_to_director'
   - 'use case_processing transition request_secretariat_rework'
   - 'use case_processing transition save_awaiting_department_head'
+  - 'view all revisions'
+  - 'view any unpublished content'
   - 'view case revisions'
   - 'view latest version'

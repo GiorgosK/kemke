@@ -46,6 +46,14 @@
   margin-top: 0.5rem;
 }
 
+.govgr-field {
+  position: relative;
+}
+
+.diff-revisions .govgr-radios__input {
+  scale: 0.5;
+}
+
 .govgr-heading-xl {
   max-width: none;
 }

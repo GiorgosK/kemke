@@ -8,6 +8,7 @@ dependencies:
     - taxonomy.vocabulary.tags
   module:
     - comment
+    - content_moderation
     - contextual
     - external_entities
     - file
@@ -50,8 +51,10 @@ permissions:
   - 'update case external entity'
   - 'update mock_simple_form external entity'
   - 'view all revisions'
+  - 'view any unpublished content'
   - 'view case external entity'
   - 'view case external entity collection'
+  - 'view latest version'
   - 'view mock_simple_form external entity'
   - 'view mock_simple_form external entity collection'
   - 'view own unpublished content'

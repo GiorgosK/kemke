@@ -5,6 +5,7 @@ dependencies:
   config:
     - node.type.case
   module:
+    - content_moderation
     - node
 id: administrator_manager
 label: Διαχειριστής
@@ -12,4 +13,7 @@ weight: 5
 is_admin: false
 permissions:
   - 'edit any case content'
+  - 'view all revisions'
+  - 'view any unpublished content'
   - 'view case revisions'
+  - 'view latest version'
