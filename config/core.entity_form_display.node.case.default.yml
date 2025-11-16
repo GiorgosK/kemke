@@ -28,9 +28,7 @@ dependencies:
     - field.field.node.case.field_transparency_requirement
     - field.field.node.case.field_working_days
     - node.type.case
-    - workflows.workflow.case_processing
   module:
-    - content_moderation
     - datetime
     - field_group
     - paragraphs
@@ -48,7 +46,7 @@ third_party_settings:
       label: Κατασταση
       region: content
       parent_name: ''
-      weight: 11
+      weight: 10
       format_type: details
       format_settings:
         classes: ''
@@ -66,7 +64,7 @@ third_party_settings:
       label: Υπεύθυνοι
       region: content
       parent_name: ''
-      weight: 10
+      weight: 18
       format_type: details
       format_settings:
         classes: ''
@@ -74,6 +72,27 @@ third_party_settings:
         id: ''
         label_as_html: false
         open: false
+        description: ''
+        required_fields: true
+    group_ee:
+      children:
+        - field_sani_user
+        - field_sa_number
+        - field_taa_project
+        - field_thematic_unit
+        - field_transparency_requirement
+        - field_working_days
+      label: EE
+      region: content
+      parent_name: ''
+      weight: 11
+      format_type: details
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        open: true
         description: ''
         required_fields: true
 id: node.case.default
@@ -201,7 +220,7 @@ content:
     third_party_settings: {  }
   field_sa_number:
     type: string_textfield
-    weight: 20
+    weight: 19
     region: content
     settings:
       size: 60
@@ -209,7 +228,7 @@ content:
     third_party_settings: {  }
   field_sani_user:
     type: string_textfield
-    weight: 19
+    weight: 18
     region: content
     settings:
       size: 60
@@ -249,7 +268,7 @@ content:
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
-    weight: 21
+    weight: 20
     region: content
     settings:
       size: 60
@@ -257,7 +276,7 @@ content:
     third_party_settings: {  }
   field_thematic_unit:
     type: string_textfield
-    weight: 22
+    weight: 21
     region: content
     settings:
       size: 60
@@ -265,7 +284,7 @@ content:
     third_party_settings: {  }
   field_transparency_requirement:
     type: string_textfield
-    weight: 23
+    weight: 22
     region: content
     settings:
       size: 60
@@ -273,7 +292,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 24
+    weight: 23
     region: content
     settings:
       placeholder: ''
@@ -286,7 +305,7 @@ content:
     third_party_settings: {  }
   path:
     type: path
-    weight: 17
+    weight: 16
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -299,7 +318,7 @@ content:
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 18
+    weight: 17
     region: content
     settings:
       display_label: true
