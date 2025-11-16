@@ -1,0 +1,8 @@
+uuid: 718a2b1b-f1a3-4506-b759-322d743f2a25
+langcode: en
+status: true
+dependencies: {  }
+id: greek_date_no_year
+label: 'Greek date no year'
+locked: false
+pattern: j/n
