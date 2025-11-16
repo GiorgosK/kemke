@@ -14,8 +14,6 @@ weight: 8
 is_admin: false
 permissions:
   - 'edit any case content'
-  - 'use case_processing transition assign_secretariat'
-  - 'use case_processing transition save_draft'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case revisions'

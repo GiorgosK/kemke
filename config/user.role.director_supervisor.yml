@@ -14,7 +14,6 @@ weight: 6
 is_admin: false
 permissions:
   - 'edit any case content'
-  - 'use case_processing transition save_director_pending'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case revisions'
