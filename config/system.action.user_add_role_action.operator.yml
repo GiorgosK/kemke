@@ -1,0 +1,14 @@
+uuid: 5ac16d49-77a3-48da-8e7b-eb8a59b5a457
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.operator
+  module:
+    - user
+id: user_add_role_action.operator
+label: 'Add the Χειριστής role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: operator

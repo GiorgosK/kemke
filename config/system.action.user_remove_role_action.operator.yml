@@ -1,0 +1,14 @@
+uuid: eab1f425-5b35-4e86-9c16-520f0c199eb1
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.operator
+  module:
+    - user
+id: user_remove_role_action.operator
+label: 'Remove the Χειριστής role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: operator
