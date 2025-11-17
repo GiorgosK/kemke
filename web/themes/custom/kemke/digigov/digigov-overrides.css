@@ -71,7 +71,7 @@ pre {
   padding: 0.5rem;
 }
 
-
+.node-case-form details,
 .node-case-edit-form details,
 .node--type-case details {
   background-color: #eee;
