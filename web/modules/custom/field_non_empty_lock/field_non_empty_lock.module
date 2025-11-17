@@ -77,7 +77,16 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
     if (empty($field_config['skip_field_check']) && !$node->hasField($field_name)) {
       continue;
     }
-    if (!field_non_empty_lock_field_has_value($node, $field_config)) {
+    $field_has_value = field_non_empty_lock_field_has_value($node, $field_config);
+    $hide_field = (!empty($field_config['hide_if_new']) && $node->isNew())
+      || (!empty($field_config['hide_if_empty']) && !$field_has_value);
+
+    if ($hide_field) {
+      field_non_empty_lock_hide_widget_at_path($form, $field_config['widget_path']);
+      continue;
+    }
+
+    if (!$field_has_value) {
       continue;
     }
 
@@ -416,6 +425,8 @@ function field_non_empty_lock_normalize_field_definition($field_key, $field_defi
     'widget_path' => [$field_name, 'widget'],
     'is_empty_callback' => NULL,
     'skip_field_check' => FALSE,
+    'hide_if_empty' => FALSE,
+    'hide_if_new' => FALSE,
   ];
 
   return $field_definition;
@@ -469,6 +480,23 @@ function field_non_empty_lock_disable_widget_at_path(array &$form, array $path) 
 }
 
 /**
+ * Hides a widget located via a form array path.
+ */
+function field_non_empty_lock_hide_widget_at_path(array &$form, array $path) {
+  $element =& $form;
+  foreach ($path as $part) {
+    if (!is_array($element) || !array_key_exists($part, $element)) {
+      return;
+    }
+    $element =& $element[$part];
+  }
+
+  if (is_array($element)) {
+    $element['#access'] = FALSE;
+  }
+}
+
+/**
  * Provides a per-node-bundle map of fields that lock once populated.
  *
  * @return array
@@ -477,7 +505,14 @@ function field_non_empty_lock_disable_widget_at_path(array &$form, array $path) 
 function field_non_empty_lock_get_node_field_map() {
   return [
     'case' => [
-      'field_ref_id',
+      'field_ref_id' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
+      'field_entry_date' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
       'field_entry_date',
       'field_legal_deadline',
       'field_protocol_incoming',
