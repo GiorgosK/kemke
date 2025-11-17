@@ -82,6 +82,7 @@ function case_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime 
   $deadline = $start_date ? clone $start_date : new DrupalDateTime('now');
   $deadline->setTime(0, 0, 0);
   $added_days = 0;
+  $holiday_cache = [];
 
   while ($added_days < $work_days) {
     $deadline->modify('+1 day');
@@ -89,10 +90,66 @@ function case_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime 
     if (in_array((int) $deadline->format('N'), [6, 7], TRUE)) {
       continue;
     }
+
+    $year = (int) $deadline->format('Y');
+    if (!isset($holiday_cache[$year])) {
+      $holiday_cache[$year] = array_flip(case_tweaks_fetch_greek_public_holidays($year));
+    }
+
+    if (isset($holiday_cache[$year][$deadline->format('Y-m-d')])) {
+      continue;
+    }
+
     $added_days++;
   }
 
   return $deadline;
+}
+
+/**
+ * Returns the list of Greek public holidays for the provided year.
+ */
+function case_tweaks_fetch_greek_public_holidays(int $year): array {
+  static $holidays = [];
+  if (isset($holidays[$year])) {
+    return $holidays[$year];
+  }
+
+  $cid = "case_tweaks:holidays:$year";
+  $cache = \Drupal::cache()->get($cid);
+  if ($cache) {
+    return $holidays[$year] = $cache->data;
+  }
+
+  $holiday_dates = [];
+
+  try {
+    $client = \Drupal::httpClient();
+    $response = $client->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/GR", ['timeout' => 5]);
+
+    if ($response->getStatusCode() === 200) {
+      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
+      foreach ($data as $holiday) {
+        if (!empty($holiday['date'])) {
+          $holiday_dates[] = $holiday['date'];
+        }
+      }
+      \Drupal::logger('case_tweaks')->info('Fetched @count Greek holiday dates for @year: @dates.', [
+        '@count' => count($holiday_dates),
+        '@year' => $year,
+        '@dates' => implode(', ', $holiday_dates),
+      ]);
+    }
+  }
+  catch (\Exception $exception) {
+    \Drupal::logger('case_tweaks')->warning('Unable to fetch holidays for @year: @message', [
+      '@year' => $year,
+      '@message' => $exception->getMessage(),
+    ]);
+  }
+
+  \Drupal::cache()->set($cid, $holiday_dates, time() + 86400);
+  return $holidays[$year] = $holiday_dates;
 }
 
 /**
