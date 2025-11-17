@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - node.type.case
+    - workflows.workflow.case_processing
   module:
     - content_moderation
     - node
@@ -14,7 +15,33 @@ weight: 6
 is_admin: false
 permissions:
   - 'access content'
+  - 'access user profiles'
   - 'edit any case content'
+  - 'use case_processing transition approval_rejection'
+  - 'use case_processing transition approved'
+  - 'use case_processing transition completed'
+  - 'use case_processing transition for_director_approval'
+  - 'use case_processing transition for_signature'
+  - 'use case_processing transition fullness_approved'
+  - 'use case_processing transition fullness_check'
+  - 'use case_processing transition pending_issues'
+  - 'use case_processing transition signed'
+  - 'use case_processing transition stay_approval_rejection'
+  - 'use case_processing transition stay_approved'
+  - 'use case_processing transition stay_draft'
+  - 'use case_processing transition stay_for_director_approval'
+  - 'use case_processing transition stay_for_signature'
+  - 'use case_processing transition stay_for_supervisor_approval'
+  - 'use case_processing transition stay_fullness_check'
+  - 'use case_processing transition stay_pending_issues'
+  - 'use case_processing transition stay_published'
+  - 'use case_processing transition stay_signed'
+  - 'use case_processing transition stay_supervisor_assigned'
+  - 'use case_processing transition stay_to_be_assigned'
+  - 'use case_processing transition stay_under_processing'
+  - 'use case_processing transition supervisor_assigned'
+  - 'use case_processing transition to_be_assigned'
+  - 'use case_processing transition to_supervisor_assigned'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case revisions'

@@ -14,6 +14,7 @@ weight: 7
 is_admin: false
 permissions:
   - 'access content'
+  - 'access user profiles'
   - 'edit any case content'
   - 'view all revisions'
   - 'view any unpublished content'
