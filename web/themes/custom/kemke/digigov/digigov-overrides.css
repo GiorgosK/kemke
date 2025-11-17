@@ -30,6 +30,10 @@
 .region-header {
   margin-left: auto
 }
+.govgr-width-container,
+.govgr-header__container {
+  max-width: 74rem;
+}
 
 .govgr-layout-grey {
   background-color: var(--color-base-200);
