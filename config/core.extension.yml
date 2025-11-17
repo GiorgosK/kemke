@@ -34,7 +34,6 @@ module:
   field_group: 0
   field_non_empty_lock: 0
   field_permissions: 0
-  field_ref_id: 0
   field_ui: 0
   file: 0
   filter: 0

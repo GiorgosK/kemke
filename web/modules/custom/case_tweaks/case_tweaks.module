@@ -37,8 +37,16 @@ function case_tweaks_entity_presave(EntityInterface $entity): void {
   }
   else {
     $entry_item = $entity->get('field_entry_date')->first();
-    if ($entry_item && $entry_item->getDateTime()) {
-      $baseline = clone $entry_item->getDateTime();
+    if ($entry_item) {
+      $value = $entry_item->getValue()['value'] ?? NULL;
+      if ($value) {
+        try {
+          $baseline = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+        }
+        catch (\Exception $exception) {
+          // Fall through to the default baseline when parsing fails.
+        }
+      }
     }
   }
   $baseline = $baseline ?: new DrupalDateTime('now');
@@ -50,6 +58,21 @@ function case_tweaks_entity_presave(EntityInterface $entity): void {
       'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
   }
+
+  if (!$entity->isNew()) {
+    case_tweaks_populate_field_ref_id($entity);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for nodes.
+ */
+function case_tweaks_node_insert(NodeInterface $node): void {
+  if ($node->bundle() !== 'case') {
+    return;
+  }
+
+  case_tweaks_assign_reference_id($node);
 }
 
 /**
@@ -70,4 +93,36 @@ function case_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime 
   }
 
   return $deadline;
+}
+
+/**
+ * Ensures an auto-generated reference ID exists for the case.
+ */
+function case_tweaks_assign_reference_id(NodeInterface $node): void {
+  if (!case_tweaks_populate_field_ref_id($node)) {
+    return;
+  }
+
+  // Avoid creating a revision just for the auto-generated value.
+  $node->setNewRevision(FALSE);
+  $node->save();
+}
+
+/**
+ * Populates the reference ID field on existing nodes when empty.
+ */
+function case_tweaks_populate_field_ref_id(NodeInterface $node): bool {
+  if (!$node->hasField('field_ref_id') || !$node->get('field_ref_id')->isEmpty()) {
+    return FALSE;
+  }
+
+  $node->set('field_ref_id', case_tweaks_generate_reference_id($node));
+  return TRUE;
+}
+
+/**
+ * Generates the REF-#### identifier.
+ */
+function case_tweaks_generate_reference_id(NodeInterface $node): string {
+  return 'REF-' . (10000 + (int) $node->id());
 }
