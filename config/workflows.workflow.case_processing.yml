@@ -24,7 +24,7 @@ type_settings:
     draft:
       label: Εισερχόμενη
       weight: -7
-      published: true
+      published: false
       default_revision: false
     for_director_approval:
       label: 'Προς έγκριση από διευθυντή'
