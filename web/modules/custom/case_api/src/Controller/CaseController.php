@@ -154,10 +154,6 @@ final class CaseController extends ControllerBase {
       $errors[] = 'The "title" property is required.';
     }
 
-    if (isset($payload['field_status']) && !$this->isAllowedStatus($payload['field_status'])) {
-      $errors[] = 'The provided field_status value is not allowed.';
-    }
-
     if (isset($payload['field_documents']) && !is_array($payload['field_documents'])) {
       $errors[] = 'The "field_documents" property must be an array.';
     }
@@ -190,28 +186,6 @@ final class CaseController extends ControllerBase {
     }
 
     return $errors;
-  }
-
-  /**
-   * Checks whether the provided status value is allowed.
-   */
-  private function isAllowedStatus(string $value): bool {
-    $definitions = $this->entityFieldManager->getFieldDefinitions('node', 'case');
-    if (!isset($definitions['field_status'])) {
-      return FALSE;
-    }
-
-    $allowed = $definitions['field_status']->getSetting('allowed_values') ?? [];
-    foreach ($allowed as $key => $definition) {
-      if (is_array($definition) && isset($definition['value']) && $definition['value'] === $value) {
-        return TRUE;
-      }
-      if (!is_array($definition) && $key === $value) {
-        return TRUE;
-      }
-    }
-
-    return FALSE;
   }
 
   /**
@@ -359,7 +333,6 @@ final class CaseController extends ControllerBase {
       'field_thematic_unit',
       'field_transparency_requirement',
       'field_notes',
-      'field_status',
     ];
 
     foreach ($simpleFields as $fieldName) {
