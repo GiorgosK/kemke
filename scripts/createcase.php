@@ -157,7 +157,7 @@ $casePayload = [
 ];
 
 $casePayload_simple = [
-  'title' => sprintf('Case created %s', (new DateTimeImmutable())->format(DateTimeInterface::ATOM)),
+  'title' => 'Υποθεση #' . $random,
   'field_sender' => 'Ονομα Επώνυμο ' . $random,
   'field_responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'field_subject' => 'θέμα υποθεσης ' . $random,  
