@@ -270,15 +270,15 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_legal_deadline:
-          id: field_legal_deadline
-          table: node__field_legal_deadline
-          field: field_legal_deadline
+        field_entry_date:
+          id: field_entry_date
+          table: node__field_entry_date
+          field: field_entry_date
           relationship: none
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: 'Νόμιμη προθεσμία'
+          label: 'Ημερομηνία εισόδου'
           exclude: false
           alter:
             alter_text: false
@@ -334,15 +334,15 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_entry_date:
-          id: field_entry_date
-          table: node__field_entry_date
-          field: field_entry_date
+        field_legal_deadline:
+          id: field_legal_deadline
+          table: node__field_legal_deadline
+          field: field_legal_deadline
           relationship: none
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: 'Ημερομηνία εισόδου'
+          label: 'Νόμιμη προθεσμία'
           exclude: false
           alter:
             alter_text: false
