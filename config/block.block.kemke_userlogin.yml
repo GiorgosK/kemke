@@ -1,0 +1,25 @@
+uuid: 6cb81b2d-b2b7-4c28-b115-50b30bf0ade4
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+    - user
+  theme:
+    - kemke
+id: kemke_userlogin
+theme: kemke
+region: content
+weight: 0
+provider: null
+plugin: user_login_block
+settings:
+  id: user_login_block
+  label: 'User login'
+  label_display: visible
+  provider: user
+visibility:
+  request_path:
+    id: request_path
+    negate: false
+    pages: '<front>'
