@@ -9,7 +9,9 @@ dependencies:
     - comment
     - contact
     - filter
+    - node_view_permissions
     - search
+    - system
 _core:
   default_config_hash: 6WavjUYXIegP9AAg2zXGx54MWIVoomC3SZhNiqe-Dyk
 id: anonymous
@@ -18,7 +20,9 @@ weight: 0
 is_admin: false
 permissions:
   - 'access comments'
+  - 'access content'
   - 'access site-wide contact form'
   - 'create case via api'
   - 'search content'
   - 'use text format restricted_html'
+  - 'view any page content'
