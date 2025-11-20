@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e5fd4b2397400dbcd63acc96df3f1fbd",
+    "content-hash": "047180a99cde6bcc9680e27c672aa22f",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2429,6 +2429,80 @@
             "homepage": "https://www.drupal.org/project/select2",
             "support": {
                 "source": "https://git.drupalcode.org/project/select2"
+            }
+        },
+        {
+            "name": "drupal/workflow_buttons",
+            "version": "1.0.0-beta7",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/workflow_buttons.git",
+                "reference": "8.x-1.0-beta7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/workflow_buttons-8.x-1.0-beta7.zip",
+                "reference": "8.x-1.0-beta7",
+                "shasum": "82e35f062525d674f328ffd03d57087cb179354b"
+            },
+            "require": {
+                "drupal/core": "^9 || ^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-1.0-beta7",
+                    "datestamp": "1746664585",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "Beta releases are not covered by Drupal security advisories."
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0+"
+            ],
+            "authors": [
+                {
+                    "name": "beunerd",
+                    "homepage": "https://www.drupal.org/user/1312798"
+                },
+                {
+                    "name": "elkaro",
+                    "homepage": "https://www.drupal.org/user/3577260"
+                },
+                {
+                    "name": "gnuget",
+                    "homepage": "https://www.drupal.org/user/992990"
+                },
+                {
+                    "name": "kelly.m.jacobs",
+                    "homepage": "https://www.drupal.org/user/3397374"
+                },
+                {
+                    "name": "mlncn",
+                    "homepage": "https://www.drupal.org/user/64383"
+                },
+                {
+                    "name": "ultrabob",
+                    "homepage": "https://www.drupal.org/user/110463"
+                }
+            ],
+            "description": "Provide workflow buttons for content moderation instead of a select dropdown of states.  Button labels are taken from the transition names.",
+            "homepage": "https://www.drupal.org/project/workflow_buttons",
+            "keywords": [
+                "buttons",
+                "content",
+                "content moderation",
+                "drupal",
+                "editor",
+                "form",
+                "workflow"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/workflow_buttons.git",
+                "issues": "https://www.drupal.org/project/issues/workflow_buttons"
             }
         },
         {
@@ -7532,6 +7606,7 @@
         "drupal/conditional_fields": 15,
         "drupal/diff": 10,
         "drupal/external_entities": 10,
+        "drupal/workflow_buttons": 10,
         "npm-asset/select2": 5
     },
     "prefer-stable": true,
