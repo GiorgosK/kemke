@@ -49,5 +49,6 @@ docutracks.cookies
 node_modules
 .pnpm-store
 tests/playwright/visual.spec.js-snapshots
+tests/playwright/test.spec.js-snapshots
 tests/playwright/test-results
 tests/playwright/playwright-report
