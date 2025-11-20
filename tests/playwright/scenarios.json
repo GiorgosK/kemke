@@ -7,12 +7,14 @@
   "defaults": {
     "readySelector": "body",
     "waitTimeout": 8000,
-    "threshold": 0.01
+    "threshold": 0.01,
+    "referenceURL": "https://kemke.webx2.com",
+    "testURL": "https://kemke.ddev.site"
   },
   "scenarios": [
     {
       "label": "Homepage",
-      "url": "https://kemke.ddev.site/",
+      "url": "/",
       "threshold": 0.0001
     }
   ]

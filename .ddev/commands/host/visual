@@ -1,6 +1,21 @@
 #!/bin/bash
 
 ACTION="$1"
+shift
+
+run_playwright () {
+  local update_flag="$1"
+  shift
+  local extra_args=""
+  if [ "$#" -gt 0 ]; then
+    printf -v extra_args ' %q' "$@"
+  fi
+  local env_prefix=""
+  if [ -n "$update_flag" ]; then
+    env_prefix="PLAYWRIGHT_REFERENCE=1 "
+  fi
+  ddev exec bash -lc "cd tests/playwright && ${env_prefix}npx playwright test ${update_flag:+$update_flag }${extra_args}"
+}
 
 case "$ACTION" in
 
@@ -32,11 +47,13 @@ case "$ACTION" in
     ;;
 
   test)
-    ddev exec bash -lc "cd tests/playwright && npx playwright test"
+    run_playwright ""
     ;;
 
   test-ref)
-    ddev exec bash -lc "cd tests/playwright && npx playwright test --update-snapshots"
+    echo "🧹 Removing existing reference snapshots..."
+    rm -rf tests/playwright/visual.spec.js-snapshots
+    run_playwright "--update-snapshots"
     ;;
 
   open)

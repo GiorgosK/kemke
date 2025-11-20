@@ -3,11 +3,36 @@ import config from './scenarios.json' assert { type: 'json' };
 
 const { viewports, scenarios, defaults } = config;
 
+const resolveUrl = (pathOrUrl, baseUrl) => {
+  if (!pathOrUrl) return '';
+  // If the scenario provides an absolute URL, use it as-is. Otherwise join with the chosen base.
+  return /^https?:\/\//i.test(pathOrUrl)
+    ? pathOrUrl
+    : baseUrl
+      ? new URL(pathOrUrl, baseUrl).toString()
+      : pathOrUrl;
+};
+
 for (const scenario of scenarios) {
   for (const viewport of viewports) {
-    test(`${scenario.label} [${viewport.label}]`, async ({ page }) => {
+    test(`${scenario.label} [${viewport.label}]`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto(scenario.url, { waitUntil: 'networkidle' });
+
+      const referenceBase =
+        scenario.referenceURL ||
+        process.env.PLAYWRIGHT_REFERENCE_URL ||
+        defaults?.referenceURL;
+      const testBase =
+        scenario.testURL ||
+        process.env.PLAYWRIGHT_TEST_URL ||
+        defaults?.testURL;
+      const useReferenceBase =
+        process.env.PLAYWRIGHT_REFERENCE === '1' ||
+        process.env.PWTEST_REFERENCE === '1' ||
+        testInfo?.config?.updateSnapshots === 'all';
+
+      const targetUrl = resolveUrl(scenario.url, useReferenceBase ? referenceBase : testBase);
+      await page.goto(targetUrl, { waitUntil: 'networkidle' });
 
       const readySelector = scenario.readySelector || defaults?.readySelector;
       const readyText = scenario.readyText || defaults?.readyText;
