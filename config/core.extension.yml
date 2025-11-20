@@ -62,6 +62,7 @@ module:
   update: 0
   user: 0
   views_ui: 0
+  workflow_buttons: 0
   workflows: 0
   xntt_views: 0
   views: 10
