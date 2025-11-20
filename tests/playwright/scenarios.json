@@ -1,0 +1,18 @@
+{
+  "viewports": [
+    { "label": "mobile", "width": 375, "height": 667 },
+    { "label": "tablet", "width": 768, "height": 1024 },
+    { "label": "desktop", "width": 1280, "height": 800 }
+  ],
+  "defaults": {
+    "readySelector": "body",
+    "waitTimeout": 8000,
+    "threshold": 0.01
+  },
+  "scenarios": [
+    {
+      "label": "Homepage",
+      "url": "https://kemke.ddev.site/"
+    }
+  ]
+}

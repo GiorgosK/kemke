@@ -1,0 +1,79 @@
+#!/bin/bash
+
+ACTION="$1"
+
+case "$ACTION" in
+
+  init)
+    echo "🔧 Initializing Playwright visual testing setup..."
+    echo
+
+    # Ensure folders exist
+    ddev exec bash -lc "mkdir -p tests/playwright"
+
+    echo "🧹 Cleaning host machine Playwright cache (prevents path conflicts)..."
+    rm -rf ~/.cache/ms-playwright || true
+
+    echo "📦 Initializing npm inside container (if not already)..."
+    ddev exec bash -lc "cd tests/playwright && [ -f package.json ] || npm init -y"
+
+    echo "📚 Installing Playwright test runner..."
+    ddev exec bash -lc "cd tests/playwright && npm install -D @playwright/test"
+
+    echo "🌐 Installing Playwright browsers (inside DDEV container)..."
+    ddev exec bash -lc "cd tests/playwright && npx playwright install --with-deps"
+
+    echo
+    echo "✅ Playwright installation completed!"
+    echo "You can now run:"
+    echo "  ddev visual test-ref     # Generate baseline snapshots"
+    echo "  ddev visual test         # Run visual comparison"
+    echo "  ddev visual report       # Serve HTML report"
+    ;;
+
+  test)
+    ddev exec bash -lc "cd tests/playwright && npx playwright test"
+    ;;
+
+  test-ref)
+    ddev exec bash -lc "cd tests/playwright && npx playwright test --update-snapshots"
+    ;;
+
+  open)
+    REPORT_PATH="$(pwd)/tests/playwright/playwright-report/index.html"
+
+    if [ ! -f "$REPORT_PATH" ]; then
+      echo "❌ No report found. Run 'ddev visual test' first."
+      exit 1
+    fi
+
+    # Detect host OS
+    if command -v xdg-open >/dev/null 2>&1; then
+      xdg-open "$REPORT_PATH"
+    elif command -v open >/dev/null 2>&1; then
+      open "$REPORT_PATH"
+    elif command -v start >/dev/null 2>&1; then
+      start "$REPORT_PATH"
+    else
+      echo "💡 Couldn't auto-open. Open manually:"
+      echo "$REPORT_PATH"
+    fi
+    ;;
+
+  report)
+    ddev exec bash -lc "cd tests/playwright && python3 -m http.server 9999 --directory playwright-report"
+    echo
+    echo "📊 Report available at:"
+    echo "http://$(ddev describe -j | jq -r '.raw_http_url'):9999"
+    ;;
+
+  *)
+    echo "Usage:"
+    echo "  ddev visual init        # Install Playwright + browsers"
+    echo "  ddev visual test        # Run visual tests"
+    echo "  ddev visual test-ref    # Create/update reference snapshots"
+    echo "  ddev visual report      # Serve HTML report"
+    exit 1
+    ;;
+
+esac

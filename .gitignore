@@ -44,3 +44,10 @@ db.*
 
 Docutracks*
 docutracks.cookies
+
+# tests
+node_modules
+.pnpm-store
+tests/playwright/visual.spec.js-snapshots
+tests/playwright/test-results
+tests/playwright/playwright-report
