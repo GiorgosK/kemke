@@ -26,6 +26,7 @@ module:
   diff: 0
   dynamic_page_cache: 0
   editor: 0
+  entity_browser: 0
   entity_reference_revisions: 0
   external_entities: 0
   external_entities_extra: 0
