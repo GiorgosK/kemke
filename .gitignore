@@ -41,3 +41,6 @@ db.*
 /.gitattributes
 
 .well-known/
+
+Docutracks*
+docutracks.cookies
