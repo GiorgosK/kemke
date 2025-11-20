@@ -7,7 +7,7 @@
   "defaults": {
     "readySelector": "body",
     "waitTimeout": 8000,
-    "threshold": 0.01
+    "threshold": 0.0001
   },
   "scenarios": [
     {

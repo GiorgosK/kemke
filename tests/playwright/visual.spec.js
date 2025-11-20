@@ -12,6 +12,8 @@ for (const scenario of scenarios) {
       const readySelector = scenario.readySelector || defaults?.readySelector;
       const readyText = scenario.readyText || defaults?.readyText;
       const waitTimeout = scenario.waitTimeout || defaults?.waitTimeout || 5000;
+      const maxDiffPixelRatio = scenario.threshold ?? defaults?.threshold;
+      const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
 
       let isWSOD = false;
 
@@ -37,7 +39,8 @@ for (const scenario of scenarios) {
       } else {
         const screenshot = await page.screenshot();
         expect(screenshot).toMatchSnapshot(
-          `${scenario.label.replace(/\s+/g, '_')}_${viewport.label}.png`
+          `${scenario.label.replace(/\s+/g, '_')}_${viewport.label}.png`,
+          snapshotOptions
         );
       }
     });

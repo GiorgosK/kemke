@@ -7,7 +7,7 @@ export default defineConfig({
   use: {
     headless: true,
     ignoreHTTPSErrors: true,
-    screenshot: 'only-on-failure',
+    screenshot: 'on',
     channel: 'chromium',
   },
   expect: {
