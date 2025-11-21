@@ -84,7 +84,13 @@ for (const scenario of scenarios) {
           `${scenario.label.replace(/\s+/g, '_')}_${viewport.label}.wsod`
         );
       } else {
-        const screenshot = await page.screenshot();
+        // Prefer full page captures so we don't miss content below the fold; fall back to viewport if it fails.
+        let screenshot;
+        try {
+          screenshot = await page.screenshot({ fullPage: true });
+        } catch {
+          screenshot = await page.screenshot();
+        }
         expect(screenshot).toMatchSnapshot(
           `${scenario.label.replace(/\s+/g, '_')}_${viewport.label}.png`,
           snapshotOptions
