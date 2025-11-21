@@ -34,13 +34,21 @@ for (const scenario of scenarios) {
         testInfo?.config?.updateSnapshots === 'all';
 
       const targetUrl = resolveUrl(scenario.url, useReferenceBase ? referenceBase : testBase);
-      await page.goto(targetUrl, { waitUntil: 'networkidle' });
-
       const readySelector = scenario.readySelector || defaults?.readySelector;
       const readyText = scenario.readyText || defaults?.readyText;
       const waitTimeout = scenario.waitTimeout || defaults?.waitTimeout || 5000;
       const maxDiffPixelRatio = scenario.threshold ?? defaults?.threshold;
       const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
+
+      await page.goto(targetUrl, { waitUntil: 'networkidle' });
+      // Let fonts and rendering settle to reduce flaky diffs.
+      await page.waitForLoadState('networkidle');
+      await page.waitForFunction(
+        () => (document.fonts?.status === 'loaded') ? true : document.fonts?.ready,
+        null,
+        { timeout: waitTimeout }
+      ).catch(() => {});
+      await page.waitForTimeout(500);
 
       let isWSOD = false;
 
