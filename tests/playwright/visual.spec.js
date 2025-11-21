@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
-import config from './scenarios.json' assert { type: 'json' };
-
-const { viewports, scenarios, defaults } = config;
+const { test: base, expect } = require('@playwright/test');
+const config = require('./scenarios.json');
+const { createCookiebotStateFactory } = require('./cookiebot');
 
 const resolveUrl = (pathOrUrl, baseUrl) => {
   if (!pathOrUrl) return '';
@@ -12,6 +11,23 @@ const resolveUrl = (pathOrUrl, baseUrl) => {
       ? new URL(pathOrUrl, baseUrl).toString()
       : pathOrUrl;
 };
+
+const { viewports, scenarios, defaults } = config;
+const { enabled: cookiebotEnabled, ensureCookiebotState } = createCookiebotStateFactory({
+  defaults,
+  viewports,
+  scenarios,
+  resolveUrl
+});
+
+const test = base.extend({
+  context: async ({ browser }, use) => {
+    const storageState = cookiebotEnabled ? await ensureCookiebotState() : undefined;
+    const context = await browser.newContext({ storageState });
+    await use(context);
+    await context.close();
+  }
+});
 
 test.describe.configure({ mode: 'parallel' });
 
@@ -41,7 +57,7 @@ for (const scenario of scenarios) {
       const maxDiffPixelRatio = scenario.threshold ?? defaults?.threshold;
       const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
 
-      await page.goto(targetUrl, { waitUntil: 'networkidle' });
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: waitTimeout });
       await page.addStyleTag({
         content: `
           html, body, * {
@@ -51,7 +67,7 @@ for (const scenario of scenarios) {
         `
       });
       // Let fonts and rendering settle to reduce flaky diffs.
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('networkidle', { timeout: waitTimeout }).catch(() => {});
       await page.waitForFunction(
         () => (document.fonts?.status === 'loaded') ? true : document.fonts?.ready,
         null,
