@@ -37,6 +37,7 @@ for (const scenario of scenarios) {
       const readySelector = scenario.readySelector || defaults?.readySelector;
       const readyText = scenario.readyText || defaults?.readyText;
       const waitTimeout = scenario.waitTimeout || defaults?.waitTimeout || 5000;
+      const waitAfterLoad = scenario.wait ?? defaults?.wait ?? 0;
       const maxDiffPixelRatio = scenario.threshold ?? defaults?.threshold;
       const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
 
@@ -54,6 +55,9 @@ for (const scenario of scenarios) {
         null,
         { timeout: waitTimeout }
       ).catch(() => {});
+      if (waitAfterLoad > 0) {
+        await page.waitForTimeout(waitAfterLoad);
+      }
       await page.waitForTimeout(500);
 
       let isWSOD = false;
