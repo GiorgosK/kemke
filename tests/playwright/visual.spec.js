@@ -1,6 +1,8 @@
 const { test: base, expect } = require('@playwright/test');
 const config = require('./scenarios.json');
 const { createCookiebotStateFactory } = require('./cookiebot');
+const { waitForImages } = require('./waitForImages');
+const { waitForBackgroundImages } = require('./waitForBackgroundImages');
 
 const resolveUrl = (pathOrUrl, baseUrl) => {
   if (!pathOrUrl) return '';
@@ -19,6 +21,63 @@ const { enabled: cookiebotEnabled, ensureCookiebotState } = createCookiebotState
   scenarios,
   resolveUrl
 });
+
+const waitForImages = async (page, timeout) => {
+  await page
+    .waitForFunction(
+      () =>
+        Array.from(document.images || []).every(
+          img => img.complete && Number.isFinite(img.naturalWidth) && img.naturalWidth > 0
+        ),
+      null,
+      { timeout }
+    )
+    .catch(() => {});
+};
+
+const waitForBackgroundImages = async (page, timeout) => {
+  const { urls, base } = await page.evaluate(() => {
+    const collected = [];
+    const regex = /url\\(["']?([^"')]+)["']?\\)/g;
+    document.querySelectorAll('body *').forEach(el => {
+      const bg = getComputedStyle(el).getPropertyValue('background-image');
+      if (!bg || bg === 'none') return;
+      let match;
+      while ((match = regex.exec(bg)) !== null) {
+        const url = match[1];
+        if (url && url !== 'about:blank' && !url.startsWith('data:')) {
+          collected.push(url);
+        }
+      }
+    });
+    return { urls: Array.from(new Set(collected)), base: location.href };
+  });
+
+  if (!urls.length) return;
+
+  await page
+    .evaluate(
+      async ({ images, baseUrl, maxWait }) => {
+        const resolveUrl = src => (src.startsWith('http') ? src : new URL(src, baseUrl).href);
+        const loaders = images.map(
+          src =>
+            new Promise(resolve => {
+              const img = new Image();
+              img.onload = img.onerror = resolve;
+              img.src = resolveUrl(src);
+              if (img.complete) resolve();
+            })
+        );
+
+        await Promise.race([
+          Promise.all(loaders),
+          new Promise(resolve => setTimeout(resolve, maxWait))
+        ]);
+      },
+      { images: urls, baseUrl: base, maxWait: timeout }
+    )
+    .catch(() => {});
+};
 
 const test = base.extend({
   context: async ({ browser }, use) => {
@@ -56,6 +115,9 @@ for (const scenario of scenarios) {
       const waitAfterLoad = scenario.wait ?? defaults?.wait ?? 0;
       const maxDiffPixelRatio = scenario.threshold ?? defaults?.threshold;
       const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
+      const useWaitForImages = scenario.waitForImages ?? defaults?.waitForImages;
+      const useWaitForBackgroundImages =
+        scenario.waitForBackgroundImages ?? defaults?.waitForBackgroundImages;
 
       await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: waitTimeout });
       await page.addStyleTag({
@@ -89,6 +151,12 @@ for (const scenario of scenarios) {
             readyText,
             { timeout: waitTimeout }
           );
+        }
+        if (useWaitForImages) {
+          await waitForImages(page, waitTimeout);
+        }
+        if (useWaitForBackgroundImages) {
+          await waitForBackgroundImages(page, waitTimeout);
         }
       } catch {
         isWSOD = true;
