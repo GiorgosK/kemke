@@ -3,6 +3,7 @@ const config = require('./scenarios.json');
 const { createCookiebotStateFactory } = require('./cookiebot');
 const { waitForImages } = require('./waitForImages');
 const { waitForBackgroundImages } = require('./waitForBackgroundImages');
+const { removeBySelector } = require('./removeBySelector');
 
 const resolveUrl = (pathOrUrl, baseUrl) => {
   if (!pathOrUrl) return '';
@@ -61,6 +62,7 @@ for (const scenario of scenarios) {
       const useWaitForImages = scenario.waitForImages ?? defaults?.waitForImages;
       const useWaitForBackgroundImages =
         scenario.waitForBackgroundImages ?? defaults?.waitForBackgroundImages;
+      const selectorsToRemove = scenario.removeBySelector ?? defaults?.removeBySelector ?? [];
 
       await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: waitTimeout });
       await page.addStyleTag({
@@ -100,6 +102,9 @@ for (const scenario of scenarios) {
         }
         if (useWaitForBackgroundImages) {
           await waitForBackgroundImages(page, waitTimeout);
+        }
+        if (Array.isArray(selectorsToRemove) && selectorsToRemove.length > 0) {
+          await removeBySelector(page, selectorsToRemove);
         }
       } catch {
         isWSOD = true;
