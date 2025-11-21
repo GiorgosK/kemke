@@ -42,11 +42,13 @@ for (const scenario of scenarios) {
       const snapshotOptions = maxDiffPixelRatio != null ? { maxDiffPixelRatio } : undefined;
 
       await page.goto(targetUrl, { waitUntil: 'networkidle' });
-      await page.evaluate(() => {
-        const body = document.body || document.getElementsByTagName('body')[0];
-        if (body) {
-          body.style['-webkit-font-smoothing'] = 'none';
-        }
+      await page.addStyleTag({
+        content: `
+          html, body, * {
+            -webkit-font-smoothing: antialiased !important;
+            font-synthesis: none !important;
+          }
+        `
       });
       // Let fonts and rendering settle to reduce flaky diffs.
       await page.waitForLoadState('networkidle');
