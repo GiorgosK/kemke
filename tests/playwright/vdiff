@@ -1,0 +1,33 @@
+#!/bin/bash
+set -euo pipefail
+
+# Run Playwright visual tests on the host (outside DDEV) using the project-local
+# playwright version, but sharing the host browser cache. No container required.
+
+MODE="${1:-test}"
+shift || true
+
+CONFIG_PATH="playwright.config.js"
+PLAYWRIGHT_BIN="npx"
+PLAYWRIGHT_CMD="playwright"
+
+# Reuse host browsers instead of downloading per project.
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+
+cd tests/playwright
+
+case "$MODE" in
+  test)
+    ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} test --config="$CONFIG_PATH" "$@"
+    ;;
+  report)
+    ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} show-report
+    ;;
+  ref|reference|update)
+    PLAYWRIGHT_REFERENCE=1 ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} test --config="$CONFIG_PATH" --update-snapshots "$@"
+    ;;
+  *)
+    echo "Usage: scripts/visual-local [test|ref|report] [extra playwright args]"
+    exit 1
+    ;;
+esac
