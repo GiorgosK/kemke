@@ -24,6 +24,9 @@ case "$MODE" in
     ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} show-report
     ;;
   ref|reference|update)
+     # if we want to make sure references are deleted before running
+     # echo "🧹 Removing existing reference snapshots..."
+     # rm -rf visual.spec.js-snapshots
     PLAYWRIGHT_REFERENCE=1 ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} test --config="$CONFIG_PATH" --update-snapshots "$@"
     ;;
   *)
