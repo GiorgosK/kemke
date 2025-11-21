@@ -7,7 +7,8 @@ export default defineConfig({
   use: {
     headless: true,
     ignoreHTTPSErrors: true,
-    screenshot: 'on',
+    // Disable default per-test screenshots; we manually attach full-page captures in the spec.
+    screenshot: 'off',
     channel: 'chromium',
   },
   expect: {

@@ -127,6 +127,10 @@ for (const scenario of scenarios) {
           `${scenario.label.replace(/\s+/g, '_')}_${viewport.label}.png`,
           snapshotOptions
         );
+        await testInfo.attach('fullpage', {
+          body: screenshot,
+          contentType: 'image/png'
+        });
       }
     });
   }
