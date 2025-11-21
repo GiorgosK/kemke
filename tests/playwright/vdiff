@@ -27,7 +27,7 @@ case "$MODE" in
     PLAYWRIGHT_REFERENCE=1 ${PLAYWRIGHT_BIN} ${PLAYWRIGHT_CMD} test --config="$CONFIG_PATH" --update-snapshots "$@"
     ;;
   *)
-    echo "Usage: scripts/visual-local [test|ref|report] [extra playwright args]"
+    echo "Usage: tests/playwright/vdiff [test|ref|report] [extra playwright args]"
     exit 1
     ;;
 esac
