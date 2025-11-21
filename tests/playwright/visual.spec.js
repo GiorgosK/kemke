@@ -13,6 +13,8 @@ const resolveUrl = (pathOrUrl, baseUrl) => {
       : pathOrUrl;
 };
 
+test.describe.configure({ mode: 'parallel' });
+
 for (const scenario of scenarios) {
   for (const viewport of viewports) {
     test(`${scenario.label} [${viewport.label}]`, async ({ page }, testInfo) => {
