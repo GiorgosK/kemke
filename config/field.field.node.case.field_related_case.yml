@@ -9,7 +9,7 @@ id: node.case.field_related_case
 field_name: field_related_case
 entity_type: node
 bundle: case
-label: 'Σύνδεση με άλλη υπόθεση'
+label: 'Σύνδεση με άλλες υποθέσεις'
 description: ''
 required: false
 translatable: false
