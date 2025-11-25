@@ -1,9 +1,27 @@
 uuid: 2ca420a9-728e-434a-b785-3ea8a8ce81c0
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - workflows.workflow.case_processing
+  module:
+    - content_moderation
 id: operator
 label: Χειριστής
 weight: 11
 is_admin: false
-permissions: {  }
+permissions:
+  - 'use case_processing transition completed'
+  - 'use case_processing transition for_signature'
+  - 'use case_processing transition fullness_approved'
+  - 'use case_processing transition pending_issues'
+  - 'use case_processing transition signed'
+  - 'use case_processing transition stay_approval_rejection'
+  - 'use case_processing transition stay_approved'
+  - 'use case_processing transition stay_for_signature'
+  - 'use case_processing transition stay_fullness_check'
+  - 'use case_processing transition stay_pending_issues'
+  - 'use case_processing transition stay_published'
+  - 'use case_processing transition stay_signed'
+  - 'use case_processing transition stay_under_processing'
+  - 'use case_processing transition to_supervisor_assigned'
