@@ -1,21 +1,85 @@
 {
   "viewports": [
-    { "label": "mobile", "width": 375, "height": 667 },
-    { "label": "tablet", "width": 768, "height": 1024 },
-    { "label": "desktop", "width": 1280, "height": 800 }
+    {
+      "label": "mobile",
+      "width": 375,
+      "height": 667
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "desktop",
+      "width": 1280,
+      "height": 800
+    }
   ],
   "defaults": {
     "readySelector": "body",
     "waitTimeout": 8000,
     "threshold": 0.01,
-    "referenceURL": "https://kemke.webx2.com",
-    "testURL": "https://kemke.ddev.site"
+    "waitForImages": true,
+    "waitForBackgroundImages": false,
+    "_removeBySelector": [".tile__background--image"],
+    "cookiebot": true,
+    "cookiebotSelector": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+    "referenceURL_old": "https://kemke.webx2.com",
+    "testURL_old": "https://kemke.ddev.site",
+    "referenceURL": "https://www.wheel.ie",
+    "testURL": "https://www.wheel.ie"
   },
   "scenarios": [
     {
       "label": "Homepage",
       "url": "/",
       "threshold": 0.0001
+    },
+    {
+      "label": "Contact",
+      "url": "/form/contact-us"
+    },
+    {
+      "label": "Create a profil",
+      "url": "/user/register",
+      "wait": 1
+    },
+    {
+      "label": "Login",
+      "url": "/user/login"
+    },
+    {
+      "label": "About Us",
+      "url": "/about-us"
+    },
+    {
+      "label": "Membership",
+      "url": "/membership"
+    },
+    {
+      "label": "Training & Even",
+      "url": "/training"
+    },
+    {
+      "label": "Advice & Guidan",
+      "url": "/advice-guidance"
+    },
+    {
+      "label": "Policy & Campai",
+      "url": "/policy-campaigns"
+    },
+    {
+      "label": "Funding",
+      "url": "/funding"
+    },
+    {
+      "label": "Jobs",
+      "url": "/jobs"
+    },
+    {
+      "label": "News",
+      "url": "/news"
     }
   ]
 }
