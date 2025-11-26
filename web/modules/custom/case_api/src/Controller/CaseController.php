@@ -96,6 +96,9 @@ final class CaseController extends ControllerBase {
       return $this->errorResponse('Invalid JSON payload.', Response::HTTP_BAD_REQUEST);
     }
 
+    // Allow callers to omit the "field_" prefix by normalizing known field names.
+    $payload = $this->normalizeFieldKeys($payload);
+
     // @todo Reinstate create access check with proper authentication/authorization
     //   and JSON error responses. This is temporarily bypassed for testing.
 
@@ -158,17 +161,17 @@ final class CaseController extends ControllerBase {
     $errors = [];
 
     if (!isset($payload['field_subject']) || !is_string($payload['field_subject']) || trim($payload['field_subject']) === '') {
-      $errors[] = 'The "field_subject" property is required.';
+      $errors[] = 'subject property is required.';
     }
 
     if (!array_key_exists('field_documents', $payload)) {
-      $errors[] = 'The "field_documents" property is required.';
+      $errors[] = 'documents property is required.';
     }
     elseif (!is_array($payload['field_documents'])) {
-      $errors[] = 'The "field_documents" property must be an array.';
+      $errors[] = 'documents property must be an array.';
     }
     elseif ($payload['field_documents'] === []) {
-      $errors[] = 'The "field_documents" property cannot be empty.';
+      $errors[] = 'documents property cannot be empty.';
     }
 
     if (isset($payload['field_documents']) && is_array($payload['field_documents'])) {
@@ -576,6 +579,27 @@ final class CaseController extends ControllerBase {
     }
 
     return $date->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s');
+  }
+
+  /**
+   * Normalizes payload keys so callers can omit the "field_" prefix.
+   */
+  private function normalizeFieldKeys(array $payload): array {
+    $normalized = $payload;
+    $definitions = $this->entityFieldManager->getFieldDefinitions('node', 'case');
+
+    foreach ($payload as $key => $value) {
+      if (strpos($key, 'field_') === 0) {
+        continue;
+      }
+
+      $prefixed = 'field_' . $key;
+      if (isset($definitions[$prefixed]) && !array_key_exists($prefixed, $normalized)) {
+        $normalized[$prefixed] = $value;
+      }
+    }
+
+    return $normalized;
   }
 
 }
