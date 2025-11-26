@@ -153,8 +153,18 @@ final class CaseController extends ControllerBase {
   private function validatePayload(array $payload): array {
     $errors = [];
 
-    if (isset($payload['field_documents']) && !is_array($payload['field_documents'])) {
+    if (!isset($payload['field_subject']) || !is_string($payload['field_subject']) || trim($payload['field_subject']) === '') {
+      $errors[] = 'The "field_subject" property is required.';
+    }
+
+    if (!array_key_exists('field_documents', $payload)) {
+      $errors[] = 'The "field_documents" property is required.';
+    }
+    elseif (!is_array($payload['field_documents'])) {
       $errors[] = 'The "field_documents" property must be an array.';
+    }
+    elseif ($payload['field_documents'] === []) {
+      $errors[] = 'The "field_documents" property cannot be empty.';
     }
 
     if (isset($payload['field_documents']) && is_array($payload['field_documents'])) {
