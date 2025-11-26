@@ -136,7 +136,7 @@ if (!$simpleMode) {
 // Create the case referencing the prepared file.
 $random = random_int(10000, 99999);
 $casePayload = [
-  'title' => sprintf('Case created %s', (new DateTimeImmutable())->format(DateTimeInterface::ATOM)),
+  //'title' => sprintf('Case created %s', (new DateTimeImmutable())->format(DateTimeInterface::ATOM)),
   // 'field_sa_number' => 'AUTO-' . $random,
   // 'field_notes' => 'Created via CLI helper script.',
   // 'field_sani_user' => 'sani user text '. $random,
@@ -157,7 +157,7 @@ $casePayload = [
 ];
 
 $casePayload_simple = [
-  'title' => 'Υποθεση #' . $random,
+  //'title' => 'Υποθεση #' . $random,
   'field_sender' => 'Ονομα Επώνυμο ' . $random,
   'field_responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'field_subject' => 'θέμα υποθεσης ' . $random,  
