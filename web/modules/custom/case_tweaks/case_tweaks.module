@@ -156,11 +156,16 @@ function case_tweaks_fetch_greek_public_holidays(int $year): array {
  * Ensures an auto-generated reference ID exists for the case.
  */
 function case_tweaks_assign_reference_id(NodeInterface $node): void {
-  if (!case_tweaks_populate_field_ref_id($node)) {
-    return;
+  $updated = case_tweaks_populate_field_ref_id($node);
+
+  if ($updated) {
+    $reference = (string) $node->get('field_ref_id')->value;
+    if ($reference !== '' && $node->label() !== $reference) {
+      $node->setTitle($reference);
+    }
   }
 
-  // Avoid creating a revision just for the auto-generated value.
+  // Avoid creating a revision just for the auto-generated values.
   $node->setNewRevision(FALSE);
   $node->save();
 }
