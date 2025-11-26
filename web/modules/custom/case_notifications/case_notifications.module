@@ -110,9 +110,8 @@ function case_notifications_mail($key, &$message, $params) {
   switch ($key) {
     case 'draft':
       $message['subject'] = t('@site: Case "@title" needs attention', ['@site' => $site_name, '@title' => $params['case_title']]);
-      $message['body'][] = t('Case "@title" (ID: @id) "Εισερχόμενη". Please assign it.', [
+      $message['body'][] = t('Case "@title" (NO ID) "Εισερχόμενη". Please assign it.', [
         '@title' => $params['case_title'],
-        '@id' => $params['case_id'],
       ]);
       break;
 
