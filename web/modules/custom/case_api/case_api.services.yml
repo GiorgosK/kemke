@@ -11,3 +11,8 @@ services:
       - '@uuid'
       - '@datetime.time'
       - '@logger.channel.case_api'
+
+  case_api.api_exception_subscriber:
+    class: Drupal\case_api\EventSubscriber\ApiExceptionSubscriber
+    tags:
+      - { name: event_subscriber }

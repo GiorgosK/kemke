@@ -87,6 +87,10 @@ final class CaseController extends ControllerBase {
    * Handles POST requests to create case nodes.
    */
   public function createCase(Request $request): JsonResponse {
+    if (!$this->currentUser->hasPermission('create case via api')) {
+      return $this->errorResponse('Access denied.', Response::HTTP_FORBIDDEN);
+    }
+
     $payload = $this->extractPayload($request);
     if ($payload === NULL) {
       return $this->errorResponse('Invalid JSON payload.', Response::HTTP_BAD_REQUEST);
