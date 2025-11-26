@@ -583,6 +583,9 @@ function field_non_empty_lock_get_paragraph_hidden_field_map() {
       'field_user',
       'field_datetime',
     ],
+    'documents' => [
+      'field_protocol',
+    ],
   ];
 }
 
