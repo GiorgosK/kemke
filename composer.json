@@ -68,6 +68,11 @@
                 "web-root": "web/"
             }
         },
+        "drupal-lenient": {
+            "allowed-list": [
+            ]
+        },
+        "enable-patching": true,
         "installer-paths": {
             "web/core": [
                 "type:drupal-core"
@@ -123,6 +128,8 @@
                 "  * Remove the plugin that prints this message:",
                 "      composer remove drupal/core-project-message"
             ]
+        },
+        "patches": {
         }
     }
 }
