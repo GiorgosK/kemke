@@ -33,6 +33,7 @@ dependencies:
     - datetime
     - entity_reference_revisions
     - field_group
+    - text
     - user
 third_party_settings:
   field_group:
@@ -279,11 +280,11 @@ content:
     weight: 6
     region: content
   field_subject:
-    type: basic_string
+    type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 4
+    weight: 22
     region: content
   field_supervisor:
     type: entity_reference_label
@@ -331,4 +332,5 @@ content:
     third_party_settings: {  }
     weight: 20
     region: content
-hidden: {  }
+hidden:
+  workflow_buttons: true

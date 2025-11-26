@@ -1,10 +1,13 @@
-uuid: d94b3ada-a34e-450f-ad26-c7e2e7c21921
+uuid: 35c34115-9b38-4a24-96d6-1847ebeb3fcb
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_subject
+    - filter.format.basic_html
     - node.type.case
+  module:
+    - text
 id: node.case.field_subject
 field_name: field_subject
 entity_type: node
@@ -15,5 +18,7 @@ required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
-settings: {  }
-field_type: string_long
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long
