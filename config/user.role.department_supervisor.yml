@@ -3,10 +3,12 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - node.type.case
     - workflows.workflow.case_processing
   module:
     - content_moderation
+    - filter
     - node
     - system
 id: department_supervisor
@@ -40,6 +42,7 @@ permissions:
   - 'use case_processing transition stay_under_processing'
   - 'use case_processing transition to_be_assigned'
   - 'use case_processing transition to_supervisor_assigned'
+  - 'use text format full_html'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case revisions'

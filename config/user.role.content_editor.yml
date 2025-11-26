@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - node.type.article
     - node.type.page
     - taxonomy.vocabulary.tags
@@ -12,6 +13,7 @@ dependencies:
     - contextual
     - external_entities
     - file
+    - filter
     - node
     - path
     - system
@@ -51,6 +53,7 @@ permissions:
   - 'revert all revisions'
   - 'update case external entity'
   - 'update mock_simple_form external entity'
+  - 'use text format full_html'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case external entity'

@@ -3,9 +3,11 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - workflows.workflow.case_processing
   module:
     - content_moderation
+    - filter
 id: operator
 label: Χειριστής
 weight: 11
@@ -25,3 +27,4 @@ permissions:
   - 'use case_processing transition stay_signed'
   - 'use case_processing transition stay_under_processing'
   - 'use case_processing transition to_supervisor_assigned'
+  - 'use text format full_html'

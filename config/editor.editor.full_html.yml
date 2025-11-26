@@ -30,6 +30,8 @@ settings:
       - insertTable
       - horizontalLine
       - '|'
+      - fontColor
+      - fontBackgroundColor
       - heading
       - codeBlock
       - '|'
@@ -93,6 +95,14 @@ settings:
         reversed: true
         startIndex: true
       multiBlock: true
+    ckeditor5_plugin_pack_font__font_color:
+      colors: {  }
+      use_default_colors: true
+      use_colorpicker: true
+      font_color_columns: 5
+      font_color_document_colors: 10
+      bg_color_columns: 5
+      bg_color_document_colors: 10
     ckeditor5_sourceEditing:
       allowed_tags: {  }
 image_upload:

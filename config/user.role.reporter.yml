@@ -3,9 +3,11 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - node.type.case
   module:
     - content_moderation
+    - filter
     - node
     - system
 id: reporter
@@ -16,6 +18,7 @@ permissions:
   - 'access content'
   - 'access user profiles'
   - 'edit any case content'
+  - 'use text format full_html'
   - 'view all revisions'
   - 'view any unpublished content'
   - 'view case revisions'
