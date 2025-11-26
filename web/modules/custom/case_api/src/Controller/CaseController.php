@@ -123,11 +123,8 @@ final class CaseController extends ControllerBase {
    */
   private function buildResponseData(NodeInterface $node): array {
     return [
+      'status' => 'success',
       'id' => (int) $node->id(),
-      'uuid' => $node->uuid(),
-      'langcode' => $node->language()->getId(),
-      'status' => (bool) $node->isPublished(),
-      'url' => $node->toUrl('canonical', ['absolute' => TRUE])->toString(),
     ];
   }
 
