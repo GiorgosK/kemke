@@ -137,20 +137,20 @@ if (!$simpleMode) {
 $random = random_int(10000, 99999);
 $casePayload = [
   //'title' => sprintf('Case created %s', (new DateTimeImmutable())->format(DateTimeInterface::ATOM)),
-  // 'field_sa_number' => 'AUTO-' . $random,
-  // 'field_notes' => 'Created via CLI helper script.',
-  // 'field_sani_user' => 'sani user text '. $random,
-  // 'field_taa_project' => 'taa project text '. $random,
-  // 'field_thematic_unit' => 'thematic unit text '. $random,
-  // 'field_transparency_requirement' => 'transparency requirement text '. $random,
-  // 'field_kemke_officer_assignment' => 'kemke officer assignment text '. $random,
-  'field_sender' => 'Ονομα Επώνυμο ' . $random,
-  'field_responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
-  'field_subject' => 'θέμα υποθεσης ' . $random,  
-  'field_notes' => 'Εξτρα πληροφορίες ' . $random,
-  'field_documents' => [
+  // 'sa_number' => 'AUTO-' . $random,
+  // 'notes' => 'Created via CLI helper script.',
+  // 'sani_user' => 'sani user text '. $random,
+  // 'taa_project' => 'taa project text '. $random,
+  // 'thematic_unit' => 'thematic unit text '. $random,
+  // 'transparency_requirement' => 'transparency requirement text '. $random,
+  // 'kemke_officer_assignment' => 'kemke officer assignment text '. $random,
+  'sender' => 'Ονομα Επώνυμο ' . $random,
+  'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
+  'subject' => 'θέμα υποθεσης ' . $random,  
+  'notes' => 'Εξτρα πληροφορίες ' . $random,
+  'documents' => [
     [
-      'field_protocol' => 'AUTO-PROTOCOL-' . $random,
+      'protocol' => 'AUTO-PROTOCOL-' . $random,
       'files' => $fileReference,
     ],
   ],
@@ -158,11 +158,11 @@ $casePayload = [
 
 $casePayload_simple = [
   //'title' => 'Υποθεση #' . $random,
-  'field_sender' => 'Ονομα Επώνυμο ' . $random,
-  'field_responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
-  'field_subject' => 'θέμα υποθεσης ' . $random,  
-  'field_notes' => 'Εξτρα πληροφορίες ' . $random,
-  'field_documents' => [
+  'sender' => 'Ονομα Επώνυμο ' . $random,
+  'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
+  'subject' => 'θέμα υποθεσης ' . $random,  
+  'notes' => 'Εξτρα πληροφορίες ' . $random,
+  'documents' => [
     [
       'files' => [
         [
