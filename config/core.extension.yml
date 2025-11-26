@@ -15,6 +15,8 @@ module:
   case_remarks: 0
   case_tweaks: 0
   ckeditor5: 0
+  ckeditor5_plugin_pack: 0
+  ckeditor5_plugin_pack_font: 0
   comment: 0
   conditional_fields: 0
   config: 0
