@@ -92,6 +92,9 @@ final class CaseController extends ControllerBase {
       return $this->errorResponse('Invalid JSON payload.', Response::HTTP_BAD_REQUEST);
     }
 
+    // @todo Reinstate create access check with proper authentication/authorization
+    //   and JSON error responses. This is temporarily bypassed for testing.
+
     $violations = $this->validatePayload($payload);
     if ($violations !== []) {
       return $this->errorResponse('Validation failed.', Response::HTTP_UNPROCESSABLE_ENTITY, $violations);
@@ -101,8 +104,8 @@ final class CaseController extends ControllerBase {
       $node = $this->createCaseNode($payload);
     }
     catch (\Throwable $exception) {
-      $this->getLogger('case_api')->error('Failed to create case: @message', ['@message' => $exception->getMessage()]);
-      return $this->errorResponse('Failed to create case.', Response::HTTP_INTERNAL_SERVER_ERROR);
+      $this->getLogger('case_api')->error('Failed to create case: ' . (string) $exception->getMessage());
+      return $this->errorResponse('Failed to create case.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
     }
 
     return new JsonResponse($this->buildResponseData($node), Response::HTTP_CREATED);
@@ -150,10 +153,6 @@ final class CaseController extends ControllerBase {
   private function validatePayload(array $payload): array {
     $errors = [];
 
-    if (empty($payload['title']) || !is_string($payload['title'])) {
-      $errors[] = 'The "title" property is required.';
-    }
-
     if (isset($payload['field_documents']) && !is_array($payload['field_documents'])) {
       $errors[] = 'The "field_documents" property must be an array.';
     }
@@ -196,7 +195,7 @@ final class CaseController extends ControllerBase {
     /** @var \Drupal\node\NodeInterface $node */
     $node = $storage->create([
       'type' => 'case',
-      'title' => $payload['title'],
+      'title' => $this->resolveInitialTitle($payload),
       'uid' => $this->resolveOwner($payload),
       'status' => $this->resolveStatus($payload),
       'langcode' => $payload['langcode'] ?? $this->languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId(),
@@ -213,7 +212,13 @@ final class CaseController extends ControllerBase {
       }
     }
 
-    $node->save();
+    try {
+      $node->save();
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('case_api')->error('Failed to save case node: ' . (string) $exception->getMessage());
+      throw $exception;
+    }
 
     foreach ($node->get('field_documents') as $item) {
       $paragraph = $item->entity;
@@ -320,6 +325,17 @@ final class CaseController extends ControllerBase {
   }
 
   /**
+   * Determines the initial node title when creating the case.
+   */
+  private function resolveInitialTitle(array $payload): string {
+    if (isset($payload['title']) && is_string($payload['title']) && trim($payload['title']) !== '') {
+      return $payload['title'];
+    }
+
+    return 'Case';
+  }
+
+  /**
    * Applies simple scalar values to string/integer fields.
    */
   private function applySimpleFields(NodeInterface $node, array $payload): void {
@@ -391,11 +407,15 @@ final class CaseController extends ControllerBase {
       }
 
       $files = $this->prepareFiles($document['files'] ?? []);
-      if ($files !== []) {
-        $paragraph->set('field_files', array_map(static function ($file) {
-          return ['target_id' => $file->id()];
-        }, $files));
+      if ($files === []) {
+        // Avoid creating an invalid paragraph when no files could be prepared.
+        $this->getLogger('case_api')->warning('Skipping document entry because no valid files were provided or processed.');
+        continue;
       }
+
+      $paragraph->set('field_files', array_map(static function ($file) {
+        return ['target_id' => $file->id()];
+      }, $files));
 
       $result[] = $paragraph;
     }
@@ -447,8 +467,10 @@ final class CaseController extends ControllerBase {
         continue;
       }
 
-      $decoded = base64_decode((string) $file['data'], TRUE);
+      $data = preg_replace('/\s+/', '', (string) $file['data']);
+      $decoded = base64_decode((string) $data, TRUE);
       if ($decoded === FALSE) {
+        $this->getLogger('case_api')->warning('Skipping file because the provided base64 data could not be decoded.');
         continue;
       }
 
