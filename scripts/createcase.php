@@ -8,11 +8,17 @@ declare(strict_types=1);
  * API and attach a large PDF by using the chunked upload endpoints.
  *
  * Usage:
- *   php createcase.php [path/to/file.pdf]
+ *   php createcase.php  --user=myuser --pass=mypass [path/to/file.pdf]
  *
  * Environment variables:
  *   CASE_API_BASE   Base URL for the API (default: https://kemke.ddev.site).
  *   CASE_API_TOKEN  Optional bearer token for Authorization header.
+ *   CASE_API_BASIC_USER / CASE_API_BASIC_PASS
+ *                    Optional HTTP basic auth credentials when the API requires it.
+ *
+ * Command-line options:
+ *   --user=<user> --pass=<pass>
+ *                    Override basic auth credentials for this run.
  *
  * The script will:
  *   1. Start a chunked upload session.
@@ -29,10 +35,28 @@ if (PHP_SAPI !== 'cli') {
   exit(1);
 }
 
-// When no file path is supplied we use the simplified payload and skip upload.
-$simpleMode = $argc < 2;
+// Extract CLI options (keeps backward compatibility with positional file arg).
+$rawArgs = array_slice($argv, 1);
+$options = getopt('', ['user:', 'pass:']);
 
-$filePath = $simpleMode ? null : $argv[1];
+// Identify positional arguments (ignore known long options).
+$positionalArgs = [];
+for ($i = 0; $i < count($rawArgs); $i++) {
+  $arg = $rawArgs[$i];
+  if (strpos($arg, '--user=') === 0 || strpos($arg, '--pass=') === 0) {
+    continue;
+  }
+  if (($arg === '--user' || $arg === '--pass') && isset($rawArgs[$i + 1])) {
+    $i++; // Skip value token for the option.
+    continue;
+  }
+  $positionalArgs[] = $arg;
+}
+
+// When no file path is supplied we use the simplified payload and skip upload.
+$simpleMode = count($positionalArgs) < 1;
+
+$filePath = $simpleMode ? null : $positionalArgs[0];
 if (!$simpleMode && (!is_string($filePath) || !is_readable($filePath))) {
   fwrite(STDERR, sprintf("File not found or unreadable: %s\n", (string) $filePath));
   exit(1);
@@ -41,6 +65,9 @@ if (!$simpleMode && (!is_string($filePath) || !is_readable($filePath))) {
 $baseUrl = rtrim(getenv('CASE_API_BASE') ?: DEFAULT_BASE_URL, '/');
 $tokenValue = getenv('CASE_API_TOKEN');
 $authToken = $tokenValue === false ? null : $tokenValue;
+$basicUser = $options['user'] ?? (getenv('CASE_API_BASIC_USER') ?: null);
+$basicPass = $options['pass'] ?? (getenv('CASE_API_BASIC_PASS') ?: null);
+$basicAuth = ($basicUser !== null && $basicPass !== null) ? [$basicUser, $basicPass] : null;
 
 // Initialise file reference for when an attachment is uploaded.
 $fileReference = [];
@@ -79,7 +106,7 @@ if (!$simpleMode) {
       'total_size' => $fileSize,
     ];
 
-    $initResponse = apiRequest($baseUrl . '/api/cases/files/init', $initPayload, $authToken);
+    $initResponse = apiRequest($baseUrl . '/api/cases/files/init', $initPayload, $authToken, $basicAuth);
     $uploadId = $initResponse['upload_id'] ?? null;
     if (!$uploadId) {
       fwrite(STDERR, "Failed to initialise upload session.\n");
@@ -112,7 +139,7 @@ if (!$simpleMode) {
         'chunk_index' => $chunkIndex,
         'data' => base64_encode($buffer),
       ];
-      apiRequest($baseUrl . '/api/cases/files/chunk', $chunkPayload, $authToken);
+      apiRequest($baseUrl . '/api/cases/files/chunk', $chunkPayload, $authToken, $basicAuth);
 
       printf("  → Uploaded chunk %d/%d\r", $chunkIndex + 1, $totalChunks);
       $chunkIndex++;
@@ -121,7 +148,7 @@ if (!$simpleMode) {
     echo "\nChunks uploaded successfully.\n";
 
     $completePayload = ['upload_id' => $uploadId];
-    $completeResponse = apiRequest($baseUrl . '/api/cases/files/complete', $completePayload, $authToken);
+    $completeResponse = apiRequest($baseUrl . '/api/cases/files/complete', $completePayload, $authToken, $basicAuth);
     $fid = $completeResponse['fid'] ?? null;
     if (!$fid) {
       fwrite(STDERR, "Upload could not be finalised.\n");
@@ -179,7 +206,7 @@ $payloadToSend = $simpleMode ? $casePayload_simple : $casePayload;
 if ($simpleMode) {
   echo "No file argument provided. Sending default simple payload.\n";
 }
-$caseResponse = apiRequest($baseUrl . '/api/cases', $payloadToSend, $authToken);
+$caseResponse = apiRequest($baseUrl . '/api/cases', $payloadToSend, $authToken, $basicAuth);
 
 printf(
   "Case created successfully! Node id: %d, URL: %s\n",
@@ -197,10 +224,13 @@ printf(
  * @param string|null $bearerToken
  *   Optional bearer token.
  *
+ * @param array{0: string, 1: string}|null $basicAuth
+ *   Optional basic auth credentials as [user, pass].
+ *
  * @return array<string, mixed>
  *   The decoded JSON response.
  */
-function apiRequest(string $url, array $payload, ?string $bearerToken = null): array {
+function apiRequest(string $url, array $payload, ?string $bearerToken = null, ?array $basicAuth = null): array {
   $ch = curl_init($url);
   if ($ch === false) {
     throw new RuntimeException('Unable to initialise cURL handle.');
@@ -217,6 +247,11 @@ function apiRequest(string $url, array $payload, ?string $bearerToken = null): a
     CURLOPT_HTTPHEADER => $headers,
     CURLOPT_POSTFIELDS => json_encode($payload, JSON_THROW_ON_ERROR),
   ]);
+
+  if ($basicAuth !== null) {
+    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_setopt($ch, CURLOPT_USERPWD, sprintf('%s:%s', $basicAuth[0], $basicAuth[1]));
+  }
 
   $responseBody = curl_exec($ch);
   $statusCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
