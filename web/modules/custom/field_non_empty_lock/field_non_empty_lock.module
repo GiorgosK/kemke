@@ -509,11 +509,6 @@ function field_non_empty_lock_get_node_field_map() {
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
       ],
-      'field_entry_date' => [
-        'hide_if_empty' => TRUE,
-        'hide_if_new' => TRUE,
-      ],
-      'field_entry_date',
       'field_legal_deadline',
       'field_protocol_incoming',
       'field_sender',
