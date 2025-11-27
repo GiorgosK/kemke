@@ -4,15 +4,21 @@ status: true
 dependencies:
   config:
     - filter.format.full_html
+    - node.type.case
     - workflows.workflow.case_processing
   module:
     - content_moderation
     - filter
+    - node
+    - node_view_permissions
+    - system
 id: operator
 label: Χειριστής
 weight: 11
 is_admin: false
 permissions:
+  - 'access content'
+  - 'edit any case content'
   - 'use case_processing transition completed'
   - 'use case_processing transition for_signature'
   - 'use case_processing transition fullness_approved'
@@ -28,3 +34,7 @@ permissions:
   - 'use case_processing transition stay_under_processing'
   - 'use case_processing transition to_supervisor_assigned'
   - 'use text format full_html'
+  - 'view any case content'
+  - 'view any unpublished content'
+  - 'view case revisions'
+  - 'view latest version'

@@ -9,6 +9,7 @@ dependencies:
     - content_moderation
     - filter
     - node
+    - node_view_permissions
     - system
 id: reporter
 label: Εισηγητής
@@ -20,6 +21,7 @@ permissions:
   - 'edit any case content'
   - 'use text format full_html'
   - 'view all revisions'
+  - 'view any case content'
   - 'view any unpublished content'
   - 'view case revisions'
   - 'view latest version'

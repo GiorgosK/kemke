@@ -10,6 +10,7 @@ dependencies:
     - content_moderation
     - filter
     - node
+    - node_view_permissions
     - system
 id: director_supervisor
 label: 'Προϊστάμενος Διεύθυνσης'
@@ -46,6 +47,7 @@ permissions:
   - 'use case_processing transition to_supervisor_assigned'
   - 'use text format full_html'
   - 'view all revisions'
+  - 'view any case content'
   - 'view any unpublished content'
   - 'view case revisions'
   - 'view latest version'
