@@ -18,6 +18,7 @@ weight: 11
 is_admin: false
 permissions:
   - 'access content'
+  - 'access user profiles'
   - 'edit any case content'
   - 'use case_processing transition completed'
   - 'use case_processing transition for_signature'
