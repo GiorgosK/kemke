@@ -4,8 +4,8 @@ status: true
 dependencies:
   config:
     - field.storage.node.field_basic_operator
-    - field.storage.node.field_incoming_type
     - field.storage.node.field_entry_date
+    - field.storage.node.field_incoming_type
     - field.storage.node.field_legal_deadline
     - field.storage.node.field_operators
     - field.storage.node.field_related_incoming
@@ -826,7 +826,7 @@ display:
           exposed: true
           expose:
             operator_id: field_incoming_type_target_id_op
-            label: 'Είδος Υπόθεσης'
+            label: Είδος
             description: ''
             use_operator: false
             operator: field_incoming_type_target_id_op
@@ -884,8 +884,8 @@ display:
         - user.permissions
       tags:
         - 'config:field.storage.node.field_basic_operator'
-        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_legal_deadline'
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_related_incoming'
@@ -911,8 +911,8 @@ display:
         - user.permissions
       tags:
         - 'config:field.storage.node.field_basic_operator'
-        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_legal_deadline'
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_related_incoming'
@@ -977,8 +977,8 @@ display:
         - user.permissions
       tags:
         - 'config:field.storage.node.field_basic_operator'
-        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_legal_deadline'
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_related_incoming'
