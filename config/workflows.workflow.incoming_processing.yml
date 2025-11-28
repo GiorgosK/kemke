@@ -1,0 +1,237 @@
+uuid: 2b94a649-fb28-4301-a7bd-06d3c3052e64
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.incoming
+  module:
+    - content_moderation
+id: incoming_processing
+label: 'Διαχείριση Εισερχομένων'
+type: content_moderation
+type_settings:
+  states:
+    approval_rejection:
+      label: 'Απόρριψη έγκρισης'
+      weight: -2
+      published: false
+      default_revision: false
+    approved:
+      label: Εγκεκριμένη
+      weight: 2
+      published: false
+      default_revision: false
+    draft:
+      label: Εισερχόμενη
+      weight: -7
+      published: false
+      default_revision: false
+    for_director_approval:
+      label: 'Προς έγκριση από διευθυντή'
+      weight: 1
+      published: false
+      default_revision: false
+    for_signature:
+      label: 'Προς υπογραφή'
+      weight: 3
+      published: false
+      default_revision: false
+    for_supervisor_approval:
+      label: 'Προς έγκριση από προϊστάμενο'
+      weight: 0
+      published: false
+      default_revision: false
+    fullness_check:
+      label: 'Έλεγχος πληρότητας'
+      weight: -4
+      published: false
+      default_revision: false
+    pending_issues:
+      label: 'Με εκκρεμότητες'
+      weight: -3
+      published: false
+      default_revision: false
+    published:
+      label: 'Ολοκληρωμένη υπόθεση'
+      weight: 5
+      published: true
+      default_revision: true
+    signed:
+      label: Υπογεγραμμένη
+      weight: 4
+      published: false
+      default_revision: false
+    supervisor_assigned:
+      label: 'Χρεωμένη σε προϊστάμενο'
+      weight: -5
+      published: false
+      default_revision: false
+    to_be_assigned:
+      label: 'Προς χρέωση'
+      weight: -6
+      published: false
+      default_revision: false
+    under_processing:
+      label: 'Υπό επεξεργασία'
+      weight: -1
+      published: false
+      default_revision: false
+  transitions:
+    approval_rejection:
+      label: 'Απόρριψη έγκρισης'
+      from:
+        - for_director_approval
+        - for_supervisor_approval
+      to: approval_rejection
+      weight: 11
+    approved:
+      label: Εγκεκριμένη
+      from:
+        - for_director_approval
+      to: approved
+      weight: 7
+    completed:
+      label: 'Ολοκληρωμένη υπόθεση'
+      from:
+        - signed
+      to: published
+      weight: 10
+    for_director_approval:
+      label: 'Προς έγκριση από διευθυντή'
+      from:
+        - for_supervisor_approval
+      to: for_director_approval
+      weight: 6
+    for_signature:
+      label: 'Προς υπογραφή'
+      from:
+        - approved
+      to: for_signature
+      weight: 8
+    fullness_approved:
+      label: 'Πληρότητα φακέλου'
+      from:
+        - approval_rejection
+        - fullness_check
+        - pending_issues
+      to: under_processing
+      weight: 4
+    fullness_check:
+      label: 'Έλεγχος πληρότητας '
+      from:
+        - to_be_assigned
+      to: fullness_check
+      weight: 2
+    pending_issues:
+      label: 'Με εκκρεμότητες'
+      from:
+        - fullness_check
+      to: pending_issues
+      weight: 3
+    signed:
+      label: Υπογεγραμμένη
+      from:
+        - for_signature
+      to: signed
+      weight: 9
+    stay_approval_rejection:
+      label: 'Αναμονή Απόρριψη έγκρισης'
+      from:
+        - approval_rejection
+      to: approval_rejection
+      weight: -10
+    stay_approved:
+      label: 'Αναμονή Εγκεκριμένη'
+      from:
+        - approved
+      to: approved
+      weight: -12
+    stay_draft:
+      label: 'Αναμονή Εισερχόμενη'
+      from:
+        - draft
+      to: draft
+      weight: -11
+    stay_for_director_approval:
+      label: 'Αναμονή Προς έγκριση από διευθυντή'
+      from:
+        - for_director_approval
+      to: for_director_approval
+      weight: -7
+    stay_for_signature:
+      label: 'Αναμονή Προς υπογραφή'
+      from:
+        - for_signature
+      to: for_signature
+      weight: -5
+    stay_for_supervisor_approval:
+      label: 'Αναμονή Προς έγκριση από προϊστάμενο'
+      from:
+        - for_supervisor_approval
+      to: for_supervisor_approval
+      weight: -6
+    stay_fullness_check:
+      label: 'Αναμονή Έλεγχος πληρότητας'
+      from:
+        - fullness_check
+      to: fullness_check
+      weight: -13
+    stay_pending_issues:
+      label: 'Αναμονή Με εκκρεμότητες'
+      from:
+        - pending_issues
+      to: pending_issues
+      weight: -9
+    stay_published:
+      label: 'Αναμονή Ολοκληρωμένη υπόθεση'
+      from:
+        - published
+      to: published
+      weight: -8
+    stay_signed:
+      label: 'Αναμονή Υπογεγραμμένη'
+      from:
+        - signed
+      to: signed
+      weight: -3
+    stay_supervisor_assigned:
+      label: 'Αναμονή Χρεωμένη σε προϊστάμενο'
+      from:
+        - supervisor_assigned
+      to: supervisor_assigned
+      weight: -1
+    stay_to_be_assigned:
+      label: 'Αναμονή Προς χρέωση'
+      from:
+        - to_be_assigned
+      to: to_be_assigned
+      weight: -4
+    stay_under_processing:
+      label: 'Αναμονή Υπό επεξεργασία'
+      from:
+        - under_processing
+      to: under_processing
+      weight: -2
+    supervisor_assigned:
+      label: 'Χρεωμένη σε προϊστάμενο'
+      from:
+        - to_be_assigned
+      to: supervisor_assigned
+      weight: 1
+    to_be_assigned:
+      label: 'Προς χρέωση'
+      from:
+        - draft
+      to: to_be_assigned
+      weight: 0
+    to_supervisor_assigned:
+      label: 'Προς έγκριση από προϊστάμενο '
+      from:
+        - approval_rejection
+        - under_processing
+      to: for_supervisor_approval
+      weight: 5
+  entity_types:
+    node:
+      - incoming
+  default_moderation_state: draft

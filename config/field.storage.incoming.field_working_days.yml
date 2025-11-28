@@ -1,0 +1,20 @@
+uuid: 423821e2-4fe9-4115-8edb-515698a751f4
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+id: incoming.field_working_days
+field_name: field_working_days
+entity_type: incoming
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

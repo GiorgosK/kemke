@@ -9,19 +9,19 @@ use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 
 /**
- * Implements hook_form_FORM_ID_alter() for the case content type form.
+ * Implements hook_form_FORM_ID_alter() for the incoming content type form.
  */
-function field_non_empty_lock_form_node_case_form_alter(array &$form, FormStateInterface $form_state) {
-  field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
+function field_non_empty_lock_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state) {
+  field_non_empty_lock_lock_node_fields($form, $form_state, 'incoming');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
   field_non_empty_lock_customize_paragraph_widgets($form, $form_state);
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for the case edit form.
+ * Implements hook_form_FORM_ID_alter() for the incoming edit form.
  */
-function field_non_empty_lock_form_node_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
-  field_non_empty_lock_lock_node_fields($form, $form_state, 'case');
+function field_non_empty_lock_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  field_non_empty_lock_lock_node_fields($form, $form_state, 'incoming');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
   field_non_empty_lock_customize_paragraph_widgets($form, $form_state);
 }
@@ -504,7 +504,7 @@ function field_non_empty_lock_hide_widget_at_path(array &$form, array $path) {
  */
 function field_non_empty_lock_get_node_field_map() {
   return [
-    'case' => [
+    'incoming' => [
       'field_ref_id' => [
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
@@ -514,7 +514,7 @@ function field_non_empty_lock_get_node_field_map() {
       'field_sender',
       'field_responsible_entity',
       'field_requested_deadline',
-      'field_case_type',
+      'field_incoming_type',
       // Base field widgets can live deeper in the form array, so provide
       // explicit paths to keep them future-proof.
       'title' => [

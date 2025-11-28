@@ -244,14 +244,14 @@ final class MockApiStorage {
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_reference ON records (reference_id)');
 
     $this->connection->exec(
-      'CREATE TABLE IF NOT EXISTS cases (
+      'CREATE TABLE IF NOT EXISTS incoming (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         data TEXT NOT NULL,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )'
     );
-    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_cases_updated_at ON cases (updated_at)');
+    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_incoming_updated_at ON incoming (updated_at)');
 
     $this->ensureSchemaUpToDate();
   }
@@ -297,7 +297,7 @@ final class MockApiStorage {
     }
 
     $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_records_uid ON records (uid)');
-    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_cases_updated_at ON cases (updated_at)');
+    $this->connection->exec('CREATE INDEX IF NOT EXISTS idx_incoming_updated_at ON incoming (updated_at)');
   }
 
   /**
@@ -313,12 +313,12 @@ final class MockApiStorage {
   }
 
   /**
-   * Stores a case payload as JSON.
+   * Stores an incoming payload as JSON.
    */
-  public function saveCase(array $data): array {
+  public function saveIncoming(array $data): array {
     $now = $this->time->getRequestTime();
     $statement = $this->connection->prepare(
-      'INSERT INTO cases (data, created_at, updated_at) VALUES (:data, :created_at, :updated_at)'
+      'INSERT INTO incoming (data, created_at, updated_at) VALUES (:data, :created_at, :updated_at)'
     );
     $statement->execute([
       ':data' => json_encode($data, \JSON_THROW_ON_ERROR),
@@ -335,41 +335,41 @@ final class MockApiStorage {
   }
 
   /**
-   * Loads all stored cases ordered by most recent update.
+   * Loads all stored incoming records ordered by most recent update.
    */
-  public function loadCases(): array {
-    $query = 'SELECT id, data, created_at, updated_at FROM cases ORDER BY updated_at DESC';
+  public function loadIncoming(): array {
+    $query = 'SELECT id, data, created_at, updated_at FROM incoming ORDER BY updated_at DESC';
     $statement = $this->connection->query($query);
     $rows = $statement ? $statement->fetchAll(PDO::FETCH_ASSOC) : [];
 
-    return array_map(fn(array $row): array => $this->mapCaseRow($row), $rows ?: []);
+    return array_map(fn(array $row): array => $this->mapIncomingRow($row), $rows ?: []);
   }
 
   /**
-   * Loads a single case by identifier.
+   * Loads a single incoming by identifier.
    */
-  public function loadCase(int $id): ?array {
-    $statement = $this->connection->prepare('SELECT id, data, created_at, updated_at FROM cases WHERE id = :id');
+  public function loadIncomingItem(int $id): ?array {
+    $statement = $this->connection->prepare('SELECT id, data, created_at, updated_at FROM incoming WHERE id = :id');
     $statement->execute([':id' => $id]);
     $row = $statement->fetch(PDO::FETCH_ASSOC);
 
-    return $row ? $this->mapCaseRow($row) : NULL;
+    return $row ? $this->mapIncomingRow($row) : NULL;
   }
 
   /**
-   * Updates an existing case record.
+   * Updates an existing incoming record.
    */
-  public function updateCase(int $id, array $data, bool $merge = FALSE): array {
-    $existing = $this->loadCase($id);
+  public function updateIncoming(int $id, array $data, bool $merge = FALSE): array {
+    $existing = $this->loadIncomingItem($id);
     if ($existing === NULL) {
-      throw new \InvalidArgumentException('Case not found.');
+      throw new \InvalidArgumentException('Incoming not found.');
     }
 
     $payloadData = $merge ? array_replace($existing['data'], $data) : $data;
     $now = $this->time->getRequestTime();
 
     $statement = $this->connection->prepare(
-      'UPDATE cases SET data = :data, updated_at = :updated_at WHERE id = :id'
+      'UPDATE incoming SET data = :data, updated_at = :updated_at WHERE id = :id'
     );
     $statement->execute([
       ':data' => json_encode($payloadData, \JSON_THROW_ON_ERROR),
@@ -384,19 +384,19 @@ final class MockApiStorage {
   }
 
   /**
-   * Deletes a case by identifier.
+   * Deletes a incoming by identifier.
    */
-  public function deleteCase(int $id): bool {
-    $statement = $this->connection->prepare('DELETE FROM cases WHERE id = :id');
+  public function deleteIncoming(int $id): bool {
+    $statement = $this->connection->prepare('DELETE FROM incoming WHERE id = :id');
     $statement->execute([':id' => $id]);
 
     return (bool) $statement->rowCount();
   }
 
   /**
-   * Converts a raw cases table row into a structured array.
+   * Converts a raw incoming table row into a structured array.
    */
-  private function mapCaseRow(array $row): array {
+  private function mapIncomingRow(array $row): array {
     return [
       'id' => (int) $row['id'],
       'data' => json_decode($row['data'] ?? '{}', TRUE) ?? [],
@@ -406,13 +406,13 @@ final class MockApiStorage {
   }
 
   /**
-   * Flattens a stored case into a single-level array for responses.
+   * Flattens a stored incoming into a single-level array for responses.
    */
-  public static function flattenCase(array $case): array {
-    $data = $case['data'] ?? [];
-    unset($case['data']);
+  public static function flattenIncoming(array $incoming): array {
+    $data = $incoming['data'] ?? [];
+    unset($incoming['data']);
 
-    return $case + (is_array($data) ? $data : []);
+    return $incoming + (is_array($data) ? $data : []);
   }
 
 }

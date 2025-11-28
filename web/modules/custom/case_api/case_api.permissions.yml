@@ -1,3 +1,0 @@
-create case via api:
-  title: 'Create case nodes via API'
-  description: 'Allow users to create case content by POSTing JSON to /api/cases.'

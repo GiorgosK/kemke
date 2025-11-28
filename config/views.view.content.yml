@@ -3,8 +3,8 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_case_type
-    - taxonomy.vocabulary.case_type
+    - field.storage.node.field_incoming_type
+    - taxonomy.vocabulary.incoming_type
   module:
     - node
     - taxonomy
@@ -63,15 +63,15 @@ display:
           type: string
           settings:
             link_to_entity: true
-        field_case_type:
-          id: field_case_type
-          table: node__field_case_type
-          field: field_case_type
+        field_incoming_type:
+          id: field_incoming_type
+          table: node__field_incoming_type
+          field: field_incoming_type
           relationship: none
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: 'Case type'
+          label: 'Incoming type'
           exclude: false
           alter:
             alter_text: false
@@ -598,10 +598,10 @@ display:
           expose:
             operator_limit_selection: false
             operator_list: {  }
-        field_case_type_target_id:
-          id: field_case_type_target_id
-          table: node__field_case_type
-          field: field_case_type_target_id
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
           relationship: none
           group_type: group
           admin_label: ''
@@ -611,14 +611,14 @@ display:
           group: 1
           exposed: true
           expose:
-            operator_id: field_case_type_target_id_op
-            label: 'Case type'
+            operator_id: field_incoming_type_target_id_op
+            label: 'Incoming type'
             description: ''
             use_operator: false
-            operator: field_case_type_target_id_op
+            operator: field_incoming_type_target_id_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: case_type
+            identifier: incoming_type
             required: false
             remember: false
             multiple: false
@@ -638,7 +638,7 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-          vid: case_type
+          vid: incoming_type
           type: select
           hierarchy: false
           limit: true
@@ -766,7 +766,7 @@ display:
         - 'user.node_grants:view'
         - user.permissions
       tags:
-        - 'config:field.storage.node.field_case_type'
+        - 'config:field.storage.node.field_incoming_type'
   page_1:
     id: page_1
     display_title: Page
@@ -799,4 +799,4 @@ display:
         - 'user.node_grants:view'
         - user.permissions
       tags:
-        - 'config:field.storage.node.field_case_type'
+        - 'config:field.storage.node.field_incoming_type'

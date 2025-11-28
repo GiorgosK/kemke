@@ -1,0 +1,190 @@
+<?php
+
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $current_user = \Drupal::currentUser();
+
+  if (!$current_user->hasPermission('administer nodes') && isset($form['revision_information'])) {
+    // Remove revision tab entirely for non-admin users.
+    $form['revision_information']['#access'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function incoming_tweaks_entity_presave(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $baseline = NULL;
+  if ($entity->get('field_entry_date')->isEmpty()) {
+    $entry_date = new DrupalDateTime('now');
+    $entry_date->setTime(0, 0, 0);
+    $entity->set('field_entry_date', [
+      'value' => $entry_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
+    $baseline = clone $entry_date;
+  }
+  else {
+    $entry_item = $entity->get('field_entry_date')->first();
+    if ($entry_item) {
+      $value = $entry_item->getValue()['value'] ?? NULL;
+      if ($value) {
+        try {
+          $baseline = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+        }
+        catch (\Exception $exception) {
+          // Fall through to the default baseline when parsing fails.
+        }
+      }
+    }
+  }
+  $baseline = $baseline ?: new DrupalDateTime('now');
+  $baseline->setTime(0, 0, 0);
+
+  if ($entity->get('field_legal_deadline')->isEmpty()) {
+    $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
+    $entity->set('field_legal_deadline', [
+      'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
+  }
+
+  if (!$entity->isNew()) {
+    incoming_tweaks_populate_field_ref_id($entity);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for nodes.
+ */
+function incoming_tweaks_node_insert(NodeInterface $node): void {
+  if ($node->bundle() !== 'incoming') {
+    return;
+  }
+
+  incoming_tweaks_assign_reference_id($node);
+}
+
+/**
+ * Calculates a date N working days from today.
+ */
+function incoming_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime $start_date = NULL): DrupalDateTime {
+  $deadline = $start_date ? clone $start_date : new DrupalDateTime('now');
+  $deadline->setTime(0, 0, 0);
+  $added_days = 0;
+  $holiday_cache = [];
+
+  while ($added_days < $work_days) {
+    $deadline->modify('+1 day');
+    // Skip Saturdays (6) and Sundays (7).
+    if (in_array((int) $deadline->format('N'), [6, 7], TRUE)) {
+      continue;
+    }
+
+    $year = (int) $deadline->format('Y');
+    if (!isset($holiday_cache[$year])) {
+      $holiday_cache[$year] = array_flip(incoming_tweaks_fetch_greek_public_holidays($year));
+    }
+
+    if (isset($holiday_cache[$year][$deadline->format('Y-m-d')])) {
+      continue;
+    }
+
+    $added_days++;
+  }
+
+  return $deadline;
+}
+
+/**
+ * Returns the list of Greek public holidays for the provided year.
+ */
+function incoming_tweaks_fetch_greek_public_holidays(int $year): array {
+  static $holidays = [];
+  if (isset($holidays[$year])) {
+    return $holidays[$year];
+  }
+
+  $cid = "incoming_tweaks:holidays:$year";
+  $cache = \Drupal::cache()->get($cid);
+  if ($cache) {
+    return $holidays[$year] = $cache->data;
+  }
+
+  $holiday_dates = [];
+
+  try {
+    $client = \Drupal::httpClient();
+    $response = $client->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/GR", ['timeout' => 5]);
+
+    if ($response->getStatusCode() === 200) {
+      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
+      foreach ($data as $holiday) {
+        if (!empty($holiday['date'])) {
+          $holiday_dates[] = $holiday['date'];
+        }
+      }
+      \Drupal::logger('incoming_tweaks')->info('Fetched @count Greek holiday dates for @year: @dates.', [
+        '@count' => count($holiday_dates),
+        '@year' => $year,
+        '@dates' => implode(', ', $holiday_dates),
+      ]);
+    }
+  }
+  catch (\Exception $exception) {
+    \Drupal::logger('incoming_tweaks')->warning('Unable to fetch holidays for @year: @message', [
+      '@year' => $year,
+      '@message' => $exception->getMessage(),
+    ]);
+  }
+
+  \Drupal::cache()->set($cid, $holiday_dates, time() + 86400);
+  return $holidays[$year] = $holiday_dates;
+}
+
+/**
+ * Ensures an auto-generated reference ID exists for the incoming node.
+ */
+function incoming_tweaks_assign_reference_id(NodeInterface $node): void {
+  $updated = incoming_tweaks_populate_field_ref_id($node);
+
+  if ($updated) {
+    $reference = (string) $node->get('field_ref_id')->value;
+    if ($reference !== '' && $node->label() !== $reference) {
+      $node->setTitle($reference);
+    }
+  }
+
+  // Avoid creating a revision just for the auto-generated values.
+  $node->setNewRevision(FALSE);
+  $node->save();
+}
+
+/**
+ * Populates the reference ID field on existing nodes when empty.
+ */
+function incoming_tweaks_populate_field_ref_id(NodeInterface $node): bool {
+  if (!$node->hasField('field_ref_id') || !$node->get('field_ref_id')->isEmpty()) {
+    return FALSE;
+  }
+
+  $node->set('field_ref_id', incoming_tweaks_generate_reference_id($node));
+  return TRUE;
+}
+
+/**
+ * Generates the REF-#### identifier.
+ */
+function incoming_tweaks_generate_reference_id(NodeInterface $node): string {
+  return 'REF-' . (10000 + (int) $node->id());
+}

@@ -1,0 +1,21 @@
+uuid: 2b849c90-7046-4baf-818b-a880885f4172
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_legal_deadline
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_legal_deadline
+field_name: field_legal_deadline
+entity_type: node
+bundle: incoming
+label: 'Νόμιμη προθεσμία'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

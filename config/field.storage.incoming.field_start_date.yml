@@ -1,0 +1,20 @@
+uuid: 9f40782d-2d73-4566-8b1e-b838b093e861
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - external_entities
+id: incoming.field_start_date
+field_name: field_start_date
+entity_type: incoming
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -4,7 +4,7 @@ status: true
 dependencies:
   config:
     - filter.format.full_html
-    - node.type.case
+    - node.type.incoming
   module:
     - content_moderation
     - filter
@@ -18,10 +18,10 @@ is_admin: false
 permissions:
   - 'access content'
   - 'access user profiles'
-  - 'edit any case content'
+  - 'edit any incoming content'
   - 'use text format full_html'
   - 'view all revisions'
-  - 'view any case content'
+  - 'view any incoming content'
   - 'view any unpublished content'
-  - 'view case revisions'
+  - 'view incoming revisions'
   - 'view latest version'

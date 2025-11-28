@@ -1,0 +1,22 @@
+uuid: ef4054bb-46f6-4ca7-b463-1d155f6aa13d
+langcode: en
+status: true
+dependencies:
+  module:
+    - content_moderation
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+  content_moderation:
+    enabled: true
+    workflow: incoming_processing
+name: Εισερχόμενα
+type: incoming
+description: null
+help: null
+new_revision: true
+preview_mode: 0
+display_submitted: true

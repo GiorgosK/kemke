@@ -15,18 +15,18 @@ mock_api.record:
     id: '\d+'
   methods: [GET, PUT, PATCH, DELETE]
 
-mock_api.cases:
-  path: '/mock-api/cases'
+mock_api.incoming:
+  path: '/mock-api/incoming'
   defaults:
-    _controller: '\Drupal\mock_api\Controller\MockApiController::handleCases'
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handleIncoming'
   requirements:
     _permission: 'access content'
   methods: [GET, POST]
 
-mock_api.case:
-  path: '/mock-api/cases/{id}'
+mock_api.incoming_item:
+  path: '/mock-api/incoming/{id}'
   defaults:
-    _controller: '\Drupal\mock_api\Controller\MockApiController::handleCaseItem'
+    _controller: '\Drupal\mock_api\Controller\MockApiController::handleIncomingItem'
   requirements:
     _permission: 'access content'
     id: '\d+'

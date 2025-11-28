@@ -1,0 +1,24 @@
+uuid: 35c34115-9b38-4a24-96d6-1847ebeb3fcb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_subject
+    - filter.format.full_html
+    - node.type.incoming
+  module:
+    - text
+id: node.incoming.field_subject
+field_name: field_subject
+entity_type: node
+bundle: incoming
+label: Θέμα
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - full_html
+field_type: text_long

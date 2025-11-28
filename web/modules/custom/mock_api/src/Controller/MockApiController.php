@@ -179,9 +179,9 @@ final class MockApiController extends ControllerBase {
   }
 
   /**
-   * Handles collection operations for cases.
+   * Handles collection operations for incoming.
    */
-  public function handleCases(Request $request): JsonResponse {
+  public function handleIncoming(Request $request): JsonResponse {
     if ($request->isMethod(Request::METHOD_POST)) {
       $data = $this->extractPayload($request);
       if ($data === []) {
@@ -189,62 +189,62 @@ final class MockApiController extends ControllerBase {
       }
 
       try {
-        $stored = $this->storage->saveCase($data);
+        $stored = $this->storage->saveIncoming($data);
       }
       catch (\Throwable $exception) {
-        $this->getLogger('mock_api')->error('Failed to persist mock API case: @message', ['@message' => $exception->getMessage()]);
+        $this->getLogger('mock_api')->error('Failed to persist mock API incoming: @message', ['@message' => $exception->getMessage()]);
         return $this->errorResponse('Unable to persist data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
       }
 
-      return new JsonResponse(MockApiStorage::flattenCase($stored), Response::HTTP_CREATED);
+      return new JsonResponse(MockApiStorage::flattenIncoming($stored), Response::HTTP_CREATED);
     }
 
     try {
-      $cases = $this->storage->loadCases();
-      $cases = array_map(static fn(array $case): array => MockApiStorage::flattenCase($case), $cases);
+      $incoming = $this->storage->loadIncoming();
+      $incoming = array_map(static fn(array $item): array => MockApiStorage::flattenIncoming($item), $incoming);
     }
     catch (\Throwable $exception) {
-      $this->getLogger('mock_api')->error('Failed to load mock API cases: @message', ['@message' => $exception->getMessage()]);
+      $this->getLogger('mock_api')->error('Failed to load mock API incoming: @message', ['@message' => $exception->getMessage()]);
       return $this->errorResponse('Unable to load data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    return new JsonResponse(['items' => $cases]);
+    return new JsonResponse(['items' => $incoming]);
   }
 
   /**
-   * Handles item-level operations for cases.
+   * Handles item-level operations for incoming.
    */
-  public function handleCaseItem(Request $request, int $id): JsonResponse {
+  public function handleIncomingItem(Request $request, int $id): JsonResponse {
     if ($request->isMethod(Request::METHOD_DELETE)) {
       try {
-        $deleted = $this->storage->deleteCase($id);
+        $deleted = $this->storage->deleteIncoming($id);
       }
       catch (\Throwable $exception) {
-        $this->getLogger('mock_api')->error('Failed to delete mock API case: @message', ['@message' => $exception->getMessage()]);
+        $this->getLogger('mock_api')->error('Failed to delete mock API incoming: @message', ['@message' => $exception->getMessage()]);
         return $this->errorResponse('Unable to delete data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
       }
 
       if (!$deleted) {
-        return $this->errorResponse('Case not found.', Response::HTTP_NOT_FOUND);
+        return $this->errorResponse('Incoming not found.', Response::HTTP_NOT_FOUND);
       }
 
       return new JsonResponse(['status' => 'deleted'], Response::HTTP_OK);
     }
 
     try {
-      $case = $this->storage->loadCase($id);
+      $incoming = $this->storage->loadIncomingItem($id);
     }
     catch (\Throwable $exception) {
-      $this->getLogger('mock_api')->error('Failed to load mock API case: @message', ['@message' => $exception->getMessage()]);
+      $this->getLogger('mock_api')->error('Failed to load mock API incoming: @message', ['@message' => $exception->getMessage()]);
       return $this->errorResponse('Unable to load data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    if ($case === NULL) {
-      return $this->errorResponse('Case not found.', Response::HTTP_NOT_FOUND);
+    if ($incoming === NULL) {
+      return $this->errorResponse('Incoming not found.', Response::HTTP_NOT_FOUND);
     }
 
     if ($request->isMethod(Request::METHOD_GET)) {
-      return new JsonResponse(MockApiStorage::flattenCase($case));
+      return new JsonResponse(MockApiStorage::flattenIncoming($incoming));
     }
 
     if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
@@ -256,17 +256,17 @@ final class MockApiController extends ControllerBase {
       $merge = $request->isMethod(Request::METHOD_PATCH);
 
       try {
-        $updated = $this->storage->updateCase($id, $data, $merge);
+        $updated = $this->storage->updateIncoming($id, $data, $merge);
       }
       catch (\InvalidArgumentException $exception) {
         return $this->errorResponse($exception->getMessage(), Response::HTTP_BAD_REQUEST);
       }
       catch (\Throwable $exception) {
-        $this->getLogger('mock_api')->error('Failed to update mock API case: @message', ['@message' => $exception->getMessage()]);
+        $this->getLogger('mock_api')->error('Failed to update mock API incoming: @message', ['@message' => $exception->getMessage()]);
         return $this->errorResponse('Unable to update data at this time.', Response::HTTP_INTERNAL_SERVER_ERROR);
       }
 
-      return new JsonResponse(MockApiStorage::flattenCase($updated));
+      return new JsonResponse(MockApiStorage::flattenIncoming($updated));
     }
 
     return $this->errorResponse('Unsupported method.', Response::HTTP_METHOD_NOT_ALLOWED);

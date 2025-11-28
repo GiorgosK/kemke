@@ -1,0 +1,31 @@
+uuid: b13fd76f-b830-4cc8-903f-85db8ed6ac80
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_documents
+    - node.type.incoming
+    - paragraphs.paragraphs_type.documents
+  module:
+    - entity_reference_revisions
+id: node.incoming.field_documents
+field_name: field_documents
+entity_type: node
+bundle: incoming
+label: Αρχεία
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      documents: documents
+    negate: 0
+    target_bundles_drag_drop:
+      documents:
+        weight: 2
+        enabled: true
+field_type: entity_reference_revisions

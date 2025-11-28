@@ -1,0 +1,18 @@
+uuid: 192213db-02de-4f1b-b3bc-9dfed20f50ca
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.incoming
+id: node.incoming.title
+field_name: title
+entity_type: node
+bundle: incoming
+label: Τίτλος
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

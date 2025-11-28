@@ -1,0 +1,29 @@
+uuid: 025747dd-a5b7-477e-8c87-71e5d8caadb4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_incoming_type
+    - node.type.incoming
+    - taxonomy.vocabulary.incoming_type
+id: node.incoming.field_incoming_type
+field_name: field_incoming_type
+entity_type: node
+bundle: incoming
+label: 'Είδος Εισερχομένου'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      incoming_type: incoming_type
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

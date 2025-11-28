@@ -1,0 +1,19 @@
+uuid: f1a07c01-114d-43d7-a8c9-699282fcca30
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_sender
+    - node.type.incoming
+id: node.incoming.field_sender
+field_name: field_sender
+entity_type: node
+bundle: incoming
+label: Αποστολέας
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

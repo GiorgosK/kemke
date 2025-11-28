@@ -1,0 +1,58 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldableEntityInterface;
+use Drupal\user\Entity\User;
+
+/**
+ * Provides the default value for the remark user field.
+ */
+function incoming_remarks_current_user_default_value(FieldableEntityInterface $entity, FieldDefinitionInterface $definition) {
+  $current_user_id = \Drupal::currentUser()->id();
+
+  if (!$current_user_id) {
+    return [];
+  }
+
+  $account = User::load($current_user_id);
+  if (!$account) {
+    return [];
+  }
+
+  return [
+    [
+      'target_id' => $account->id(),
+    ],
+  ];
+}
+
+/**
+ * Provides the default value for the remark datetime field.
+ */
+function incoming_remarks_timestamp_default_value(FieldableEntityInterface $entity, FieldDefinitionInterface $definition) {
+  return [
+    [
+      'value' => \Drupal::time()->getRequestTime(),
+    ],
+  ];
+}
+
+/**
+ * Ensures remark paragraphs store metadata when it is missing.
+ */
+function incoming_remarks_entity_presave(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() !== 'paragraph' || $entity->bundle() !== 'remark') {
+    return;
+  }
+
+  if ($entity->hasField('field_user') && $entity->get('field_user')->isEmpty()) {
+    if ($uid = \Drupal::currentUser()->id()) {
+      $entity->set('field_user', ['target_id' => $uid]);
+    }
+  }
+
+  if ($entity->hasField('field_datetime') && $entity->get('field_datetime')->isEmpty()) {
+    $entity->set('field_datetime', ['value' => \Drupal::time()->getRequestTime()]);
+  }
+}

@@ -1,0 +1,11 @@
+uuid: 182db912-8e28-4802-80c2-2db2e523a164
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+id: incoming.token
+label: Token
+description: null
+targetEntityType: incoming
+cache: true

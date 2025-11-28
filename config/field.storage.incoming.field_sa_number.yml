@@ -1,0 +1,21 @@
+uuid: 357f07c6-4cfe-4c2f-8978-5f6cf0026f47
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+id: incoming.field_sa_number
+field_name: field_sa_number
+entity_type: incoming
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

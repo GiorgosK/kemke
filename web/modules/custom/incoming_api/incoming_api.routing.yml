@@ -1,0 +1,54 @@
+incoming_api.incoming.create:
+  path: '/api/incoming'
+  defaults:
+    _controller: '\Drupal\incoming_api\Controller\IncomingController::createIncoming'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _permission: 'create incoming via api'
+  options:
+    _auth: ['basic_auth']
+
+incoming_api.file_upload.init:
+  path: '/api/incoming/files/init'
+  defaults:
+    _controller: '\Drupal\incoming_api\Controller\FileUploadController::init'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _permission: 'create incoming via api'
+  options:
+    _auth: ['basic_auth']
+
+incoming_api.file_upload.chunk:
+  path: '/api/incoming/files/chunk'
+  defaults:
+    _controller: '\Drupal\incoming_api\Controller\FileUploadController::uploadChunk'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _permission: 'create incoming via api'
+  options:
+    _auth: ['basic_auth']
+
+incoming_api.file_upload.complete:
+  path: '/api/incoming/files/complete'
+  defaults:
+    _controller: '\Drupal\incoming_api\Controller\FileUploadController::complete'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _permission: 'create incoming via api'
+  options:
+    _auth: ['basic_auth']
+
+incoming_api.file_upload.cancel:
+  path: '/api/incoming/files/cancel'
+  defaults:
+    _controller: '\Drupal\incoming_api\Controller\FileUploadController::cancel'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _permission: 'create incoming via api'
+  options:
+    _auth: ['basic_auth']

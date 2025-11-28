@@ -1,0 +1,5 @@
+name: 'Incoming Remarks'
+type: module
+description: 'Automatically assigns metadata (user, timestamp) on remark paragraphs.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11

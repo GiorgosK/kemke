@@ -525,7 +525,7 @@ display:
           field: reverse__node__field_basic_operator
           relationship: none
           group_type: group
-          admin_label: 'Cases referencing operator'
+          admin_label: 'Incoming referencing operator'
           entity_type: user
           plugin_id: entity_reverse
           required: false
@@ -535,7 +535,7 @@ display:
           field: reverse__node__field_operators
           relationship: none
           group_type: group
-          admin_label: 'Cases referencing operator (field_operators)'
+          admin_label: 'Incoming referencing operator (field_operators)'
           entity_type: user
           plugin_id: entity_reverse
           required: false

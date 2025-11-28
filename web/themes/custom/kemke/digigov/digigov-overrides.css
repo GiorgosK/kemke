@@ -71,9 +71,9 @@ pre {
   padding: 0.5rem;
 }
 
-.node-case-form details,
-.node-case-edit-form details,
-.node--type-case details {
+.node-incoming-form details,
+.node-incoming-edit-form details,
+.node--type-incoming details {
   background-color: #eee;
   padding: 1rem;
   margin-top: 0.5rem;

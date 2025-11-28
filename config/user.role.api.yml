@@ -3,10 +3,10 @@ langcode: en
 status: true
 dependencies:
   module:
-    - case_api
+    - incoming_api
 id: api
 label: api
 weight: 12
 is_admin: false
 permissions:
-  - 'create case via api'
+  - 'create incoming via api'

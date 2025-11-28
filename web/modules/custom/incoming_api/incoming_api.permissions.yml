@@ -1,0 +1,3 @@
+create incoming via api:
+  title: 'Create incoming nodes via API'
+  description: 'Allow users to create incoming content by POSTing JSON to /api/incoming.'

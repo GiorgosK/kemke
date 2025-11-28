@@ -1,0 +1,28 @@
+uuid: bec84299-ebe4-4195-a7a6-2c8647b89497
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_related_incoming
+    - node.type.incoming
+id: node.incoming.field_related_incoming
+field_name: field_related_incoming
+entity_type: node
+bundle: incoming
+label: 'Σύνδεση με άλλα εισερχόμενα'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      incoming: incoming
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference
