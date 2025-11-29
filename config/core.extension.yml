@@ -41,6 +41,7 @@ module:
   incoming_notifications: 0
   incoming_remarks: 0
   incoming_tweaks: 0
+  jquery_ui: 0
   link: 0
   menu_link_content: 0
   menu_ui: 0
@@ -58,6 +59,7 @@ module:
   shortcut: 0
   system: 0
   taxonomy: 0
+  taxonomy_manager: 0
   text: 0
   toolbar: 0
   update: 0
