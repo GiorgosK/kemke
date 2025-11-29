@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.incoming.field_basic_operator
+    - field.field.node.incoming.field_case
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
@@ -128,6 +129,14 @@ content:
       link: true
     third_party_settings: {  }
     weight: 10
+    region: content
+  field_case:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 6
     region: content
   field_completion_date:
     type: datetime_default

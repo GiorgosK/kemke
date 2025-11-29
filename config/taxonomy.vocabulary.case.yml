@@ -1,0 +1,9 @@
+uuid: 90e81cec-5116-4d06-a934-082db0d53e8b
+langcode: en
+status: true
+dependencies: {  }
+name: Υπόθεση
+vid: case
+description: null
+weight: 0
+new_revision: false

@@ -1,0 +1,29 @@
+uuid: 7c189f2b-f5a6-4365-abaf-b6d2c73b163c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_case
+    - node.type.incoming
+    - taxonomy.vocabulary.case
+id: node.incoming.field_case
+field_name: field_case
+entity_type: node
+bundle: incoming
+label: Υπόθεση
+description: 'Προαιρετική αναφορά σε σχετική υπόθεση'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      case: case
+    sort:
+      field: name
+      direction: ASC
+    auto_create: true
+    auto_create_bundle: case
+field_type: entity_reference

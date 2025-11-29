@@ -4,10 +4,11 @@ status: true
 dependencies:
   config:
     - field.field.node.incoming.field_basic_operator
-    - field.field.node.incoming.field_incoming_type
+    - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
@@ -41,6 +42,7 @@ third_party_settings:
   field_group:
     group_status:
       children:
+        - field_case
         - field_priority
         - field_requested_deadline
         - field_legal_deadline
@@ -67,7 +69,7 @@ third_party_settings:
       label: Υπεύθυνοι
       region: content
       parent_name: ''
-      weight: 20
+      weight: 21
       format_type: details
       format_settings:
         classes: ''
@@ -104,7 +106,7 @@ third_party_settings:
       label: Παρατηρήσεις
       region: content
       parent_name: ''
-      weight: 21
+      weight: 22
       format_type: details
       format_settings:
         classes: ''
@@ -121,7 +123,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 14
+    weight: 15
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -135,9 +137,19 @@ content:
       match_operator: CONTAINS
       match_limit: 10
     third_party_settings: {  }
+  field_case:
+    type: select2_entity_reference
+    weight: 16
+    region: content
+    settings:
+      width: 100%
+      autocomplete: false
+      match_operator: CONTAINS
+      match_limit: 10
+    third_party_settings: {  }
   field_completion_date:
     type: datetime_default
-    weight: 16
+    weight: 21
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -175,13 +187,13 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 15
+    weight: 20
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_default
-    weight: 13
+    weight: 19
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -195,7 +207,7 @@ content:
     third_party_settings: {  }
   field_operators:
     type: select2_entity_reference
-    weight: 10
+    weight: 11
     region: content
     settings:
       width: 100%
@@ -205,7 +217,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 11
+    weight: 17
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -257,7 +269,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
-    weight: 12
+    weight: 18
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -370,34 +382,34 @@ content:
               recurse: '0'
   moderation_state:
     type: workflow_buttons
-    weight: 17
+    weight: 18
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 18
+    weight: 19
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 15
+    weight: 16
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 19
+    weight: 20
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 16
+    weight: 17
     region: content
     settings:
       display_label: true
