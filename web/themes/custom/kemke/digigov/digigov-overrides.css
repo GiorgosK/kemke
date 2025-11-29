@@ -54,6 +54,27 @@
   position: relative;
 }
 
+.views-exposed-form .govgr-btn,
+.views-exposed-form .govgr-field {
+  position: relative;
+  margin-bottom: 0px;  
+}
+
+.views-exposed-form .form--inline {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.views-exposed-form .govgr-form {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+
 .diff-revisions .govgr-radios__input {
   scale: 0.5;
 }
