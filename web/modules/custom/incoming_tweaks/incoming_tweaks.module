@@ -183,8 +183,38 @@ function incoming_tweaks_populate_field_ref_id(NodeInterface $node): bool {
 }
 
 /**
- * Generates the REF-#### identifier.
+ * Generates the INC-#### identifier.
  */
 function incoming_tweaks_generate_reference_id(NodeInterface $node): string {
-  return 'REF-' . (10000 + (int) $node->id());
+  $now = new DrupalDateTime('now');
+  $year = (int) $now->format('Y');
+  $sequence = incoming_tweaks_next_reference_sequence($year);
+
+  return sprintf('INC-%d-%06d', $year, $sequence);
+}
+
+/**
+ * Retrieves and increments the per-year reference ID counter.
+ */
+function incoming_tweaks_next_reference_sequence(int $year): int {
+  $state = \Drupal::state();
+  $lock = \Drupal::lock();
+  $lock_name = "incoming_tweaks.ref_counter.$year";
+  $counter_key = "incoming_tweaks.ref_counter.$year";
+
+  // Guard against concurrent increments to keep the counter consistent.
+  $acquired = $lock->acquire($lock_name, 5.0);
+  if (!$acquired) {
+    \Drupal::logger('incoming_tweaks')->warning('Unable to acquire reference counter lock for @year, falling back to non-locked increment.', ['@year' => $year]);
+  }
+
+  $current = (int) $state->get($counter_key, 0);
+  $next = max(1, $current + 1);
+  $state->set($counter_key, $next);
+
+  if ($acquired) {
+    $lock->release($lock_name);
+  }
+
+  return $next;
 }
