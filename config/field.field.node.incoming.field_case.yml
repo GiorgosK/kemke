@@ -11,7 +11,7 @@ field_name: field_case
 entity_type: node
 bundle: incoming
 label: Υπόθεση
-description: 'Προαιρετική αναφορά σε σχετική υπόθεση'
+description: 'Προαιρετική αναφορά σε μία ή περισσότερες σχετικές υπόθεσεις'
 required: false
 translatable: false
 default_value: {  }

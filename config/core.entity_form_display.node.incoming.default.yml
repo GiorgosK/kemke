@@ -42,7 +42,6 @@ third_party_settings:
   field_group:
     group_status:
       children:
-        - field_case
         - field_priority
         - field_requested_deadline
         - field_legal_deadline
@@ -51,7 +50,7 @@ third_party_settings:
       label: Κατασταση
       region: content
       parent_name: ''
-      weight: 11
+      weight: 12
       format_type: details
       format_settings:
         classes: ''
@@ -90,7 +89,7 @@ third_party_settings:
       label: EE
       region: content
       parent_name: ''
-      weight: 12
+      weight: 13
       format_type: details
       format_settings:
         classes: ''
@@ -139,7 +138,7 @@ content:
     third_party_settings: {  }
   field_case:
     type: select2_entity_reference
-    weight: 16
+    weight: 11
     region: content
     settings:
       width: 100%
@@ -424,7 +423,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 13
+    weight: 14
     region: content
     settings:
       match_operator: CONTAINS
