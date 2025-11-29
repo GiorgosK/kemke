@@ -1,0 +1,7 @@
+name: 'Select2 Level Class'
+type: module
+description: 'Adds depth-based classes to Select2 options so nested taxonomy is visually indented with CSS.'
+core_version_requirement: ^9 || ^10 || ^11
+package: Custom
+dependencies:
+  - select2:select2

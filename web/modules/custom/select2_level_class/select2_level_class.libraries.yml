@@ -1,0 +1,4 @@
+select2-level-class:
+  css:
+    component:
+      css/select2-level-class.css: {}

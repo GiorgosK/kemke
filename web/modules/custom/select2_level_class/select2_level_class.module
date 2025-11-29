@@ -1,0 +1,57 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Adds spacing to select2 option labels based on leading hyphens.
+ */
+function select2_level_class_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  select2_level_class_process_elements($form);
+}
+
+/**
+ * Recursively processes form elements to add classes to Select2 options.
+ */
+function select2_level_class_process_elements(array &$elements): void {
+  foreach ($elements as &$element) {
+    if (!is_array($element)) {
+      continue;
+    }
+
+    $is_select2_element = (!empty($element['#type']) && $element['#type'] === 'select2')
+      || (!empty($element['#attributes']['class']) && in_array('select2-widget', $element['#attributes']['class'], TRUE));
+
+    if ($is_select2_element && !empty($element['#options']) && is_array($element['#options'])) {
+      $element['#attached']['library'][] = 'select2_level_class/select2-level-class';
+      $element['#options'] = select2_level_class_indent_option_labels($element['#options']);
+    }
+
+    select2_level_class_process_elements($element);
+  }
+}
+
+/**
+ * Inserts non-breaking-space indentation based on leading hyphens.
+ */
+function select2_level_class_indent_option_labels(array $options): array {
+  foreach ($options as $value => $label) {
+    if (is_array($label)) {
+      $options[$value] = select2_level_class_indent_option_labels($label);
+      continue;
+    }
+
+    if (!is_string($label)) {
+      continue;
+    }
+
+    if (preg_match('/^(-+)\\s*(.+)$/u', $label, $matches)) {
+      $level = strlen($matches[1]);
+      $indent = str_repeat("\u{00A0}\u{00A0}", $level);
+      $options[$value] = $indent . '- ' . $matches[2];
+    }
+  }
+
+  return $options;
+}
