@@ -4,9 +4,11 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
+use Drupal\taxonomy\TermInterface;
 
 /**
  * Implements hook_form_FORM_ID_alter() for the incoming content type form.
@@ -24,6 +26,20 @@ function field_non_empty_lock_form_node_incoming_edit_form_alter(array &$form, F
   field_non_empty_lock_lock_node_fields($form, $form_state, 'incoming');
   field_non_empty_lock_lock_embedded_paragraph_fields($form, $form_state);
   field_non_empty_lock_customize_paragraph_widgets($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the case term form.
+ */
+function field_non_empty_lock_form_taxonomy_term_case_form_alter(array &$form, FormStateInterface $form_state) {
+  field_non_empty_lock_lock_term_fields($form, $form_state, 'case');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the case term edit form.
+ */
+function field_non_empty_lock_form_taxonomy_term_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  field_non_empty_lock_lock_term_fields($form, $form_state, 'case');
 }
 
 /**
@@ -79,6 +95,50 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
     }
     $field_has_value = field_non_empty_lock_field_has_value($node, $field_config);
     $hide_field = (!empty($field_config['hide_if_new']) && $node->isNew())
+      || (!empty($field_config['hide_if_empty']) && !$field_has_value);
+
+    if ($hide_field) {
+      field_non_empty_lock_hide_widget_at_path($form, $field_config['widget_path']);
+      continue;
+    }
+
+    if (!$field_has_value) {
+      continue;
+    }
+
+    field_non_empty_lock_disable_widget_at_path($form, $field_config['widget_path']);
+  }
+}
+
+/**
+ * Locks selected taxonomy term fields once they have been populated.
+ */
+function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface $form_state, $vocabulary) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\taxonomy\TermInterface $term */
+  $term = $form_object->getEntity();
+  if (!$term instanceof TermInterface) {
+    return;
+  }
+
+  $bundle_map = field_non_empty_lock_get_taxonomy_field_map();
+  if (empty($bundle_map[$vocabulary])) {
+    return;
+  }
+
+  foreach ($bundle_map[$vocabulary] as $field_key => $field_definition) {
+    $field_config = field_non_empty_lock_normalize_field_definition($field_key, $field_definition);
+    $field_name = $field_config['field_name'];
+
+    if (empty($field_config['skip_field_check']) && !$term->hasField($field_name)) {
+      continue;
+    }
+    $field_has_value = field_non_empty_lock_field_has_value($term, $field_config);
+    $hide_field = (!empty($field_config['hide_if_new']) && $term->isNew())
       || (!empty($field_config['hide_if_empty']) && !$field_has_value);
 
     if ($hide_field) {
@@ -435,13 +495,16 @@ function field_non_empty_lock_normalize_field_definition($field_key, $field_defi
 /**
  * Determines whether a field already holds a value.
  */
-function field_non_empty_lock_field_has_value(NodeInterface $node, array $field_config) {
+function field_non_empty_lock_field_has_value($entity, array $field_config) {
+  if (!$entity instanceof EntityInterface) {
+    return FALSE;
+  }
   if (!empty($field_config['is_empty_callback']) && is_callable($field_config['is_empty_callback'])) {
-    return !call_user_func($field_config['is_empty_callback'], $node, $field_config);
+    return !call_user_func($field_config['is_empty_callback'], $entity, $field_config);
   }
 
-  if ($node->hasField($field_config['field_name'])) {
-    return !$node->get($field_config['field_name'])->isEmpty();
+  if ($entity->hasField($field_config['field_name'])) {
+    return !$entity->get($field_config['field_name'])->isEmpty();
   }
 
   return FALSE;
@@ -520,6 +583,28 @@ function field_non_empty_lock_get_node_field_map() {
       'title' => [
         'widget_path' => ['title', 'widget', 0, 'value'],
       ],
+    ],
+  ];
+}
+
+/**
+ * Provides a per-vocabulary map of fields that lock once populated.
+ *
+ * @return array
+ *   An array keyed by vocabulary with values of field machine names.
+ */
+function field_non_empty_lock_get_taxonomy_field_map() {
+  return [
+    'case' => [
+      'field_ref_id' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
+      // Base field widgets can live deeper in the form array, so provide
+      // explicit paths to keep them future-proof.
+      // 'name' => [
+      //   'widget_path' => ['name', 'widget', 0, 'value'],
+      // ],
     ],
   ];
 }
