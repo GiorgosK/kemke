@@ -1,0 +1,7 @@
+name: 'Case Tweaks'
+type: module
+description: 'Auto-generates field_ref_id for case terms and keeps it in the term name.'
+core_version_requirement: '^10 || ^11'
+package: Custom
+dependencies:
+  - drupal:taxonomy
