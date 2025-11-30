@@ -602,9 +602,9 @@ function field_non_empty_lock_get_taxonomy_field_map() {
       ],
       // Base field widgets can live deeper in the form array, so provide
       // explicit paths to keep them future-proof.
-      // 'name' => [
-      //   'widget_path' => ['name', 'widget', 0, 'value'],
-      // ],
+      'name' => [
+        'widget_path' => ['name', 'widget', 0, 'value'],
+      ],
     ],
   ];
 }
