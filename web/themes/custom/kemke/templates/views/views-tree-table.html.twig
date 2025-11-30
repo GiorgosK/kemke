@@ -1,0 +1,124 @@
+{#
+/**
+ * Theme override for views_tree table to add govgr table classes.
+ *
+ * Based on views_tree default template with govgr table BEM classes.
+ */
+#}
+
+{%
+  set container_classes = [
+    'govgr-table-container',
+    'govgr-table-container--border',
+  ]
+%}
+
+{%
+  set table_classes = [
+    'govgr-table',
+    'govgr-table--zebra',
+    'govgr-table--dark',
+    'views-table',
+    'views-view-table',
+    'cols-' ~ header|length,
+    responsive ? 'responsive-enabled',
+    sticky ? 'sticky-enabled',
+  ]
+%}
+{% import _self as views_tree %}
+
+<div class="{{ container_classes|join(' ') }}">
+  <table{{ attributes.addClass(table_classes) }}>
+    {% if caption_needed %}
+      <caption class="govgr-table__caption">
+        {% if caption %}
+          {{ caption }}
+        {% else %}
+          {{ title }}
+        {% endif %}
+        {% if (summary is not empty) or (description is not empty) %}
+          <details>
+            {% if summary is not empty %}
+              <summary>{{ summary }}</summary>
+            {% endif %}
+            {% if description is not empty %}
+              {{ description }}
+            {% endif %}
+          </details>
+        {% endif %}
+      </caption>
+    {% endif %}
+    {% if header %}
+      <thead class="govgr-table__head">
+      <tr class="govgr-table__row">
+        {% for key, column in header %}
+          {% set column_classes = ['govgr-table__header'] %}
+          {% if column.default_classes %}
+            {% set column_classes = column_classes|merge([
+              'views-field',
+              'views-field-' ~ fields[key],
+            ]) %}
+          {% endif %}
+          <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col') }}>
+            {%- if column.wrapper_element -%}
+              <{{ column.wrapper_element }}>
+              {%- if column.url -%}
+                <a href="{{ column.url }}" title="{{ column.title }}">{{ column.content }}{{ column.sort_indicator }}</a>
+              {%- else -%}
+                {{ column.content }}{{ column.sort_indicator }}
+              {%- endif -%}
+              </{{ column.wrapper_element }}>
+            {%- else -%}
+              {%- if column.url -%}
+                <a href="{{ column.url }}" title="{{ column.title }}">{{ column.content }}{{ column.sort_indicator }}</a>
+              {%- else -%}
+                {{- column.content }}{{ column.sort_indicator }}
+              {%- endif -%}
+            {%- endif -%}
+          </th>
+        {% endfor %}
+      </tr>
+      </thead>
+    {% endif %}
+    <tbody class="govgr-table__body">
+      {{ views_tree.tree(items) }}
+    </tbody>
+  </table>
+</div>
+
+{% macro tree(items) %}
+  {% import _self as views_tree %}
+  {% if items %}
+    {%- for item in items -%}
+      {{ views_tree.row(item.node) }}
+      {{ views_tree.tree(item.leaves) }}
+    {% endfor %}
+  {% endif %}
+{% endmacro %}
+
+{% macro row(item) %}
+<tr{{ item.attributes.addClass('govgr-table__row') }}>
+  {% for key, column in item.columns %}
+    {% set column_classes = ['govgr-table__cell'] %}
+    {% if column.default_classes %}
+      {% set column_classes = column_classes|merge(['views-field']) %}
+      {% for field in column.fields %}
+        {% set column_classes = column_classes|merge(['views-field-' ~ field]) %}
+      {% endfor %}
+    {% endif %}
+  <td{{ column.attributes.addClass(column_classes) }}>
+    {%- if column.wrapper_element -%}
+      <{{ column.wrapper_element }}>
+      {% for content in column.content %}
+        {{ content.separator }}{{ content.field_output }}
+      {% endfor %}
+      </{{ column.wrapper_element }}>
+    {%- else -%}
+      {% for content in column.content %}
+        {{- content.separator }}{{ content.field_output -}}
+      {% endfor %}
+    {%- endif %}
+    </td>
+  {% endfor %}
+</tr>
+{% endmacro %}

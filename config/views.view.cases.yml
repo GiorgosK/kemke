@@ -100,16 +100,34 @@ display:
           entity_type: taxonomy_term
           entity_field: name
           plugin_id: term_name
-          label: ''
+          label: Όνομα
           exclude: false
           alter:
             alter_text: false
+            text: ''
             make_link: false
+            path: ''
             absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
             word_boundary: false
             ellipsis: false
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
             strip_tags: false
             trim: false
+            preserve_tags: ''
             html: false
           element_type: ''
           element_class: ''
@@ -384,7 +402,7 @@ display:
         type: tree_table
         options:
           grouping: {  }
-          row_class: ''
+          row_class: govgr-table__row
           default_row_class: true
           columns:
             name: name
@@ -411,7 +429,7 @@ display:
           empty_table: false
           caption: ''
           description: ''
-          class: ''
+          class: 'govgr-table govgr-table--zebra govgr-table--dark views-table views-view-table'
           main_field: tid
           parent_field: parent_target_id
           display_hierarchy_column: name
@@ -431,6 +449,7 @@ display:
           replica: false
           query_tags: {  }
       relationships: {  }
+      css_class: ''
       header:
         area:
           id: area
