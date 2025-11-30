@@ -17,7 +17,8 @@ function case_tweaks_entity_presave(EntityInterface $entity): void {
   }
 
   case_tweaks_populate_field_ref_id($entity);
-  case_tweaks_append_ref_id_to_name($entity);
+  case_tweaks_store_original_name($entity);
+  case_tweaks_refresh_name_from_fields($entity);
 }
 
 /**
@@ -33,21 +34,53 @@ function case_tweaks_populate_field_ref_id(TermInterface $term): bool {
 }
 
 /**
- * Adds the ref ID to the term name when missing.
+ * Captures the user-provided name into field_name_typed when empty.
  */
-function case_tweaks_append_ref_id_to_name(TermInterface $term): void {
+function case_tweaks_store_original_name(TermInterface $term): void {
+  if (!$term->hasField('field_name_typed')) {
+    return;
+  }
+
+  $typed_name = trim((string) $term->get('field_name_typed')->value);
+  if ($typed_name !== '') {
+    return;
+  }
+
+  $name = trim((string) $term->getName());
+  if ($name === '') {
+    return;
+  }
+
+  $term->set('field_name_typed', $name);
+}
+
+/**
+ * Recreates the term name as "field_name_typed - field_ref_id".
+ */
+function case_tweaks_refresh_name_from_fields(TermInterface $term): void {
   if ($term->get('field_ref_id')->isEmpty()) {
     return;
   }
 
-  $ref_id = (string) $term->get('field_ref_id')->value;
-  $name = trim((string) $term->getName());
-
-  if ($name !== '' && str_ends_with($name, $ref_id)) {
+  if (!$term->hasField('field_name_typed')) {
     return;
   }
 
-  $term->setName($name === '' ? $ref_id : "{$name} {$ref_id}");
+  $parent_names = case_tweaks_parent_typed_names($term);
+  $typed_name = trim((string) $term->get('field_name_typed')->value);
+  if ($typed_name === '') {
+    $typed_name = trim((string) $term->getName());
+  }
+
+  $ref_id = (string) $term->get('field_ref_id')->value;
+
+  $parts = array_filter([
+    ...$parent_names,
+    $typed_name,
+    $ref_id,
+  ], static fn($part) => $part !== '');
+
+  $term->setName(implode(' - ', $parts));
 }
 
 /**
@@ -84,4 +117,42 @@ function case_tweaks_next_reference_sequence(int $year): int {
   }
 
   return $next;
+}
+
+/**
+ * Retrieves parent field_name_typed values from root to direct parent.
+ */
+function case_tweaks_parent_typed_names(TermInterface $term): array {
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+
+  $parents = $term->get('parent')->getValue();
+  $parent_id = $parents[0]['target_id'] ?? NULL;
+  if (!$parent_id) {
+    return [];
+  }
+
+  $ancestors = $storage->loadAllParents($parent_id);
+  if (empty($ancestors)) {
+    return [];
+  }
+
+  // loadAllParents() returns the chain starting with the given term ID.
+  // Reverse it to get root -> direct parent.
+  $ancestors = array_reverse($ancestors, TRUE);
+
+  $names = [];
+  foreach ($ancestors as $ancestor) {
+    $name = '';
+    if ($ancestor->hasField('field_name_typed')) {
+      $name = trim((string) $ancestor->get('field_name_typed')->value);
+    }
+    if ($name === '') {
+      $name = trim((string) $ancestor->getName());
+    }
+    if ($name !== '') {
+      $names[] = $name;
+    }
+  }
+
+  return $names;
 }
