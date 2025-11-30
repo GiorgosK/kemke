@@ -8,13 +8,13 @@ definitions:
     expanded: false
     enabled: true
   user__page:
-    weight: -48
+    weight: -47
     menu_name: account
     parent: ''
-    enabled: true
     expanded: false
+    enabled: true
   user__logout:
-    weight: -47
+    weight: -46
     menu_name: account
     parent: ''
     expanded: false

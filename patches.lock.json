@@ -1,4 +1,17 @@
 {
-    "_hash": "6142bfcb78f54dfbf5247ae5e463f25bdb8fff1890806e2e45aa81a59c211653",
-    "patches": []
+    "_hash": "fdc2d4dbc162bf7c8344e1c832e085d74975199d364807555fec464b76f33aef",
+    "patches": {
+        "drupal/core": [
+            {
+                "package": "drupal/core",
+                "description": "dgo.re/3158934",
+                "url": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch",
+                "sha256": "ebc98c21906c91541fa9a7ee70b281cba3e664a8a6374beed7df8d157aa1b16a",
+                "depth": 2,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
 }

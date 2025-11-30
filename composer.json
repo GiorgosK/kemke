@@ -132,6 +132,9 @@
             ]
         },
         "patches": {
+            "drupal/core": {
+                "dgo.re/3158934": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch"
+            }
         }
     }
 }
