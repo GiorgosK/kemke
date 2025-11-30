@@ -37,6 +37,7 @@
         "drupal/paragraphs": "^1.19",
         "drupal/select2": "^2.0",
         "drupal/taxonomy_manager": "^2.0",
+        "drupal/views_tree": "^3.0",
         "drupal/workflow_buttons": "^1.0@beta",
         "drush/drush": "^13.6",
         "mglaman/composer-drupal-lenient": "^1.0",
