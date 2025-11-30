@@ -99,3 +99,16 @@ pre {
   padding: 1rem;
   margin-top: 0.5rem;
 }
+
+tr[data-hierarchy-level="1"] .views-tree-hierarchy-cell {
+  padding-left: 2rem !important;
+}
+tr[data-hierarchy-level="2"] .views-tree-hierarchy-cell {
+  padding-left: 3rem !important;
+}
+tr[data-hierarchy-level="3"] .views-tree-hierarchy-cell {
+  padding-left: 4rem !important;
+}
+tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
+  padding-left: 5rem !important;
+}

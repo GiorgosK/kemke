@@ -81,23 +81,23 @@
       </thead>
     {% endif %}
     <tbody class="govgr-table__body">
-      {{ views_tree.tree(items) }}
+      {{ views_tree.tree(items, 0) }}
     </tbody>
   </table>
 </div>
 
-{% macro tree(items) %}
+{% macro tree(items, level) %}
   {% import _self as views_tree %}
   {% if items %}
     {%- for item in items -%}
-      {{ views_tree.row(item.node) }}
-      {{ views_tree.tree(item.leaves) }}
+      {{ views_tree.row(item.node, level) }}
+      {{ views_tree.tree(item.leaves, level + 1) }}
     {% endfor %}
   {% endif %}
 {% endmacro %}
 
-{% macro row(item) %}
-<tr{{ item.attributes.addClass('govgr-table__row') }}>
+{% macro row(item, level) %}
+<tr{{ item.attributes.addClass('govgr-table__row').setAttribute('data-hierarchy-level', level) }}>
   {% for key, column in item.columns %}
     {% set column_classes = ['govgr-table__cell'] %}
     {% if column.default_classes %}
