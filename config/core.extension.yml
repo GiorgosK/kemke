@@ -66,6 +66,7 @@ module:
   toolbar: 0
   update: 0
   user: 0
+  views_autocomplete_filters: 0
   views_tree: 0
   views_ui: 0
   workflow_buttons: 0
