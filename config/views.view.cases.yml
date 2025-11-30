@@ -359,6 +359,15 @@ display:
             remember_roles:
               authenticated: authenticated
             placeholder: ''
+            autocomplete_filter: 1
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: name
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 1
+            autocomplete_autosubmit: 0
           is_grouped: false
           group_info:
             label: ''
