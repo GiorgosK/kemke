@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
@@ -40,6 +41,23 @@ function field_non_empty_lock_form_taxonomy_term_case_form_alter(array &$form, F
  */
 function field_non_empty_lock_form_taxonomy_term_case_edit_form_alter(array &$form, FormStateInterface $form_state) {
   field_non_empty_lock_lock_term_fields($form, $form_state, 'case');
+}
+
+/**
+ * Ensures taxonomy manager edit form obeys the same lock rules.
+ */
+function field_non_empty_lock_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  // Taxonomy Manager uses a custom operation with a dynamic form ID, but the
+  // entity and bundle stay the same, so detect by entity instead of ID.
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof EntityFormInterface) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if ($entity instanceof TermInterface && $entity->bundle() === 'case') {
+    field_non_empty_lock_lock_term_fields($form, $form_state, 'case');
+  }
 }
 
 /**
@@ -98,7 +116,7 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
       || (!empty($field_config['hide_if_empty']) && !$field_has_value);
 
     if ($hide_field) {
-      field_non_empty_lock_hide_widget_at_path($form, $field_config['widget_path']);
+      field_non_empty_lock_hide_widget_from_config($form, $field_config);
       continue;
     }
 
@@ -106,7 +124,7 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
       continue;
     }
 
-    field_non_empty_lock_disable_widget_at_path($form, $field_config['widget_path']);
+    field_non_empty_lock_disable_widget_from_config($form, $field_config);
   }
 }
 
@@ -142,7 +160,7 @@ function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface 
       || (!empty($field_config['hide_if_empty']) && !$field_has_value);
 
     if ($hide_field) {
-      field_non_empty_lock_hide_widget_at_path($form, $field_config['widget_path']);
+      field_non_empty_lock_hide_widget_from_config($form, $field_config);
       continue;
     }
 
@@ -150,7 +168,7 @@ function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface 
       continue;
     }
 
-    field_non_empty_lock_disable_widget_at_path($form, $field_config['widget_path']);
+    field_non_empty_lock_disable_widget_from_config($form, $field_config);
   }
 }
 
@@ -483,6 +501,7 @@ function field_non_empty_lock_normalize_field_definition($field_key, $field_defi
   $field_definition += [
     'field_name' => $field_name,
     'widget_path' => [$field_name, 'widget'],
+    'widget_paths' => [],
     'is_empty_callback' => NULL,
     'skip_field_check' => FALSE,
     'hide_if_empty' => FALSE,
@@ -532,14 +551,17 @@ function field_non_empty_lock_disable_widget_at_path(array &$form, array $path) 
   $element =& $form;
   foreach ($path as $part) {
     if (!is_array($element) || !array_key_exists($part, $element)) {
-      return;
+      return FALSE;
     }
     $element =& $element[$part];
   }
 
   if (is_array($element)) {
     field_non_empty_lock_disable_widget($element);
+    return TRUE;
   }
+
+  return FALSE;
 }
 
 /**
@@ -549,13 +571,53 @@ function field_non_empty_lock_hide_widget_at_path(array &$form, array $path) {
   $element =& $form;
   foreach ($path as $part) {
     if (!is_array($element) || !array_key_exists($part, $element)) {
-      return;
+      return FALSE;
     }
     $element =& $element[$part];
   }
 
   if (is_array($element)) {
     $element['#access'] = FALSE;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns widget paths configured for a field, including fallbacks.
+ */
+function field_non_empty_lock_get_widget_paths(array $field_config) {
+  $paths = [];
+  if (!empty($field_config['widget_paths']) && is_array($field_config['widget_paths'])) {
+    $paths = array_values($field_config['widget_paths']);
+  }
+  else {
+    $paths[] = $field_config['widget_path'];
+  }
+
+  return $paths;
+}
+
+/**
+ * Attempts to hide a widget using all configured paths.
+ */
+function field_non_empty_lock_hide_widget_from_config(array &$form, array $field_config) {
+  foreach (field_non_empty_lock_get_widget_paths($field_config) as $path) {
+    if (field_non_empty_lock_hide_widget_at_path($form, $path)) {
+      return;
+    }
+  }
+}
+
+/**
+ * Attempts to disable a widget using all configured paths.
+ */
+function field_non_empty_lock_disable_widget_from_config(array &$form, array $field_config) {
+  foreach (field_non_empty_lock_get_widget_paths($field_config) as $path) {
+    if (field_non_empty_lock_disable_widget_at_path($form, $path)) {
+      return;
+    }
   }
 }
 
@@ -599,11 +661,18 @@ function field_non_empty_lock_get_taxonomy_field_map() {
       'field_ref_id' => [
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
+        'widget_paths' => [
+          ['field_ref_id', 'widget'],
+          ['fieldset', 'original', 'field_ref_id', 'widget'],
+        ],
       ],
       // Base field widgets can live deeper in the form array, so provide
       // explicit paths to keep them future-proof.
       'name' => [
-        'widget_path' => ['name', 'widget', 0, 'value'],
+        'widget_paths' => [
+          ['name', 'widget', 0, 'value'],
+          ['fieldset', 'original', 'name', 'widget', 0, 'value'],
+        ],
       ],
     ],
   ];
