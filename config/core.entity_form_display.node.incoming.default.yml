@@ -379,6 +379,13 @@ content:
               propagate: '0'
               apply_to_parent: '0'
               recurse: '0'
+  langcode:
+    type: language_select
+    weight: 2
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
     weight: 18

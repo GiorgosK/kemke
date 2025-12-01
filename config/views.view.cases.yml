@@ -280,7 +280,7 @@ display:
       exposed_form:
         type: basic
         options:
-          submit_button: Apply
+          submit_button: Υποβολή
           reset_button: false
           reset_button_label: Reset
           exposed_sorts_label: 'Sort by'
@@ -290,7 +290,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'access content'
+          perm: 'create terms in case'
       cache:
         type: tag
         options: {  }
@@ -402,13 +402,22 @@ display:
         type: tree_table
         options:
           grouping: {  }
-          row_class: govgr-table__row
+          row_class: ''
           default_row_class: true
           columns:
+            tid: tid
             name: name
+            parent_target_id: parent_target_id
             operations: operations
           default: '-1'
           info:
+            tid:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
             name:
               sortable: false
               default_sort_order: asc
@@ -416,9 +425,12 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
+            parent_target_id:
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
             operations:
-              sortable: false
-              default_sort_order: asc
               align: ''
               separator: ''
               empty_column: false
