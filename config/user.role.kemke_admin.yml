@@ -20,7 +20,6 @@ permissions:
   - 'access user profiles'
   - 'administer users'
   - 'assign amke_user role'
-  - 'assign content_editor role'
   - 'assign department_supervisor role'
   - 'assign director_supervisor role'
   - 'assign kemke_admin role'
