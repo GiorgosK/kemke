@@ -461,7 +461,7 @@ display:
           plugin_id: text
           empty: false
           content:
-            value: '<a target="_blank" href="/admin/structure/taxonomy/manage/case/add" class="button js-form-submit form-submit govgr-btn govgr-btn-secondary">Δημιουργία νέας υποθεσης</a>'
+            value: '<a href="/admin/structure/taxonomy/manage/case/add?destination=/cases" class="button js-form-submit form-submit govgr-btn govgr-btn-secondary">Δημιουργία νέας υποθεσης</a>'
             format: full_html
           tokenize: false
       footer: {  }
