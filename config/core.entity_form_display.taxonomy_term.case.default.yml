@@ -15,7 +15,6 @@ third_party_settings:
   field_group:
     group_details:
       children:
-        - field_name_typed
         - description
         - path
         - status
@@ -23,7 +22,7 @@ third_party_settings:
       label: Details
       region: content
       parent_name: ''
-      weight: 3
+      weight: 5
       format_type: details
       format_settings:
         classes: ''
@@ -48,7 +47,7 @@ content:
     third_party_settings: {  }
   field_name_typed:
     type: string_textfield
-    weight: 3
+    weight: 2
     region: content
     settings:
       size: 60
@@ -64,7 +63,7 @@ content:
     third_party_settings: {  }
   langcode:
     type: language_select
-    weight: 2
+    weight: 3
     region: content
     settings:
       include_locked: true
@@ -79,7 +78,7 @@ content:
     third_party_settings: {  }
   parent:
     type: select2_entity_reference
-    weight: 2
+    weight: 4
     region: content
     settings:
       width: 100%
