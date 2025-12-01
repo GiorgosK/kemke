@@ -2,6 +2,7 @@
 
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\taxonomy\TermInterface;
 
 /**
@@ -155,4 +156,103 @@ function case_tweaks_parent_typed_names(TermInterface $term): array {
   }
 
   return $names;
+}
+
+/**
+ * Hides the typed name field and seeds it with a dummy value on creation.
+ */
+function case_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $term = $form_state->getFormObject()->getEntity();
+  if (!$term instanceof TermInterface) {
+    return;
+  }
+
+  // Only adjust the Case vocabulary on the add form.
+  if ($term->bundle() !== 'case' || !$term->isNew()) {
+    return;
+  }
+
+  if (!isset($form['name'])) {
+    return;
+  }
+
+  // Make the name uneditable but pre-filled; the final name is computed later.
+  if (isset($form['name'][0]['value'])) {
+    $element = &$form['name'][0]['value'];
+  }
+  elseif (isset($form['name']['widget'][0]['value'])) {
+    $element = &$form['name']['widget'][0]['value'];
+  }
+  else {
+    return;
+  }
+
+  $element['#required'] = FALSE;
+  $element['#value'] = 'AUTOCREATED';
+  $element['#default_value'] = 'AUTOCREATED';
+  $element['#attributes']['readonly'] = TRUE;
+  $element['#description'] = t('Name is auto-generated.');
+
+  // Seed user input so the form shows the value immediately.
+  $input = $form_state->getUserInput();
+  $input_name = $input['name'] ?? NULL;
+  if (is_array($input_name)) {
+    if (isset($input_name['value'])) {
+      $input_name_value = $input_name['value'];
+    }
+    elseif (isset($input_name[0]['value'])) {
+      $input_name_value = $input_name[0]['value'];
+    }
+    else {
+      $input_name_value = reset($input_name);
+    }
+  }
+  else {
+    $input_name_value = $input_name;
+  }
+
+  if (trim((string) $input_name_value) === '') {
+    $input['name'] = [['value' => 'AUTOCREATED']];
+    $form_state->setUserInput($input);
+  }
+
+  // Ensure validation sees a value for name even though it's locked; run first.
+  $form['#validate'] = array_merge(
+    ['case_tweaks_taxonomy_term_form_prevalidate_name'],
+    $form['#validate'] ?? []
+  );
+}
+
+/**
+ * Ensures the name field has a value before required validation runs.
+ */
+function case_tweaks_taxonomy_term_form_prevalidate_name(array &$form, FormStateInterface $form_state): void {
+  if ($form_state->getFormObject()->getEntity()->bundle() !== 'case') {
+    return;
+  }
+
+  $name_value = $form_state->getValue('name');
+
+  // Flatten potential array values into a string for validation.
+  if (is_array($name_value)) {
+    if (isset($name_value['value'])) {
+      $name_value = $name_value['value'];
+    }
+    elseif (isset($name_value[0]['value'])) {
+      $name_value = $name_value[0]['value'];
+    }
+    else {
+      $name_value = reset($name_value);
+    }
+  }
+
+  $name = trim((string) $name_value);
+  if ($name === '') {
+    $auto_value = [['value' => 'AUTOCREATED']];
+    $form_state->setValue('name', $auto_value);
+    // Keep user input in sync so later processing sees the value.
+    $input = $form_state->getUserInput();
+    $input['name'] = $auto_value;
+    $form_state->setUserInput($input);
+  }
 }
