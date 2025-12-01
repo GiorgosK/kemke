@@ -1045,11 +1045,11 @@ display:
         - 'config:workflow_list'
   page_2:
     id: page_2
-    display_title: 'Οι Εισερχόμενα μου'
+    display_title: 'Εκκρεμή Εισερχόμενα'
     display_plugin: page
     position: 2
     display_options:
-      title: 'Οι Εισερχόμενα μου'
+      title: 'Εκκρεμή Εισερχόμενα'
       arguments:
         field_basic_operator_target_id:
           id: field_basic_operator_target_id
