@@ -1,0 +1,191 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function incoming_state_validations_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  if (($form['#node'] ?? NULL) instanceof NodeInterface && $form['#node']->bundle() === 'incoming') {
+    $form['#validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_validate';
+    if (isset($form['moderation_state']['widget'][0]['state'])) {
+      $form['moderation_state']['widget'][0]['state']['#element_validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_element_validate';
+    }
+  }
+}
+
+/**
+ * Fallback form alter to attach validation without relying on specific alters.
+ */
+function incoming_state_validations_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $watchlist = [
+    'node_incoming_form',
+    'node_incoming_edit_form',
+    'node_incoming_revision_edit_form',
+    'content_moderation_entity_moderation_form',
+  ];
+  if (in_array($form_id, $watchlist, TRUE)) {
+    $form['#validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_validate';
+    if (isset($form['moderation_state']['widget'][0]['state'])) {
+      $form['moderation_state']['widget'][0]['state']['#element_validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_element_validate';
+    }
+    if (isset($form['new_state'])) {
+      $form['new_state']['#element_validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_element_validate';
+    }
+  }
+}
+
+/**
+ * Validates incoming node form.
+ */
+function incoming_state_validations_form_node_incoming_form_validate(array &$form, FormStateInterface $form_state): void {
+  incoming_state_validations_incoming_supervisor_assignment_validate($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the moderation tray.
+ */
+function incoming_state_validations_form_content_moderation_entity_moderation_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $entity = $form_state->get('entity');
+  if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
+    $form['#validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_validate';
+    if (isset($form['new_state'])) {
+      $form['new_state']['#element_validate'][] = 'incoming_state_validations_incoming_supervisor_assignment_element_validate';
+    }
+  }
+}
+
+/**
+ * Validates the moderation tray form.
+ */
+function incoming_state_validations_form_content_moderation_entity_moderation_form_validate(array &$form, FormStateInterface $form_state): void {
+  incoming_state_validations_incoming_supervisor_assignment_validate($form, $form_state);
+}
+
+/**
+ * Element validate wrapper to ensure supervisor presence is enforced.
+ */
+function incoming_state_validations_incoming_supervisor_assignment_element_validate(array &$element, FormStateInterface $form_state, array &$form): void {
+  incoming_state_validations_incoming_supervisor_assignment_validate($form, $form_state);
+}
+
+/**
+ * Validates supervisor presence when assigning an incoming to a supervisor.
+ */
+function incoming_state_validations_incoming_supervisor_assignment_validate(array &$form, FormStateInterface $form_state): void {
+  $entity = $form_state->getFormObject() ? $form_state->getFormObject()->getEntity() : $form_state->get('entity');
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $target_state = incoming_state_validations_extract_target_moderation_state($form_state, $entity);
+  if ($target_state === 'supervisor_assigned') {
+    $supervisor_id = incoming_state_validations_get_supervisor_selection($form_state, $entity);
+    if (empty($supervisor_id)) {
+      $message = t('Please select a supervisor before assigning the incoming.');
+      $form_state->setErrorByName('field_supervisor', $message);
+      $form_state->setErrorByName('new_state', $message);
+      if (!\Drupal::messenger()->messagesByType('error')) {
+        \Drupal::messenger()->addError($message);
+      }
+    }
+  }
+
+  if ($target_state === 'fullness_check') {
+    $operator_id = incoming_state_validations_get_basic_operator_selection($form_state, $entity);
+    if (empty($operator_id)) {
+      $message = t('Please select a basic operator before moving to fullness check.');
+      $form_state->setErrorByName('field_basic_operator', $message);
+      $form_state->setErrorByName('new_state', $message);
+      if (!\Drupal::messenger()->messagesByType('error')) {
+        \Drupal::messenger()->addError($message);
+      }
+    }
+  }
+}
+
+/**
+ * Extracts the requested moderation state from form values.
+ */
+function incoming_state_validations_extract_target_moderation_state(FormStateInterface $form_state, NodeInterface $entity): ?string {
+  // 1) Check triggering element metadata (used by moderation tray).
+  $trigger = $form_state->getTriggeringElement();
+  if (!empty($trigger['#moderation_state']) && is_string($trigger['#moderation_state'])) {
+    return $trigger['#moderation_state'];
+  }
+
+  // 2) Moderation tray value: new_state (string or array).
+  $new_state_value = $form_state->getValue('new_state');
+  if (is_array($new_state_value)) {
+    $new_state = $new_state_value['state'] ?? $new_state_value['value'] ?? NULL;
+    if (is_string($new_state) && $new_state !== '') {
+      return $new_state;
+    }
+  }
+  elseif (is_string($new_state_value) && $new_state_value !== '') {
+    return $new_state_value;
+  }
+
+  // 3) Node form value: moderation_state array or scalar.
+  $moderation_value = $form_state->getValue('moderation_state');
+  if (is_array($moderation_value)) {
+    $candidates = [
+      $moderation_value[0]['state'] ?? NULL,
+      $moderation_value[0]['value'] ?? NULL,
+      $moderation_value['state'] ?? NULL,
+      $moderation_value['value'] ?? NULL,
+    ];
+    foreach ($candidates as $candidate) {
+      if (is_string($candidate) && $candidate !== '') {
+        return $candidate;
+      }
+    }
+  }
+  elseif (is_string($moderation_value) && $moderation_value !== '') {
+    return $moderation_value;
+  }
+
+  // 4) Fallback to the entity's existing moderation state.
+  if ($entity->hasField('moderation_state')) {
+    $current = $entity->get('moderation_state')->value;
+    if (is_string($current) && $current !== '') {
+      return $current;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Checks for supervisor selection in submitted values.
+ */
+function incoming_state_validations_get_supervisor_selection(FormStateInterface $form_state, NodeInterface $entity): ?int {
+  $supervisor_value = $form_state->getValue('field_supervisor');
+  if (is_array($supervisor_value)) {
+    $supervisor_id = $supervisor_value[0]['target_id'] ?? NULL;
+    if (!empty($supervisor_id)) {
+      return (int) $supervisor_id;
+    }
+  }
+
+  // If the form did not submit a value, fall back to the current entity value.
+  $existing = $entity->get('field_supervisor')->target_id ?? NULL;
+  return $existing ? (int) $existing : NULL;
+}
+
+/**
+ * Checks for basic operator selection in submitted values.
+ */
+function incoming_state_validations_get_basic_operator_selection(FormStateInterface $form_state, NodeInterface $entity): ?int {
+  $operator_value = $form_state->getValue('field_basic_operator');
+  if (is_array($operator_value)) {
+    $operator_id = $operator_value[0]['target_id'] ?? NULL;
+    if (!empty($operator_id)) {
+      return (int) $operator_id;
+    }
+  }
+
+  $existing = $entity->get('field_basic_operator')->target_id ?? NULL;
+  return $existing ? (int) $existing : NULL;
+}

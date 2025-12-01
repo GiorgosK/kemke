@@ -1,0 +1,8 @@
+name: 'Incoming state validations'
+type: module
+description: 'Validations for incoming moderation transitions requiring supervisor selection.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:content_moderation
+  - drupal:node
