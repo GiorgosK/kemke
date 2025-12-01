@@ -31,6 +31,13 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
+  moderation_state:
+    type: workflow_buttons
+    weight: 5
+    region: content
+    settings:
+      show_current_state: false
+    third_party_settings: {  }
   path:
     type: path
     weight: 30
