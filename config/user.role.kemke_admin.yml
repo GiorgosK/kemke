@@ -32,7 +32,6 @@ permissions:
   - 'assign director_supervisor role'
   - 'assign kemke_admin role'
   - 'assign operator role'
-  - 'assign reporter role'
   - 'assign secretariat role'
   - 'change own username'
   - 'create incoming content'
