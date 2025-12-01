@@ -35,6 +35,7 @@
         "drupal/field_permissions": "^1.4",
         "drupal/node_view_permissions": "^2.0",
         "drupal/paragraphs": "^1.19",
+        "drupal/role_delegation": "^1.4",
         "drupal/select2": "^2.0",
         "drupal/taxonomy_manager": "^2.0",
         "drupal/views_autocomplete_filters": "^2.0",
