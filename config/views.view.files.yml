@@ -1,5 +1,5 @@
 uuid: 56ccb08d-e991-4819-86f8-eb989bf64cce
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -8,7 +8,7 @@ dependencies:
 _core:
   default_config_hash: LTTOi-7sByeB_teJJcm_LiTiEciHUIU-ZdjYcnQS--I
 id: files
-label: Files
+label: Αρχεία
 module: file
 description: 'Find and manage files.'
 tag: default
@@ -17,11 +17,11 @@ base_field: fid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
-      title: Files
+      title: Αρχεία
       fields:
         fid:
           id: fid
@@ -66,7 +66,7 @@ display:
           entity_type: file
           entity_field: filename
           plugin_id: field
-          label: Name
+          label: Όνομα
           exclude: false
           alter:
             alter_text: false
@@ -129,7 +129,7 @@ display:
           entity_type: file
           entity_field: filemime
           plugin_id: field
-          label: 'MIME type'
+          label: 'MIME τύπος'
           exclude: false
           alter:
             alter_text: false
@@ -181,7 +181,7 @@ display:
           entity_type: file
           entity_field: filesize
           plugin_id: field
-          label: Size
+          label: Μέγεθος
           exclude: false
           alter:
             alter_text: false
@@ -233,7 +233,7 @@ display:
           entity_type: file
           entity_field: status
           plugin_id: field
-          label: Status
+          label: Κατάσταση
           exclude: false
           alter:
             alter_text: false
@@ -277,8 +277,8 @@ display:
           type: boolean
           settings:
             format: custom
-            format_custom_false: Temporary
-            format_custom_true: Permanent
+            format_custom_false: Προσωρινό
+            format_custom_true: Μόνιμο
         created:
           id: created
           table: file_managed
@@ -289,7 +289,7 @@ display:
           entity_type: file
           entity_field: created
           plugin_id: field
-          label: 'Upload date'
+          label: 'Ημερομηνία αποστολής'
           exclude: false
           alter:
             alter_text: false
@@ -354,7 +354,7 @@ display:
           entity_type: file
           entity_field: changed
           plugin_id: field
-          label: 'Changed date'
+          label: 'Αλλαγμένη ημερομηνία'
           exclude: false
           alter:
             alter_text: false
@@ -417,7 +417,7 @@ display:
           group_type: sum
           admin_label: ''
           plugin_id: numeric
-          label: 'Used in'
+          label: 'Χρησιμοποιείται σε'
           exclude: false
           alter:
             alter_text: false
@@ -475,7 +475,7 @@ display:
           admin_label: ''
           entity_type: file
           plugin_id: entity_operations
-          label: Operations
+          label: Λειτουργίες
           exclude: false
           alter:
             alter_text: false
@@ -526,26 +526,26 @@ display:
           total_pages: 0
           id: 0
           tags:
-            next: 'Next ›'
-            previous: '‹ Previous'
+            next: 'Επόμενο ›'
+            previous: '‹ Προηγούμενο'
           expose:
             items_per_page: false
-            items_per_page_label: 'Items per page'
+            items_per_page_label: 'Είδη ανά σελίδα'
             items_per_page_options: '5, 10, 25, 50'
             items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
+            items_per_page_options_all_label: '- Όλα -'
             offset: false
-            offset_label: Offset
+            offset_label: Αντιστάθμιση
       exposed_form:
         type: basic
         options:
-          submit_button: Filter
+          submit_button: Φίλτρο
           reset_button: false
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -560,7 +560,7 @@ display:
           field: area_text_custom
           plugin_id: text_custom
           empty: true
-          content: 'No files available.'
+          content: 'Δεν υπάρχουν αρχεία.'
       sorts: {  }
       arguments: {  }
       filters:
@@ -580,7 +580,7 @@ display:
           exposed: true
           expose:
             operator_id: filemime_op
-            label: Filename
+            label: 'Όνομα αρχείου'
             description: ''
             use_operator: false
             operator: filename_op
@@ -620,7 +620,7 @@ display:
           exposed: true
           expose:
             operator_id: filemime_op
-            label: 'MIME type'
+            label: 'MIME τύπος'
             description: ''
             use_operator: false
             operator: filemime_op
@@ -660,7 +660,7 @@ display:
           exposed: true
           expose:
             operator_id: status_op
-            label: Status
+            label: Κατάσταση
             description: ''
             use_operator: false
             operator: status_op
@@ -821,7 +821,7 @@ display:
       path: admin/content/files
       menu:
         type: tab
-        title: Files
+        title: Αρχεία
         description: ''
         weight: 0
         menu_name: admin
@@ -851,7 +851,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: entity_label
-          label: Entity
+          label: Οντότητα
           exclude: false
           alter:
             alter_text: false
@@ -901,7 +901,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: standard
-          label: 'Entity type'
+          label: 'Τύπος οντότητας'
           exclude: false
           alter:
             alter_text: false
@@ -950,7 +950,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: standard
-          label: 'Registering module'
+          label: 'Καταχώρηση μονάδας'
           exclude: false
           alter:
             alter_text: false
@@ -1057,16 +1057,16 @@ display:
           total_pages: 0
           id: 0
           tags:
-            next: 'Next ›'
-            previous: '‹ Previous'
+            next: 'Επόμενο ›'
+            previous: '‹ Προηγούμενο'
           expose:
             items_per_page: false
-            items_per_page_label: 'Items per page'
+            items_per_page_label: 'Είδη ανά σελίδα'
             items_per_page_options: '5, 10, 25, 50'
             items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
+            items_per_page_options_all_label: '- Όλα -'
             offset: false
-            offset_label: Offset
+            offset_label: Αντιστάθμιση
       empty: {  }
       arguments:
         fid:
@@ -1083,7 +1083,7 @@ display:
           exception:
             value: all
             title_enable: false
-            title: All
+            title: Όλες
           title_enable: true
           title: 'File usage information for {{ arguments.fid }}'
           default_argument_type: fixed

@@ -1,12 +1,12 @@
 uuid: 624349cf-16b5-45cc-a88a-3c2c25481478
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
     - editor
 _core:
   default_config_hash: mclCbTlJwWJORez4Y1eX2MqA0aGjSMAoJb3TaBABcK8
-name: 'Basic HTML'
+name: 'Βασική HTML'
 format: basic_html
 weight: 0
 filters:

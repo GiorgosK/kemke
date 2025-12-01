@@ -1,5 +1,5 @@
 uuid: 71172a3d-bfce-490c-bb62-dfdd7ef20eb6
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -8,20 +8,20 @@ dependencies:
 _core:
   default_config_hash: QxV85zTbzQHWnwqOjUQ9k-Hza0YP94TJebVvD1rVucg
 id: watchdog
-label: Watchdog
+label: Φύλακας
 module: views
-description: 'Recent log messages'
+description: 'Πρόσφατα μηνύματα ημερολογίου καταγραφής'
 tag: ''
 base_table: watchdog
 base_field: wid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
-      title: 'Recent log messages'
+      title: 'Πρόσφατα μηνύματα ημερολογίου καταγραφής'
       fields:
         nothing:
           id: nothing
@@ -29,7 +29,7 @@ display:
           field: nothing
           relationship: none
           group_type: group
-          admin_label: Icon
+          admin_label: Εικονίδιο
           plugin_id: custom
           label: ''
           exclude: false
@@ -129,7 +129,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: machine_name
-          label: Severity
+          label: Σοβαρότητα
           exclude: true
           alter:
             alter_text: false
@@ -179,7 +179,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: standard
-          label: Type
+          label: Τύπος
           exclude: false
           alter:
             alter_text: false
@@ -228,7 +228,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: date
-          label: Date
+          label: Ημερομηνία
           exclude: false
           alter:
             alter_text: false
@@ -280,7 +280,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: dblog_message
-          label: Message
+          label: Μήνυμα
           exclude: false
           alter:
             alter_text: false
@@ -332,7 +332,7 @@ display:
           entity_type: user
           entity_field: name
           plugin_id: field
-          label: User
+          label: Χρήστης
           exclude: false
           alter:
             alter_text: false
@@ -395,7 +395,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: dblog_operations
-          label: Operations
+          label: Λειτουργίες
           exclude: false
           alter:
             alter_text: false
@@ -449,22 +449,22 @@ display:
             previous: ‹‹
           expose:
             items_per_page: false
-            items_per_page_label: 'Items per page'
+            items_per_page_label: 'Είδη ανά σελίδα'
             items_per_page_options: '5, 10, 25, 50'
             items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
+            items_per_page_options_all_label: '- Όλα -'
             offset: false
-            offset_label: Offset
+            offset_label: Αντιστάθμιση
       exposed_form:
         type: basic
         options:
-          submit_button: Filter
+          submit_button: Φίλτρο
           reset_button: true
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: false
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -479,10 +479,10 @@ display:
           field: area_text_custom
           relationship: none
           group_type: group
-          admin_label: 'No log messages available.'
+          admin_label: 'Δεν υπάρχουν μηνύματα στο ημερολόγιο συστήματος.'
           plugin_id: text_custom
           empty: true
-          content: 'No log messages available.'
+          content: 'Δεν υπάρχουν μηνύματα στο ημερολόγιο συστήματος.'
           tokenize: false
       sorts:
         wid:
@@ -514,7 +514,7 @@ display:
           exposed: true
           expose:
             operator_id: type_op
-            label: Type
+            label: Τύπος
             description: ''
             use_operator: false
             operator: type_op
@@ -553,7 +553,7 @@ display:
           exposed: true
           expose:
             operator_id: severity_op
-            label: Severity
+            label: Σοβαρότητα
             description: ''
             use_operator: false
             operator: severity_op
@@ -693,7 +693,7 @@ display:
       tags: {  }
   page:
     id: page
-    display_title: Page
+    display_title: Σελίδα
     display_plugin: page
     position: 1
     display_options:

@@ -1,5 +1,5 @@
 uuid: f3618106-bee4-4593-8d43-7b52a55d05ea
-langcode: en
+langcode: el
 status: true
 dependencies:
   theme:
@@ -14,7 +14,7 @@ provider: null
 plugin: local_actions_block
 settings:
   id: local_actions_block
-  label: 'Primary admin actions'
+  label: 'Πρωτεύουσες ενέργειες διαχείρισης'
   label_display: '0'
   provider: core
 visibility: {  }

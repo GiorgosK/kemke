@@ -1,5 +1,5 @@
 uuid: d2fa331a-17b2-477d-b990-3f5ed93544fe
-langcode: en
+langcode: el
 status: false
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: ZbXunWS_xAvMZXFfinyvClDAb_RCVLt7gAzE3v16E-Q
 id: user.full
-label: 'User account'
+label: 'Λογαριασμός χρήστη'
 description: ''
 targetEntityType: user
 cache: true

@@ -1,5 +1,5 @@
 uuid: 98590aca-bbf9-4ca9-9cfd-f27b9800d863
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: 1TFiplNN7Wmj_DtVLLLP-NLPYpZJdAswKY-vTrYgFyo
 id: user.register
-label: Register
+label: Εγγραφή
 description: null
 targetEntityType: user
 cache: true

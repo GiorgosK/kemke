@@ -1,5 +1,5 @@
 uuid: 110efbb1-b848-4807-82e7-eba141cc5243
-langcode: en
+langcode: el
 status: false
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: N4mUjXpPckUkVRY1PbKw4GGoL1i2ECU7PL3EreiKStk
 id: comment.full
-label: 'Full comment'
+label: 'Πλήρες σχόλιο'
 description: ''
 targetEntityType: comment
 cache: true

@@ -1,8 +1,8 @@
 _core:
   default_config_hash: 6CZIzFifRq3qbdq3n3nDpEOO4hWIQtKOAQNPvGNGKeM
-langcode: en
+langcode: el
 cancel_confirm:
-  subject: 'Account cancellation request for [user:display-name] at [site:name]'
+  subject: 'Αίτηση ακύρωσης λογαριασμού για το λογαριασμό [user:display-name] στον ιστοτόπο [site:name]'
   body: |-
     [user:display-name]
 
@@ -18,7 +18,7 @@ cancel_confirm:
 
     --  [site:name] team
 password_reset:
-  subject: 'Replacement login information for [user:display-name] at [site:name]'
+  subject: 'Αντικατάσταση πληροφοριών εισόδου για το λογαριασμό [user:display-name]  στον ιστοτόπο [site:name]'
   body: |-
     [user:display-name],
 
@@ -32,39 +32,11 @@ password_reset:
 
     --  [site:name] team
 register_admin_created:
-  subject: 'An administrator created an account for you at [site:name]'
-  body: |-
-    [user:display-name],
-
-    A site administrator at [site:name] has created an account for you. You may now log in by clicking this link or copying and pasting it into your browser:
-
-    [user:one-time-login-url]
-
-    This link can only be used once to log in and will lead you to a page where you can set your password.
-
-    After setting your password, you will be able to log in at [site:login-url] in the future using:
-
-    username: [user:name]
-    password: Your password
-
-    --  [site:name] team
+  subject: 'Ένας διαχειριστής δημιούργησε ένα λογαριασμό για εσάς στο [site:name]'
+  body: "[user:display-name]\r\n\r\nΟι διαχειριστές του [site:name] σας δημιούργησαν ένα λογαριασμό. Μπορείτε τώρα να εισέλθετε πατώντας σε αυτή την παραπομπή ή αντιγράφοντας και επικολλώντας τη στον περιηγητή σας:\r\n\r\n[user:one-time-login-url]\r\n\r\nΗ παραπομπή αυτή μπορεί να χρησιμοποιηθεί μόνο για μία είσοδο και θα σας οδηγήσει σε μία σελίδα όπου θα ορίσετε τον κωδικό σας.\r\n\r\nΜετά τον ορισμό του κωδικού σας, θα μπορείτε να εισέλθετε στο [site:login-url]  στο μέλλον χρησιμοποιώντας τα:\r\n\r\nόνομα χρήστη: [user:name]\r\nκωδικός: ο κωδικός σας\r\n\r\n--  Η ομάδα του [site:name]"
 register_no_approval_required:
-  subject: 'Account details for [user:display-name] at [site:name]'
-  body: |-
-    [user:display-name],
-
-    Thank you for registering at [site:name]. You may now log in by clicking this link or copying and pasting it into your browser:
-
-    [user:one-time-login-url]
-
-    This link can only be used once to log in and will lead you to a page where you can set your password.
-
-    After setting your password, you will be able to log in at [site:login-url] in the future using:
-
-    username: [user:name]
-    password: Your password
-
-    --  [site:name] team
+  subject: 'Λεπτομέρειες του λογαριασμού [user:display-name] στον ιστοτόπο [site:name]'
+  body: "[user:display-name],\r\n\r\nΣας ευχαριστούμε που εγγραφήκατε στην ιστοσελίδα [site:name]. Μπορείτε πλέον να συνδεθείτε κάνοντας κλικ στον παρακάτω σύνδεσμο, ή αντιγράφοντας και επικολλώντας τον στον περιηγητή σας:\r\n\r\n[user:one-time-login-url]\r\n\r\nΑυτός ο σύνδεσμος μπορεί να χρησιμοποιηθεί μόνο μια φορά και θα σας οδηγήσει σε μια σελίδα όπου μπορείτε να ορίσετε τον κωδικό πρόσβασής σας. \r\n\r\nΑφότου ορίσετε τον κωδικό πρόσβασης, θα μπορείτε να συνδέεστε στην ιστοσελίδα [site:login-url] χρησιμοποιώντας:\r\n\r\nόνομα χρήστη: [user:name]\r\nκωδικός: Ο κωδικός σας\r\n\r\n--  Η ομάδα του [site:name]"
 register_pending_approval:
   subject: 'Account details for [user:display-name] at [site:name] (pending admin approval)'
   body: |-
@@ -75,42 +47,13 @@ register_pending_approval:
     --  [site:name] team
 register_pending_approval_admin:
   subject: 'Account details for [user:display-name] at [site:name] (pending admin approval)'
-  body: |-
-    [user:display-name] has applied for an account.
-
-    [user:edit-url]
+  body: "Ο χρήστης [user:display-name] έχει κάνει αίτηση για λογαριασμό.\r\n\r\n[user:edit-url]"
 status_activated:
-  subject: 'Account details for [user:display-name] at [site:name] (approved)'
-  body: |-
-    [user:display-name],
-
-    Your account at [site:name] has been activated.
-
-    You may now log in by clicking this link or copying and pasting it into your browser:
-
-    [user:one-time-login-url]
-
-    This link can only be used once to log in and will lead you to a page where you can set your password.
-
-    After setting your password, you will be able to log in at [site:login-url] in the future using:
-
-    username: [user:account-name]
-    password: Your password
-
-    --  [site:name] team
+  subject: 'Λεπτομέρειες για το λογαριασμό [user:display-name] στον ιστοτόπο [site:name] (εγκρίθηκε)'
+  body: "[user:display-name],\r\n\r\nΟ λογαριασμός σας στο [site:name] εγκρίθηκε.\r\n\r\nΜπορείτε τώρα να συνδεθείτε κάνοντας κλικ σε αυτό το σύνδεσμο ή με αντιγραφή και επικόλλησή του στον περιηγητή σας:\r\n\r\n[user:one-time-login-url]\r\n\r\nΑυτός ο σύνδεσμος μπορεί να χρησιμοποιηθεί μόνο μια φορά για να συνδεθείτε και θα σας οδηγήσει σε μια σελίδα όπου μπορείτε να ορίσετε τον κωδικό σας.\r\n\r\nΑφού ορίσετε τον κωδικό σας, θα μπορείτε στο μέλλον να συνδέεστε στο [site:login-url] χρησιμοποιώντας το:\r\n\r\nόνομα χρήστη: [user:account-name]\r\nκωδικός: Ο κωδικός σας\r\n\r\n--  Η ομάδα του [site:name]"
 status_blocked:
-  subject: 'Account details for [user:display-name] at [site:name] (blocked)'
-  body: |-
-    [user:display-name],
-
-    Your account on [site:name] has been blocked.
-
-    --  [site:name] team
+  subject: 'Λεπτομέρειες για το λογαριασμό [user:display-name] στον ιστοτόπο [site:name] (αποκλείστηκε)'
+  body: "[user:display-name],\r\n\r\nΟ λογαριασμός σας στον ιστότοπο [site:name] έχει μπλοκαριστεί.\r\n\r\n-- Η ομάδα του [site:name]"
 status_canceled:
-  subject: 'Account details for [user:display-name] at [site:name] (canceled)'
-  body: |-
-    [user:display-name],
-
-    Your account on [site:name] has been canceled.
-
-    --  [site:name] team
+  subject: 'Λεπτομέρειες για το λογαριασμό [user:display-name] στον ιστοτόπο [site:name] (ακυρώθηκε)'
+  body: "[user:display-name],\r\n\r\nΟ λογαριασμός σας στον ιστοτόπο [site:name] έχει ακυρωθεί.\r\n\r\n--  Η ομάδα του [site:name]"

@@ -1,5 +1,5 @@
 uuid: 4a0510bd-1715-4d88-92ea-e5191f918483
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,20 +7,20 @@ dependencies:
 _core:
   default_config_hash: zji0_13MyVGK7Bn1lUMDeZyyOIZedWvqpYUeM_SioPI
 id: who_s_new
-label: "Who's new"
+label: 'Ποιοι γράφτηκαν τελευταία'
 module: user
-description: 'Shows a list of the newest user accounts on the site.'
+description: 'Εμφανίζει μια λίστα με τους πιο νέους λογαριασμούς χρηστών του ιστοτόπου.'
 tag: default
 base_table: users_field_data
 base_field: uid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
-      title: "Who's new"
+      title: 'Ποιοι γράφτηκαν τελευταία'
       fields:
         name:
           id: name
@@ -64,13 +64,13 @@ display:
       exposed_form:
         type: basic
         options:
-          submit_button: Apply
+          submit_button: Εφαρμογή
           reset_button: false
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -180,14 +180,14 @@ display:
       tags: {  }
   block_1:
     id: block_1
-    display_title: "Who's new"
+    display_title: 'Ποιοι γράφτηκαν τελευταία'
     display_plugin: block
     position: 1
     display_options:
-      display_description: 'A list of new users'
+      display_description: 'Μια λίστα νέων χρηστών'
       display_extenders: {  }
-      block_description: "Who's new"
-      block_category: User
+      block_description: 'Ποιοι γράφτηκαν τελευταία'
+      block_category: Χρήστης
     cache_metadata:
       max-age: -1
       contexts:

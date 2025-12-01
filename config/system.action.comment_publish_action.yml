@@ -1,5 +1,5 @@
 uuid: 1056afe7-425b-42a4-bcb9-325eda1327f6
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: C00dyL_W_5M0nFlgUB3lWUTUs96jn51Jw1MLHVEHZD0
 id: comment_publish_action
-label: 'Publish comment'
+label: 'Δημοσίευση σχολίου'
 type: comment
 plugin: 'entity:publish_action:comment'
 configuration: {  }

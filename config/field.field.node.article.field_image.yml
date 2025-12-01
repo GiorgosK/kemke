@@ -1,5 +1,5 @@
 uuid: d214fccd-4341-443e-af46-63badf897f83
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -13,7 +13,7 @@ id: node.article.field_image
 field_name: field_image
 entity_type: node
 bundle: article
-label: Image
+label: Εικόνα
 description: ''
 required: false
 translatable: true

@@ -1,5 +1,5 @@
 uuid: 2d16f72d-1510-44b5-9485-754cc0a22fa7
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -13,7 +13,7 @@ id: block_content.basic.body
 field_name: body
 entity_type: block_content
 bundle: basic
-label: Body
+label: 'Κυρίως κείμενο'
 description: ''
 required: false
 translatable: true

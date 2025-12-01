@@ -1,5 +1,5 @@
 uuid: 3bbf9428-82f1-4063-986c-61d97f81c9bf
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,20 +7,20 @@ dependencies:
 _core:
   default_config_hash: ls1UO6IE5YEFa6zde68C6HZeKgnFZYmPj4bJW8L_XuQ
 id: who_s_online
-label: "Who's online block"
+label: 'Μπλοκ "Ποιός είναι online"'
 module: user
-description: 'Shows the user names of the most recently active users, and the total number of active users.'
+description: 'Δείχνει τα ονόματα χρηστών από τους πιο πρόσφατα ενεργούς χρήστες όπως και τον συνολικό αριθμό ενεργών χρηστών.'
 tag: default
 base_table: users_field_data
 base_field: uid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
-      title: "Who's online"
+      title: 'Ποιοι είναι εδώ'
       fields:
         name:
           id: name
@@ -64,13 +64,13 @@ display:
       exposed_form:
         type: basic
         options:
-          submit_button: Apply
+          submit_button: Εφαρμογή
           reset_button: false
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -88,7 +88,7 @@ display:
           admin_label: ''
           plugin_id: text_custom
           empty: true
-          content: 'There are currently 0 users online.'
+          content: 'Αυτή τη στιγμή δεν υπάρχουν συνδεδεμένοι χρήστες'
           tokenize: false
       sorts:
         access:
@@ -142,8 +142,8 @@ display:
           exposed: false
           expose:
             operator_id: access_op
-            label: 'Last access'
-            description: 'A user is considered online for this long after they have last viewed a page.'
+            label: 'Τελευταία προσπέλαση'
+            description: 'Ένας χρήστης θεωρείται παρών για τόσο χρόνο από την τελευταία φορά που άνοιξε μια σελίδα.'
             use_operator: false
             operator: access_op
             operator_limit_selection: false
@@ -196,7 +196,7 @@ display:
           admin_label: ''
           plugin_id: result
           empty: false
-          content: 'There are currently @total users online.'
+          content: 'Υπάρχουν συνολικά @total χρήστες συνδεδεμένοι.'
       footer: {  }
       display_extenders: {  }
     cache_metadata:
@@ -208,13 +208,13 @@ display:
       tags: {  }
   who_s_online_block:
     id: who_s_online_block
-    display_title: "Who's online"
+    display_title: 'Ποιοι είναι εδώ'
     display_plugin: block
     position: 1
     display_options:
-      display_description: 'A list of users that are currently logged in.'
+      display_description: 'Μια λίστα από χρήστες που είναι συνδεδεμένοι αυτή τη στιγμή.'
       display_extenders: {  }
-      block_description: "Who's online"
+      block_description: 'Ποιοι είναι εδώ'
     cache_metadata:
       max-age: -1
       contexts:

@@ -1,5 +1,5 @@
 uuid: 7543cadd-62b1-4a96-b836-3b8f897c1445
-langcode: en
+langcode: el
 status: true
 dependencies:
   theme:
@@ -14,7 +14,7 @@ provider: null
 plugin: local_tasks_block
 settings:
   id: local_tasks_block
-  label: 'Primary tabs'
+  label: 'Πρωτεύουσες καρτέλες'
   label_display: '0'
   provider: core
   primary: true

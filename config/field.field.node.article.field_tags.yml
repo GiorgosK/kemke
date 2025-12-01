@@ -1,5 +1,5 @@
 uuid: 8a1b35e3-79f7-4dc6-93f9-6c1138e33e62
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -12,8 +12,8 @@ id: node.article.field_tags
 field_name: field_tags
 entity_type: node
 bundle: article
-label: Tags
-description: 'Enter a comma-separated list. For example: Amsterdam, Mexico City, "Cleveland, Ohio"'
+label: Ετικέτες
+description: 'Εισάγετε μία λίστα λέξεων διαχωρισμένων με κόμματα. Για παράδειγμα: Άμστερνταμ, Μεξικό, "Κλίβελαντ, Οχάιο"'
 required: false
 translatable: true
 default_value: {  }

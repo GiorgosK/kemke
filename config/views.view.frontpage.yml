@@ -1,5 +1,5 @@
 uuid: 38aac7c1-4dea-4308-ae42-c7cb95a61274
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -11,16 +11,16 @@ dependencies:
 _core:
   default_config_hash: OEEnRQIjfIaCFRsz8U3VqDrE82ltQKlo8wNbQJRZXu0
 id: frontpage
-label: Frontpage
+label: 'Αρχική σελίδα'
 module: node
-description: 'All content promoted to the front page.'
+description: 'Όλο το περιεχόμενο που είναι προωθημένο στην αρχική σελίδα.'
 tag: default
 base_table: node_field_data
 base_field: nid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
@@ -35,29 +35,29 @@ display:
           total_pages: 0
           id: 0
           tags:
-            next: 'Next ›'
-            previous: '‹ Previous'
+            next: 'Επόμενο ›'
+            previous: '‹ Προηγούμενο'
             first: '« First'
             last: 'Last »'
           expose:
             items_per_page: false
-            items_per_page_label: 'Items per page'
+            items_per_page_label: 'Είδη ανά σελίδα'
             items_per_page_options: '5, 10, 25, 50'
             items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
+            items_per_page_options_all_label: '- Όλα -'
             offset: false
-            offset_label: Offset
+            offset_label: Αντιστάθμιση
           quantity: 9
       exposed_form:
         type: basic
         options:
-          submit_button: Apply
+          submit_button: Εφαρμογή
           reset_button: false
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -262,7 +262,7 @@ display:
       tags: {  }
   feed_1:
     id: feed_1
-    display_title: Feed
+    display_title: Ροή
     display_plugin: feed
     position: 2
     display_options:
@@ -297,7 +297,7 @@ display:
       tags: {  }
   page_1:
     id: page_1
-    display_title: Page
+    display_title: Σελίδα
     display_plugin: page
     position: 1
     display_options:

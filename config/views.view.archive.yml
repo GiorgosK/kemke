@@ -1,5 +1,5 @@
 uuid: ef99f179-7218-43ae-a135-a260392bb0cb
-langcode: en
+langcode: el
 status: false
 dependencies:
   config:
@@ -10,20 +10,20 @@ dependencies:
 _core:
   default_config_hash: exIF08PTvYSK6tJCsAzBqMEKUBKIptPorMn74SVhevc
 id: archive
-label: Archive
+label: 'Αρχειοθετημένο αρχείο'
 module: node
-description: 'All content, by month.'
+description: 'Όλο το περιεχόμενο, ανά μήνα.'
 tag: default
 base_table: node_field_data
 base_field: nid
 display:
   default:
     id: default
-    display_title: Default
+    display_title: Προεπιλεγμένο
     display_plugin: default
     position: 0
     display_options:
-      title: 'Monthly archive'
+      title: 'Μηνιαίο αρχείο'
       fields: {  }
       pager:
         type: mini
@@ -38,22 +38,22 @@ display:
             previous: ‹‹
           expose:
             items_per_page: false
-            items_per_page_label: 'Items per page'
+            items_per_page_label: 'Είδη ανά σελίδα'
             items_per_page_options: '5, 10, 25, 50'
             items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
+            items_per_page_options_all_label: '- Όλα -'
             offset: false
-            offset_label: Offset
+            offset_label: Αντιστάθμιση
       exposed_form:
         type: basic
         options:
-          submit_button: Apply
+          submit_button: Εφαρμογή
           reset_button: false
           reset_button_label: Επαναφορά
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
           expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
       access:
         type: perm
         options:
@@ -189,7 +189,7 @@ display:
       tags: {  }
   block_1:
     id: block_1
-    display_title: Block
+    display_title: Μπλοκ
     display_plugin: block
     position: 1
     display_options:
@@ -228,7 +228,7 @@ display:
       tags: {  }
   page_1:
     id: page_1
-    display_title: Page
+    display_title: Σελίδα
     display_plugin: page
     position: 2
     display_options:

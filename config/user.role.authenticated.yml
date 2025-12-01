@@ -1,5 +1,5 @@
 uuid: 45b79719-1e55-4db5-b30e-a340ad48cc4c
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -13,7 +13,7 @@ dependencies:
 _core:
   default_config_hash: cFrlqjtkTfvY3RGccjJkPf1SGIfJ942IrxTLWAO4mgA
 id: authenticated
-label: 'Authenticated user'
+label: 'Πιστοποιημένος χρήστης'
 weight: 1
 is_admin: false
 permissions:

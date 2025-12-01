@@ -1,5 +1,5 @@
 uuid: 2e19d332-6970-41ce-821d-5cbc811aca4b
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -20,7 +20,7 @@ provider: null
 plugin: search_form_block
 settings:
   id: search_form_block
-  label: 'Search help'
+  label: 'Αναζήτηση βοήθειας'
   label_display: visible
   provider: search
   page_id: help_search

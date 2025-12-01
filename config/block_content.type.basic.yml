@@ -1,10 +1,10 @@
 uuid: 597332ff-1e9c-46c5-b84b-cbc6294512e9
-langcode: en
+langcode: el
 status: true
 dependencies: {  }
 _core:
   default_config_hash: pQP5iQy4SdhAMVcjDUncCfkJmTofnHVtXrsMzx4k6Yk
 id: basic
-label: 'Basic block'
+label: 'Βασικό μπλοκ'
 revision: false
-description: 'A basic block contains a title and a body.'
+description: 'Ένα βασικό μπλοκ περιέχει έναν τίτλο και ένα κυρίως κείμενο.'

@@ -1,5 +1,5 @@
 uuid: 458dc1ef-ee41-42c7-be66-e3acaa2d2d7b
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: JBptjnfuOMtsdKygklXxoOgeOCTMtQxlkymjnnj-cC0
 id: node_unpromote_action
-label: 'Remove content from front page'
+label: 'Αφαίρεση περιεχομένου από την αρχική σελίδα'
 type: node
 plugin: node_unpromote_action
 configuration: {  }

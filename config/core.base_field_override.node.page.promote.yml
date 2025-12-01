@@ -1,5 +1,5 @@
 uuid: 5af0cc49-b2bb-47d3-bb75-bfc288963775
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -10,7 +10,7 @@ id: node.page.promote
 field_name: promote
 entity_type: node
 bundle: page
-label: 'Promoted to front page'
+label: 'Προβιβασμένο στην πρώτη σελίδα'
 description: ''
 required: false
 translatable: false
@@ -19,6 +19,6 @@ default_value:
     value: 0
 default_value_callback: ''
 settings:
-  on_label: 'On'
-  off_label: 'Off'
+  on_label: Ανοικτό
+  off_label: Κλειστό
 field_type: boolean

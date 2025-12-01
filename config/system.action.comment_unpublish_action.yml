@@ -1,5 +1,5 @@
 uuid: be80edb5-c4c6-4e59-840e-cc1959c093a6
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: tWOIjSMobEWOFZddMkNqb9JySbOVwE1diC6NRqcfLTk
 id: comment_unpublish_action
-label: 'Unpublish comment'
+label: 'Άρση δημοσίευσης σχολίου'
 type: comment
 plugin: 'entity:unpublish_action:comment'
 configuration: {  }

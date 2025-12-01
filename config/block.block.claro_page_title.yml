@@ -1,5 +1,5 @@
 uuid: f99012ed-4420-445a-9dc8-0a5fc36bc921
-langcode: en
+langcode: el
 status: true
 dependencies:
   theme:
@@ -14,7 +14,7 @@ provider: null
 plugin: page_title_block
 settings:
   id: page_title_block
-  label: 'Page title'
+  label: 'Τίτλος σελίδας'
   label_display: '0'
   provider: core
 visibility: {  }

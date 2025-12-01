@@ -1,5 +1,5 @@
 uuid: 3c83b648-34ef-4d23-8b0c-3cd1597be190
-langcode: en
+langcode: el
 status: true
 dependencies:
   theme:
@@ -14,7 +14,7 @@ provider: null
 plugin: local_tasks_block
 settings:
   id: local_tasks_block
-  label: 'Secondary tabs'
+  label: 'Δευτερεύουσες καρτέλες'
   label_display: '0'
   provider: core
   primary: false

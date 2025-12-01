@@ -1,5 +1,5 @@
 uuid: b9760a50-094a-49f1-8ab7-4395112f113e
-langcode: en
+langcode: el
 status: true
 dependencies:
   config:
@@ -13,7 +13,7 @@ id: node.page.body
 field_name: body
 entity_type: node
 bundle: page
-label: Body
+label: 'Κυρίως κείμενο'
 description: ''
 required: false
 translatable: true

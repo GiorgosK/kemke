@@ -1,10 +1,10 @@
 uuid: 57db4e2c-2c78-460d-8b9d-f29f67345b23
-langcode: en
+langcode: el
 status: true
 dependencies: {  }
 _core:
   default_config_hash: M_Bh81osDyUQ4wV0GgU_NdBNqkzM87sLxjaCdFj9mnw
 id: account
-label: 'User account menu'
-description: 'Links related to the active user account'
+label: 'Μενού λογαριασμού χρήστη'
+description: 'Σύνδεσμοι σχετικοί με τον ενεργό λογαριασμό χρήστη'
 locked: true

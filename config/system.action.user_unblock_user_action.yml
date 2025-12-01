@@ -1,5 +1,5 @@
 uuid: 76d05854-aead-40eb-bb63-c358fb7bf3be
-langcode: en
+langcode: el
 status: true
 dependencies:
   module:
@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: SPsUXsR3Rc8d1y3gewzaAKWa1ncea_ywXX3f7LTn7k0
 id: user_unblock_user_action
-label: 'Unblock the selected user(s)'
+label: 'Άρση αποκλεισμού για τον(υς) επιλεγμένο(υς) χρήστη(ες)'
 type: user
 plugin: user_unblock_user_action
 configuration: {  }
