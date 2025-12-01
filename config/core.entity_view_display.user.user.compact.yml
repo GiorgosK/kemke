@@ -34,5 +34,4 @@ hidden:
   field_absences: true
   field_first_name: true
   field_last_name: true
-  langcode: true
   member_for: true

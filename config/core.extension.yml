@@ -43,9 +43,7 @@ module:
   incoming_remarks: 0
   incoming_tweaks: 0
   jquery_ui: 0
-  language: 0
   link: 0
-  locale: 0
   menu_link_content: 0
   menu_ui: 0
   mock_api: 0

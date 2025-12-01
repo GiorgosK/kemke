@@ -8,7 +8,6 @@ dependencies:
   module:
     - path
     - text
-    - workflow_buttons
 _core:
   default_config_hash: SfpLhPExzvR0MgFp0Wp7CrmgEnhcqQ-fXIWFhbf4ue0
 id: node.page.default
@@ -31,20 +30,6 @@ content:
     weight: 10
     region: content
     settings: {  }
-    third_party_settings: {  }
-  langcode:
-    type: language_select
-    weight: 2
-    region: content
-    settings:
-      include_locked: true
-    third_party_settings: {  }
-  moderation_state:
-    type: workflow_buttons
-    weight: 5
-    region: content
-    settings:
-      show_current_state: false
     third_party_settings: {  }
   path:
     type: path
