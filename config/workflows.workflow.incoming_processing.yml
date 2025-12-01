@@ -119,6 +119,7 @@ type_settings:
     fullness_check:
       label: 'Έλεγχος πληρότητας '
       from:
+        - supervisor_assigned
         - to_be_assigned
       to: fullness_check
       weight: 2
