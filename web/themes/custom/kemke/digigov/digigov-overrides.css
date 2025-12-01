@@ -54,6 +54,10 @@
   position: relative;
 }
 
+.govgr-radios__label {
+  margin-left: 3rem;
+}
+
 .views-exposed-form .govgr-btn,
 .views-exposed-form .govgr-field {
   position: relative;
