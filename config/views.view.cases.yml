@@ -290,7 +290,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'access content'
+          perm: 'create terms in case'
       cache:
         type: tag
         options: {  }

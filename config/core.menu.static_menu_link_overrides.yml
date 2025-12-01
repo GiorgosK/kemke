@@ -8,11 +8,11 @@ definitions:
     expanded: false
     enabled: true
   user__page:
+    enabled: false
     menu_name: account
     parent: ''
-    weight: -47
     expanded: false
-    enabled: true
+    weight: -47
   user__logout:
     menu_name: account
     parent: ''

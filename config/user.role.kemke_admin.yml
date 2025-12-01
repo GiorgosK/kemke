@@ -7,6 +7,7 @@ dependencies:
     - taxonomy.vocabulary.incoming_type
     - taxonomy.vocabulary.priority
   module:
+    - role_delegation
     - taxonomy
     - toolbar
 id: kemke_admin
@@ -16,9 +17,15 @@ is_admin: false
 permissions:
   - 'access toolbar'
   - 'access user profiles'
-  - 'administer account settings'
-  - 'administer permissions'
   - 'administer users'
+  - 'assign amke_user role'
+  - 'assign content_editor role'
+  - 'assign department_supervisor role'
+  - 'assign director_supervisor role'
+  - 'assign kemke_admin role'
+  - 'assign operator role'
+  - 'assign reporter role'
+  - 'assign secretariat role'
   - 'change own username'
   - 'create terms in case'
   - 'create terms in incoming_type'
