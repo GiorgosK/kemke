@@ -47,7 +47,7 @@ display:
       filters:
         combine:
           expose:
-            label: 'Το όνομα ή το επίθετο περιέχει'
+            label: 'Το όνομα χρήστη ή email περιέχει'
         status:
           group_info:
             label: Κατάσταση
