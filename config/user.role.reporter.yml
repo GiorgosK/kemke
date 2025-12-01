@@ -25,6 +25,7 @@ permissions:
   - 'change own username'
   - 'create terms in case'
   - 'edit any incoming content'
+  - 'edit terms in case'
   - 'use text format full_html'
   - 'view all revisions'
   - 'view any incoming content'

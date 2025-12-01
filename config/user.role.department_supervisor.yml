@@ -20,6 +20,7 @@ label: 'Προϊστάμενος Τμήματος'
 weight: 7
 is_admin: false
 permissions:
+  - 'access administration pages'
   - 'access content'
   - 'access toolbar'
   - 'access user profiles'
@@ -27,6 +28,7 @@ permissions:
   - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'
+  - 'edit terms in case'
   - 'use incoming_processing transition approval_rejection'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_director_approval'

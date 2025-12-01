@@ -3,11 +3,13 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - node.type.incoming
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.incoming_type
     - taxonomy.vocabulary.priority
   module:
+    - filter
     - node
     - node_view_permissions
     - role_delegation
@@ -19,6 +21,7 @@ label: 'kemke admin'
 weight: 13
 is_admin: false
 permissions:
+  - 'access administration pages'
   - 'access content'
   - 'access taxonomy overview'
   - 'access toolbar'
@@ -39,7 +42,9 @@ permissions:
   - 'delete terms in case'
   - 'edit any incoming content'
   - 'edit terms in case'
+  - 'use text format full_html'
   - 'view all revisions'
   - 'view any incoming content'
+  - 'view incoming revisions'
   - 'view own unpublished content'
   - 'view term revisions in case'
