@@ -5,10 +5,10 @@ dependencies:
   config:
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
-    - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
@@ -342,4 +342,5 @@ content:
     weight: 20
     region: content
 hidden:
+  langcode: true
   workflow_buttons: true
