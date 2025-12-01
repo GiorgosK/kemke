@@ -215,6 +215,7 @@ type_settings:
     supervisor_assigned:
       label: 'Χρεωμένη σε προϊστάμενο'
       from:
+        - draft
         - to_be_assigned
       to: supervisor_assigned
       weight: 1
