@@ -3,11 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
+    - node.type.incoming
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.incoming_type
     - taxonomy.vocabulary.priority
   module:
+    - node
+    - node_view_permissions
     - role_delegation
+    - system
     - taxonomy
     - toolbar
 id: kemke_admin
@@ -15,6 +19,7 @@ label: 'kemke admin'
 weight: 13
 is_admin: false
 permissions:
+  - 'access content'
   - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
@@ -27,9 +32,14 @@ permissions:
   - 'assign reporter role'
   - 'assign secretariat role'
   - 'change own username'
+  - 'create incoming content'
   - 'create terms in case'
   - 'create terms in incoming_type'
   - 'create terms in priority'
   - 'delete terms in case'
+  - 'edit any incoming content'
   - 'edit terms in case'
+  - 'view all revisions'
+  - 'view any incoming content'
+  - 'view own unpublished content'
   - 'view term revisions in case'

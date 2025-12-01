@@ -2,7 +2,10 @@ uuid: ee1bcb79-308a-44de-9125-7a0d0bc3019b
 langcode: en
 status: true
 dependencies:
+  config:
+    - node.type.incoming
   module:
+    - node
     - toolbar
 id: amke_user
 label: 'Χρήστης ΑΜΚΕ'
@@ -12,3 +15,4 @@ permissions:
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
+  - 'create incoming content'

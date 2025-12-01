@@ -24,6 +24,7 @@ permissions:
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
+  - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'
   - 'use incoming_processing transition approval_rejection'
@@ -55,3 +56,5 @@ permissions:
   - 'view any unpublished content'
   - 'view incoming revisions'
   - 'view latest version'
+  - 'view own unpublished content'
+  - 'view term revisions in case'
