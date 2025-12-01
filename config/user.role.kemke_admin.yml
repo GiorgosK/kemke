@@ -15,6 +15,7 @@ label: 'kemke admin'
 weight: 13
 is_admin: false
 permissions:
+  - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
   - 'administer users'
@@ -31,3 +32,5 @@ permissions:
   - 'create terms in incoming_type'
   - 'create terms in priority'
   - 'delete terms in case'
+  - 'edit terms in case'
+  - 'view term revisions in case'
