@@ -1,0 +1,14 @@
+uuid: bd735d75-34dc-4c8e-baa4-7591f6eed2d2
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.kemke_admin
+  module:
+    - user
+id: user_remove_role_action.kemke_admin
+label: 'Remove the kemke admin role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: kemke_admin

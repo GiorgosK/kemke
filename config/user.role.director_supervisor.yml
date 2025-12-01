@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.full_html
     - node.type.incoming
+    - taxonomy.vocabulary.case
     - workflows.workflow.incoming_processing
   module:
     - content_moderation
@@ -12,13 +13,18 @@ dependencies:
     - node
     - node_view_permissions
     - system
+    - taxonomy
+    - toolbar
 id: director_supervisor
 label: 'Προϊστάμενος Διεύθυνσης'
 weight: 6
 is_admin: false
 permissions:
   - 'access content'
+  - 'access toolbar'
   - 'access user profiles'
+  - 'change own username'
+  - 'create terms in case'
   - 'edit any incoming content'
   - 'use incoming_processing transition approval_rejection'
   - 'use incoming_processing transition approved'

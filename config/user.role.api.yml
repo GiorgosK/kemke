@@ -4,9 +4,11 @@ status: true
 dependencies:
   module:
     - incoming_api
+    - toolbar
 id: api
 label: api
 weight: 12
 is_admin: false
 permissions:
+  - 'access toolbar'
   - 'create incoming via api'

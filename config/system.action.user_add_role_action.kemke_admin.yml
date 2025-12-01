@@ -1,0 +1,14 @@
+uuid: 5aeebfcd-c35b-43a7-bdf3-2cbf5b509dfc
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.kemke_admin
+  module:
+    - user
+id: user_add_role_action.kemke_admin
+label: 'Add the kemke admin role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: kemke_admin
