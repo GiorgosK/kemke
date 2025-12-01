@@ -59,9 +59,6 @@ display:
         roles_target_id:
           expose:
             label: Ρόλος
-        permission:
-          expose:
-            label: Άδεια
       use_more_text: περισσότερα
   page_1:
     display_title: Σελίδα
