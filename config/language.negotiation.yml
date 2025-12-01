@@ -6,7 +6,7 @@ url:
   source: path_prefix
   prefixes:
     en: en
-    el: el
+    el: ''
   domains:
     en: ''
     el: ''
