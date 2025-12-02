@@ -76,14 +76,9 @@ class ActivitiesLogger extends BaseActivitiesLogger {
    * Builds the info field value for the activity.
    */
   protected function buildInfo(EntityInterface $entity, string $op): string {
-    $info = $entity->label();
+    $label = $entity->label();
     $state_change = $this->buildIncomingStateChange($entity, $op);
-
-    if ($state_change) {
-      $info = sprintf('%s | %s', $info, $state_change);
-    }
-
-    return $info;
+    return $state_change ? sprintf('%s | %s', $label, $state_change) : $label;
   }
 
   /**
@@ -105,9 +100,14 @@ class ActivitiesLogger extends BaseActivitiesLogger {
       $old_state = $entity->original->get('moderation_state')->value ?? NULL;
     }
 
-    // Only add details when a state change actually occurred.
-    if (!$old_state || !$new_state || $old_state === $new_state) {
+    if (!$new_state) {
       return NULL;
+    }
+
+    // If we cannot determine the previous state, treat it as unchanged so we
+    // still record the current state.
+    if (!$old_state) {
+      $old_state = $new_state;
     }
 
     $workflow = \Drupal::service('content_moderation.moderation_information')->getWorkflowForEntity($entity);

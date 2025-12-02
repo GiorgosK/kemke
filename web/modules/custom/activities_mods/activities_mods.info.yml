@@ -6,3 +6,4 @@ package: Custom
 dependencies:
   - activities
   - content_moderation
+  - views

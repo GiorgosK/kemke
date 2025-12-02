@@ -1,0 +1,11 @@
+activities_mods.node_activity:
+  path: '/node/{node}/activity'
+  defaults:
+    _controller: '\Drupal\activities_mods\Controller\ActivitiesModsController::activity'
+    _title: 'Activity'
+  requirements:
+    _permission: 'access content'
+  options:
+    parameters:
+      node:
+        type: entity:node

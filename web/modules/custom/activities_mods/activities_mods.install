@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function activities_mods_uninstall() {
+  // Remove the shipped view to avoid PreExistingConfigException on re-install.
+  $config = \Drupal::configFactory()->getEditable('views.view.activities_mods_node_activity');
+  if ($config->isNew() === FALSE) {
+    $config->delete();
+  }
+}

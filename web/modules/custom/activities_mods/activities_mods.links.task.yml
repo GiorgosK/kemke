@@ -1,0 +1,5 @@
+activities_mods.node_activity:
+  route_name: activities_mods.node_activity
+  base_route: entity.node.canonical
+  title: Activity
+  weight: 20
