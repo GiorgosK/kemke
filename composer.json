@@ -21,6 +21,7 @@
     "require": {
         "composer/installers": "^2.3",
         "cweagans/composer-patches": "^2.0",
+        "drupal/activities": "^1.0",
         "drupal/admin_toolbar": "^3.6",
         "drupal/ckeditor5_plugin_pack": "^1.4",
         "drupal/conditional_fields": "^4.0@alpha",
