@@ -1,0 +1,32 @@
+label: 'Node activity'
+description: 'Activity log for nodes, filtered by node ID.'
+display:
+  default:
+    display_title: Master
+    display_options:
+      exposed_form:
+        options:
+          submit_button: Apply
+          reset_button_label: Reset
+          exposed_sorts_label: 'Sort by'
+          sort_asc_label: Asc
+          sort_desc_label: Desc
+      fields:
+        created:
+          label: Date
+          separator: ', '
+        operation:
+          label: Operation
+          separator: ', '
+        info:
+          label: Info
+          separator: ', '
+        user_id:
+          label: User
+          separator: ', '
+      arguments:
+        entity_id:
+          exception:
+            title: All
+  page_1:
+    display_title: Page
