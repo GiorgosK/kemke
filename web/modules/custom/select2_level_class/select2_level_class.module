@@ -20,8 +20,17 @@ function select2_level_class_process_elements(array &$elements): void {
       continue;
     }
 
+    $classes = [];
+    if (!empty($element['#attributes']['class'])) {
+      // Ensure classes are treated as an array to avoid warnings when a string
+      // is provided.
+      $classes = is_array($element['#attributes']['class'])
+        ? $element['#attributes']['class']
+        : [$element['#attributes']['class']];
+    }
+
     $is_select2_element = (!empty($element['#type']) && $element['#type'] === 'select2')
-      || (!empty($element['#attributes']['class']) && in_array('select2-widget', $element['#attributes']['class'], TRUE));
+      || (!empty($classes) && in_array('select2-widget', $classes, TRUE));
 
     if ($is_select2_element && !empty($element['#options']) && is_array($element['#options'])) {
       $element['#attached']['library'][] = 'select2_level_class/select2-level-class';
