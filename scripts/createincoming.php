@@ -171,6 +171,7 @@ $incomingPayload = [
   // 'thematic_unit' => 'thematic unit text '. $random,
   // 'transparency_requirement' => 'transparency requirement text '. $random,
   // 'kemke_officer_assignment' => 'kemke officer assignment text '. $random,
+  'ref_id' => 'INC-2025-000030',
   'sender' => 'Ονομα Επώνυμο ' . $random,
   'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'subject' => 'θέμα εισερχομένου ' . $random,  
@@ -185,6 +186,7 @@ $incomingPayload = [
 
 $incomingPayload_simple = [
   //'title' => 'Υποθεση #' . $random,
+  'ref_id' => 'INC-2025-000030',
   'sender' => 'Ονομα Επώνυμο ' . $random,
   'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'subject' => 'θέμα εισερχομένου ' . $random,  
