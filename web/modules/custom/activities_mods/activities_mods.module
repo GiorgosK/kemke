@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @file
+ * Hooks for activities_mods.
+ */
+
+use Drupal\activities\Entity\UserActivitiesInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_activities_logger_log().
+ */
+function activities_mods_activities_logger_log(UserActivitiesInterface $activities) {
+  // Only append moderation info for incoming nodes.
+  $entity_type = $activities->getRelatedEntityTypeId();
+  $bundle = $activities->getBundle();
+  if ($entity_type !== 'node' || $bundle !== 'incoming') {
+    return;
+  }
+
+  $op = $activities->getOperation();
+  if ($op === 'delete') {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $entity_id = $activities->getRelatedEntityId();
+  $base_entity = $storage->load($entity_id);
+  if (!$base_entity) {
+    return;
+  }
+
+  $revision_ids = $storage->revisionIds($base_entity);
+
+  if (empty($revision_ids)) {
+    return;
+  }
+
+  // Latest revision is last in the list.
+  $latest_revision_id = $revision_ids[count($revision_ids) - 1];
+  /** @var \Drupal\node\NodeInterface|null $latest */
+  $latest = $storage->loadRevision($latest_revision_id);
+  if (!$latest || !$latest->hasField('moderation_state')) {
+    return;
+  }
+
+  $new_state = $latest->get('moderation_state')->value ?? NULL;
+  $old_state = NULL;
+
+  if (count($revision_ids) > 1) {
+    $prev_revision_id = $revision_ids[count($revision_ids) - 2];
+    /** @var \Drupal\node\NodeInterface|null $previous */
+    $previous = $storage->loadRevision($prev_revision_id);
+    if ($previous instanceof EntityInterface && $previous->hasField('moderation_state')) {
+      $old_state = $previous->get('moderation_state')->value ?? NULL;
+    }
+  }
+
+  if (!$new_state) {
+    return;
+  }
+
+  // If no previous state was found, fall back to the current state so we log
+  // "no change" transitions as well.
+  if (!$old_state) {
+    $old_state = $new_state;
+  }
+
+  $workflow = \Drupal::service('content_moderation.moderation_information')->getWorkflowForEntity($latest);
+  $plugin = $workflow ? $workflow->getTypePlugin() : NULL;
+  $old_label = $plugin && $plugin->hasState($old_state) ? $plugin->getState($old_state)->label() : $old_state;
+  $new_label = $plugin && $plugin->hasState($new_state) ? $plugin->getState($new_state)->label() : $new_state;
+
+  $extra = (string) t('State: @from -> @to', [
+    '@from' => $old_label,
+    '@to' => $new_label,
+  ]);
+
+  $info = $activities->getInfo();
+  $activities->setInfo($info ? sprintf('%s | %s', $info, $extra) : $extra);
+}
