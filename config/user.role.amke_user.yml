@@ -3,16 +3,29 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.full_html
     - node.type.incoming
+    - workflows.workflow.incoming_processing
   module:
+    - content_moderation
+    - filter
     - node
+    - system
     - toolbar
 id: amke_user
 label: 'Χρήστης ΑΜΚΕ'
 weight: 10
 is_admin: false
 permissions:
+  - 'access content'
+  - 'access content overview'
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
   - 'create incoming content'
+  - 'edit own incoming content'
+  - 'use incoming_processing transition stay_draft'
+  - 'use text format full_html'
+  - 'view all revisions'
+  - 'view incoming revisions'
+  - 'view own unpublished content'
