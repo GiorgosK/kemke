@@ -1,0 +1,73 @@
+security:
+  view_throttle_window: '30'
+  exclude_anonymous_views: 1
+block_content:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
+comment:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
+contact_message:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
+content_moderation_state:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+file:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+menu_link_content:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
+node:
+  create: create
+  delete: delete
+  update: update
+  view: 0
+  bundles:
+    incoming: incoming
+path_alias:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+shortcut:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
+taxonomy_term:
+  create: create
+  delete: delete
+  update: update
+  view: 0
+  bundles:
+    case: case
+user:
+  create: create
+  delete: delete
+  update: update
+  view: 0
+paragraph:
+  create: 0
+  delete: 0
+  update: 0
+  view: 0
+  bundles: {  }
