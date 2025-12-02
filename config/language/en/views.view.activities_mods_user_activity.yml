@@ -1,5 +1,5 @@
-label: 'Node activity'
-description: 'Activity log for nodes, filtered by node ID.'
+label: 'User activity'
+description: 'Activity log for a user.'
 display:
   default:
     display_title: Master
@@ -21,10 +21,15 @@ display:
         info:
           label: Info
           separator: ', '
-        user_id:
-          label: User
-          separator: ', '
-      arguments:
         entity_id:
+          label: 'Related entity ID'
+          separator: ', '
+        entity_type_id:
+          label: 'Related entity type'
+          separator: ', '
+        related_entity_link:
+          label: 'Related Entity Link'
+      arguments:
+        user_id:
           exception:
             title: All

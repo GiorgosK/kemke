@@ -1,4 +1,4 @@
-uuid: 2c99581e-ebb0-442e-8d79-1070a6fda391
+uuid: eee5a080-1017-45b7-80ef-02d564b9f247
 langcode: el
 status: true
 dependencies:
@@ -7,11 +7,11 @@ dependencies:
     - options
     - user
 _core:
-  default_config_hash: inUCCZ0GhhpEkQZR1wedA9qWjq7KSBgZ1pXgvD27sOQ
-id: activities_mods_node_activity
-label: 'Node activity'
+  default_config_hash: sN8tFIFUmCTziFbTTWf3ry40oWuQGzVrrIGn3C4eYbk
+id: activities_mods_user_activity
+label: 'User activity'
 module: views
-description: 'Activity log for nodes, filtered by node ID.'
+description: 'Activity log for a user.'
 tag: ''
 base_table: user_activities
 base_field: id
@@ -214,17 +214,17 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        user_id:
-          id: user_id
+        entity_id:
+          id: entity_id
           table: user_activities
-          field: user_id
+          field: entity_id
           relationship: none
           group_type: group
           admin_label: ''
           entity_type: user_activities
-          entity_field: user_id
+          entity_field: entity_id
           plugin_id: field
-          label: Χρήστης
+          label: 'Related entity ID'
           exclude: false
           alter:
             alter_text: false
@@ -264,11 +264,132 @@ display:
           empty: ''
           hide_empty: false
           empty_zero: false
-          click_sort_column: target_id
-          type: entity_reference_label
-          settings:
-            link: true
-          group_column: target_id
+          type: basic_string
+          settings: {  }
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        entity_type_id:
+          id: entity_type_id
+          table: user_activities
+          field: entity_type_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: user_activities
+          entity_field: entity_type_id
+          plugin_id: field
+          label: 'Related entity type'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          type: basic_string
+          settings: {  }
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        related_entity_link:
+          id: related_entity_link
+          table: user_activities
+          field: related_entity_link
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: user_activities
+          plugin_id: related_entity_link
+          label: 'Related Entity Link'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          type: related_entity_link
+          settings: {  }
+          group_column: value
           group_columns: {  }
           group_rows: true
           delta_limit: 0
@@ -298,7 +419,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'access content'
+          perm: 'access user profiles'
       cache:
         type: tag
         options: {  }
@@ -313,10 +434,11 @@ display:
           exposed: false
           granularity: second
       arguments:
-        entity_id:
-          id: entity_id
+        user_id:
+          id: user_id
           table: user_activities
-          field: entity_id
+          field: user_id
+          plugin_id: numeric
           default_action: not_found
           exception:
             value: all
@@ -328,18 +450,9 @@ display:
             index: 1
           specify_validation: false
           validate:
-            type: none
+            type: numeric
             fail: 'not found'
-      filters:
-        entity_type_id:
-          id: entity_type_id
-          table: user_activities
-          field: entity_type_id
-          plugin_id: string
-          operator: '='
-          value: node
-          group: 1
-          exposed: false
+      filters: null
       style:
         type: table
         options:
@@ -350,7 +463,8 @@ display:
             created: created
             operation: operation
             info: info
-            user_id: user_id
+            entity_id: entity_id
+            entity_type_id: entity_type_id
           default: created
           info:
             created:
@@ -374,7 +488,14 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
-            user_id:
+            entity_id:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            entity_type_id:
               sortable: false
               default_sort_order: asc
               align: ''
