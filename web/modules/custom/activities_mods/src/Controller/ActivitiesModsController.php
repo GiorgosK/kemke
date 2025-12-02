@@ -18,4 +18,12 @@ class ActivitiesModsController extends ControllerBase {
     return $build ?: ['#markup' => $this->t('No activity found.')];
   }
 
+  /**
+   * Displays the activity log for a user.
+   */
+  public function userActivity(\Drupal\user\UserInterface $user): array {
+    $build = views_embed_view('activities_mods_user_activity', 'default', $user->id());
+    return $build ?: ['#markup' => $this->t('No activity found.')];
+  }
+
 }

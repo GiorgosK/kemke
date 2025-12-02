@@ -9,3 +9,15 @@ activities_mods.node_activity:
     parameters:
       node:
         type: entity:node
+
+activities_mods.user_activity:
+  path: '/user/{user}/activity'
+  defaults:
+    _controller: '\Drupal\activities_mods\Controller\ActivitiesModsController::userActivity'
+    _title: 'Activity'
+  requirements:
+    _permission: 'access user profiles'
+  options:
+    parameters:
+      user:
+        type: entity:user
