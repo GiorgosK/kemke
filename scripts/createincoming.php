@@ -173,7 +173,6 @@ $incomingPayload = [
   // 'kemke_officer_assignment' => 'kemke officer assignment text '. $random,
   'ref_id' => 'INC-2025-000030',
   'sender' => 'Ονομα Επώνυμο ' . $random,
-  'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'subject' => 'θέμα εισερχομένου ' . $random,  
   'notes' => 'Εξτρα πληροφορίες ' . $random,
   'documents' => [
@@ -188,11 +187,11 @@ $incomingPayload_simple = [
   //'title' => 'Υποθεση #' . $random,
   'ref_id' => 'INC-2025-000030',
   'sender' => 'Ονομα Επώνυμο ' . $random,
-  'responsible_entity' => 'Υπουργείο Περιβάλλοντος και Ενέργειας',    
   'subject' => 'θέμα εισερχομένου ' . $random,  
   'notes' => 'Εξτρα πληροφορίες ' . $random,
   'documents' => [
     [
+      'protocol' => 'AUTO-PROTOCOL-' . $random,
       'files' => [
         [
           'filename' => 'attachment' . $random . '.pdf',
@@ -211,7 +210,7 @@ if ($simpleMode) {
 $incomingResponse = apiRequest($baseUrl . '/api/incoming', $payloadToSend, $authToken, $basicAuth);
 
 printf(
-  "Incoming created successfully! Node id: %d, URL: %s\n",
+  "New documents added to Node id: %d, URL: %s\n",
   $incomingResponse['id'] ?? 0,
   $incomingResponse['url'] ?? '[unknown]'
 );
