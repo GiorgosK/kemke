@@ -1,0 +1,8 @@
+name: 'Incoming form validations'
+type: module
+description: 'Client-side helpers for incoming form field requirements.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:content_moderation
+  - drupal:node
