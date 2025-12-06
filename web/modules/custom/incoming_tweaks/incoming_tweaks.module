@@ -59,6 +59,25 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     ]);
   }
 
+  if (
+    !$entity->isNew() &&
+    $entity->hasField('moderation_state') &&
+    $entity->original instanceof EntityInterface &&
+    !$entity->get('moderation_state')->isEmpty()
+  ) {
+    $previous_state = $entity->original->get('moderation_state')->isEmpty() ? NULL : $entity->original->get('moderation_state')->value;
+    $current_state = $entity->get('moderation_state')->value;
+
+    if ($previous_state === 'pending_issues' && $current_state === 'fullness_check') {
+      $deadline_baseline = new DrupalDateTime('now');
+      $deadline_baseline->setTime(0, 0, 0);
+      $deadline = incoming_tweaks_calculate_workday_deadline(20, $deadline_baseline);
+      $entity->set('field_legal_deadline', [
+        'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+      ]);
+    }
+  }
+
   if (!$entity->isNew()) {
     incoming_tweaks_populate_field_ref_id($entity);
   }
