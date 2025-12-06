@@ -26,6 +26,4 @@ permissions:
   - 'edit own incoming content'
   - 'use incoming_processing transition stay_draft'
   - 'use text format full_html'
-  - 'view all revisions'
-  - 'view incoming revisions'
   - 'view own unpublished content'
