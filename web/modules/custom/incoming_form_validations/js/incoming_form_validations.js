@@ -8,6 +8,20 @@
    * - emptyFields: list of field configs that must be non-empty.
    */
   const requirements = {
+    '#edit-moderation-state-to-be-assigned': {
+      type: 'button',
+      disabled: true,
+      toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+      emptyFields: [
+        {
+          selector: '#edit-field-protocol-incoming-0-value',
+          type: 'text',
+          tab_button_class: 'horizontal-tab-button-0',
+          tab_button_active_class: 'selected',
+          indicator: 'input',
+        },
+      ],
+    },
     '#edit-moderation-state-fullness-check': {
       type: 'button',
       disabled: true,
