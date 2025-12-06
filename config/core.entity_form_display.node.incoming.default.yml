@@ -377,14 +377,14 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_supervisor:
-    type: entity_reference_autocomplete
+    type: select2_entity_reference
     weight: 8
     region: content
     settings:
+      width: 100%
+      autocomplete: false
       match_operator: CONTAINS
       match_limit: 10
-      size: 60
-      placeholder: ''
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
