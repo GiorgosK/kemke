@@ -136,79 +136,79 @@ type_settings:
       to: signed
       weight: 9
     stay_approval_rejection:
-      label: 'Αναμονή Απόρριψη έγκρισης'
+      label: Αποθήκευση
       from:
         - approval_rejection
       to: approval_rejection
       weight: -10
     stay_approved:
-      label: 'Αναμονή Εγκεκριμένη'
+      label: Αποθήκευση
       from:
         - approved
       to: approved
       weight: -12
     stay_draft:
-      label: 'Αναμονή Εισερχόμενη'
+      label: Αποθήκευση
       from:
         - draft
       to: draft
       weight: -11
     stay_for_director_approval:
-      label: 'Αναμονή Προς έγκριση από διευθυντή'
+      label: Αποθήκευση
       from:
         - for_director_approval
       to: for_director_approval
       weight: -7
     stay_for_signature:
-      label: 'Αναμονή Προς υπογραφή'
+      label: Αποθήκευση
       from:
         - for_signature
       to: for_signature
       weight: -5
     stay_for_supervisor_approval:
-      label: 'Αναμονή Προς έγκριση από προϊστάμενο'
+      label: Αποθήκευση
       from:
         - for_supervisor_approval
       to: for_supervisor_approval
       weight: -6
     stay_fullness_check:
-      label: 'Αναμονή Έλεγχος πληρότητας'
+      label: Αποθήκευση
       from:
         - fullness_check
       to: fullness_check
       weight: -13
     stay_pending_issues:
-      label: 'Αναμονή Με εκκρεμότητες'
+      label: Αποθήκευση
       from:
         - pending_issues
       to: pending_issues
       weight: -9
     stay_published:
-      label: 'Αναμονή Ολοκληρωμένη υπόθεση'
+      label: Αποθήκευση
       from:
         - published
       to: published
       weight: -8
     stay_signed:
-      label: 'Αναμονή Υπογεγραμμένη'
+      label: Αποθήκευση
       from:
         - signed
       to: signed
       weight: -3
     stay_supervisor_assigned:
-      label: 'Αναμονή Χρεωμένη σε προϊστάμενο'
+      label: Αποθήκευση
       from:
         - supervisor_assigned
       to: supervisor_assigned
       weight: -1
     stay_to_be_assigned:
-      label: 'Αναμονή Προς χρέωση'
+      label: Αποθήκευση
       from:
         - to_be_assigned
       to: to_be_assigned
       weight: -4
     stay_under_processing:
-      label: 'Αναμονή Υπό επεξεργασία'
+      label: Αποθήκευση
       from:
         - under_processing
       to: under_processing
