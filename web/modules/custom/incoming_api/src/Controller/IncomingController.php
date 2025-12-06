@@ -339,6 +339,13 @@ final class IncomingController extends ControllerBase {
       $node->get('field_documents')->appendItem(['entity' => $paragraph]);
     }
 
+    if ($node->hasField('moderation_state') && !$node->get('moderation_state')->isEmpty()) {
+      $previous_state = $node->get('moderation_state')->value;
+      if ($previous_state === 'pending_issues') {
+        $node->set('moderation_state', 'fullness_check');
+      }
+    }
+
     try {
       $node->save();
     }
