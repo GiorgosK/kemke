@@ -117,7 +117,7 @@ final class IncomingController extends ControllerBase {
         return $this->errorResponse('Failed to append documents to incoming.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
       }
 
-      return new JsonResponse($this->buildResponseData($node), Response::HTTP_OK);
+      return new JsonResponse($this->buildResponseData($node, 'update'), Response::HTTP_OK);
     }
 
     $violations = $this->validatePayload($payload);
@@ -133,16 +133,17 @@ final class IncomingController extends ControllerBase {
       return $this->errorResponse('Failed to create incoming.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
     }
 
-    return new JsonResponse($this->buildResponseData($node), Response::HTTP_CREATED);
+    return new JsonResponse($this->buildResponseData($node, 'create'), Response::HTTP_CREATED);
   }
 
   /**
    * Builds the response payload for the freshly created node.
    */
-  private function buildResponseData(NodeInterface $node): array {
+  private function buildResponseData(NodeInterface $node, string $action): array {
     return [
       'status' => 'success',
       'id' => (int) $node->id(),
+      'action' => $action,
     ];
   }
 
