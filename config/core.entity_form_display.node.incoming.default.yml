@@ -138,7 +138,7 @@ content:
     third_party_settings: {  }
   field_case:
     type: select2_entity_reference
-    weight: 10
+    weight: 11
     region: content
     settings:
       width: 100%
@@ -154,7 +154,7 @@ content:
     third_party_settings: {  }
   field_documents:
     type: paragraphs
-    weight: 2
+    weight: 3
     region: content
     settings:
       title: Paragraph
@@ -174,13 +174,13 @@ content:
     third_party_settings: {  }
   field_entry_date:
     type: datetime_default
-    weight: 3
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
   field_incoming_type:
     type: options_select
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -198,7 +198,7 @@ content:
     third_party_settings: {  }
   field_notes:
     type: string_textarea
-    weight: 9
+    weight: 10
     region: content
     settings:
       rows: 5
@@ -222,7 +222,7 @@ content:
     third_party_settings: {  }
   field_protocol_incoming:
     type: string_textfield
-    weight: 4
+    weight: 5
     region: content
     settings:
       size: 60
@@ -233,16 +233,6 @@ content:
     weight: 0
     region: content
     settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_related_incoming:
-    type: entity_reference_autocomplete
-    weight: 11
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
@@ -274,7 +264,7 @@ content:
     third_party_settings: {  }
   field_responsible_entity:
     type: options_select
-    weight: 5
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -296,7 +286,7 @@ content:
     third_party_settings: {  }
   field_sender:
     type: string_textfield
-    weight: 6
+    weight: 7
     region: content
     settings:
       size: 60
@@ -304,7 +294,7 @@ content:
     third_party_settings: {  }
   field_subject:
     type: text_textarea
-    weight: 8
+    weight: 9
     region: content
     settings:
       rows: 5
@@ -438,4 +428,5 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-hidden: {  }
+hidden:
+  field_related_incoming: true
