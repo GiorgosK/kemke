@@ -49,17 +49,19 @@ third_party_settings:
         - field_completion_date
       label: Κατασταση
       region: content
-      parent_name: ''
-      weight: 11
-      format_type: details
+      parent_name: group_tabs
+      weight: 14
+      format_type: tab
       format_settings:
         classes: ''
         show_empty_fields: false
         id: ''
         label_as_html: false
-        open: false
+        formatter: closed
         description: ''
         required_fields: true
+        direction: vertical
+        width_breakpoint: 640
     group_responsible:
       children:
         - field_supervisor
@@ -67,15 +69,15 @@ third_party_settings:
         - field_operators
       label: Υπεύθυνοι
       region: content
-      parent_name: ''
-      weight: 20
-      format_type: details
+      parent_name: group_tabs
+      weight: 17
+      format_type: tab
       format_settings:
         classes: ''
         show_empty_fields: false
         id: ''
         label_as_html: false
-        open: false
+        formatter: closed
         description: ''
         required_fields: true
     group_ee:
@@ -88,31 +90,111 @@ third_party_settings:
         - field_working_days
       label: EE
       region: content
-      parent_name: ''
-      weight: 12
-      format_type: details
+      parent_name: group_tabs
+      weight: 19
+      format_type: tab
       format_settings:
         classes: ''
         show_empty_fields: false
         id: ''
         label_as_html: false
-        open: true
+        formatter: closed
         description: ''
         required_fields: true
+        direction: horizontal
+        width_breakpoint: 640
     group_remarks:
       children:
         - field_remarks
       label: Παρατηρήσεις
       region: content
-      parent_name: ''
-      weight: 21
-      format_type: details
+      parent_name: group_tabs
+      weight: 18
+      format_type: tab
       format_settings:
         classes: ''
         show_empty_fields: false
         id: ''
         label_as_html: false
-        open: false
+        formatter: closed
+        description: ''
+        required_fields: true
+        direction: vertical
+        width_breakpoint: 640
+    group_general:
+      children:
+        - langcode
+        - field_ref_id
+        - field_entry_date
+        - field_protocol_incoming
+        - field_sender
+        - field_incoming_type
+        - field_subject
+        - field_notes
+      label: Γενικά
+      region: content
+      parent_name: group_tabs
+      weight: 13
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+    group_tabs:
+      children:
+        - group_general
+        - group_status
+        - group_files
+        - group_case
+        - group_responsible
+        - group_remarks
+        - group_ee
+      label: Tabs
+      region: content
+      parent_name: ''
+      weight: 0
+      format_type: tabs
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        direction: horizontal
+        width_breakpoint: 640
+    group_files:
+      children:
+        - field_documents
+      label: Αρχεία
+      region: content
+      parent_name: group_tabs
+      weight: 15
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+    group_case:
+      children:
+        - field_case
+      label: Υπόθεση
+      region: content
+      parent_name: group_tabs
+      weight: 16
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
         description: ''
         required_fields: true
 id: node.incoming.default
@@ -122,7 +204,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 14
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -138,7 +220,7 @@ content:
     third_party_settings: {  }
   field_case:
     type: select2_entity_reference
-    weight: 10
+    weight: 11
     region: content
     settings:
       width: 100%
@@ -148,13 +230,13 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_default
-    weight: 21
+    weight: 22
     region: content
     settings: {  }
     third_party_settings: {  }
   field_documents:
     type: paragraphs
-    weight: 2
+    weight: 13
     region: content
     settings:
       title: Paragraph
@@ -174,31 +256,31 @@ content:
     third_party_settings: {  }
   field_entry_date:
     type: datetime_default
-    weight: 3
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
   field_incoming_type:
     type: options_select
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 20
+    weight: 21
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_default
-    weight: 19
+    weight: 20
     region: content
     settings: {  }
     third_party_settings: {  }
   field_notes:
     type: string_textarea
-    weight: 9
+    weight: 10
     region: content
     settings:
       rows: 5
@@ -222,7 +304,7 @@ content:
     third_party_settings: {  }
   field_protocol_incoming:
     type: string_textfield
-    weight: 4
+    weight: 5
     region: content
     settings:
       size: 60
@@ -230,7 +312,7 @@ content:
     third_party_settings: {  }
   field_ref_id:
     type: string_textfield
-    weight: 0
+    weight: 2
     region: content
     settings:
       size: 60
@@ -238,7 +320,7 @@ content:
     third_party_settings: {  }
   field_remarks:
     type: paragraphs
-    weight: 22
+    weight: 24
     region: content
     settings:
       title: Paragraph
@@ -262,12 +344,6 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_responsible_entity:
-    type: options_select
-    weight: 5
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_sa_number:
     type: string_textfield
     weight: 19
@@ -286,7 +362,7 @@ content:
     third_party_settings: {  }
   field_sender:
     type: string_textfield
-    weight: 6
+    weight: 7
     region: content
     settings:
       size: 60
@@ -294,7 +370,7 @@ content:
     third_party_settings: {  }
   field_subject:
     type: text_textarea
-    weight: 8
+    weight: 9
     region: content
     settings:
       rows: 5
@@ -336,7 +412,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 23
+    weight: 24
     region: content
     settings:
       placeholder: ''
@@ -378,41 +454,41 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 17
+    weight: 5
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 18
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 15
+    weight: 3
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 19
+    weight: 7
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 16
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 13
+    weight: 1
     region: content
     settings:
       match_operator: CONTAINS
@@ -422,4 +498,5 @@ content:
     third_party_settings: {  }
 hidden:
   field_related_incoming: true
+  field_responsible_entity: true
   title: true
