@@ -60,8 +60,6 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-        direction: vertical
-        width_breakpoint: 640
     group_responsible:
       children:
         - field_supervisor
@@ -101,8 +99,6 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-        direction: horizontal
-        width_breakpoint: 640
     group_remarks:
       children:
         - field_remarks
@@ -119,8 +115,6 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-        direction: vertical
-        width_breakpoint: 640
     group_general:
       children:
         - langcode
@@ -317,7 +311,8 @@ content:
     settings:
       size: 60
       placeholder: ''
-    third_party_settings: {  }
+    third_party_settings:
+      conditional_fields: {  }
   field_remarks:
     type: paragraphs
     weight: 24
@@ -359,7 +354,23 @@ content:
     settings:
       size: 60
       placeholder: ''
-    third_party_settings: {  }
+    third_party_settings:
+      conditional_fields:
+        4932e61c-3f18-4c82-908f-92c763c4de71:
+          entity_type: node
+          bundle: incoming
+          dependee: field_incoming_type
+          settings:
+            state: visible
+            condition: value
+            grouping: AND
+            values_set: 1
+            value: ''
+            values: {  }
+            value_form: {  }
+            effect: show
+            effect_options: {  }
+            selector: ''
   field_sender:
     type: string_textfield
     weight: 7
@@ -422,29 +433,7 @@ content:
     region: content
     settings: {  }
     third_party_settings:
-      conditional_fields:
-        90694267-8cf1-4dc2-8f6d-9af051f21e56:
-          entity_type: node
-          bundle: incoming
-          dependee: field_incoming_type
-          settings:
-            state: visible
-            reset: false
-            condition: value
-            grouping: AND
-            values_set: 1
-            value: ''
-            values: {  }
-            value_form:
-              -
-                target_id: '3'
-            effect: show
-            effect_options: {  }
-            selector: ''
-            inheritance:
-              propagate: '0'
-              apply_to_parent: '0'
-              recurse: '0'
+      conditional_fields: {  }
   langcode:
     type: language_select
     weight: 1
