@@ -100,6 +100,26 @@ final class IncomingController extends ControllerBase {
 
     $payload = $this->normalizeFieldKeys($payload);
 
+    if ($this->isAttachmentOnlyPayload($payload)) {
+      $violations = $this->validateAttachmentPayload($payload);
+      if ($violations !== []) {
+        return $this->errorResponse('Validation failed.', Response::HTTP_UNPROCESSABLE_ENTITY, $violations);
+      }
+
+      try {
+        $node = $this->appendDocumentsToExistingIncoming($payload);
+      }
+      catch (\InvalidArgumentException $exception) {
+        return $this->errorResponse($exception->getMessage(), Response::HTTP_NOT_FOUND);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('incoming_api')->error('Failed to append documents to incoming: ' . (string) $exception->getMessage());
+        return $this->errorResponse('Failed to append documents to incoming.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
+      }
+
+      return new JsonResponse($this->buildResponseData($node), Response::HTTP_OK);
+    }
+
     $violations = $this->validatePayload($payload);
     if ($violations !== []) {
       return $this->errorResponse('Validation failed.', Response::HTTP_UNPROCESSABLE_ENTITY, $violations);
@@ -162,35 +182,78 @@ final class IncomingController extends ControllerBase {
     if (!array_key_exists('field_documents', $payload)) {
       $errors[] = 'documents property is required.';
     }
-    elseif (!is_array($payload['field_documents'])) {
+    else {
+      $errors = array_merge($errors, $this->validateDocumentsPayload($payload['field_documents']));
+    }
+
+    return $errors;
+  }
+
+  /**
+   * Validates minimal payload for attaching documents to an existing incoming.
+   *
+   * @return array<int, string>
+   *   An array of validation messages.
+   */
+  private function validateAttachmentPayload(array $payload): array {
+    $errors = [];
+
+    if ($this->extractRefId($payload['field_ref_id'] ?? NULL) === NULL) {
+      $errors[] = 'ref_id property is required when appending documents.';
+    }
+
+    if (!array_key_exists('field_documents', $payload)) {
+      $errors[] = 'documents property is required.';
+    }
+    else {
+      $errors = array_merge($errors, $this->validateDocumentsPayload($payload['field_documents']));
+    }
+
+    return $errors;
+  }
+
+  /**
+   * Validates the documents payload.
+   *
+   * @param mixed $documents
+   *   The documents payload value.
+   *
+   * @return array<int, string>
+   *   An array of validation messages.
+   */
+  private function validateDocumentsPayload($documents): array {
+    $errors = [];
+
+    if (!is_array($documents)) {
       $errors[] = 'documents property must be an array.';
+      return $errors;
     }
-    elseif ($payload['field_documents'] === []) {
+
+    if ($documents === []) {
       $errors[] = 'documents property cannot be empty.';
+      return $errors;
     }
 
-    if (isset($payload['field_documents']) && is_array($payload['field_documents'])) {
-      foreach ($payload['field_documents'] as $delta => $document) {
-        if (!is_array($document)) {
-          $errors[] = sprintf('Document entry %d must be an object.', $delta);
-          continue;
-        }
+    foreach ($documents as $delta => $document) {
+      if (!is_array($document)) {
+        $errors[] = sprintf('Document entry %d must be an object.', $delta);
+        continue;
+      }
 
-        if (isset($document['files']) && !is_array($document['files'])) {
-          $errors[] = sprintf('Document entry %d: \"files\" must be an array.', $delta);
-        }
-        elseif (!empty($document['files'])) {
-          foreach ($document['files'] as $file_index => $file) {
-            if (!is_array($file)) {
-              $errors[] = sprintf('Document entry %d: file %d must be an object.', $delta, $file_index);
-              continue;
-            }
-            if (empty($file['fid']) && empty($file['data'])) {
-              $errors[] = sprintf('Document entry %d: file %d must include either \"fid\" or \"data\".', $delta, $file_index);
-            }
-            if (!empty($file['data']) && empty($file['filename'])) {
-              $errors[] = sprintf('Document entry %d: file %d requires a filename when providing data.', $delta, $file_index);
-            }
+      if (isset($document['files']) && !is_array($document['files'])) {
+        $errors[] = sprintf('Document entry %d: \"files\" must be an array.', $delta);
+      }
+      elseif (!empty($document['files'])) {
+        foreach ($document['files'] as $file_index => $file) {
+          if (!is_array($file)) {
+            $errors[] = sprintf('Document entry %d: file %d must be an object.', $delta, $file_index);
+            continue;
+          }
+          if (empty($file['fid']) && empty($file['data'])) {
+            $errors[] = sprintf('Document entry %d: file %d must include either \"fid\" or \"data\".', $delta, $file_index);
+          }
+          if (!empty($file['data']) && empty($file['filename'])) {
+            $errors[] = sprintf('Document entry %d: file %d requires a filename when providing data.', $delta, $file_index);
           }
         }
       }
@@ -246,6 +309,83 @@ final class IncomingController extends ControllerBase {
     }
 
     return $node;
+  }
+
+  /**
+   * Appends documents to an existing incoming identified by its ref_id.
+   */
+  private function appendDocumentsToExistingIncoming(array $payload): NodeInterface {
+    $storage = $this->entityTypeManager->getStorage('node');
+    $refId = $this->extractRefId($payload['field_ref_id'] ?? NULL);
+
+    $matches = $storage->loadByProperties([
+      'type' => 'incoming',
+      'field_ref_id' => $refId,
+    ]);
+    /** @var \Drupal\node\NodeInterface|null $node */
+    $node = $matches ? reset($matches) : NULL;
+
+    if (!$node instanceof NodeInterface) {
+      throw new \InvalidArgumentException('No incoming found for the provided ref_id.');
+    }
+
+    $documents = $this->buildDocuments($payload['field_documents'] ?? []);
+    if ($documents === []) {
+      throw new \InvalidArgumentException('No valid documents were provided to attach.');
+    }
+
+    foreach ($documents as $paragraph) {
+      $node->get('field_documents')->appendItem(['entity' => $paragraph]);
+    }
+
+    try {
+      $node->save();
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('incoming_api')->error('Failed to save incoming node when appending documents: ' . (string) $exception->getMessage());
+      throw $exception;
+    }
+
+    foreach ($documents as $paragraph) {
+      foreach ($paragraph->get('field_files') as $fileItem) {
+        $file = $fileItem->entity;
+        if ($file) {
+          $this->fileUsage->add($file, 'incoming_api', 'paragraph', (int) $paragraph->id());
+        }
+      }
+    }
+
+    return $node;
+  }
+
+  /**
+   * Determines if the payload is an attachment-only request.
+   */
+  private function isAttachmentOnlyPayload(array $payload): bool {
+    return $this->extractRefId($payload['field_ref_id'] ?? NULL) !== NULL;
+  }
+
+  /**
+   * Extracts a ref_id value from a payload value.
+   *
+   * @param mixed $value
+   *   The payload ref_id value.
+   */
+  private function extractRefId($value): ?string {
+    if (is_string($value) && trim($value) !== '') {
+      return trim($value);
+    }
+
+    if (is_array($value)) {
+      if (isset($value['value']) && is_string($value['value']) && trim($value['value']) !== '') {
+        return trim($value['value']);
+      }
+      if (isset($value[0]) && is_string($value[0]) && trim($value[0]) !== '') {
+        return trim($value[0]);
+      }
+    }
+
+    return NULL;
   }
 
   /**
