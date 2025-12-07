@@ -10,6 +10,7 @@ dependencies:
   module:
     - content_moderation
     - filter
+    - incoming_change_state
     - node
     - node_view_permissions
     - system
@@ -25,6 +26,7 @@ permissions:
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
+  - 'change to arbitary state'
   - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'

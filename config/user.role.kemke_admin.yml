@@ -12,6 +12,7 @@ dependencies:
   module:
     - content_moderation
     - filter
+    - incoming_change_state
     - node
     - node_view_permissions
     - role_delegation
@@ -36,6 +37,7 @@ permissions:
   - 'assign operator role'
   - 'assign secretariat role'
   - 'change own username'
+  - 'change to arbitary state'
   - 'create incoming content'
   - 'create terms in case'
   - 'create terms in incoming_type'
