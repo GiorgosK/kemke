@@ -158,8 +158,8 @@
       return;
     }
     indicator.classList.add('ifv-missing');
-    indicator.style.outline = '2px solid #c00';
-    indicator.style.outlineOffset = '2px';
+    indicator.style.outline = '3px solid #c00';
+    indicator.style.outlineOffset = '-3px';
   };
 
   const clearHighlight = (indicator) => {
