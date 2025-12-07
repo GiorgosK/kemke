@@ -50,7 +50,7 @@ third_party_settings:
       label: Κατασταση
       region: content
       parent_name: group_tabs
-      weight: 14
+      weight: 15
       format_type: tab
       format_settings:
         classes: ''
@@ -141,8 +141,8 @@ third_party_settings:
     group_tabs:
       children:
         - group_general
-        - group_status
         - group_files
+        - group_status
         - group_case
         - group_responsible
         - group_remarks
@@ -165,7 +165,7 @@ third_party_settings:
       label: Αρχεία
       region: content
       parent_name: group_tabs
-      weight: 15
+      weight: 14
       format_type: tab
       format_settings:
         classes: ''
