@@ -78,14 +78,14 @@ type_settings:
       default_revision: false
   transitions:
     approval_rejection:
-      label: 'Απόρριψη έγκρισης'
+      label: Απόρριψη
       from:
         - for_director_approval
         - for_supervisor_approval
       to: approval_rejection
       weight: 11
     approved:
-      label: Εγκεκριμένη
+      label: Έγκριση
       from:
         - for_director_approval
       to: approved
@@ -97,7 +97,7 @@ type_settings:
       to: published
       weight: 10
     for_director_approval:
-      label: 'Προς έγκριση από διευθυντή'
+      label: Έγκριση
       from:
         - for_supervisor_approval
       to: for_director_approval
@@ -111,13 +111,11 @@ type_settings:
     fullness_approved:
       label: 'Ολοκλήρωση πληρότητας φακέλου'
       from:
-        - approval_rejection
         - fullness_check
-        - pending_issues
       to: under_processing
       weight: 4
     fullness_check:
-      label: 'Προς έλεγχο πληρότητας '
+      label: Χρέωση
       from:
         - supervisor_assigned
         - to_be_assigned
@@ -214,7 +212,7 @@ type_settings:
       to: under_processing
       weight: -2
     supervisor_assigned:
-      label: 'Προς χρέωση σε προϊστάμενο'
+      label: 'Χρέωση σε προϊστάμενο'
       from:
         - draft
         - to_be_assigned
