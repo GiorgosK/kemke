@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\incoming_change_state\Form;
 
 use Drupal\content_moderation\ModerationInformationInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
@@ -23,6 +25,11 @@ final class IncomingChangeStateForm extends FormBase {
   private ModerationInformationInterface $moderationInformation;
 
   /**
+   * Node storage.
+   */
+  private EntityStorageInterface $nodeStorage;
+
+  /**
    * Time service.
    */
   private TimeInterface $time;
@@ -33,6 +40,7 @@ final class IncomingChangeStateForm extends FormBase {
   public static function create(ContainerInterface $container): self {
     return new self(
       $container->get('content_moderation.moderation_information'),
+      $container->get('entity_type.manager'),
       $container->get('datetime.time'),
     );
   }
@@ -40,8 +48,9 @@ final class IncomingChangeStateForm extends FormBase {
   /**
    * Constructs the form.
    */
-  public function __construct(ModerationInformationInterface $moderationInformation, TimeInterface $time) {
+  public function __construct(ModerationInformationInterface $moderationInformation, EntityTypeManagerInterface $entityTypeManager, TimeInterface $time) {
     $this->moderationInformation = $moderationInformation;
+    $this->nodeStorage = $entityTypeManager->getStorage('node');
     $this->time = $time;
   }
 
@@ -64,6 +73,12 @@ final class IncomingChangeStateForm extends FormBase {
       throw new AccessDeniedHttpException();
     }
 
+    // Always work with the latest revision so the current state reflects the
+    // newest change, even if the default revision is still published.
+    $latestRevisionId = $this->nodeStorage->getLatestRevisionId($node->id());
+    $latestNode = $latestRevisionId ? $this->nodeStorage->loadRevision($latestRevisionId) : NULL;
+    $activeNode = $latestNode instanceof NodeInterface ? $latestNode : $node;
+
     $workflow = $this->moderationInformation->getWorkflowForEntity($node);
     if ($workflow === NULL) {
       throw new AccessDeniedHttpException();
@@ -72,7 +87,7 @@ final class IncomingChangeStateForm extends FormBase {
     $typePlugin = $workflow->getTypePlugin();
     $stateConfigurations = $typePlugin->getConfiguration()['states'] ?? [];
     $stateOptions = $this->buildStateOptions($typePlugin->getStates(), $stateConfigurations);
-    $currentState = $node->get('moderation_state')->value ?? '';
+    $currentState = $activeNode->get('moderation_state')->value ?? '';
     $currentStateLabel = $stateOptions[$currentState] ?? $currentState;
 
     $form['current_state'] = [
@@ -105,7 +120,7 @@ final class IncomingChangeStateForm extends FormBase {
       '#value' => $this->t('Change state'),
     ];
 
-    $form_state->set('incoming_change_state_node', $node);
+    $form_state->set('incoming_change_state_node', $activeNode);
 
     return $form;
   }
