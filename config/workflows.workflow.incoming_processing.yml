@@ -72,7 +72,7 @@ type_settings:
       published: false
       default_revision: false
     under_processing:
-      label: 'Υπό επεξεργασία'
+      label: 'Υπό επεξεργασία απο χειριστή'
       weight: -1
       published: false
       default_revision: false
@@ -109,7 +109,7 @@ type_settings:
       to: for_signature
       weight: 8
     fullness_approved:
-      label: 'Πληρότητα φακέλου'
+      label: 'Ολοκλήρωση πληρότητας φακέλου'
       from:
         - approval_rejection
         - fullness_check
@@ -117,14 +117,14 @@ type_settings:
       to: under_processing
       weight: 4
     fullness_check:
-      label: 'Έλεγχος πληρότητας '
+      label: 'Προς έλεγχο πληρότητας '
       from:
         - supervisor_assigned
         - to_be_assigned
       to: fullness_check
       weight: 2
     pending_issues:
-      label: 'Με εκκρεμότητες'
+      label: 'Έχει εκκρεμότητες'
       from:
         - fullness_check
       to: pending_issues
@@ -214,7 +214,7 @@ type_settings:
       to: under_processing
       weight: -2
     supervisor_assigned:
-      label: 'Χρεωμένη σε προϊστάμενο'
+      label: 'Προς χρέωση σε προϊστάμενο'
       from:
         - draft
         - to_be_assigned
