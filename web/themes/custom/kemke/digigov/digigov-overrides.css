@@ -52,6 +52,7 @@
 
 .govgr-field {
   position: relative;
+  margin-bottom: 1rem;
 }
 
 .govgr-radios__label {
@@ -102,6 +103,26 @@ pre {
   background-color: #eee;
   padding: 1rem;
   margin-top: 0.5rem;
+}
+
+.node-incoming-edit-form .details-wrapper {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.node-incoming-edit-form .details-wrapper .field--type-string,
+.node-incoming-edit-form .details-wrapper .field--type-datetime, 
+.node-incoming-edit-form .details-wrapper .field--type-entity-reference {
+  width: 250px;
+}
+
+.node-incoming-edit-form .details-wrapper .field--widget-select2-entity-reference {
+  width: 700px;
+}
+
+.node-incoming-edit-form .details-wrapper .field--type-datetime .form-type-date {
+  display: block;
 }
 
 tr[data-hierarchy-level="1"] .views-tree-hierarchy-cell {
