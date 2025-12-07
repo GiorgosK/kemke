@@ -26,6 +26,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
+  // set field_entry_date
   $baseline = NULL;
   if ($entity->get('field_entry_date')->isEmpty()) {
     $entry_date = new DrupalDateTime('now');
@@ -52,6 +53,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   $baseline = $baseline ?: new DrupalDateTime('now');
   $baseline->setTime(0, 0, 0);
 
+  // calculate field_legal_deadline when new attachment initiated 
   if ($entity->get('field_legal_deadline')->isEmpty()) {
     $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
     $entity->set('field_legal_deadline', [
@@ -59,6 +61,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     ]);
   }
 
+  // recalculate field_legal_deadline when moving from pending_issues to fullness_check
   if (
     !$entity->isNew() &&
     $entity->hasField('moderation_state') &&
