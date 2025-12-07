@@ -209,11 +209,15 @@ if ($simpleMode) {
 }
 $incomingResponse = apiRequest($baseUrl . '/api/incoming', $payloadToSend, $authToken, $basicAuth);
 
-printf(
-  "New documents added to Node id: %d, URL: %s\n",
-  $incomingResponse['id'] ?? 0,
-  $incomingResponse['url'] ?? '[unknown]'
-);
+echo "API response:\n";
+$encodedResponse = json_encode($incomingResponse, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+if ($encodedResponse !== false) {
+  echo $encodedResponse . "\n";
+}
+else {
+  // Fallback when the response contains non-encodable data.
+  print_r($incomingResponse);
+}
 
 /**
  * Issues a JSON request against the API and decodes the response.
