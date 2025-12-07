@@ -124,6 +124,6 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 .govgr-views-table-container table thead th {
   position: sticky;
   top: var(--drupal-displace-offset-top, 0);
-  z-index: 500;
+  z-index: 99;
   background: inherit;
 }
