@@ -1,0 +1,3 @@
+change to arbitary state:
+  title: 'Change to arbitary state'
+  description: 'Allow users to change the workflow state of an incoming node via the change state action.'

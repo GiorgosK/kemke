@@ -40,6 +40,7 @@ module:
   history: 0
   image: 0
   incoming_api: 0
+  incoming_change_state: 0
   incoming_form_validations: 0
   incoming_notifications: 0
   incoming_remarks: 0

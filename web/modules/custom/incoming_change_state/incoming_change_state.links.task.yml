@@ -1,0 +1,5 @@
+incoming_change_state.tab:
+  route_name: incoming_change_state.change_state
+  title: 'Change state'
+  base_route: entity.node.canonical
+  weight: 20

@@ -1,0 +1,12 @@
+incoming_change_state.change_state:
+  path: '/node/{node}/change_state'
+  defaults:
+    _title: 'Change state'
+    _form: '\Drupal\incoming_change_state\Form\IncomingChangeStateForm'
+  requirements:
+    _permission: 'change to arbitary state'
+    _entity_access: 'node.view'
+  options:
+    parameters:
+      node:
+        type: entity:node

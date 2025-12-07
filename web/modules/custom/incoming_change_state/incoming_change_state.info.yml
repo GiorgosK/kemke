@@ -1,0 +1,7 @@
+name: Incoming change state
+type: module
+description: Provides a local action to change the moderation state of incoming nodes.
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:content_moderation
