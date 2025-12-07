@@ -26,18 +26,31 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
-  // set field_entry_date
+  $baseline = incoming_tweaks_ensure_entry_date($entity);
+  incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
+  incoming_tweaks_recalculate_deadline_on_state_transition($entity);
+
+  if (!$entity->isNew()) {
+    incoming_tweaks_populate_field_ref_id($entity);
+  }
+}
+
+/**
+ * Ensures field_entry_date is set and returns the normalized baseline date.
+ */
+function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime {
   $baseline = NULL;
-  if ($entity->get('field_entry_date')->isEmpty()) {
+
+  if ($node->get('field_entry_date')->isEmpty()) {
     $entry_date = new DrupalDateTime('now');
     $entry_date->setTime(0, 0, 0);
-    $entity->set('field_entry_date', [
+    $node->set('field_entry_date', [
       'value' => $entry_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
     $baseline = clone $entry_date;
   }
   else {
-    $entry_item = $entity->get('field_entry_date')->first();
+    $entry_item = $node->get('field_entry_date')->first();
     if ($entry_item) {
       $value = $entry_item->getValue()['value'] ?? NULL;
       if ($value) {
@@ -50,39 +63,48 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
       }
     }
   }
+
   $baseline = $baseline ?: new DrupalDateTime('now');
   $baseline->setTime(0, 0, 0);
 
-  // calculate field_legal_deadline when new attachment initiated 
-  if ($entity->get('field_legal_deadline')->isEmpty()) {
+  return $baseline;
+}
+
+/**
+ * Calculates field_legal_deadline when a new attachment is initiated.
+ */
+function incoming_tweaks_set_initial_legal_deadline(NodeInterface $node, DrupalDateTime $baseline): void {
+  if ($node->get('field_legal_deadline')->isEmpty()) {
     $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
-    $entity->set('field_legal_deadline', [
+    $node->set('field_legal_deadline', [
       'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
   }
+}
 
-  // recalculate field_legal_deadline when moving from pending_issues to fullness_check
+/**
+ * Recalculates field_legal_deadline when moving from pending_issues to fullness_check.
+ */
+function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface $node): void {
   if (
-    !$entity->isNew() &&
-    $entity->hasField('moderation_state') &&
-    $entity->original instanceof EntityInterface &&
-    !$entity->get('moderation_state')->isEmpty()
+    $node->isNew() ||
+    !$node->hasField('moderation_state') ||
+    !$node->original instanceof EntityInterface ||
+    $node->get('moderation_state')->isEmpty()
   ) {
-    $previous_state = $entity->original->get('moderation_state')->isEmpty() ? NULL : $entity->original->get('moderation_state')->value;
-    $current_state = $entity->get('moderation_state')->value;
-
-    if ($previous_state === 'pending_issues' && $current_state === 'fullness_check') {
-      $deadline_baseline = new DrupalDateTime('now');
-      $deadline_baseline->setTime(0, 0, 0);
-      $deadline = incoming_tweaks_calculate_workday_deadline(20, $deadline_baseline);
-      $entity->set('field_legal_deadline', [
-        'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
-      ]);
-    }
+    return;
   }
 
-  if (!$entity->isNew()) {
-    incoming_tweaks_populate_field_ref_id($entity);
+  $previous_state = $node->original->get('moderation_state')->isEmpty() ? NULL : $node->original->get('moderation_state')->value;
+  $current_state = $node->get('moderation_state')->value;
+
+  if ($previous_state === 'pending_issues' && $current_state === 'fullness_check') {
+    $deadline_baseline = new DrupalDateTime('now');
+    $deadline_baseline->setTime(0, 0, 0);
+    $deadline = incoming_tweaks_calculate_workday_deadline(20, $deadline_baseline);
+    $node->set('field_legal_deadline', [
+      'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
   }
 }
 
