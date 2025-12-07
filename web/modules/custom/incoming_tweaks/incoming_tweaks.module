@@ -29,6 +29,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   $baseline = incoming_tweaks_ensure_entry_date($entity);
   incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
+  incoming_tweaks_set_completion_date_on_publish($entity);
 
   if (!$entity->isNew()) {
     incoming_tweaks_populate_field_ref_id($entity);
@@ -104,6 +105,39 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
     $deadline = incoming_tweaks_calculate_workday_deadline(20, $deadline_baseline);
     $node->set('field_legal_deadline', [
       'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ]);
+  }
+}
+
+/**
+ * Sets field_completion_date when the moderation state moves to published.
+ */
+function incoming_tweaks_set_completion_date_on_publish(NodeInterface $node): void {
+  if (
+    !$node->hasField('moderation_state') ||
+    $node->get('moderation_state')->isEmpty() ||
+    !$node->hasField('field_completion_date') ||
+    !$node->get('field_completion_date')->isEmpty()
+  ) {
+    return;
+  }
+
+  $current_state = $node->get('moderation_state')->value;
+  if ($current_state !== 'published') {
+    return;
+  }
+
+  $previous_state = NULL;
+  if (!$node->isNew() && $node->original instanceof EntityInterface && !$node->original->get('moderation_state')->isEmpty()) {
+    $previous_state = $node->original->get('moderation_state')->value;
+  }
+
+  // Only set completion date when entering the published state.
+  if ($previous_state !== 'published') {
+    $completion_date = new DrupalDateTime('now');
+    $completion_date->setTime(0, 0, 0);
+    $node->set('field_completion_date', [
+      'value' => $completion_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
   }
 }
