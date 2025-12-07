@@ -143,6 +143,7 @@ final class IncomingController extends ControllerBase {
     return [
       'status' => 'success',
       'id' => (int) $node->id(),
+      'ref_id' => $this->getRefId($node),
       'action' => $action,
     ];
   }
@@ -481,6 +482,18 @@ final class IncomingController extends ControllerBase {
     }
 
     return NULL;
+  }
+
+  /**
+   * Returns the ref_id value for an incoming node, when available.
+   */
+  private function getRefId(NodeInterface $node): ?string {
+    if (!$node->hasField('field_ref_id') || $node->get('field_ref_id')->isEmpty()) {
+      return NULL;
+    }
+
+    $value = $node->get('field_ref_id')->value;
+    return is_string($value) && trim($value) !== '' ? $value : NULL;
   }
 
   /**
