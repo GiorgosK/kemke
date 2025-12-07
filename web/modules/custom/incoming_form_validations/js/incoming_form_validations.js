@@ -347,7 +347,6 @@
     }
 
     const targetId = tab.querySelector('a')?.getAttribute('href')?.replace('#', '') || '';
-    const targetPane = targetId ? document.getElementById(targetId) : null;
 
     const shouldHide = (requirement.valueNot || []).some((cfg) => {
       const field = document.querySelector(cfg.selector);
@@ -359,16 +358,6 @@
     });
 
     tab.style.display = shouldHide ? requirement.display || 'none' : '';
-    if (targetPane) {
-      if (shouldHide) {
-        targetPane.style.display = requirement.display || 'none';
-        targetPane.setAttribute('hidden', 'hidden');
-      }
-      else {
-        targetPane.style.display = '';
-        targetPane.removeAttribute('hidden');
-      }
-    }
   };
 
   const attachTabHandler = (tabSelector, requirement) => {
