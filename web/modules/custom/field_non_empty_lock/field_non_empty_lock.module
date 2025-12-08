@@ -634,12 +634,11 @@ function field_non_empty_lock_get_node_field_map() {
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
       ],
-      'field_legal_deadline',
+      //'field_legal_deadline',
       'field_protocol_incoming',
       'field_sender',
-      'field_responsible_entity',
-      'field_requested_deadline',
-      'field_incoming_type',
+      //'field_requested_deadline',
+      //'field_incoming_type',
       // Base field widgets can live deeper in the form array, so provide
       // explicit paths to keep them future-proof.
       'title' => [
