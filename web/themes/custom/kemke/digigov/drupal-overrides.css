@@ -6,3 +6,14 @@
 #edit-field-subject-0-format {
   display: none;
 }
+
+.pager__items .pager__item {
+  display: inline-block;
+}  
+.pager__items .pager__item a {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+}
+.pager__items .pager__item.is-active a {
+  background-color: #ccc;
+}
