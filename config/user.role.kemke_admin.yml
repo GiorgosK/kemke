@@ -29,6 +29,7 @@ permissions:
   - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
+  - 'administer permissions'
   - 'administer users'
   - 'assign amke_user role'
   - 'assign department_supervisor role'
