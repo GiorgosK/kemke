@@ -52,7 +52,7 @@ display:
           admin_label: ''
           plugin_id: counter
           label: '#'
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -293,7 +293,7 @@ display:
           admin_label: ''
           plugin_id: field
           label: 'Ημερομηνία εισόδου'
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -547,7 +547,7 @@ display:
           admin_label: ''
           plugin_id: field
           label: Χειριστές
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -609,7 +609,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: Υπόθεσεις
+          label: Υποθέσεις
           exclude: false
           alter:
             alter_text: false
