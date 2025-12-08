@@ -1,3 +1,8 @@
 .node--type-incoming.node--unpublished {
   background-color: transparent;
 }
+
+/* Hide text format help text */
+#edit-field-subject-0-format {
+  display: none;
+}
