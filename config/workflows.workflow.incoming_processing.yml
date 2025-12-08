@@ -17,12 +17,12 @@ type_settings:
       published: false
       default_revision: false
     approved:
-      label: Εγκεκριμένη
+      label: Εγκεκριμένο
       weight: 2
       published: false
       default_revision: false
     draft:
-      label: Εισερχόμενη
+      label: Εισερχόμενο
       weight: -7
       published: false
       default_revision: false
@@ -52,12 +52,12 @@ type_settings:
       published: false
       default_revision: false
     published:
-      label: 'Ολοκληρωμένη υπόθεση'
+      label: 'Ολοκληρωμένο'
       weight: 5
       published: true
       default_revision: true
     signed:
-      label: Υπογεγραμμένη
+      label: Υπογεγραμμένο
       weight: 4
       published: false
       default_revision: false
@@ -91,7 +91,7 @@ type_settings:
       to: approved
       weight: 7
     completed:
-      label: 'Ολοκληρωμένη υπόθεση'
+      label: 'Ολοκληρωμένο'
       from:
         - signed
       to: published
@@ -128,7 +128,7 @@ type_settings:
       to: pending_issues
       weight: 3
     signed:
-      label: Υπογεγραμμένη
+      label: Υπογεγραμμένο
       from:
         - for_signature
       to: signed
