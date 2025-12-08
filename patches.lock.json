@@ -1,5 +1,5 @@
 {
-    "_hash": "fdc2d4dbc162bf7c8344e1c832e085d74975199d364807555fec464b76f33aef",
+    "_hash": "a59c67e9ef1f24b4f4b6a174ec034b6647d5b54ce9bb892a03b7ec274ee8fdea",
     "patches": {
         "drupal/core": [
             {
@@ -8,6 +8,18 @@
                 "url": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch",
                 "sha256": "ebc98c21906c91541fa9a7ee70b281cba3e664a8a6374beed7df8d157aa1b16a",
                 "depth": 2,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ],
+        "drupal/paragraphs": [
+            {
+                "package": "drupal/paragraphs",
+                "description": "dgo.re/2877695",
+                "url": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch",
+                "sha256": "8d3d437fe8ddc4dd1140c0dcdb0ff627ce56e3f614ed9958efe201ed8b603019",
+                "depth": 1,
                 "extra": {
                     "provenance": "root"
                 }

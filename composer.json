@@ -138,6 +138,9 @@
         "patches": {
             "drupal/core": {
                 "dgo.re/3158934": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch"
+            },
+            "drupal/paragraphs": {
+                "Skip saving empty paragraphs for certain types dgo.re/2877695": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch"
             }
         }
     }
