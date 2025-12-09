@@ -99,6 +99,7 @@ final class IncomingController extends ControllerBase {
     }
 
     $payload = $this->normalizeFieldKeys($payload);
+    $payload = $this->ensurePrimaryFieldsFromDocuments($payload);
 
     if ($this->isAttachmentOnlyPayload($payload)) {
       $violations = $this->validateAttachmentPayload($payload);
@@ -242,6 +243,14 @@ final class IncomingController extends ControllerBase {
         continue;
       }
 
+      $document = $this->normalizeEntityFieldKeys($document, 'paragraph', 'documents');
+      if (empty($document['field_sender']) || !is_string($document['field_sender'])) {
+        $errors[] = sprintf('Document entry %d requires a sender value.', $delta);
+      }
+      if (empty($document['field_subject']) || !is_string($document['field_subject'])) {
+        $errors[] = sprintf('Document entry %d requires a subject value.', $delta);
+      }
+
       if (isset($document['files']) && !is_array($document['files'])) {
         $errors[] = sprintf('Document entry %d: \"files\" must be an array.', $delta);
       }
@@ -282,6 +291,7 @@ final class IncomingController extends ControllerBase {
     $this->applyTaxonomyReferenceFields($node, $payload);
     $this->applyDateFields($node, $payload);
     $documents = $this->buildDocuments($payload['field_documents'] ?? []);
+    $this->applyPrimaryDocumentValuesToNode($node, $payload['field_documents'] ?? []);
     if ($documents !== []) {
       $node->set('field_documents', []);
       foreach ($documents as $paragraph) {
@@ -568,14 +578,34 @@ final class IncomingController extends ControllerBase {
       return [];
     }
 
+    $definitions = $this->entityFieldManager->getFieldDefinitions('paragraph', 'documents');
     $result = [];
     foreach ($documents as $document) {
+      $document = $this->normalizeEntityFieldKeys($document, 'paragraph', 'documents');
       $paragraph = Paragraph::create(['type' => 'documents']);
       if (!empty($document['field_protocol'])) {
         $paragraph->set('field_protocol', $document['field_protocol']);
       }
-      elseif (!empty($document['protocol'])) {
-        $paragraph->set('field_protocol', $document['protocol']);
+      if (!empty($document['field_sender'])) {
+        $paragraph->set('field_sender', $document['field_sender']);
+      }
+      if (!empty($document['field_subject'])) {
+        $paragraph->set('field_subject', ['value' => $document['field_subject']]);
+      }
+      if (!empty($document['field_assignees'])) {
+        $paragraph->set('field_assignees', $document['field_assignees']);
+      }
+      if (!empty($document['field_protocol_number_sender'])) {
+        $paragraph->set('field_protocol_number_sender', $document['field_protocol_number_sender']);
+      }
+      if (!empty($document['field_protocol_number_doc'])) {
+        $paragraph->set('field_protocol_number_doc', $document['field_protocol_number_doc']);
+      }
+      if (!empty($document['field_protocol_date']) && isset($definitions['field_protocol_date'])) {
+        $normalizedDate = $this->normalizeDateValue($document['field_protocol_date'], $definitions['field_protocol_date']);
+        if ($normalizedDate !== NULL) {
+          $paragraph->set('field_protocol_date', ['value' => $normalizedDate]);
+        }
       }
 
       $files = $this->prepareFiles($document['files'] ?? []);
@@ -739,8 +769,54 @@ final class IncomingController extends ControllerBase {
    * Normalizes payload keys so callers can omit the \"field_\" prefix.
    */
   private function normalizeFieldKeys(array $payload): array {
+    return $this->normalizeEntityFieldKeys($payload, 'node', 'incoming');
+  }
+
+  /**
+   * Populates top-level sender/subject from the first document when missing.
+   */
+  private function ensurePrimaryFieldsFromDocuments(array $payload): array {
+    if (empty($payload['field_documents']) || !is_array($payload['field_documents'])) {
+      return $payload;
+    }
+
+    $first = $this->normalizeEntityFieldKeys($payload['field_documents'][0], 'paragraph', 'documents');
+    if ((empty($payload['field_sender']) || $payload['field_sender'] === '') && !empty($first['field_sender'])) {
+      $payload['field_sender'] = $first['field_sender'];
+    }
+    if ((empty($payload['field_subject']) || $payload['field_subject'] === '') && !empty($first['field_subject'])) {
+      $payload['field_subject'] = $first['field_subject'];
+    }
+
+    return $payload;
+  }
+
+  /**
+   * Applies the primary document sender/subject to the node when missing.
+   *
+   * @param array<int, array<string, mixed>> $documents
+   *   The documents payload.
+   */
+  private function applyPrimaryDocumentValuesToNode(NodeInterface $node, array $documents): void {
+    if ($documents === []) {
+      return;
+    }
+
+    $normalizedDocument = $this->normalizeEntityFieldKeys($documents[0], 'paragraph', 'documents');
+    if ($node->get('field_sender')->isEmpty() && !empty($normalizedDocument['field_sender'])) {
+      $node->set('field_sender', $normalizedDocument['field_sender']);
+    }
+    if ($node->get('field_subject')->isEmpty() && !empty($normalizedDocument['field_subject'])) {
+      $node->set('field_subject', $normalizedDocument['field_subject']);
+    }
+  }
+
+  /**
+   * Normalizes payload keys for an entity by adding missing field_ prefixes.
+   */
+  private function normalizeEntityFieldKeys(array $payload, string $entityTypeId, string $bundle): array {
     $normalized = $payload;
-    $definitions = $this->entityFieldManager->getFieldDefinitions('node', 'incoming');
+    $definitions = $this->entityFieldManager->getFieldDefinitions($entityTypeId, $bundle);
 
     foreach ($payload as $key => $value) {
       if (strpos($key, 'field_') === 0) {

@@ -171,13 +171,17 @@ $incomingPayload = [
   // 'thematic_unit' => 'thematic unit text '. $random,
   // 'transparency_requirement' => 'transparency requirement text '. $random,
   // 'kemke_officer_assignment' => 'kemke officer assignment text '. $random,
-  'ref_id' => 'INC-2025-000030',
-  'sender' => 'Ονομα Επώνυμο ' . $random,
-  'subject' => 'θέμα εισερχομένου ' . $random,  
+  'ref_id' => 'INC-2025-000037',
   'notes' => 'Εξτρα πληροφορίες ' . $random,
   'documents' => [
     [
-      'protocol' => 'AUTO-PROTOCOL-' . $random,
+      'sender' => 'Ονομα Επώνυμο' . $random,
+      'subject' => 'θέμα εισερχομένου ' . $random,  
+      'assignees' => 'Ονομα Επώνυμο' . $random . '& Ονομα Επώνυμο' . $random,
+      'protocol_date' => '2025-12-09T08:18:30',
+      'protocol_number_doc' => 'DOCUMENT PROTOCOL-' . $random,
+      'protocol_number_sender' => 'SENDER PROTOCOL-' . $random,
+
       'files' => $fileReference,
     ],
   ],
@@ -185,13 +189,16 @@ $incomingPayload = [
 
 $incomingPayload_simple = [
   //'title' => 'Υποθεση #' . $random,
-  'ref_id' => 'INC-2025-000030',
-  'sender' => 'Ονομα Επώνυμο ' . $random,
-  'subject' => 'θέμα εισερχομένου ' . $random,  
+  'ref_id' => 'INC-2025-000037',
   'notes' => 'Εξτρα πληροφορίες ' . $random,
   'documents' => [
     [
-      'protocol' => 'AUTO-PROTOCOL-' . $random,
+      'sender' => 'Ονομα Επώνυμο' . $random,
+      'subject' => 'θέμα εισερχομένου ' . $random,  
+      'assignees' => 'Ονομα Επώνυμο' . $random . '& Ονομα Επώνυμο' . $random,
+      'protocol_date' => '2025-12-09T08:18:30',
+      'protocol_number_doc' => 'DOCUMENT PROTOCOL-' . $random,
+      'protocol_number_sender' => 'SENDER PROTOCOL-' . $random,
       'files' => [
         [
           'filename' => 'attachment' . $random . '.pdf',
@@ -278,7 +285,9 @@ function apiRequest(string $url, array $payload, ?string $bearerToken = null, ?a
     $message = is_array($decoded) && isset($decoded['error'])
       ? $decoded['error']
       : $responseBody;
-    throw new RuntimeException(sprintf('Request to %s failed with status %d: %s', $url, $statusCode, $message));
+    $details = is_array($decoded) && isset($decoded['details']) ? $decoded['details'] : null;
+    $detailSuffix = $details ? ' Details: ' . json_encode($details, JSON_UNESCAPED_UNICODE) : '';
+    throw new RuntimeException(sprintf('Request to %s failed with status %d: %s%s', $url, $statusCode, $message, $detailSuffix));
   }
 
   return is_array($decoded) ? $decoded : [];
