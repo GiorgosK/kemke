@@ -1,0 +1,19 @@
+uuid: b2b0d22e-4a20-48cc-894b-112faeb837fc
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_protocol_number_sender
+    - paragraphs.paragraphs_type.documents
+id: paragraph.documents.field_protocol_number_sender
+field_name: field_protocol_number_sender
+entity_type: paragraph
+bundle: documents
+label: 'Α.Π. Αποστολέα'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

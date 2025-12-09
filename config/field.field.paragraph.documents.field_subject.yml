@@ -1,0 +1,22 @@
+uuid: 0d599a17-32f2-428f-bc34-53daaef10cd1
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_subject
+    - paragraphs.paragraphs_type.documents
+  module:
+    - text
+id: paragraph.documents.field_subject
+field_name: field_subject
+entity_type: paragraph
+bundle: documents
+label: Θέμα
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

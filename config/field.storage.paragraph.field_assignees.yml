@@ -1,0 +1,19 @@
+uuid: e3232e31-c782-48fe-a09e-c291c8efc0cd
+langcode: el
+status: true
+dependencies:
+  module:
+    - paragraphs
+id: paragraph.field_assignees
+field_name: field_assignees
+entity_type: paragraph
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

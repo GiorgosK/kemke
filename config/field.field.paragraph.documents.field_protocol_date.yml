@@ -1,0 +1,21 @@
+uuid: 24aeacd8-2751-440d-9e66-19cc56715b92
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_protocol_date
+    - paragraphs.paragraphs_type.documents
+  module:
+    - datetime
+id: paragraph.documents.field_protocol_date
+field_name: field_protocol_date
+entity_type: paragraph
+bundle: documents
+label: 'Ημερομηνία Πρωτοκόλλησης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime
