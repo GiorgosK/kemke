@@ -52,7 +52,7 @@ type_settings:
       published: false
       default_revision: false
     published:
-      label: 'Ολοκληρωμένο'
+      label: Ολοκληρωμένο
       weight: 5
       published: true
       default_revision: true
@@ -91,7 +91,7 @@ type_settings:
       to: approved
       weight: 7
     completed:
-      label: 'Ολοκληρωμένο'
+      label: Ολοκληρωμένο
       from:
         - signed
       to: published
