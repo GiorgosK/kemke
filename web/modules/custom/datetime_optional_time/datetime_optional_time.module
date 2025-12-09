@@ -1,0 +1,72 @@
+<?php
+
+use Drupal\Core\Entity\EntityFormInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_alter().
+ */
+function datetime_optional_time_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof EntityFormInterface) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof EntityInterface || !$entity->bundle()) {
+    return;
+  }
+
+  $fields = datetime_optional_time_get_optional_time_fields($entity);
+  if (empty($fields)) {
+    return;
+  }
+
+  foreach ($fields as $field_name) {
+    if (empty($form[$field_name]['widget'])) {
+      continue;
+    }
+
+    // Apply the time hiding to each widget item to support multiple values.
+    foreach ($form[$field_name]['widget'] as $delta => &$widget) {
+      if (!is_numeric($delta) || empty($widget['value'])) {
+        continue;
+      }
+
+      $widget['value']['#date_time_element'] = 'none';
+      // Avoid showing a time placeholder or validation pattern.
+      $widget['value']['#date_time_format'] = '';
+    }
+  }
+}
+
+/**
+ * Returns datetime fields that use the optional time formatter.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ *   The entity being edited.
+ *
+ * @return string[]
+ *   A list of field names on the entity that should hide time input.
+ */
+function datetime_optional_time_get_optional_time_fields(EntityInterface $entity) {
+  $entity_type_id = $entity->getEntityTypeId();
+  $bundle = $entity->bundle();
+  $storage = \Drupal::entityTypeManager()->getStorage('entity_view_display');
+
+  /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface|null $view_display */
+  $view_display = $storage->load($entity_type_id . '.' . $bundle . '.default');
+  if (!$view_display) {
+    return [];
+  }
+
+  $fields = [];
+  foreach ($view_display->getComponents() as $field_name => $component) {
+    if (($component['type'] ?? '') === 'datetime_optional_time' && $entity->hasField($field_name)) {
+      $fields[] = $field_name;
+    }
+  }
+
+  return $fields;
+}

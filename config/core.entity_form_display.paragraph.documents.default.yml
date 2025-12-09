@@ -13,7 +13,7 @@ dependencies:
     - field.field.paragraph.documents.field_subject
     - paragraphs.paragraphs_type.documents
   module:
-    - datetime
+    - datetime_optional_time
     - file
     - text
 id: paragraph.documents.default
@@ -37,7 +37,7 @@ content:
       progress_indicator: throbber
     third_party_settings: {  }
   field_protocol_date:
-    type: datetime_default
+    type: datetime_optional_time_widget
     weight: 3
     region: content
     settings: {  }

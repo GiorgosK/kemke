@@ -1,0 +1,7 @@
+name: 'Datetime Optional Time'
+type: module
+description: 'Adds a datetime formatter that hides the time input and treats time as optional.'
+core_version_requirement: '^10 || ^11'
+package: Custom
+dependencies:
+  - datetime
