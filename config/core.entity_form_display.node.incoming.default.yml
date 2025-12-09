@@ -120,7 +120,6 @@ third_party_settings:
         - langcode
         - field_ref_id
         - field_entry_date
-        - field_protocol_incoming
         - field_sender
         - field_incoming_type
         - field_subject
@@ -295,14 +294,6 @@ content:
     weight: 17
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_protocol_incoming:
-    type: string_textfield
-    weight: 5
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
     third_party_settings: {  }
   field_ref_id:
     type: string_textfield
@@ -486,6 +477,7 @@ content:
       placeholder: ''
     third_party_settings: {  }
 hidden:
+  field_protocol_incoming: true
   field_related_incoming: true
   field_responsible_entity: true
   title: true
