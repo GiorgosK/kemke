@@ -105,6 +105,7 @@ pre {
   margin-top: 0.5rem;
 }
 
+.node-incoming-edit-form .details-wrapper .paragraphs-subform,
 .node-incoming-edit-form .details-wrapper {
   display: flex;
   gap: 2rem;
@@ -113,7 +114,11 @@ pre {
 
 .node-incoming-edit-form .details-wrapper .field--type-string,
 .node-incoming-edit-form .details-wrapper .field--type-datetime, 
-.node-incoming-edit-form .details-wrapper .field--type-entity-reference {
+.node-incoming-edit-form .details-wrapper .field--type-entity-reference,
+.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-string,
+.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-datetime, 
+.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-entity-reference, 
+.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-file {
   width: 250px;
 }
 
@@ -124,6 +129,32 @@ pre {
 .node-incoming-edit-form .details-wrapper .field--type-datetime .form-type-date {
   display: block;
 }
+
+.node-incoming-edit-form #edit-group-files .details-wrapper {
+  display: block;
+}
+#field-documents-values {
+  width: 100%
+}
+
+.tabledrag-toggle-weight-wrapper,
+#field-documents-values thead,
+#field-documents-values td:empty,
+#field-documents-values .js-filter-wrapper,
+#field-documents-values .delta-order,
+#field-documents-values .field-multiple-drag,
+#field-documents-values .paragraph-top {
+  display: none;
+}
+#field-documents-values td {
+  border: 1px solid #ccc;
+  padding: 20px;
+}
+
+.form-type-managed-file .description{
+  font-size: 0.7rem;
+}
+
 
 tr[data-hierarchy-level="1"] .views-tree-hierarchy-cell {
   padding-left: 2rem !important;
