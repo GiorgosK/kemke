@@ -281,16 +281,6 @@ content:
     third_party_settings: {  }
     weight: 11
     region: content
-  field_primary:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
-    third_party_settings: {  }
-    weight: 2
-    region: content
   field_priority:
     type: entity_reference_label
     label: above
@@ -426,6 +416,7 @@ content:
     region: content
 hidden:
   content_moderation_control: true
+  field_primary: true
   langcode: true
   links: true
   workflow_buttons: true
