@@ -92,7 +92,7 @@ function case_tweaks_generate_reference_id(TermInterface $term): string {
   $year = (int) $now->format('Y');
   $sequence = case_tweaks_next_reference_sequence($year);
 
-  return sprintf('CASE-%d-%06d', $year, $sequence);
+  return sprintf('CASE-%d-%d', $year, $sequence);
 }
 
 /**
