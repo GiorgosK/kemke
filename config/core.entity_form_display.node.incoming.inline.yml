@@ -1,4 +1,4 @@
-uuid: e0727bfb-5f70-4bb6-bcb4-a9c39127d82b
+uuid: cf876bb4-53e5-45fd-8fdf-bad8926c3578
 langcode: en
 status: true
 dependencies:
@@ -163,7 +163,6 @@ third_party_settings:
     group_files:
       children:
         - field_documents
-        - field_related_incoming
       label: Αρχεία
       region: content
       parent_name: group_tabs
@@ -193,10 +192,10 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-id: node.incoming.default
+id: node.incoming.inline
 targetEntityType: node
 bundle: incoming
-mode: default
+mode: inline
 content:
   created:
     type: datetime_timestamp
@@ -309,18 +308,18 @@ content:
       conditional_fields: {  }
   field_related_incoming:
     type: inline_entity_form_complex
-    weight: 14
+    weight: 1
     region: content
     settings:
-      form_mode: inline
+      form_mode: default
       override_labels: false
       label_singular: ''
       label_plural: ''
-      allow_new: false
-      allow_existing: true
+      allow_new: true
+      allow_existing: false
       match_operator: CONTAINS
       allow_duplicate: false
-      collapsible: true
+      collapsible: false
       collapsed: false
       revision: false
       removed_reference: optional

@@ -1,0 +1,11 @@
+uuid: c21f3d09-e6a6-43b4-9cc8-c8e7e99cb86e
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.inline
+label: inline
+description: null
+targetEntityType: node
+cache: true
