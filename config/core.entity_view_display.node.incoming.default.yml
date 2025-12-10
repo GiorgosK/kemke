@@ -40,7 +40,6 @@ third_party_settings:
   field_group:
     group_documents:
       children:
-        - field_documents
         - field_related_incoming
       label: Αρχεία
       parent_name: group_tabs
@@ -136,6 +135,7 @@ third_party_settings:
     group_case:
       children:
         - field_case
+        - field_documents
       label: Υπόθεση
       parent_name: group_tabs
       region: content

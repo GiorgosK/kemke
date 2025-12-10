@@ -1,0 +1,11 @@
+uuid: c305cdeb-793a-4398-aae5-54bbb0b31699
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.inline_form
+label: 'inline form'
+description: null
+targetEntityType: node
+cache: true

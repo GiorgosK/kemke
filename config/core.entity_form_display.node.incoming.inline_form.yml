@@ -1,9 +1,9 @@
-uuid: 1c62448d-27ec-4de5-8ce6-17a1e343945e
+uuid: 1e09376c-bac8-48b9-8d9b-831bf72ba24d
 langcode: en
 status: true
 dependencies:
   config:
-    - core.entity_view_mode.node.inline
+    - core.entity_form_mode.node.inline_form
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -33,57 +33,114 @@ dependencies:
     - node.type.incoming
   module:
     - datetime
-    - entity_reference_revisions
+    - paragraphs
     - text
-    - user
-id: node.incoming.inline
+id: node.incoming.inline_form
 targetEntityType: node
 bundle: incoming
-mode: inline
+mode: inline_form
 content:
   field_documents:
-    type: entity_reference_revisions_entity_view
-    label: above
-    settings:
-      view_mode: default
-      link: '1'
-    third_party_settings: {  }
-    weight: 4
+    type: paragraphs
+    weight: 9
     region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: documents
+      features:
+        add_above: '0'
+        collapse_edit_all: '0'
+        convert: '0'
+        duplicate: '0'
+    third_party_settings: {  }
   field_entry_date:
     type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 0
-    region: content
-  field_incoming_type:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: true
-    third_party_settings: {  }
     weight: 2
     region: content
-  field_ref_id:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 1
-    region: content
-  field_subject:
-    type: text_default
-    label: above
     settings: {  }
     third_party_settings: {  }
+  field_incoming_type:
+    type: options_select
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_priority:
+    type: options_select
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_ref_id:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings:
+      conditional_fields: {  }
+  field_sender:
+    type: string_textfield
     weight: 3
     region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_subject:
+    type: text_textarea
+    weight: 7
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_taa_project:
+    type: string_textfield
+    weight: 4
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_thematic_unit:
+    type: string_textfield
+    weight: 6
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_working_days:
+    type: number
+    weight: 8
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  group_ee:
+    weight: 26
+    region: content
+    settings: {  }
+    third_party_settings:
+      conditional_fields: {  }
+  langcode:
+    type: language_select
+    weight: 0
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
 hidden:
-  content_moderation_control: true
+  created: true
   field_basic_operator: true
   field_case: true
   field_completion_date: true
@@ -91,7 +148,6 @@ hidden:
   field_legal_deadline: true
   field_notes: true
   field_operators: true
-  field_priority: true
   field_protocol_incoming: true
   field_related_incoming: true
   field_remarks: true
@@ -99,12 +155,12 @@ hidden:
   field_responsible_entity: true
   field_sa_number: true
   field_sani_user: true
-  field_sender: true
   field_supervisor: true
-  field_taa_project: true
-  field_thematic_unit: true
   field_transparency_requirement: true
-  field_working_days: true
-  langcode: true
-  links: true
-  workflow_buttons: true
+  moderation_state: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  title: true
+  uid: true

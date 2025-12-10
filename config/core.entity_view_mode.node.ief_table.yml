@@ -1,11 +1,11 @@
-uuid: e321f0a3-49fc-42e7-b618-b8460562533e
+uuid: 1eec996d-19a9-48d6-9f06-b7b515b85e4d
 langcode: el
 status: true
 dependencies:
   module:
     - node
-id: node.inline
-label: inline
+id: node.ief_table
+label: 'Inline Entity Form Table'
 description: null
 targetEntityType: node
 cache: true

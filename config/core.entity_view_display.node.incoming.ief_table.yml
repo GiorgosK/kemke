@@ -1,9 +1,9 @@
-uuid: 1c62448d-27ec-4de5-8ce6-17a1e343945e
+uuid: d899a4d7-363f-4a14-a332-b98683826c6c
 langcode: en
 status: true
 dependencies:
   config:
-    - core.entity_view_mode.node.inline
+    - core.entity_view_mode.node.ief_table
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -36,48 +36,48 @@ dependencies:
     - entity_reference_revisions
     - text
     - user
-id: node.incoming.inline
+id: node.incoming.ief_table
 targetEntityType: node
 bundle: incoming
-mode: inline
+mode: ief_table
 content:
   field_documents:
     type: entity_reference_revisions_entity_view
-    label: above
+    label: hidden
     settings:
       view_mode: default
-      link: '1'
+      link: ''
     third_party_settings: {  }
     weight: 4
     region: content
   field_entry_date:
     type: datetime_default
-    label: above
+    label: hidden
     settings:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 0
+    weight: 1
     region: content
-  field_incoming_type:
-    type: entity_reference_label
-    label: above
+  field_protocol_incoming:
+    type: string
+    label: hidden
     settings:
-      link: true
+      link_to_entity: false
     third_party_settings: {  }
     weight: 2
     region: content
   field_ref_id:
     type: string
-    label: above
+    label: hidden
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 1
+    weight: 0
     region: content
   field_subject:
     type: text_default
-    label: above
+    label: hidden
     settings: {  }
     third_party_settings: {  }
     weight: 3
@@ -87,12 +87,12 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_incoming_type: true
   field_interim_deadline: true
   field_legal_deadline: true
   field_notes: true
   field_operators: true
   field_priority: true
-  field_protocol_incoming: true
   field_related_incoming: true
   field_remarks: true
   field_requested_deadline: true
@@ -105,6 +105,8 @@ hidden:
   field_thematic_unit: true
   field_transparency_requirement: true
   field_working_days: true
+  label: true
   langcode: true
   links: true
+  status: true
   workflow_buttons: true
