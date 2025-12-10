@@ -34,6 +34,8 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
   incoming_tweaks_set_completion_date_on_publish($entity);
 
+  incoming_tweaks_remove_primary_from_newly_related($entity);
+
   if ($is_new) {
     incoming_tweaks_set_primary_flag($entity);
     incoming_tweaks_add_self_related_incoming($entity);
@@ -181,7 +183,49 @@ function incoming_tweaks_set_completion_date_on_publish(NodeInterface $node): vo
  */
 function incoming_tweaks_set_primary_flag(NodeInterface $node): void {
   if ($node->hasField('field_primary')) {
-    $node->set('field_primary', 1);
+  $node->set('field_primary', 1);
+  }
+}
+
+/**
+ * Marks newly-related incoming nodes as non-primary.
+ */
+function incoming_tweaks_remove_primary_from_newly_related(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming') || !$node->original instanceof EntityInterface) {
+    return;
+  }
+
+  $current_ids = [];
+  foreach ($node->get('field_related_incoming') as $item) {
+    if (!empty($item->target_id)) {
+      $current_ids[] = (int) $item->target_id;
+    }
+  }
+
+  $original_ids = [];
+  foreach ($node->original->get('field_related_incoming') as $item) {
+    if (!empty($item->target_id)) {
+      $original_ids[] = (int) $item->target_id;
+    }
+  }
+
+  $new_ids = array_diff($current_ids, $original_ids);
+  if (!$new_ids) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $related_nodes = $storage->loadMultiple($new_ids);
+
+  foreach ($related_nodes as $related) {
+    if (!$related instanceof NodeInterface || !$related->hasField('field_primary')) {
+      continue;
+    }
+
+    $related->set('field_primary', 0);
+    $related->setNewRevision(FALSE);
+    $related->save();
   }
 }
 
