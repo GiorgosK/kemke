@@ -65,12 +65,18 @@ function _incoming_notifications_send_mail(string $key, EntityInterface $entity,
 
   $mailManager = \Drupal::service('plugin.manager.mail');
   $langcode = $entity->language()->getId();
+  $title = trim((string) $entity->label());
+  if ($title === '') {
+    $title = t('Untitled incoming');
+  }
+  $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
+  $state = $entity->get('moderation_state')->value ?? '';
 
   foreach ($recipients as $to) {
     $params = [
-      'incoming_title' => $entity->label(),
-      'incoming_id' => $entity->id(),
-      'state' => $entity->get('moderation_state')->value,
+      'incoming_title' => $title,
+      'incoming_id' => $incoming_id,
+      'state' => $state,
     ];
     $mailManager->mail('incoming_notifications', $key, $to, $langcode, $params, NULL, TRUE);
   }

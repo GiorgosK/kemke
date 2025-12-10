@@ -28,6 +28,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
 
   $is_new = $entity->isNew();
 
+  incoming_tweaks_ensure_title($entity);
   incoming_tweaks_skip_director_gate_for_director($entity);
   $baseline = incoming_tweaks_ensure_entry_date($entity);
   incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
@@ -183,7 +184,17 @@ function incoming_tweaks_set_completion_date_on_publish(NodeInterface $node): vo
  */
 function incoming_tweaks_set_primary_flag(NodeInterface $node): void {
   if ($node->hasField('field_primary')) {
-  $node->set('field_primary', 1);
+    $node->set('field_primary', 1);
+  }
+}
+
+/**
+ * Ensures the node title is set to a non-empty value.
+ */
+function incoming_tweaks_ensure_title(NodeInterface $node): void {
+  $title = trim((string) $node->label());
+  if ($title === '') {
+    $node->setTitle(t('Untitled incoming'));
   }
 }
 
