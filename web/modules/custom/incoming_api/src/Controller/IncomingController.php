@@ -107,6 +107,7 @@ final class IncomingController extends ControllerBase {
     }
 
     $refId = $this->extractRefId($payload['field_ref_id'] ?? NULL);
+    $attachedRefId = NULL;
 
     try {
       $node = $this->createIncomingNode($payload);
@@ -118,7 +119,7 @@ final class IncomingController extends ControllerBase {
 
     if ($refId !== NULL) {
       try {
-        $this->linkToExistingIncomingByRefId($node, $refId);
+        $attachedRefId = $this->linkToExistingIncomingByRefId($node, $refId);
       }
       catch (\Throwable $exception) {
         $this->getLogger('incoming_api')->warning('Unable to link incoming @id to ref @ref: @message', [
@@ -129,19 +130,25 @@ final class IncomingController extends ControllerBase {
       }
     }
 
-    return new JsonResponse($this->buildResponseData($node, 'create'), Response::HTTP_CREATED);
+    return new JsonResponse($this->buildResponseData($node, 'create', $attachedRefId), Response::HTTP_CREATED);
   }
 
   /**
    * Builds the response payload for the freshly created node.
    */
-  private function buildResponseData(NodeInterface $node, string $action): array {
-    return [
+  private function buildResponseData(NodeInterface $node, string $action, ?string $attachedRefId = NULL): array {
+    $data = [
       'status' => 'success',
       'id' => (int) $node->id(),
       'ref_id' => $this->getRefId($node),
       'action' => $action,
     ];
+
+    if ($attachedRefId !== NULL) {
+      $data['attached'] = $attachedRefId;
+    }
+
+    return $data;
   }
 
   /**
@@ -374,8 +381,11 @@ final class IncomingController extends ControllerBase {
 
   /**
    * Adds the new incoming as a related reference to an existing one by ref_id.
+   *
+   * @return string|null
+   *   The ref_id that was attached to, or NULL if nothing was linked.
    */
-  private function linkToExistingIncomingByRefId(NodeInterface $newNode, string $refId): void {
+  private function linkToExistingIncomingByRefId(NodeInterface $newNode, string $refId): ?string {
     $storage = $this->entityTypeManager->getStorage('node');
     $matches = $storage->loadByProperties([
       'type' => 'incoming',
@@ -385,15 +395,15 @@ final class IncomingController extends ControllerBase {
     /** @var \Drupal\node\NodeInterface|null $existing */
     $existing = $matches ? reset($matches) : NULL;
     if (!$existing instanceof NodeInterface) {
-      return;
+      return NULL;
     }
 
     // Avoid self-linking or adding duplicates.
     if ((int) $existing->id() === (int) $newNode->id()) {
-      return;
+      return NULL;
     }
     if (!$existing->hasField('field_related_incoming')) {
-      return;
+      return NULL;
     }
 
     $related_ids = array_map(
@@ -401,12 +411,13 @@ final class IncomingController extends ControllerBase {
       $existing->get('field_related_incoming')->getValue()
     );
     if (in_array((int) $newNode->id(), $related_ids, TRUE)) {
-      return;
+      return $refId;
     }
 
     $existing->get('field_related_incoming')->appendItem(['target_id' => (int) $newNode->id()]);
     $existing->setNewRevision(FALSE);
     $existing->save();
+    return $refId;
   }
 
   /**
