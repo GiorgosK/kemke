@@ -380,18 +380,26 @@ function incoming_tweaks_populate_field_ref_id(NodeInterface $node): bool {
   }
 
   $node->set('field_ref_id', incoming_tweaks_generate_reference_id($node));
-  return TRUE;
+ return TRUE;
 }
 
 /**
  * Generates the INC-#### identifier.
  */
 function incoming_tweaks_generate_reference_id(NodeInterface $node): string {
+  // Avoid incrementing the counter multiple times for the same node in a
+  // single request (e.g., if generation is triggered twice during save).
+  static $generated = [];
+  $uuid = $node->uuid();
+  if (isset($generated[$uuid])) {
+    return $generated[$uuid];
+  }
+
   $now = new DrupalDateTime('now');
   $year = (int) $now->format('Y');
   $sequence = incoming_tweaks_next_reference_sequence($year);
 
-  return sprintf('INC-%d-%d', $year, $sequence);
+  return $generated[$uuid] = sprintf('INC-%d-%d', $year, $sequence);
 }
 
 /**
