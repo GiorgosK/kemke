@@ -9,11 +9,55 @@
 
 .pager__items .pager__item {
   display: inline-block;
-}  
+}
 .pager__items .pager__item a {
   border: 1px solid #ccc;
   padding: 5px 10px;
 }
 .pager__items .pager__item.is-active a {
   background-color: #ccc;
+}
+
+.govgr-table-simple {
+  border: 1px solid #38444d;
+}
+.govgr-table-simple tr {
+  border-bottom: 1px solid #38444d;
+}
+.govgr-table-simple thead th {
+  background-color: #c9cbcb;
+}
+.govgr-table-simple tr:nth-child(odd) {
+  background-color: #1d2a35;
+}
+.govgr-table-simple tr:nth-child(even) {
+  background-color: #efefef;
+}
+
+.govgr-table-simple {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  display: table;
+  border: 1px solid #ccc;
+}
+.govgr-table-simple tr {
+  border-bottom: 1px solid #ddd;
+}
+.govgr-table-simple tr:nth-child(odd) {
+  background-color: #fff;
+}
+.govgr-table-simple tr:nth-child(even) {
+  background-color: #e7e9eb;
+}
+.govgr-table-simple td,
+.govgr-table-simple th {
+  padding: 8px 8px;
+  display: table-cell;
+  text-align: left;
+  vertical-align: top;
+}
+.govgr-table-simple th:first-child,
+.govgr-table-simple td:first-child {
+  padding-left: 16px;
 }
