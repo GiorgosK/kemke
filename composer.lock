@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "508e31b5093511a82234d7f6a1b2a5ff",
+    "content-hash": "3d3a7b03ef58d7cca42d3c29bf086c48",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -3085,6 +3085,65 @@
                 "source": "https://git.drupalcode.org/project/rat/-/tree/1.0.0"
             },
             "time": "2023-07-19T22:22:22+00:00"
+        },
+        {
+            "name": "drupal/reference_table_formatter",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/reference_table_formatter.git",
+                "reference": "2.0.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/reference_table_formatter-2.0.0.zip",
+                "reference": "2.0.0",
+                "shasum": "80a01bb8fb5f8864df688268640d9aef8c9c1945"
+            },
+            "require": {
+                "drupal/core": "^10.1 || ^11"
+            },
+            "require-dev": {
+                "drupal/paragraphs": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "2.0.0",
+                    "datestamp": "1747944596",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "benjy",
+                    "homepage": "https://www.drupal.org/user/1852732"
+                },
+                {
+                    "name": "bmagalhaes",
+                    "homepage": "https://www.drupal.org/user/333078"
+                },
+                {
+                    "name": "sam152",
+                    "homepage": "https://www.drupal.org/user/1485048"
+                },
+                {
+                    "name": "wongjn",
+                    "homepage": "https://www.drupal.org/user/3055747"
+                }
+            ],
+            "description": "Display fields on the target of a reference in a table.",
+            "homepage": "https://www.drupal.org/project/reference_table_formatter",
+            "support": {
+                "source": "https://git.drupalcode.org/project/reference_table_formatter"
+            }
         },
         {
             "name": "drupal/role_delegation",
