@@ -26,13 +26,19 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
+  $is_new = $entity->isNew();
+
   incoming_tweaks_skip_director_gate_for_director($entity);
   $baseline = incoming_tweaks_ensure_entry_date($entity);
   incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
   incoming_tweaks_set_completion_date_on_publish($entity);
 
-  if (!$entity->isNew()) {
+  if ($is_new) {
+    incoming_tweaks_set_primary_flag($entity);
+    incoming_tweaks_add_self_related_incoming($entity);
+  }
+  else {
     incoming_tweaks_populate_field_ref_id($entity);
   }
 }
@@ -171,6 +177,39 @@ function incoming_tweaks_set_completion_date_on_publish(NodeInterface $node): vo
 }
 
 /**
+ * Ensures field_primary is set to on for new incoming nodes.
+ */
+function incoming_tweaks_set_primary_flag(NodeInterface $node): void {
+  if ($node->hasField('field_primary')) {
+    $node->set('field_primary', 1);
+  }
+}
+
+/**
+ * Adds a self-reference to field_related_incoming when available.
+ */
+function incoming_tweaks_add_self_related_incoming(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming')) {
+    return;
+  }
+
+  $target_id = $node->id();
+  if (!$target_id) {
+    // No ID yet (e.g., first presave on new entity), nothing to link.
+    return;
+  }
+
+  $related_field = $node->get('field_related_incoming');
+  foreach ($related_field as $item) {
+    if ((int) $item->target_id === (int) $target_id) {
+      return;
+    }
+  }
+
+  $related_field->appendItem(['target_id' => $target_id]);
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for nodes.
  */
 function incoming_tweaks_node_insert(NodeInterface $node): void {
@@ -178,6 +217,7 @@ function incoming_tweaks_node_insert(NodeInterface $node): void {
     return;
   }
 
+  incoming_tweaks_add_self_related_incoming($node);
   incoming_tweaks_assign_reference_id($node);
 }
 
