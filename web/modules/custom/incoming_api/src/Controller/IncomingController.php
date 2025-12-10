@@ -101,30 +101,12 @@ final class IncomingController extends ControllerBase {
     $payload = $this->normalizeFieldKeys($payload);
     $payload = $this->ensurePrimaryFieldsFromDocuments($payload);
 
-    if ($this->isAttachmentOnlyPayload($payload)) {
-      $violations = $this->validateAttachmentPayload($payload);
-      if ($violations !== []) {
-        return $this->errorResponse('Validation failed.', Response::HTTP_UNPROCESSABLE_ENTITY, $violations);
-      }
-
-      try {
-        $node = $this->appendDocumentsToExistingIncoming($payload);
-      }
-      catch (\InvalidArgumentException $exception) {
-        return $this->errorResponse($exception->getMessage(), Response::HTTP_NOT_FOUND);
-      }
-      catch (\Throwable $exception) {
-        $this->getLogger('incoming_api')->error('Failed to append documents to incoming: ' . (string) $exception->getMessage());
-        return $this->errorResponse('Failed to append documents to incoming.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
-      }
-
-      return new JsonResponse($this->buildResponseData($node, 'update'), Response::HTTP_OK);
-    }
-
     $violations = $this->validatePayload($payload);
     if ($violations !== []) {
       return $this->errorResponse('Validation failed.', Response::HTTP_UNPROCESSABLE_ENTITY, $violations);
     }
+
+    $refId = $this->extractRefId($payload['field_ref_id'] ?? NULL);
 
     try {
       $node = $this->createIncomingNode($payload);
@@ -132,6 +114,19 @@ final class IncomingController extends ControllerBase {
     catch (\Throwable $exception) {
       $this->getLogger('incoming_api')->error('Failed to create incoming: ' . (string) $exception->getMessage());
       return $this->errorResponse('Failed to create incoming.', Response::HTTP_INTERNAL_SERVER_ERROR, $this->buildExceptionDetails($exception));
+    }
+
+    if ($refId !== NULL) {
+      try {
+        $this->linkToExistingIncomingByRefId($node, $refId);
+      }
+      catch (\Throwable $exception) {
+        $this->getLogger('incoming_api')->warning('Unable to link incoming @id to ref @ref: @message', [
+          '@id' => $node->id(),
+          '@ref' => $refId,
+          '@message' => $exception->getMessage(),
+        ]);
+      }
     }
 
     return new JsonResponse($this->buildResponseData($node, 'create'), Response::HTTP_CREATED);
@@ -375,6 +370,43 @@ final class IncomingController extends ControllerBase {
     }
 
     return $node;
+  }
+
+  /**
+   * Adds the new incoming as a related reference to an existing one by ref_id.
+   */
+  private function linkToExistingIncomingByRefId(NodeInterface $newNode, string $refId): void {
+    $storage = $this->entityTypeManager->getStorage('node');
+    $matches = $storage->loadByProperties([
+      'type' => 'incoming',
+      'field_ref_id' => $refId,
+    ]);
+
+    /** @var \Drupal\node\NodeInterface|null $existing */
+    $existing = $matches ? reset($matches) : NULL;
+    if (!$existing instanceof NodeInterface) {
+      return;
+    }
+
+    // Avoid self-linking or adding duplicates.
+    if ((int) $existing->id() === (int) $newNode->id()) {
+      return;
+    }
+    if (!$existing->hasField('field_related_incoming')) {
+      return;
+    }
+
+    $related_ids = array_map(
+      static fn(array $item) => (int) ($item['target_id'] ?? 0),
+      $existing->get('field_related_incoming')->getValue()
+    );
+    if (in_array((int) $newNode->id(), $related_ids, TRUE)) {
+      return;
+    }
+
+    $existing->get('field_related_incoming')->appendItem(['target_id' => (int) $newNode->id()]);
+    $existing->setNewRevision(FALSE);
+    $existing->save();
   }
 
   /**
