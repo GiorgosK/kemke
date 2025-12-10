@@ -34,6 +34,7 @@
         "drupal/external_entities": "^3.0@beta",
         "drupal/field_group": "^4.0",
         "drupal/field_permissions": "^1.4",
+        "drupal/inline_entity_form": "^3.0@RC",
         "drupal/node_view_permissions": "^2.0",
         "drupal/paragraphs": "^1.19",
         "drupal/role_delegation": "^1.4",
