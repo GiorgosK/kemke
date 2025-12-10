@@ -380,7 +380,7 @@ function incoming_tweaks_generate_reference_id(NodeInterface $node): string {
   $year = (int) $now->format('Y');
   $sequence = incoming_tweaks_next_reference_sequence($year);
 
-  return sprintf('INC-%d-%06d', $year, $sequence);
+  return sprintf('INC-%d-%d', $year, $sequence);
 }
 
 /**
