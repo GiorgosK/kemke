@@ -14,6 +14,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_incoming
     - field.field.node.incoming.field_ref_id
@@ -92,6 +93,7 @@ hidden:
   field_legal_deadline: true
   field_notes: true
   field_operators: true
+  field_primary: true
   field_priority: true
   field_related_incoming: true
   field_remarks: true

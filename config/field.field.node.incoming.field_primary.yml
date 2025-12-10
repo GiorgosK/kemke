@@ -1,0 +1,21 @@
+uuid: 03c8edb8-8c22-4769-9ea9-95bc40d85e23
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_primary
+    - node.type.incoming
+id: node.incoming.field_primary
+field_name: field_primary
+entity_type: node
+bundle: incoming
+label: primary
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ανοικτό
+  off_label: Κλειστό
+field_type: boolean

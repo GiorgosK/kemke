@@ -13,6 +13,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_incoming
     - field.field.node.incoming.field_ref_id
@@ -279,6 +280,16 @@ content:
       link: true
     third_party_settings: {  }
     weight: 11
+    region: content
+  field_primary:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 2
     region: content
   field_priority:
     type: entity_reference_label
