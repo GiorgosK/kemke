@@ -34,6 +34,7 @@ dependencies:
     - datetime
     - entity_reference_revisions
     - field_group
+    - reference_table_formatter
     - text
     - user
 third_party_settings:
@@ -304,11 +305,13 @@ content:
     weight: 12
     region: content
   field_related_incoming:
-    type: entity_reference_entity_view
+    type: entity_reference_table
     label: hidden
     settings:
       view_mode: inline
-      link: false
+      show_entity_label: true
+      empty_cell_value: ''
+      hide_header: '0'
     third_party_settings: {  }
     weight: 2
     region: content

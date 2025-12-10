@@ -57,13 +57,13 @@ content:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 0
+    weight: 1
     region: content
-  field_incoming_type:
-    type: entity_reference_label
+  field_protocol_incoming:
+    type: string
     label: above
     settings:
-      link: true
+      link_to_entity: false
     third_party_settings: {  }
     weight: 2
     region: content
@@ -73,7 +73,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 1
+    weight: 0
     region: content
   field_subject:
     type: text_default
@@ -87,12 +87,12 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_incoming_type: true
   field_interim_deadline: true
   field_legal_deadline: true
   field_notes: true
   field_operators: true
   field_priority: true
-  field_protocol_incoming: true
   field_related_incoming: true
   field_remarks: true
   field_requested_deadline: true
