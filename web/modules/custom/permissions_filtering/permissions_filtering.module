@@ -1,0 +1,102 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_admin_permissions.
+ */
+function permissions_filtering_form_user_admin_permissions_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $current_user = \Drupal::currentUser();
+
+  // Skip filtering for users allowed to see everything.
+  if ($current_user->hasPermission('see all permission sets')) {
+    return;
+  }
+
+  $permission_handler = \Drupal::service('user.permissions');
+  $module_handler = \Drupal::moduleHandler();
+  $module_extension_list = \Drupal::service('extension.list.module');
+
+  $filtered_permission_sets = [
+    //'Activities',
+    'Block',
+    'Block Content',
+    'Configuration Manager',
+    'Contextual Links',
+    'Entity Browser',
+    'Entity Reference Revisions',
+    'Field Permissions',
+    'Field UI',
+    'File',
+    'Filter',
+    'Image',
+    'Incoming API',
+    'Interface Translation',
+    'Language',
+    'Paragraphs',
+    'Path',
+    'Permissions filtering',
+    'Role Delegation',
+    'Search',
+    'Shortcut',
+    'System',
+    'Toolbar',
+    'Views UI',
+    'Workflows',    
+  ];
+  
+  $filtered_permissions = [
+    // Provider machine name => permission machine names.
+    'activities' => [
+      'purge activities',
+      'administer users activity',
+    ],
+  ];
+
+  // Group permissions by their provider to mirror core's rendering.
+  $permissions = $permission_handler->getPermissions();
+  $permissions_by_provider = [];
+  foreach ($permissions as $permission_name => $definition) {
+    $permissions_by_provider[$definition['provider']][$permission_name] = $definition;
+  }
+
+  // Keep provider grouping identical to the core form.
+  if ($module_handler->moduleExists('node') && isset($permissions_by_provider['system']['access content'])) {
+    $keys = array_keys($permissions_by_provider['node']);
+    $offset = (int) array_search('view own unpublished content', $keys);
+    $permissions_by_provider['node'] = array_merge(
+      array_slice($permissions_by_provider['node'], 0, $offset),
+      ['access content' => $permissions_by_provider['system']['access content']],
+      array_slice($permissions_by_provider['node'], $offset)
+    );
+    unset($permissions_by_provider['system']['access content']);
+  }
+
+  // Remove entire permission sections provided by filtered modules.
+  foreach ($permissions_by_provider as $provider => $provider_permissions) {
+    $provider_label = $module_extension_list->getName($provider);
+    if (in_array($provider_label, $filtered_permission_sets, TRUE)) {
+      $module_key = 'module_' . $provider;
+      if (isset($form['permissions'][$module_key])) {
+        unset($form['permissions'][$module_key]);
+      }
+      foreach ($provider_permissions as $permission_name => $definition) {
+        if (isset($form['permissions'][$permission_name])) {
+          unset($form['permissions'][$permission_name]);
+        }
+      }
+    }
+  }
+
+  // Remove individual permissions by provider and machine name.
+  foreach ($filtered_permissions as $provider_id => $permission_names) {
+    if (empty($permissions_by_provider[$provider_id])) {
+      continue;
+    }
+    foreach ($permission_names as $permission_name) {
+      if (isset($form['permissions'][$permission_name])) {
+        unset($form['permissions'][$permission_name]);
+      }
+    }
+  }
+}

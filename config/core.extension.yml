@@ -57,6 +57,7 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  permissions_filtering: 0
   reference_table_formatter: 0
   role_delegation: 0
   search: 0

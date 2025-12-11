@@ -1,0 +1,5 @@
+name: 'Permissions filtering'
+type: module
+description: 'Filters permission sets and individual permissions on the permissions admin form.'
+core_version_requirement: ^9 || ^10 || ^11
+package: 'Custom'
