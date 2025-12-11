@@ -3,32 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.paragraph.documents.field_assignees
     - field.field.paragraph.documents.field_files
-    - field.field.paragraph.documents.field_protocol
-    - field.field.paragraph.documents.field_protocol_date
-    - field.field.paragraph.documents.field_protocol_number_doc
-    - field.field.paragraph.documents.field_protocol_number_sender
-    - field.field.paragraph.documents.field_sender
-    - field.field.paragraph.documents.field_subject
     - paragraphs.paragraphs_type.documents
   module:
-    - datetime_optional_time
     - file
-    - text
 id: paragraph.documents.default
 targetEntityType: paragraph
 bundle: documents
 mode: default
 content:
-  field_assignees:
-    type: string_textarea
-    weight: 5
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
   field_files:
     type: file_generic
     weight: 6
@@ -36,45 +19,6 @@ content:
     settings:
       progress_indicator: throbber
     third_party_settings: {  }
-  field_protocol_date:
-    type: datetime_optional_time_widget
-    weight: 3
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_protocol_number_doc:
-    type: string_textfield
-    weight: 2
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_protocol_number_sender:
-    type: string_textfield
-    weight: 1
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_sender:
-    type: string_textfield
-    weight: 0
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_subject:
-    type: text_textarea
-    weight: 4
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
 hidden:
   created: true
-  field_protocol: true
   status: true

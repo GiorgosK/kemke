@@ -3,31 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.paragraph.documents.field_assignees
     - field.field.paragraph.documents.field_files
-    - field.field.paragraph.documents.field_protocol
-    - field.field.paragraph.documents.field_protocol_date
-    - field.field.paragraph.documents.field_protocol_number_doc
-    - field.field.paragraph.documents.field_protocol_number_sender
-    - field.field.paragraph.documents.field_sender
-    - field.field.paragraph.documents.field_subject
     - paragraphs.paragraphs_type.documents
   module:
-    - datetime
     - file
-    - text
 id: paragraph.documents.default
 targetEntityType: paragraph
 bundle: documents
 mode: default
 content:
-  field_assignees:
-    type: basic_string
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 6
-    region: content
   field_files:
     type: file_default
     label: above
@@ -35,53 +19,5 @@ content:
       use_description_as_link_text: true
     third_party_settings: {  }
     weight: 1
-    region: content
-  field_protocol:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 0
-    region: content
-  field_protocol_date:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 4
-    region: content
-  field_protocol_number_doc:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 3
-    region: content
-  field_protocol_number_sender:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 2
-    region: content
-  field_sender:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 7
-    region: content
-  field_subject:
-    type: text_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 5
     region: content
 hidden: {  }
