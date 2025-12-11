@@ -1,9 +1,24 @@
 .views-tree-row {
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.22s ease,
+    opacity 0.22s ease,
+    transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: top;
+  opacity: 1;
 }
 
 .views-tree-row[data-hierarchy-level]:not([data-hierarchy-level="0"]) {
   display: none;
+}
+
+.views-tree-row.is-entering {
+  opacity: 0;
+  transform: scaleY(0.98) translateY(-2px);
+}
+
+.views-tree-row.is-exiting {
+  opacity: 0;
+  transform: scaleY(0.98) translateY(-2px);
 }
 
 .views-tree-toggle {
