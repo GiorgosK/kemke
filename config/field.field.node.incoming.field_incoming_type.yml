@@ -10,14 +10,14 @@ id: node.incoming.field_incoming_type
 field_name: field_incoming_type
 entity_type: node
 bundle: incoming
-label: 'Είδος Εισερχομένου'
+label: 'Είδος εγγράφου'
 description: ''
 required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  handler: 'default:taxonomy_term'
+  handler: 'default:filter_existing_terms'
   handler_settings:
     target_bundles:
       incoming_type: incoming_type
