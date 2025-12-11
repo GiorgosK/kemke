@@ -29,11 +29,11 @@
           indicator: 'span',
         },
         {
-          selector: '#edit-field-protocol-incoming-0-value',
-          type: 'text',
-          tab_button_class: 'horizontal-tab-button-0',
+          selector: '#edit-field-supervisor',
+          type: 'select2',
+          tab_button_class: 'horizontal-tab-button-4',
           tab_button_active_class: 'selected',
-          indicator: 'input',
+          indicator: 'span',
         },
         {
           selector: '#edit-field-incoming-type',
@@ -41,20 +41,6 @@
           tab_button_class: 'horizontal-tab-button-0',
           tab_button_active_class: 'selected',
           indicator: 'select',
-        },
-      ],
-    },
-    '#edit-moderation-state-supervisor-assigned': {
-      type: 'button',
-      disabled: true,
-      toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
-      emptyFields: [
-        {
-          selector: '#edit-field-supervisor',
-          type: 'select2',
-          tab_button_class: 'horizontal-tab-button-4',
-          tab_button_active_class: 'selected',
-          indicator: 'span',
         },
       ],
     },
