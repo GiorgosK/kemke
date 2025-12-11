@@ -52,7 +52,7 @@ content:
       view_mode: default
       link: '1'
     third_party_settings: {  }
-    weight: 4
+    weight: 6
     region: content
   field_entry_date:
     type: datetime_default
@@ -63,6 +63,22 @@ content:
     third_party_settings: {  }
     weight: 1
     region: content
+  field_protocol_number_doc:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_protocol_number_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
   field_ref_id:
     type: string
     label: above
@@ -71,12 +87,20 @@ content:
     third_party_settings: {  }
     weight: 0
     region: content
+  field_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
   field_subject:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 3
+    weight: 5
     region: content
 hidden:
   content_moderation_control: true
@@ -92,15 +116,12 @@ hidden:
   field_primary: true
   field_priority: true
   field_protocol_date: true
-  field_protocol_number_doc: true
-  field_protocol_number_sender: true
   field_related_incoming: true
   field_remarks: true
   field_requested_deadline: true
   field_responsible_entity: true
   field_sa_number: true
   field_sani_user: true
-  field_sender: true
   field_supervisor: true
   field_taa_project: true
   field_thematic_unit: true
