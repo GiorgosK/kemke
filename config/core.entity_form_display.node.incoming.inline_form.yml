@@ -18,7 +18,6 @@ dependencies:
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
-    - field.field.node.incoming.field_protocol_incoming
     - field.field.node.incoming.field_protocol_number_doc
     - field.field.node.incoming.field_protocol_number_sender
     - field.field.node.incoming.field_ref_id
@@ -156,7 +155,6 @@ hidden:
   field_operators: true
   field_primary: true
   field_protocol_date: true
-  field_protocol_incoming: true
   field_protocol_number_doc: true
   field_protocol_number_sender: true
   field_related_incoming: true

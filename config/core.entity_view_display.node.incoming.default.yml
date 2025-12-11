@@ -17,7 +17,6 @@ dependencies:
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
-    - field.field.node.incoming.field_protocol_incoming
     - field.field.node.incoming.field_protocol_number_doc
     - field.field.node.incoming.field_protocol_number_sender
     - field.field.node.incoming.field_ref_id
@@ -308,14 +307,6 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 22
-    region: content
-  field_protocol_incoming:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 14
     region: content
   field_protocol_number_doc:
     type: string
