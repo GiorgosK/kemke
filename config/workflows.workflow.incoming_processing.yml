@@ -36,11 +36,6 @@ type_settings:
       weight: 5
       published: true
       default_revision: true
-    signed:
-      label: Υπογεγραμμένο
-      weight: 4
-      published: false
-      default_revision: false
     under_processing:
       label: 'Υπό επεξεργασία'
       weight: -1
@@ -50,7 +45,7 @@ type_settings:
     completed:
       label: Ολοκληρωμένο
       from:
-        - signed
+        - for_signature
       to: published
       weight: 10
     for_signature:
@@ -77,12 +72,6 @@ type_settings:
         - fullness_check
       to: pending_issues
       weight: 3
-    signed:
-      label: Υπογεγραμμένο
-      from:
-        - for_signature
-      to: signed
-      weight: 9
     stay_draft:
       label: Αποθήκευση
       from:
@@ -113,12 +102,6 @@ type_settings:
         - published
       to: published
       weight: -8
-    stay_signed:
-      label: Αποθήκευση
-      from:
-        - signed
-      to: signed
-      weight: -3
     stay_under_processing:
       label: Αποθήκευση
       from:
