@@ -122,6 +122,16 @@ pre {
   width: 250px;
 }
 
+.node-incoming-edit-form .details-wrapper .field--name-field-related-incoming {
+  width: 100%;
+}
+
+.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-string,
+.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-datetime, 
+.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-entity-reference {
+  width: auto;
+}
+
 .node-incoming-edit-form .details-wrapper .field--widget-select2-entity-reference {
   width: 700px;
 }
