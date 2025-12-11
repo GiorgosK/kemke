@@ -5,7 +5,6 @@ module:
   activities_mods: 0
   admin_toolbar: 0
   admin_toolbar_tools: 0
-  announcements_feed: 0
   automated_cron: 0
   basic_auth: 0
   big_pipe: 0
@@ -17,7 +16,6 @@ module:
   ckeditor5_plugin_pack: 0
   ckeditor5_plugin_pack_font: 0
   config: 0
-  contact: 0
   content_moderation: 0
   contextual: 0
   datetime: 0
@@ -36,8 +34,6 @@ module:
   field_ui: 0
   file: 0
   filter: 0
-  help: 0
-  history: 0
   ief_table_view_mode: 0
   image: 0
   incoming_api: 0
@@ -54,7 +50,6 @@ module:
   locale: 0
   menu_link_content: 0
   menu_ui: 0
-  mock_api: 0
   mysql: 0
   node: 0
   node_view_permissions: 0
@@ -74,7 +69,6 @@ module:
   taxonomy_manager: 0
   text: 0
   toolbar: 0
-  update: 0
   user: 0
   views_autocomplete_filters: 0
   views_tree: 0
