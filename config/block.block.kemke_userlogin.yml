@@ -10,7 +10,7 @@ dependencies:
 id: kemke_userlogin
 theme: kemke
 region: content
-weight: 0
+weight: -3
 provider: null
 plugin: user_login_block
 settings:
