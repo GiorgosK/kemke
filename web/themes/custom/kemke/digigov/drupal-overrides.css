@@ -21,6 +21,9 @@
 .govgr-table-simple {
   border: 1px solid #38444d;
 }
+.govgr-table-simple .govgr-btn {
+  margin: 0;
+}
 .govgr-table-simple tr {
   border-bottom: 1px solid #38444d;
 }
