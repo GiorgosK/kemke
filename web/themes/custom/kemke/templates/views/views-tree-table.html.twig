@@ -26,6 +26,7 @@
     sticky ? 'sticky-enabled',
   ]
 %}
+{{ attach_library('kemke/views-tree-table') }}
 {% import _self as views_tree %}
 
 <div class="{{ container_classes|join(' ') }}">
@@ -91,14 +92,15 @@
   {% import _self as views_tree %}
   {% if items %}
     {%- for item in items -%}
-      {{ views_tree.row(item.node, level) }}
+      {{ views_tree.row(item.node, level, item.leaves|length > 0) }}
       {{ views_tree.tree(item.leaves, level + 1) }}
     {% endfor %}
   {% endif %}
 {% endmacro %}
 
-{% macro row(item, level) %}
-<tr{{ item.attributes.addClass('govgr-table__row').setAttribute('data-hierarchy-level', level) }}>
+{% macro row(item, level, has_children) %}
+{% set row_attributes = item.attributes.addClass('govgr-table__row', 'views-tree-row').setAttribute('data-hierarchy-level', level).setAttribute('data-has-children', has_children ? 'true' : 'false').setAttribute('data-expanded', has_children ? 'false' : 'true') %}
+<tr{{ row_attributes }}>
   {% for key, column in item.columns %}
     {% set column_classes = ['govgr-table__cell'] %}
     {% if column.default_classes %}
@@ -107,7 +109,14 @@
         {% set column_classes = column_classes|merge(['views-field-' ~ field]) %}
       {% endfor %}
     {% endif %}
-  <td{{ column.attributes.addClass(column_classes) }}>
+    {% set cell_attributes = column.attributes.addClass(column_classes) %}
+    {% if loop.first %}
+      {% set cell_attributes = cell_attributes.setAttribute('style', 'padding-left: ' ~ ((level * 1.25) + 0.5) ~ 'rem;') %}
+    {% endif %}
+  <td{{ cell_attributes }}>
+    {% if loop.first and has_children %}
+      <button class="views-tree-toggle" type="button" aria-expanded="false" aria-label="{{ 'Toggle child rows'|t }}"></button>
+    {% endif %}
     {%- if column.wrapper_element -%}
       <{{ column.wrapper_element }}>
       {% for content in column.content %}

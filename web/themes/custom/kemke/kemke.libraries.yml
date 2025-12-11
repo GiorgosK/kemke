@@ -110,6 +110,17 @@ user:
       css/components/user.css:
         weight: -10
 
+views-tree-table:
+  version: VERSION
+  css:
+    component:
+      css/components/views-tree-table.css: { }
+  js:
+    js/views-tree-table.js: { }
+  dependencies:
+    - core/drupal
+    - core/once
+
 digigov:
   version: VERSION
   css:
