@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.incoming.field_assignees
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -15,7 +16,10 @@ dependencies:
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
+    - field.field.node.incoming.field_protocol_date
     - field.field.node.incoming.field_protocol_incoming
+    - field.field.node.incoming.field_protocol_number_doc
+    - field.field.node.incoming.field_protocol_number_sender
     - field.field.node.incoming.field_ref_id
     - field.field.node.incoming.field_related_incoming
     - field.field.node.incoming.field_remarks
@@ -197,6 +201,13 @@ targetEntityType: node
 bundle: incoming
 mode: default
 content:
+  field_assignees:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 23
+    region: content
   field_basic_operator:
     type: entity_reference_label
     label: above
@@ -289,6 +300,15 @@ content:
     third_party_settings: {  }
     weight: 2
     region: content
+  field_protocol_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 22
+    region: content
   field_protocol_incoming:
     type: string
     label: above
@@ -296,6 +316,22 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 14
+    region: content
+  field_protocol_number_doc:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 21
+    region: content
+  field_protocol_number_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 24
     region: content
   field_ref_id:
     type: string

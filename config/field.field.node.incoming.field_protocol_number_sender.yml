@@ -1,0 +1,19 @@
+uuid: fa1ee029-7f34-4269-8691-c493925d9d4c
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_protocol_number_sender
+    - node.type.incoming
+id: node.incoming.field_protocol_number_sender
+field_name: field_protocol_number_sender
+entity_type: node
+bundle: incoming
+label: 'Α.Π. Αποστολέα'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

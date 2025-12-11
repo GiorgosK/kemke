@@ -1,0 +1,21 @@
+uuid: 8ac1f806-f130-41ae-85e7-0fcb1a49cb62
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_protocol_date
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_protocol_date
+field_name: field_protocol_date
+entity_type: node
+bundle: incoming
+label: 'Ημερομηνία Πρωτοκόλλησης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

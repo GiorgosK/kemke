@@ -1,0 +1,21 @@
+uuid: 1c85e98d-f0be-4944-b09e-3ce5762b1a4f
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_protocol_number_doc
+field_name: field_protocol_number_doc
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
