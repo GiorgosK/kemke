@@ -16,11 +16,20 @@ use RuntimeException;
  */
 final class DocutracksClient {
 
-  private const DEFAULT_BASE_URL = 'https://edu.docutracks.eu';
-  private const DEFAULT_ADMIN_USER = 'admin';
-  private const DEFAULT_ADMIN_PASS = 'aQ!23456';
-  private const DEFAULT_APP_USER = 'intraway';
-  private const DEFAULT_APP_PASS = 'Intraway2025!';
+  // Dev defaults (kemke.webx2.com / kemke.ddev.site).
+  private const DEV_BASE_URL = 'https://edu.docutracks.eu';
+  private const DEV_ADMIN_USER = 'admin';
+  private const DEV_ADMIN_PASS = 'aQ!23456';
+  private const DEV_APP_USER = 'intraway';
+  private const DEV_APP_PASS = 'Intraway2025!';
+
+  // Live defaults (empty until provided).
+  private const LIVE_BASE_URL = '';
+  private const LIVE_ADMIN_USER = '';
+  private const LIVE_ADMIN_PASS = '';
+  private const LIVE_APP_USER = '';
+  private const LIVE_APP_PASS = '';
+
   private const DEFAULT_FORCE_SIGNED = FALSE;
 
   public function __construct(private readonly ClientInterface $httpClient) {
@@ -36,11 +45,13 @@ final class DocutracksClient {
     ?string $appUser = null,
     ?string $appPass = null
   ): CookieJar {
-    $baseUrl = rtrim($baseUrl ?? self::DEFAULT_BASE_URL, '/');
-    $adminUser = $adminUser ?? self::DEFAULT_ADMIN_USER;
-    $adminPass = $adminPass ?? self::DEFAULT_ADMIN_PASS;
-    $appUser = $appUser ?? self::DEFAULT_APP_USER;
-    $appPass = $appPass ?? self::DEFAULT_APP_PASS;
+    $env = $this->detectEnvironment();
+
+    $baseUrl = rtrim($baseUrl ?? $env['base_url'], '/');
+    $adminUser = $adminUser ?? $env['admin_user'];
+    $adminPass = $adminPass ?? $env['admin_pass'];
+    $appUser = $appUser ?? $env['app_user'];
+    $appPass = $appPass ?? $env['app_pass'];
 
     $jar = new CookieJar();
 
@@ -68,7 +79,7 @@ final class DocutracksClient {
    * @return array<string, mixed>
    */
   public function fetchDocument(string $docId, CookieJar $jar, ?string $baseUrl = null): array {
-    $baseUrl = rtrim($baseUrl ?? self::DEFAULT_BASE_URL, '/');
+    $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
 
     try {
       $response = $this->httpClient->request('GET', $baseUrl . '/services/document/get/' . rawurlencode($docId), [
@@ -99,7 +110,7 @@ final class DocutracksClient {
     ?string $baseUrl = null,
     bool $forceSigned = self::DEFAULT_FORCE_SIGNED
   ): void {
-    $baseUrl = rtrim($baseUrl ?? self::DEFAULT_BASE_URL, '/');
+    $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
 
     $payload = [
       'FileReference' => $fileId,
@@ -134,7 +145,7 @@ final class DocutracksClient {
    * @return array<string, mixed>
    */
   public function registerDocument(array $payload, CookieJar $jar, ?string $baseUrl = null): array {
-    $baseUrl = rtrim($baseUrl ?? self::DEFAULT_BASE_URL, '/');
+    $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
 
     try {
       $response = $this->httpClient->request('POST', $baseUrl . '/services/document/register', [
@@ -241,6 +252,35 @@ final class DocutracksClient {
    */
   private static function dummyPdfBase64(): string {
     return 'JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagozIDAgb2JqCjw8L1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQovQ29udGVudHMgNSAwIFIKL1Jlc291cmNlcyA8PC9Qcm9jU2V0IFsvUERGIC9UZXh0XQovRm9udCA8PC9GMSA0IDAgUj4+Cj4+Cj4+CmVuZG9iago0IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9OYW1lIC9GMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL01hY1JvbWFuRW5jb2RpbmcKPj4KZW5kb2JqCjUgMCBvYmoKPDwvTGVuZ3RoIDUzCj4+CnN0cmVhbQpCVAovRjEgMjAgVGYKMjIwIDQwMCBUZAooRHVtbXkgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZgowMDAwMDAwMDA5IDAwMDAwIG4KMDAwMDAwMDA2MyAwMDAwMCBuCjAwMDAwMDAxMjQgMDAwMDAgbgowMDAwMDAwMjc3IDAwMDAwIG4KMDAwMDAwMDM5MiAwMDAwMCBuCnRyYWlsZXIKPDwvU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTUKJSVFT0YK';
+  }
+
+  /**
+   * Decide which environment to use based on host.
+   *
+   * @return array{base_url:string, admin_user:string, admin_pass:string, app_user:string, app_pass:string}
+   */
+  private function detectEnvironment(): array {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $devHosts = ['kemke.webx2.com', 'kemke.ddev.site'];
+    $isDev = in_array($host, $devHosts, TRUE);
+
+    if ($isDev) {
+      return [
+        'base_url' => self::DEV_BASE_URL,
+        'admin_user' => self::DEV_ADMIN_USER,
+        'admin_pass' => self::DEV_ADMIN_PASS,
+        'app_user' => self::DEV_APP_USER,
+        'app_pass' => self::DEV_APP_PASS,
+      ];
+    }
+
+    return [
+      'base_url' => self::LIVE_BASE_URL,
+      'admin_user' => self::LIVE_ADMIN_USER,
+      'admin_pass' => self::LIVE_ADMIN_PASS,
+      'app_user' => self::LIVE_APP_USER,
+      'app_pass' => self::LIVE_APP_PASS,
+    ];
   }
 
 }
