@@ -45,6 +45,9 @@ $options = getopt('', [
   'pass::',
   'value::',
   'download::',
+  'upload-doc::',
+  'upload-file::',
+  'sample-doc',
 ]);
 
 $baseUrl = rtrim(
@@ -59,10 +62,24 @@ $appUser = (string) ($options['user'] ?? getenv('DOCUTRACKS_USER') ?: DEFAULT_AP
 $appPass = (string) ($options['pass'] ?? getenv('DOCUTRACKS_PASS') ?: DEFAULT_APP_PASS);
 $valuePath = (string) ($options['value'] ?? '');
 $downloadPath = (string) ($options['download'] ?? '');
+$uploadDocPath = (string) ($options['upload-doc'] ?? '');
+$uploadFilePath = (string) ($options['upload-file'] ?? '');
+$sampleDoc = array_key_exists('sample-doc', $options);
 
-if ($docId === '') {
+if ($docId === '' && $uploadDocPath === '' && !$sampleDoc) {
   fwrite(STDERR, "Missing required --doc-id or DOCUTRACKS_DOC_ID.\n");
   exit(1);
+}
+
+if ($sampleDoc) {
+  $payload = getRequiredDocValues();
+  $encoded = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  if ($encoded === false) {
+    fwrite(STDERR, "Failed to encode sample payload.\n");
+    exit(1);
+  }
+  echo $encoded . "\n";
+  exit(0);
 }
 if ($adminPass === '' || $appUser === '' || $appPass === '') {
   fwrite(
@@ -86,6 +103,50 @@ if (!is_dir($cookieDir)) {
 echo "Authenticating...\n";
 loginToDocutracks($baseUrl, $cookieFile, $adminUser, $adminPass, $appUser, $appPass);
 echo "Login succeeded; cookies stored.\n";
+
+// Upload an entire document payload and exit.
+if ($uploadDocPath !== '') {
+  $payload = loadJsonFile($uploadDocPath);
+  echo "Uploading document via /services/document/register...\n";
+  $response = registerDocument($baseUrl, $cookieFile, $payload);
+  $encodedResponse = json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  echo ($encodedResponse !== false ? $encodedResponse : print_r($response, true)) . "\n";
+  exit(0);
+}
+
+// Upload a file as the main file for an existing document.
+if ($uploadFilePath !== '') {
+  if ($docId === '') {
+    fwrite(STDERR, "--upload-file requires --doc-id to be set.\n");
+    exit(1);
+  }
+  if (!is_readable($uploadFilePath)) {
+    fwrite(STDERR, sprintf("Upload file not found or unreadable: %s\n", $uploadFilePath));
+    exit(1);
+  }
+
+  $contents = file_get_contents($uploadFilePath);
+  if ($contents === false) {
+    fwrite(STDERR, "Failed to read upload file.\n");
+    exit(1);
+  }
+
+  $payload = [
+    'Document' => [
+      'Id' => (int) $docId,
+      'MainFile' => [
+        'FileName' => basename($uploadFilePath),
+        'Base64File' => base64_encode($contents),
+      ],
+    ],
+  ];
+
+  echo sprintf("Uploading file %s as main file for document %s...\n", basename($uploadFilePath), $docId);
+  $response = registerDocument($baseUrl, $cookieFile, $payload);
+  $encodedResponse = json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  echo ($encodedResponse !== false ? $encodedResponse : print_r($response, true)) . "\n";
+  exit(0);
+}
 
 echo "Fetching document metadata...\n";
 $document = fetchDocument($baseUrl, $cookieFile, $docId);
@@ -332,6 +393,122 @@ function downloadFile(
 
   $size = is_string($bytes) ? strlen($bytes) : 0;
   printf("Saved %d bytes to %s\n", $size, $targetPath);
+}
+
+/**
+ * POST a document payload to the register endpoint.
+ *
+ * @param array<string, mixed> $payload
+ * @return array<string, mixed>
+ */
+function registerDocument(string $baseUrl, string $cookieFile, array $payload): array {
+  $url = $baseUrl . '/services/document/register';
+  return jsonPost($url, $cookieFile, $payload);
+}
+
+/**
+ * Shared JSON POST helper using the authenticated cookie jar.
+ *
+ * @param array<string, mixed> $payload
+ * @return array<string, mixed>
+ */
+function jsonPost(string $url, string $cookieFile, array $payload): array {
+  $ch = curl_init($url);
+  if ($ch === false) {
+    throw new RuntimeException('Unable to initialise cURL.');
+  }
+
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => [
+      'Content-Type: application/json',
+      'Accept: application/json',
+    ],
+    CURLOPT_POSTFIELDS => json_encode($payload, JSON_THROW_ON_ERROR),
+    CURLOPT_COOKIEFILE => $cookieFile,
+    CURLOPT_COOKIEJAR => $cookieFile,
+  ]);
+
+  $responseBody = curl_exec($ch);
+  $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+  $error = curl_error($ch);
+  curl_close($ch);
+
+  if ($responseBody === false) {
+    throw new RuntimeException(sprintf('Request failed: %s', $error));
+  }
+  if ($status < 200 || $status >= 300) {
+    throw new RuntimeException(sprintf('Request to %s failed with HTTP %d: %s', $url, $status, $responseBody));
+  }
+
+  $decoded = json_decode($responseBody, true);
+  if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+    throw new RuntimeException(sprintf('Invalid JSON response from %s: %s', $url, $responseBody));
+  }
+
+  return is_array($decoded) ? $decoded : [];
+}
+
+/**
+ * Load and decode a JSON file.
+ *
+ * @return array<string, mixed>
+ */
+function loadJsonFile(string $path): array {
+  if (!is_readable($path)) {
+    throw new RuntimeException(sprintf('JSON file not found or unreadable: %s', $path));
+  }
+  $contents = file_get_contents($path);
+  if ($contents === false) {
+    throw new RuntimeException(sprintf('Failed to read JSON file: %s', $path));
+  }
+  $decoded = json_decode($contents, true);
+  if (!is_array($decoded)) {
+    throw new RuntimeException(sprintf('JSON file %s did not decode to an object/array.', $path));
+  }
+  return $decoded;
+}
+
+/**
+ * Minimal required document structure with dummy values.
+ *
+ * @param bool $includeFile
+ *   Whether to include a dummy main file payload (Base64File).
+ *
+ * @return array<string, mixed>
+ */
+function getRequiredDocValues(bool $includeFile = true): array {
+  $payload = [
+    'Document' => [
+      'Title' => 'Sample incoming document',
+      'CreatedBy' => ['Id' => 2166],
+      'CreatedByGroup' => ['Id' => 1421],
+      'Kind' => ['Id' => 1], // Incoming kind.
+      'Type' => ['Id' => 1], // Incoming type.
+      'Apostoleas' => [
+        'Name' => 'Sender Name',
+        'Email' => 'sender@example.com',
+      ],
+      'Comments' => 'Created via CLI sample payload.',
+      'DocumentCopies' => [
+        [
+          'CreatedByGroup' => ['Id' => 1421],
+          'OwnedByGroup' => ['Id' => 1421],
+        ],
+      ],
+    ],
+  ];
+
+  if ($includeFile) {
+    $payload['Document']['MainFile'] = [
+      'FileName' => 'sample.pdf',
+      // Tiny PDF placeholder (same stub used elsewhere).
+      'Base64File' => 'JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagozIDAgb2JqCjw8L1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQovQ29udGVudHMgNSAwIFIKL1Jlc291cmNlcyA8PC9Qcm9jU2V0IFsvUERGIC9UZXh0XQovRm9udCA8PC9GMSA0IDAgUj4+Cj4+Cj4+CmVuZG9iago0IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9OYW1lIC9GMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL01hY1JvbWFuRW5jb2RpbmcKPj4KZW5kb2JqCjUgMCBvYmoKPDwvTGVuZ3RoIDUzCj4+CnN0cmVhbQpCVAovRjEgMjAgVGYKMjIwIDQwMCBUZAooRHVtbXkgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZgowMDAwMDAwMDA5IDAwMDAwIG4KMDAwMDAwMDA2MyAwMDAwMCBuCjAwMDAwMDAxMjQgMDAwMDAgbgowMDAwMDAwMjc3IDAwMDAwIG4KMDAwMDAwMDM5MiAwMDAwMCBuCnRyYWlsZXIKPDwvU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTUKJSVFT0YK',
+    ];
+  }
+
+  return $payload;
 }
 
 /**
