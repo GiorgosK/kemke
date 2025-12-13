@@ -1,0 +1,4 @@
+services:
+  side_api.docutracks_client:
+    class: Drupal\side_api\DocutracksClient
+    arguments: ['@http_client']

@@ -1,0 +1,6 @@
+services:
+  side_api.commands:
+    class: Drupal\side_api\Commands\SideApiCommands
+    arguments: ['@side_api.docutracks_client']
+    tags:
+      - { name: drush.command }

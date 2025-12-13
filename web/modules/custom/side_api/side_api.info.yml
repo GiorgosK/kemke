@@ -1,0 +1,5 @@
+name: Side API
+type: module
+description: 'Docutracks helper API client (login, fetch, download, register).'
+core_version_requirement: ^10 || ^11
+package: Custom
