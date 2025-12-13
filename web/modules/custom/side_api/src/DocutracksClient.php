@@ -167,27 +167,27 @@ final class DocutracksClient {
   }
 
   /**
-   * Minimal required doc payload for quick testing.
-   *
-   * @return array<string, mixed>
-   */
+  * Minimal required doc payload for quick testing.
+  *
+  * @return array<string, mixed>
+  */
   public function getRequiredDocValues(bool $includeFile = TRUE): array {
     $payload = [
       'Document' => [
         'Title' => 'Sample incoming document 2',
-        'CreatedBy' => ['Id' => 2166],
-        'CreatedByGroup' => ['Id' => 1421],
+        'CreatedBy' => ['Id' => $this->defaults()['created_by']],
+        'CreatedByGroup' => ['Id' => $this->defaults()['created_by_group']],
         'Kind' => ['Id' => 1],
         'Type' => ['Id' => 1],
         'Apostoleas' => [
-          'Name' => 'Sender Name',
-          'Email' => 'sender@example.com',
+          'Name' => $this->defaults()['Apostoleas_Name'],
+          'Email' => $this->defaults()['Apostoleas_NameEmail'],
         ],
-        'Comments' => 'Created via side_api sample payload.',
+        'Comments' => 'Created via kemke side_api .',
         'DocumentCopies' => [
           [
-            'CreatedByGroup' => ['Id' => 1421],
-            'OwnedByGroup' => ['Id' => 1421],
+            'CreatedByGroup' => ['Id' => $this->defaults()['created_by_group']],
+            'OwnedByGroup' => ['Id' => $this->defaults()['owned_by_group']],
           ],
         ],
       ],
@@ -252,6 +252,57 @@ final class DocutracksClient {
    */
   private static function dummyPdfBase64(): string {
     return 'JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagozIDAgb2JqCjw8L1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQovQ29udGVudHMgNSAwIFIKL1Jlc291cmNlcyA8PC9Qcm9jU2V0IFsvUERGIC9UZXh0XQovRm9udCA8PC9GMSA0IDAgUj4+Cj4+Cj4+CmVuZG9iago0IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9OYW1lIC9GMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL01hY1JvbWFuRW5jb2RpbmcKPj4KZW5kb2JqCjUgMCBvYmoKPDwvTGVuZ3RoIDUzCj4+CnN0cmVhbQpCVAovRjEgMjAgVGYKMjIwIDQwMCBUZAooRHVtbXkgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZgowMDAwMDAwMDA5IDAwMDAwIG4KMDAwMDAwMDA2MyAwMDAwMCBuCjAwMDAwMDAxMjQgMDAwMDAgbgowMDAwMDAwMjc3IDAwMDAwIG4KMDAwMDAwMDM5MiAwMDAwMCBuCnRyYWlsZXIKPDwvU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTUKJSVFT0YK';
+  }
+
+  /**
+   * Defaults for CreatedBy / CreatedByGroup depending on environment.
+   *
+   * @return array{created_by:int, created_by_group:int}
+   */
+  private function defaults(): array {
+    $env = $this->detectEnvironment();
+    $isDev = $env['base_url'] === self::DEV_BASE_URL;
+
+    if ($isDev) {
+      return [
+        'created_by' => 2166,
+        'created_by_group' => 1421,
+        'owned_by_group' => 1421,
+        'Apostoleas_Name' => 'lastname4321 firstname4321',
+        'Apostoleas_NameEmail' => 'lastname4321 firstname4321'
+      ];
+    }
+
+    return [
+      'created_by' => 0,
+      'created_by_group' => 0,
+      'owned_by_group' => 0,
+      'Apostoleas_Name' => '0',
+      'Apostoleas_NameEmail' => '0'
+    ];
+  }
+
+  /**
+   * Merge real values into the defaults payload.
+   *
+   * @param array<string, mixed> $overrides
+   *   e.g. ['Document' => ['Apostoleas' => [...], 'MainFile' => ['FileName' => 'x.pdf', 'Base64File' => '...']]]
+   *
+   * @return array<string, mixed>
+   */
+  public function mergeWithDefaults(array $overrides): array {
+    $defaults = $this->getRequiredDocValues(FALSE);
+    $merged = $defaults;
+
+    if (isset($overrides['Document']) && is_array($overrides['Document'])) {
+      $merged['Document'] = array_replace_recursive($merged['Document'], $overrides['Document']);
+    }
+
+    if (isset($overrides['Document']['MainFile'])) {
+      $merged['Document']['MainFile'] = $overrides['Document']['MainFile'];
+    }
+
+    return $merged;
   }
 
   /**
