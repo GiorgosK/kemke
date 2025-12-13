@@ -61,67 +61,8 @@ final class SideApiCommands extends DrushCommands {
    * @aliases sdr
    */
   public function register(string $docJsonPath, string $filePath): void {
-    $docJsonPath = $this->resolvePath($docJsonPath);
-    $filePath = $this->resolvePath($filePath);
-
-    $contents = file_get_contents($docJsonPath);
-    if ($contents === false) {
-      throw new \RuntimeException('Unable to read JSON file.');
-    }
-    $decoded = json_decode($contents, true);
-    if (!is_array($decoded)) {
-      throw new \RuntimeException('JSON file did not decode to an array/object.');
-    }
-
-    $fileData = file_get_contents($filePath);
-    if ($fileData === false) {
-      throw new \RuntimeException('Unable to read upload file.');
-    }
-
-    $mainFile = [
-      'FileName' => basename($filePath),
-      'Base64File' => base64_encode($fileData),
-    ];
-
-    $payload = $this->client->mergeWithDefaults([
-      'Document' => [
-        'MainFile' => $mainFile,
-      ],
-    ]);
-
-    // Merge user-provided document fields deeply.
-    $payload = $this->client->mergeWithDefaults($decoded);
-    // Ensure MainFile from filePath overrides any existing.
-    $payload['Document']['MainFile'] = $mainFile;
-
-    $jar = $this->client->loginToDocutracks();
-    $response = $this->client->registerDocument($payload, $jar);
+    $response = $this->client->registerWithFile($docJsonPath, $filePath);
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-  }
-
-  /**
-   * Resolve a path against common roots (cwd, Drupal root, project root).
-   */
-  private function resolvePath(string $path): string {
-    // Absolute and readable.
-    if (is_readable($path)) {
-      return $path;
-    }
-
-    $root = \Drupal::root();
-    $candidates = [
-      $root . '/' . ltrim($path, '/'),
-      dirname($root) . '/' . ltrim($path, '/'), // project root when Drupal is in /web.
-      getcwd() . '/' . ltrim($path, '/'),
-    ];
-
-    foreach ($candidates as $candidate) {
-      if (is_readable($candidate)) {
-        return $candidate;
-      }
-    }
-
-    throw new \RuntimeException(sprintf('Path not readable in known locations: %s', $path));
   }
 
 }

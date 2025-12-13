@@ -255,6 +255,93 @@ final class DocutracksClient {
   }
 
   /**
+   * Load a JSON file into an array.
+   *
+   * @throws \RuntimeException
+   */
+  private function loadJson(string $path): array {
+    $path = $this->resolvePath($path);
+    $contents = file_get_contents($path);
+    if ($contents === FALSE) {
+      throw new RuntimeException(sprintf('Unable to read JSON file: %s', $path));
+    }
+    $decoded = json_decode($contents, TRUE);
+    if (!is_array($decoded)) {
+      throw new RuntimeException(sprintf('JSON file %s did not decode to an array/object.', $path));
+    }
+    return $decoded;
+  }
+
+  /**
+   * Resolve a path against common roots (cwd, Drupal root, project root).
+   *
+   * Example:
+   *   $json = $client->resolvePath('min.json');
+   *
+   * @throws \RuntimeException
+   */
+  public function resolvePath(string $path): string {
+    if (is_readable($path)) {
+      return $path;
+    }
+
+    $root = \Drupal::root();
+    $candidates = [
+      $root . '/' . ltrim($path, '/'),
+      dirname($root) . '/' . ltrim($path, '/'),
+      getcwd() . '/' . ltrim($path, '/'),
+    ];
+
+    foreach ($candidates as $candidate) {
+      if (is_readable($candidate)) {
+        return $candidate;
+      }
+    }
+
+    throw new RuntimeException(sprintf('Path not readable in known locations: %s', $path));
+  }
+
+  /**
+   * Prepare a register payload by merging defaults and a file attachment.
+   *
+   * Example:
+   *   $payload = $client->prepareRegisterPayload('min.json', 'dummy.pdf');
+   *   $response = $client->registerDocument($payload, $client->loginToDocutracks());
+   *
+   * @return array<string, mixed>
+   */
+  public function prepareRegisterPayload(array|string $docPayload, string $filePath): array {
+    $filePath = $this->resolvePath($filePath);
+
+    $decoded = is_array($docPayload) ? $docPayload : $this->loadJson($docPayload);
+
+    $fileData = file_get_contents($filePath);
+    if ($fileData === FALSE) {
+      throw new RuntimeException('Unable to read upload file.');
+    }
+
+    $mainFile = [
+      'FileName' => basename($filePath),
+      'Base64File' => base64_encode($fileData),
+    ];
+
+    $payload = $this->mergeWithDefaults($decoded);
+    $payload['Document']['MainFile'] = $mainFile;
+
+    return $payload;
+  }
+
+  /**
+   * Convenience wrapper: build payload and register with login.
+   */
+  public function registerWithFile(array|string $docPayload, string $filePath): array {
+    $payload = $this->prepareRegisterPayload($docPayload, $filePath);
+    $jar = $this->loginToDocutracks();
+    $result = $this->registerDocument($payload, $jar);
+    return $result;
+  }
+
+  /**
    * Defaults for CreatedBy / CreatedByGroup depending on environment.
    *
    * @return array{created_by:int, created_by_group:int}
