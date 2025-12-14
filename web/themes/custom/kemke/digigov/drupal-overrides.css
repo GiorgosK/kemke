@@ -3,6 +3,7 @@
 }
 
 /* Hide text format help text */
+.field--name-field-comment .text-format-wrapper > div:nth-child(2),
 #edit-field-subject-0-format {
   display: none;
 }
