@@ -1,0 +1,27 @@
+uuid: 3b874b80-cce3-4fa1-bdac-f81f593c3eda
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_plan
+    - node.type.incoming
+  module:
+    - file
+id: node.incoming.field_plan
+field_name: field_plan
+entity_type: node
+bundle: incoming
+label: Σχέδιο
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'pdf doc docx xls xlsx'
+  max_filesize: ''
+  description_field: false
+field_type: file

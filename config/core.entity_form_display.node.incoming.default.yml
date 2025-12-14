@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.incoming.field_assignees
+    - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -14,6 +15,8 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_plan
+    - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -38,6 +41,7 @@ dependencies:
     - datetime
     - datetime_optional_time
     - field_group
+    - file
     - ief_table_view_mode
     - paragraphs
     - path
@@ -56,7 +60,7 @@ third_party_settings:
       label: Κατασταση
       region: content
       parent_name: group_tabs
-      weight: 16
+      weight: 15
       format_type: tab
       format_settings:
         classes: ''
@@ -74,7 +78,7 @@ third_party_settings:
       label: Υπεύθυνοι
       region: content
       parent_name: group_tabs
-      weight: 18
+      weight: 17
       format_type: tab
       format_settings:
         classes: ''
@@ -95,7 +99,7 @@ third_party_settings:
       label: EE
       region: content
       parent_name: group_tabs
-      weight: 20
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -111,7 +115,7 @@ third_party_settings:
       label: Παρατηρήσεις
       region: content
       parent_name: group_tabs
-      weight: 19
+      weight: 20
       format_type: tab
       format_settings:
         classes: ''
@@ -154,8 +158,9 @@ third_party_settings:
         - group_status
         - group_case
         - group_responsible
-        - group_remarks
+        - group_plan
         - group_ee
+        - group_remarks
       label: Tabs
       region: content
       parent_name: ''
@@ -174,7 +179,7 @@ third_party_settings:
       label: Αρχεία
       region: content
       parent_name: group_tabs
-      weight: 15
+      weight: 14
       format_type: tab
       format_settings:
         classes: ''
@@ -190,7 +195,25 @@ third_party_settings:
       label: Υπόθεση
       region: content
       parent_name: group_tabs
-      weight: 17
+      weight: 16
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+    group_plan:
+      children:
+        - field_plan
+        - field_attachments
+        - field_plan_dt_api_response
+      label: Σχέδιο
+      region: content
+      parent_name: group_tabs
+      weight: 18
       format_type: tab
       format_settings:
         classes: ''
@@ -207,7 +230,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 2
+    weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -218,6 +241,13 @@ content:
     settings:
       rows: 3
       placeholder: ''
+    third_party_settings: {  }
+  field_attachments:
+    type: file_generic
+    weight: 10
+    region: content
+    settings:
+      progress_indicator: throbber
     third_party_settings: {  }
   field_basic_operator:
     type: select2_entity_reference
@@ -286,6 +316,21 @@ content:
       autocomplete: false
       match_operator: CONTAINS
       match_limit: 10
+    third_party_settings: {  }
+  field_plan:
+    type: file_generic
+    weight: 9
+    region: content
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+  field_plan_dt_api_response:
+    type: string_textarea
+    weight: 11
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
     third_party_settings: {  }
   field_priority:
     type: options_select
@@ -472,41 +517,41 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 5
+    weight: 6
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 6
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
-    type: boolean_checkbox
-    weight: 3
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  status:
-    type: boolean_checkbox
-    weight: 7
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  sticky:
     type: boolean_checkbox
     weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 8
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    weight: 5
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 1
+    weight: 2
     region: content
     settings:
       match_operator: CONTAINS

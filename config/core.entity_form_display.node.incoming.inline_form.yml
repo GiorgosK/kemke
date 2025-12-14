@@ -5,6 +5,7 @@ dependencies:
   config:
     - core.entity_form_mode.node.inline_form
     - field.field.node.incoming.field_assignees
+    - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -15,6 +16,8 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_plan
+    - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -146,6 +149,7 @@ content:
 hidden:
   created: true
   field_assignees: true
+  field_attachments: true
   field_basic_operator: true
   field_case: true
   field_completion_date: true
@@ -153,6 +157,8 @@ hidden:
   field_legal_deadline: true
   field_notes: true
   field_operators: true
+  field_plan: true
+  field_plan_dt_api_response: true
   field_primary: true
   field_protocol_date: true
   field_protocol_number_doc: true

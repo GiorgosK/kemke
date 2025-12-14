@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.incoming.field_assignees
+    - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
@@ -14,6 +15,8 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_plan
+    - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -38,6 +41,7 @@ dependencies:
     - datetime
     - entity_reference_revisions
     - field_group
+    - file
     - reference_table_formatter
     - text
     - user
@@ -68,7 +72,7 @@ third_party_settings:
       label: Υπεύθυνοι
       parent_name: group_tabs
       region: content
-      weight: 16
+      weight: 15
       format_type: tab
       format_settings:
         classes: ''
@@ -107,7 +111,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 17
+      weight: 16
       format_type: details
       format_settings:
         classes: ''
@@ -125,6 +129,8 @@ third_party_settings:
         - group_status
         - group_responsible
         - group_remarks
+        - group_plan
+        - group_ee
       label: Tabs
       parent_name: ''
       region: content
@@ -182,9 +188,26 @@ third_party_settings:
         - field_transparency_requirement
         - field_working_days
       label: EE
-      parent_name: ''
+      parent_name: group_tabs
       region: content
-      weight: 1
+      weight: 18
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_plan:
+      children:
+        - field_plan
+        - field_attachments
+        - field_plan_dt_api_response
+      label: Σχέδιο
+      parent_name: group_tabs
+      region: content
+      weight: 17
       format_type: tab
       format_settings:
         classes: ''
@@ -198,6 +221,14 @@ targetEntityType: node
 bundle: incoming
 mode: default
 content:
+  field_attachments:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 4
+    region: content
   field_basic_operator:
     type: entity_reference_label
     label: above
@@ -273,6 +304,21 @@ content:
     third_party_settings: {  }
     weight: 11
     region: content
+  field_plan:
+    type: file_default
+    label: hidden
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_plan_dt_api_response:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
   field_priority:
     type: entity_reference_label
     label: above
@@ -332,7 +378,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 3
+    weight: 22
     region: content
   field_sani_user:
     type: string
@@ -340,7 +386,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 2
+    weight: 21
     region: content
   field_sender:
     type: string
@@ -371,7 +417,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 4
+    weight: 23
     region: content
   field_thematic_unit:
     type: string
@@ -379,7 +425,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 5
+    weight: 24
     region: content
   field_transparency_requirement:
     type: string
@@ -387,7 +433,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 6
+    weight: 25
     region: content
   field_working_days:
     type: number_integer
@@ -396,7 +442,7 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 7
+    weight: 26
     region: content
 hidden:
   content_moderation_control: true
