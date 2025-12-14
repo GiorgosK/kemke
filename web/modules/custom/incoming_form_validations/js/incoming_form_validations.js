@@ -67,21 +67,31 @@
     },
     '#edit-moderation-state-for-signature': {
       type: 'hideIf',
-      valueNot: [
+      valueIsAND: [
         {
           selector: '#edit-field-incoming-type',
           type: 'select',
-          value: ['41','3'], // Αίτημα - Ερώτημα, Γνωμοδότηση
+          value: ['9','2','5','42','8','9','_none'], 
+        },
+        {
+          selector: '#edit-moderation-state-under-processing',
+          type: 'input',
+          value: 'Αποθήκευση',
         },
       ],
     },
     '#edit-moderation-state-published': {
       type: 'hideIf',
-      valueIs: [
+      valueIsAND: [
         {
           selector: '#edit-field-incoming-type',
           type: 'select',
           value: ['41','3'], // Αίτημα - Ερώτημα, Γνωμοδότηση
+        },
+        {
+          selector: '#edit-moderation-state-under-processing',
+          type: 'input',
+          value: 'Αποθήκευση',
         },
       ],
     },
@@ -188,21 +198,6 @@
     return document.querySelector(`.${config.tab_button_class}`);
   };
 
-  const getTabElement = (tabSelector) => {
-    if (!tabSelector) {
-      return null;
-    }
-    if (tabSelector.startsWith('#')) {
-      const link = document.querySelector(
-        `.horizontal-tab-button a[href="${tabSelector}"], .vertical-tab-button a[href="${tabSelector}"], li a[href="${tabSelector}"]`
-      );
-      if (link) {
-        return link.closest('.horizontal-tab-button, .vertical-tab-button, li');
-      }
-    }
-    return document.querySelector(tabSelector);
-  };
-
   const getFieldValue = (field, type) => {
     if (!field) {
       return null;
@@ -247,6 +242,20 @@
       return allowed.includes(String(value));
     }
     return String(value) === String(cfg.value);
+  };
+
+  const shouldHideByRequirements = (requirement) => {
+    const valueNotOR = requirement.valueNotOR || requirement.valueNot || [];
+    const valueNotAND = requirement.valueNotAND || [];
+    const valueIsOR = requirement.valueIsOR || requirement.valueIs || [];
+    const valueIsAND = requirement.valueIsAND || [];
+
+    const notOr = valueNotOR.some((cfg) => shouldHideByValueNot(cfg));
+    const notAnd = valueNotAND.length > 0 && valueNotAND.every((cfg) => shouldHideByValueNot(cfg));
+    const isOr = valueIsOR.some((cfg) => shouldHideByValueIs(cfg));
+    const isAnd = valueIsAND.length > 0 && valueIsAND.every((cfg) => shouldHideByValueIs(cfg));
+
+    return notOr || notAnd || isOr || isAnd;
   };
 
   const ensureTabOpen = (config) => {
@@ -391,68 +400,33 @@
     refresh();
   };
 
-  const applyTabVisibility = (tabSelector, requirement) => {
-    const tab = getTabElement(tabSelector);
-    if (!tab) {
-      return;
-    }
-
-    const targetId = tab.querySelector('a')?.getAttribute('href')?.replace('#', '') || '';
-
-    const shouldHide =
-      (requirement.valueNot || []).some((cfg) => shouldHideByValueNot(cfg)) ||
-      (requirement.valueIs || []).some((cfg) => shouldHideByValueIs(cfg));
-
-    tab.style.display = shouldHide ? requirement.display || 'none' : '';
-  };
-
   const applyVisibility = (selector, requirement) => {
     const el = document.querySelector(selector);
-    if (!el || ((!requirement.valueNot || !requirement.valueNot.length) && (!requirement.valueIs || !requirement.valueIs.length))) {
+    const hasConditions =
+      (requirement.valueNotOR && requirement.valueNotOR.length) ||
+      (requirement.valueNot && requirement.valueNot.length) ||
+      (requirement.valueNotAND && requirement.valueNotAND.length) ||
+      (requirement.valueIsOR && requirement.valueIsOR.length) ||
+      (requirement.valueIs && requirement.valueIs.length) ||
+      (requirement.valueIsAND && requirement.valueIsAND.length);
+    if (!el || !hasConditions) {
       return;
     }
-    const shouldHide =
-      (requirement.valueNot || []).some((cfg) => shouldHideByValueNot(cfg)) ||
-      (requirement.valueIs || []).some((cfg) => shouldHideByValueIs(cfg));
-    el.style.display = shouldHide ? requirement.display || 'none' : '';
-  };
-
-  const attachTabHandler = (tabSelector, requirement) => {
-    if (
-      (!requirement.valueNot || !requirement.valueNot.length) &&
-      (!requirement.valueIs || !requirement.valueIs.length)
-    ) {
-      return;
-    }
-    const watchers = [...(requirement.valueNot || []), ...(requirement.valueIs || [])];
-    watchers.forEach((cfg) => {
-      const field = document.querySelector(cfg.selector);
-      if (!field) {
-        return;
-      }
-      const events = ['input', 'change', 'blur', 'keyup'];
-      const handler = () => applyTabVisibility(tabSelector, requirement);
-      events.forEach((evt) => field.addEventListener(evt, handler));
-
-      if (cfg.type === 'select2' && window.jQuery) {
-        const $field = window.jQuery(field);
-        if (typeof $field.on === 'function') {
-          $field.on('select2:select select2:unselect select2:clear select2:close select2:opening select2:closing select2:open', handler);
-        }
-      }
-    });
-
-    applyTabVisibility(tabSelector, requirement);
+    el.style.display = shouldHideByRequirements(requirement) ? requirement.display || 'none' : '';
   };
 
   const attachVisibilityHandler = (selector, requirement) => {
-    if (
-      (!requirement.valueNot || !requirement.valueNot.length) &&
-      (!requirement.valueIs || !requirement.valueIs.length)
-    ) {
+    const watchers = [
+      ...(requirement.valueNotOR || []),
+      ...(requirement.valueNotAND || []),
+      ...(requirement.valueNot || []),
+      ...(requirement.valueIsOR || []),
+      ...(requirement.valueIsAND || []),
+      ...(requirement.valueIs || []),
+    ];
+    if (!watchers.length) {
       return;
     }
-    const watchers = [...(requirement.valueNot || []), ...(requirement.valueIs || [])];
     watchers.forEach((cfg) => {
       const field = document.querySelector(cfg.selector);
       if (!field) {
@@ -476,10 +450,6 @@
   Drupal.behaviors.incomingFormValidations = {
     attach() {
       Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
-        if (requirement.type === 'tab') {
-          attachTabHandler(buttonSelector, requirement);
-          return;
-        }
         if (requirement.type === 'hideIf') {
           attachVisibilityHandler(buttonSelector, requirement);
           return;
@@ -489,10 +459,7 @@
       // Safety: re-check shortly after attach for dynamic widgets (e.g. select2).
       setTimeout(() => {
         Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
-          if (requirement.type === 'tab') {
-            applyTabVisibility(buttonSelector, requirement);
-          }
-          else if (requirement.type === 'hideIf') {
+          if (requirement.type === 'hideIf') {
             applyVisibility(buttonSelector, requirement);
           }
           else {
@@ -506,10 +473,7 @@
       // Second pass in case select2 initializes later.
       setTimeout(() => {
         Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
-          if (requirement.type === 'tab') {
-            applyTabVisibility(buttonSelector, requirement);
-          }
-          else if (requirement.type === 'hideIf') {
+          if (requirement.type === 'hideIf') {
             applyVisibility(buttonSelector, requirement);
           }
           else {
