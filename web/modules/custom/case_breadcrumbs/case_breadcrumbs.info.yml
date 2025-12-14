@@ -1,0 +1,7 @@
+name: 'Case Breadcrumbs'
+type: module
+description: 'Breadcrumbs for incoming case taxonomy pages.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:taxonomy

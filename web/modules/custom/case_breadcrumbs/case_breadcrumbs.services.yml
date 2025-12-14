@@ -1,0 +1,8 @@
+services:
+  case_breadcrumbs.case_breadcrumb_builder:
+    class: Drupal\case_breadcrumbs\Breadcrumb\CaseBreadcrumbBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+    tags:
+      - { name: breadcrumb_builder, priority: 245 }
