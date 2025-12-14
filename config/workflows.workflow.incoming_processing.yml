@@ -46,6 +46,7 @@ type_settings:
       label: Ολοκληρωμένο
       from:
         - for_signature
+        - under_processing
       to: published
       weight: 10
     for_signature:
