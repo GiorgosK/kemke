@@ -97,50 +97,55 @@ pre {
   padding: 0.5rem;
 }
 
-.node-incoming-form details,
-.node-incoming-edit-form details,
+/* 
+  combine .node-incoming-edit-form and 
+  node-incoming-form into one rule 
+  [class*="node-incoming-"] 
+*/
+
+[class*="node-incoming-"] details,
 .node--type-incoming details {
   background-color: #eee;
   padding: 1rem;
   margin-top: 0.5rem;
 }
 
-.node-incoming-edit-form .details-wrapper .paragraphs-subform,
-.node-incoming-edit-form .details-wrapper {
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform,
+[class*="node-incoming-"] .details-wrapper {
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
 }
 
-.node-incoming-edit-form .details-wrapper .field--type-string,
-.node-incoming-edit-form .details-wrapper .field--type-datetime, 
-.node-incoming-edit-form .details-wrapper .field--type-entity-reference,
-.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-string,
-.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-datetime, 
-.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-entity-reference, 
-.node-incoming-edit-form .details-wrapper .paragraphs-subform .field--type-file {
+[class*="node-incoming-"] .details-wrapper .field--type-string,
+[class*="node-incoming-"] .details-wrapper .field--type-datetime, 
+[class*="node-incoming-"] .details-wrapper .field--type-entity-reference,
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-string,
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-datetime, 
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference, 
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-file {
   width: 250px;
 }
 
-.node-incoming-edit-form .details-wrapper .field--name-field-related-incoming {
+[class*="node-incoming-"] .details-wrapper .field--name-field-related-incoming {
   width: 100%;
 }
 
-.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-string,
-.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-datetime, 
-.node-incoming-edit-form .details-wrapper .ief-entity-table .field--type-entity-reference {
+[class*="node-incoming-"] .details-wrapper .ief-entity-table .field--type-string,
+[class*="node-incoming-"] .details-wrapper .ief-entity-table .field--type-datetime, 
+[class*="node-incoming-"] .details-wrapper .ief-entity-table .field--type-entity-reference {
   width: auto;
 }
 
-.node-incoming-edit-form .details-wrapper .field--widget-select2-entity-reference {
+[class*="node-incoming-"] .details-wrapper .field--widget-select2-entity-reference {
   width: 700px;
 }
 
-.node-incoming-edit-form .details-wrapper .field--type-datetime .form-type-date {
+[class*="node-incoming-"] .details-wrapper .field--type-datetime .form-type-date {
   display: block;
 }
 
-.node-incoming-edit-form #edit-group-files .details-wrapper {
+[class*="node-incoming-"] #edit-group-files .details-wrapper {
   display: block;
 }
 #field-documents-values {
