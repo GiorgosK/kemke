@@ -46,6 +46,10 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
     return;
   }
 
+  if (incoming_remarks_comment_is_empty($entity)) {
+    return;
+  }
+
   if ($entity->hasField('field_user') && $entity->get('field_user')->isEmpty()) {
     if ($uid = \Drupal::currentUser()->id()) {
       $entity->set('field_user', ['target_id' => $uid]);
@@ -55,4 +59,65 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
   if ($entity->hasField('field_datetime') && $entity->get('field_datetime')->isEmpty()) {
     $entity->set('field_datetime', ['value' => \Drupal::time()->getRequestTime()]);
   }
+}
+
+/**
+ * Removes empty remark paragraphs from host entities.
+ */
+function incoming_remarks_node_presave(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() !== 'node' || !$entity->hasField('field_remarks')) {
+    return;
+  }
+
+  $items = $entity->get('field_remarks');
+  // Walk backwards to safely remove items by delta.
+  for ($delta = count($items) - 1; $delta >= 0; $delta--) {
+    $item = $items->get($delta);
+    if (!$item || !$item->entity) {
+      continue;
+    }
+
+    $paragraph = $item->entity;
+    if ($paragraph->bundle() !== 'remark') {
+      continue;
+    }
+
+    if (incoming_remarks_comment_is_empty($paragraph)) {
+      $items->removeItem($delta);
+    }
+  }
+}
+
+/**
+ * Determines whether the remark text is effectively empty.
+ */
+function incoming_remarks_comment_is_empty(EntityInterface $entity): bool {
+  if (!$entity->hasField('field_comment')) {
+    return TRUE;
+  }
+
+  $field = $entity->get('field_comment');
+  if ($field->isEmpty()) {
+    return TRUE;
+  }
+
+  foreach ($field as $item) {
+    if (!$item) {
+      continue;
+    }
+
+    $value = (string) ($item->value ?? '');
+    // Normalize the text to catch cases where the WYSIWYG inserts empty tags
+    // or non‑breaking spaces. Decoding entities lets us trim NBSPs too.
+    $text = strip_tags($value);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    // Remove regular whitespace and non-breaking spaces.
+    $text = preg_replace('/\xc2\xa0|\s+/u', '', $text);
+
+    if ($text !== '') {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
 }
