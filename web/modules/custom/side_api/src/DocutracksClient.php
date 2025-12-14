@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\side_api;
 
+use Drupal\Component\Serialization\Json;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
@@ -31,6 +32,8 @@ final class DocutracksClient {
   private const LIVE_APP_PASS = '';
 
   private const DEFAULT_FORCE_SIGNED = FALSE;
+  // Default timeout used by the client; callers can override per request.
+  private const DEFAULT_TIMEOUT = 30.0;
 
   public function __construct(private readonly ClientInterface $httpClient) {
   }
@@ -43,11 +46,12 @@ final class DocutracksClient {
     ?string $adminUser = null,
     ?string $adminPass = null,
     ?string $appUser = null,
-    ?string $appPass = null
+    ?string $appPass = null,
+    float $timeout = self::DEFAULT_TIMEOUT
   ): CookieJar {
+    $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $env = $this->detectEnvironment();
 
-    $baseUrl = rtrim($baseUrl ?? $env['base_url'], '/');
     $adminUser = $adminUser ?? $env['admin_user'];
     $adminPass = $adminPass ?? $env['admin_pass'];
     $appUser = $appUser ?? $env['app_user'];
@@ -59,11 +63,18 @@ final class DocutracksClient {
     $auth = [$adminUser, $adminPass];
 
     try {
-      $this->httpClient->request('POST', $baseUrl . '/services/authentication/login', [
+      \Drupal::logger('side_api')->info('Docutracks login request: @details', [
+        '@details' => Json::encode([
+          'base_url' => $resolvedBaseUrl,
+          'timeout' => $timeout,
+        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+      ]);
+      $this->httpClient->request('POST', $resolvedBaseUrl . '/services/authentication/login', [
         'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
         'auth' => $auth,
         'json' => $payload,
         'cookies' => $jar,
+        'timeout' => $timeout,
       ]);
     }
     catch (GuzzleException $e) {
@@ -144,14 +155,23 @@ final class DocutracksClient {
    *
    * @return array<string, mixed>
    */
-  public function registerDocument(array $payload, CookieJar $jar, ?string $baseUrl = null): array {
-    $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+  public function registerDocument(array $payload, CookieJar $jar, ?string $baseUrl = null, float $timeout = self::DEFAULT_TIMEOUT): array {
+    $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+    $sanitized = $this->sanitizePayloadForLog($payload);
 
     try {
-      $response = $this->httpClient->request('POST', $baseUrl . '/services/document/register', [
+      \Drupal::logger('side_api')->info('Docutracks register request: @details', [
+        '@details' => Json::encode([
+          'base_url' => $resolvedBaseUrl,
+          'timeout' => $timeout,
+          'payload' => $sanitized,
+        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+      ]);
+      $response = $this->httpClient->request('POST', $resolvedBaseUrl . '/services/document/register', [
         'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
         'json' => $payload,
         'cookies' => $jar,
+        'timeout' => $timeout,
       ]);
     }
     catch (GuzzleException $e) {
@@ -163,6 +183,13 @@ final class DocutracksClient {
     if (!is_array($decoded)) {
       throw new RuntimeException('Register document response could not be decoded as JSON.');
     }
+    \Drupal::logger('side_api')->info('Docutracks register response: @details', [
+      '@details' => Json::encode([
+        'base_url' => $resolvedBaseUrl,
+        'payload' => $sanitized,
+        'response' => $decoded,
+      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+    ]);
     return $decoded;
   }
 
@@ -486,4 +513,36 @@ final class DocutracksClient {
     ];
   }
 
+  /**
+   * Resolve the base URL based on explicit override or environment.
+   */
+  public function resolveBaseUrl(?string $baseUrl = NULL): string {
+    return rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+  }
+
+  /**
+   * Strip large file contents from payloads before logging.
+   */
+  private function sanitizePayloadForLog(array $payload): array {
+    if (!isset($payload['Document']) || !is_array($payload['Document'])) {
+      return $payload;
+    }
+    $document = $payload['Document'];
+
+    if (isset($document['MainFile']) && is_array($document['MainFile'])) {
+      unset($document['MainFile']['Base64File']);
+    }
+
+    if (isset($document['Attachments']) && is_array($document['Attachments'])) {
+      foreach ($document['Attachments'] as &$attachment) {
+        if (is_array($attachment)) {
+          unset($attachment['Base64File']);
+        }
+      }
+      unset($attachment);
+    }
+
+    $payload['Document'] = $document;
+    return $payload;
+  }
 }

@@ -3,7 +3,10 @@
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\file\Entity\File;
 use Drupal\node\NodeInterface;
 
 /**
@@ -15,6 +18,14 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   if (!$current_user->hasPermission('administer nodes') && isset($form['revision_information'])) {
     // Remove revision tab entirely for non-admin users.
     $form['revision_information']['#access'] = FALSE;
+  }
+
+  // Post-submit cleanup: if Docutracks failed, remove core status messages.
+  if (isset($form['actions']['submit']['#submit']) && is_array($form['actions']['submit']['#submit'])) {
+    $form['actions']['submit']['#submit'][] = 'incoming_tweaks_clear_status_on_docutracks_failure';
+  }
+  else {
+    $form['#submit'][] = 'incoming_tweaks_clear_status_on_docutracks_failure';
   }
 }
 
@@ -289,6 +300,149 @@ function incoming_tweaks_node_insert(NodeInterface $node): void {
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_update() for nodes.
+ *
+ * When an incoming moves from under_processing to for_signature, push it to
+ * Docutracks via side_api and store the response on the node.
+ */
+function incoming_tweaks_node_update(NodeInterface $node): void {
+  static $reverting = [];
+  static $processing = [];
+
+  if (
+    $node->bundle() !== 'incoming' ||
+    !$node->hasField('moderation_state') ||
+    $node->get('moderation_state')->isEmpty() ||
+    !$node->original instanceof EntityInterface ||
+    $node->original->getEntityTypeId() !== 'node'
+  ) {
+    return;
+  }
+
+  $nid = $node->id();
+
+  $previous_state = $node->original->get('moderation_state')->isEmpty() ? NULL : $node->original->get('moderation_state')->value;
+  $current_state = $node->get('moderation_state')->value;
+
+  if ($previous_state !== 'under_processing' || $current_state !== 'for_signature') {
+    return;
+  }
+
+  // Avoid re-entrancy when we revert the node within this hook.
+  if (!empty($reverting[$nid])) {
+    return;
+  }
+
+  // Avoid multiple sends within the same request for the same node.
+  if (!empty($processing[$nid])) {
+    return;
+  }
+  $processing[$nid] = TRUE;
+
+  $current_tries = incoming_tweaks_get_plan_dt_tries($node);
+  $attempt_number = $current_tries + 1;
+
+  $main_file_path = incoming_tweaks_resolve_single_file_path($node, 'field_plan');
+  if ($main_file_path === NULL) {
+    incoming_tweaks_revert_to_under_processing($node, $reverting, 'Missing plan file.', NULL, $attempt_number);
+    \Drupal::logger('incoming_tweaks')->error('Unable to send incoming @nid to Docutracks: missing plan file (attempt @attempt).', [
+      '@nid' => $nid,
+      '@attempt' => $attempt_number,
+    ]);
+    \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+    unset($processing[$nid]);
+    return;
+  }
+
+  $attachment_paths = incoming_tweaks_resolve_file_paths($node, 'field_attachments');
+  $title = '';
+  if ($node->hasField('field_subject') && !$node->get('field_subject')->isEmpty()) {
+    $title = (string) $node->get('field_subject')->value;
+  }
+  $title = trim($title) !== '' ? $title : (string) $node->label();
+
+  $doc_payload = ['Document' => ['Title' => $title]];
+
+  $timeout = 30.0;
+
+  try {
+    /** @var \Drupal\side_api\DocutracksClient $client */
+    $client = \Drupal::service('side_api.docutracks_client');
+    $payload = $client->prepareRegisterPayload($doc_payload, $main_file_path, $attachment_paths);
+    $sanitized_payload = incoming_tweaks_sanitize_docutracks_payload($payload);
+
+    $log_details = [
+      'nid' => $node->id(),
+      'attempt' => $attempt_number,
+      'base_url' => $client->resolveBaseUrl(),
+      'timeout' => $timeout,
+      'main_file' => $main_file_path,
+      'attachments' => $attachment_paths,
+      'title' => $title,
+      'moderation_state' => $current_state,
+      'payload' => $sanitized_payload,
+    ];
+
+    \Drupal::logger('incoming_tweaks')->info('Sending incoming to Docutracks: @details', [
+      '@details' => Json::encode($log_details, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+    ]);
+
+    $jar = $client->loginToDocutracks(baseUrl: NULL, adminUser: NULL, adminPass: NULL, appUser: NULL, appPass: NULL, timeout: $timeout);
+    $response = $client->registerDocument($payload, $jar, NULL, $timeout);
+
+    $is_success = is_array($response) && !empty($response['Success']);
+
+    // Persist the API response on the node without creating an extra revision.
+    if ($node->hasField('field_plan_dt_api_response')) {
+      $node->set('field_plan_dt_api_response', Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    }
+    if ($node->hasField('field_plan_dt_success')) {
+      $node->set('field_plan_dt_success', $is_success ? 1 : 0);
+    }
+    if ($node->hasField('field_plan_dt_tries')) {
+      $node->set('field_plan_dt_tries', $attempt_number);
+    }
+
+    if ($is_success) {
+      $node->setNewRevision(FALSE);
+      $node->save();
+
+      \Drupal::logger('incoming_tweaks')->info('Docutracks push succeeded', [
+        'nid' => $nid,
+        'attempt' => $attempt_number,
+        'main_file' => $main_file_path,
+        'attachments' => $attachment_paths,
+        'response' => $response,
+      ]);
+
+      // Add a success message to inform the editor.
+      \Drupal::messenger()->addStatus(t('Plan was transfered to SIDE'));
+    }
+    else {
+      incoming_tweaks_revert_to_under_processing($node, $reverting, 'Docutracks returned non-success response.', Json::encode($response, JSON_UNESCAPED_UNICODE), $attempt_number);
+      \Drupal::logger('incoming_tweaks')->warning('Docutracks push returned non-success', [
+        'nid' => $nid,
+        'attempt' => $attempt_number,
+        'main_file' => $main_file_path,
+        'attachments' => $attachment_paths,
+        'response' => $response,
+      ]);
+    }
+  }
+  catch (\Throwable $throwable) {
+    incoming_tweaks_revert_to_under_processing($node, $reverting, $throwable->getMessage(), NULL, $attempt_number);
+    \Drupal::logger('incoming_tweaks')->error('Docutracks push failed for incoming @nid (attempt @attempt): @message', [
+      '@nid' => $nid,
+      '@attempt' => $attempt_number,
+      '@message' => $throwable->getMessage(),
+    ]);
+  }
+  finally {
+    unset($processing[$nid]);
+  }
+}
+
+/**
  * Calculates a date N working days from today.
  */
 function incoming_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime $start_date = NULL): DrupalDateTime {
@@ -438,4 +592,153 @@ function incoming_tweaks_next_reference_sequence(int $year): int {
   }
 
   return $next;
+}
+
+/**
+ * Returns the first readable file path for a file field.
+ */
+function incoming_tweaks_resolve_single_file_path(NodeInterface $node, string $field_name): ?string {
+  $paths = incoming_tweaks_resolve_file_paths($node, $field_name);
+  return $paths[0] ?? NULL;
+}
+
+/**
+ * Returns all readable file paths for a file field.
+ */
+function incoming_tweaks_resolve_file_paths(NodeInterface $node, string $field_name): array {
+  if (!$node->hasField($field_name)) {
+    return [];
+  }
+
+  $paths = [];
+  $file_system = \Drupal::service('file_system');
+
+  foreach ($node->get($field_name) as $item) {
+    $target_id = $item->target_id ?? NULL;
+    if (!$target_id) {
+      continue;
+    }
+
+    $file = File::load($target_id);
+    if (!$file) {
+      continue;
+    }
+
+    $uri = $file->getFileUri();
+    $real_path = $file_system->realpath($uri);
+    if ($real_path && is_readable($real_path)) {
+      $paths[] = $real_path;
+    }
+  }
+
+  return $paths;
+}
+
+/**
+ * Remove Base64 contents before logging payloads.
+ */
+function incoming_tweaks_sanitize_docutracks_payload(array $payload): array {
+  if (!isset($payload['Document']) || !is_array($payload['Document'])) {
+    return $payload;
+  }
+
+  $document = $payload['Document'];
+
+  if (isset($document['MainFile']) && is_array($document['MainFile'])) {
+    unset($document['MainFile']['Base64File']);
+  }
+
+  if (isset($document['Attachments']) && is_array($document['Attachments'])) {
+    foreach ($document['Attachments'] as &$attachment) {
+      if (is_array($attachment)) {
+        unset($attachment['Base64File']);
+      }
+    }
+    unset($attachment);
+  }
+
+  $payload['Document'] = $document;
+  return $payload;
+}
+
+/**
+ * Get the persisted Docutracks attempt count for the node.
+ */
+function incoming_tweaks_get_plan_dt_tries(NodeInterface $node): int {
+  if (!$node->hasField('field_plan_dt_tries')) {
+    return 0;
+  }
+
+  // Prefer the stored value to avoid counting based on mutated in-memory state.
+  if (!$node->isNew() && $node->id()) {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    /** @var \Drupal\node\NodeInterface|null $unchanged */
+    $unchanged = $storage->loadUnchanged($node->id());
+    if ($unchanged instanceof NodeInterface && !$unchanged->get('field_plan_dt_tries')->isEmpty()) {
+      return (int) $unchanged->get('field_plan_dt_tries')->value;
+    }
+  }
+
+  if (!$node->get('field_plan_dt_tries')->isEmpty()) {
+    return (int) $node->get('field_plan_dt_tries')->value;
+  }
+
+  return 0;
+}
+
+/**
+ * Set node back to under_processing, flag failure, save, and show warning.
+ */
+function incoming_tweaks_revert_to_under_processing(NodeInterface $node, array &$reverting, string $reason, ?string $response = NULL, ?int $attempt_number = NULL): void {
+  $nid = $node->id();
+  $reverting[$nid] = TRUE;
+
+  if ($node->hasField('moderation_state')) {
+    $node->set('moderation_state', 'under_processing');
+  }
+  if ($node->hasField('field_plan_dt_success')) {
+    $node->set('field_plan_dt_success', 0);
+  }
+  if ($node->hasField('field_plan_dt_tries') && $attempt_number !== NULL) {
+    $node->set('field_plan_dt_tries', $attempt_number);
+  }
+  if ($node->hasField('field_plan_dt_api_response') && $response !== NULL) {
+    $node->set('field_plan_dt_api_response', $response);
+  }
+
+  // Clear any pending status messages before saving the reverted node.
+  \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+
+  $node->setNewRevision(FALSE);
+  $node->save();
+
+  // Remove any pre-existing status messages to avoid mixed success/failure.
+  \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+
+  \Drupal::messenger()->addError(t('Docutracks transmission failed and the item was returned to Under processing. Reason: @reason', [
+    '@reason' => $reason,
+  ]));
+
+  // Flag this request so form submit cleanup can remove any core success message.
+  \Drupal::request()->attributes->set('incoming_tweaks_dt_failed', TRUE);
+
+  unset($reverting[$nid]);
+}
+
+/**
+ * Submit handler to clear status messages when Docutracks failed.
+ */
+function incoming_tweaks_clear_status_on_docutracks_failure(array &$form, FormStateInterface $form_state): void {
+  if (\Drupal::request()->attributes->get('incoming_tweaks_dt_failed')) {
+    \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+  }
+}
+
+/**
+ * Remove success messages on page build when Docutracks failed.
+ */
+function incoming_tweaks_page_alter(array &$page): void {
+  if (\Drupal::request()->attributes->get('incoming_tweaks_dt_failed')) {
+    \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+  }
 }
