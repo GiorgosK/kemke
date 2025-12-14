@@ -44,16 +44,37 @@ class ActivitiesModsController extends ControllerBase {
     }
 
     $activities = $storage->loadMultiple($ids);
-    $last_kept = NULL;
+    $kept = [];
     $duplicates = [];
 
     foreach ($activities as $activity) {
       $created = (int) $activity->getCreatedTime();
-      if ($last_kept !== NULL && ($created - $last_kept) < 30) {
-        $duplicates[] = $activity;
+      $operation = $activity->getOperation();
+
+      if (empty($kept)) {
+        $kept[] = $activity;
         continue;
       }
-      $last_kept = $created;
+
+      $last_kept_activity = end($kept);
+      $last_kept_created = (int) $last_kept_activity->getCreatedTime();
+      $within_window = ($created - $last_kept_created) < 30;
+
+      if ($within_window) {
+        // Prefer keeping a create within the window, even if it arrives after
+        // an update. Replace the last kept activity when a create appears.
+        if ($operation === 'create' && $last_kept_activity->getOperation() !== 'create') {
+          $duplicates[] = $last_kept_activity;
+          array_pop($kept);
+          $kept[] = $activity;
+        }
+        else {
+          $duplicates[] = $activity;
+        }
+        continue;
+      }
+
+      $kept[] = $activity;
     }
 
     foreach ($duplicates as $duplicate) {
