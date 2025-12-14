@@ -3,14 +3,24 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.paragraph.remark.field_comment
     - field.field.paragraph.remark.field_datetime
     - field.field.paragraph.remark.field_user
     - paragraphs.paragraphs_type.remark
+  module:
+    - text
 id: paragraph.remark.default
 targetEntityType: paragraph
 bundle: remark
 mode: default
 content:
+  field_comment:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
+    region: content
   field_datetime:
     type: timestamp
     label: hidden

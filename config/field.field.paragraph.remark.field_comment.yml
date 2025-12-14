@@ -1,0 +1,24 @@
+uuid: 601d7f9e-13f9-486e-a4fe-61ed2afcb835
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_comment
+    - filter.format.full_html
+    - paragraphs.paragraphs_type.remark
+  module:
+    - text
+id: paragraph.remark.field_comment
+field_name: field_comment
+entity_type: paragraph
+bundle: remark
+label: Σχόλιο
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - full_html
+field_type: text_long
