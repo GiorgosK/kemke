@@ -37,6 +37,7 @@ module:
   ief_table_view_mode: 0
   image: 0
   incoming_api: 0
+  incoming_breadcrumbs: 0
   incoming_change_state: 0
   incoming_form_validations: 0
   incoming_notifications: 0

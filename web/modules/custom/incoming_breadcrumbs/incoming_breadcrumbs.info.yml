@@ -1,0 +1,8 @@
+name: 'Incoming Breadcrumbs'
+type: module
+description: 'Custom breadcrumbs for incoming nodes based on related cases.'
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:node
+  - drupal:taxonomy

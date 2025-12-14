@@ -1,0 +1,8 @@
+services:
+  incoming_breadcrumbs.breadcrumb_builder:
+    class: Drupal\incoming_breadcrumbs\Breadcrumb\IncomingBreadcrumbBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+    tags:
+      - { name: breadcrumb_builder, priority: 250 }
