@@ -29,7 +29,6 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   $is_new = $entity->isNew();
 
   incoming_tweaks_ensure_title($entity);
-  incoming_tweaks_skip_director_gate_for_director($entity);
   $baseline = incoming_tweaks_ensure_entry_date($entity);
   incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
@@ -116,33 +115,6 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
     $node->set('field_legal_deadline', [
       'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
-  }
-}
-
-/**
- * Skips director approval when the change is made by a director.
- */
-function incoming_tweaks_skip_director_gate_for_director(NodeInterface $node): void {
-  if (
-    $node->isNew() ||
-    !$node->hasField('moderation_state') ||
-    !$node->original instanceof EntityInterface ||
-    $node->get('moderation_state')->isEmpty()
-  ) {
-    return;
-  }
-
-  $previous_state = $node->original->get('moderation_state')->isEmpty() ? NULL : $node->original->get('moderation_state')->value;
-  $current_state = $node->get('moderation_state')->value;
-  $account = \Drupal::currentUser();
-
-  // If a director is moving from supervisor approval to director approval,
-  // complete the approval immediately.
-  $director_roles = ['director_supervisor'];
-  $is_director = (bool) array_intersect($director_roles, $account->getRoles());
-
-  if ($is_director && $previous_state === 'for_supervisor_approval' && $current_state === 'for_director_approval') {
-    $node->set('moderation_state', 'approved');
   }
 }
 
