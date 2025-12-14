@@ -642,6 +642,9 @@ function field_non_empty_lock_get_node_field_map() {
       'field_protocol_date',
       'field_protocol_number_doc',
       'field_protocol_number_sender',
+      'field_plan_dt_success',
+      'field_plan_dt_tries',
+      'field_plan_dt_api_response',
       //'field_requested_deadline',
       //'field_incoming_type',
       // Base field widgets can live deeper in the form array, so provide
