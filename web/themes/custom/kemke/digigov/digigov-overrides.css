@@ -195,3 +195,8 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
   z-index: 99;
   background: inherit;
 }
+
+.govgr-list--bullet li {
+  color: white;
+  font-size: 2rem;
+}
