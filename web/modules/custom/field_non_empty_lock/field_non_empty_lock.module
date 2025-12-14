@@ -691,14 +691,7 @@ function field_non_empty_lock_get_taxonomy_field_map() {
 function field_non_empty_lock_get_paragraph_field_map() {
   return [
     'documents' => [
-      'field_protocol', //deprecated
       'field_files',
-      'field_assignees',
-      'field_subject',
-      'field_protocol_date',
-      'field_protocol_number_doc',
-      'field_protocol_number_sender',
-      'field_sender',
     ],
     'remark' => [
       'field_comment',
@@ -719,14 +712,7 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
   return [
     'field_documents' => [
       'documents' => [
-        'field_protocol',
         'field_files',
-        'field_assignees',
-        'field_subject',
-        'field_protocol_date',
-        'field_protocol_number_doc',
-        'field_protocol_number_sender',
-        'field_sender',
       ],
     ],
     'field_remarks' => [
