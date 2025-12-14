@@ -7,6 +7,8 @@
 
 use Drupal\activities\Entity\UserActivitiesInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
 
 /**
  * Implements hook_activities_logger_log().
@@ -82,4 +84,16 @@ function activities_mods_activities_logger_log(UserActivitiesInterface $activiti
   if (strpos($info, 'State: ') === FALSE) {
     $activities->setInfo($info ? sprintf('%s | %s', $info, $extra) : $extra);
   }
+}
+
+/**
+ * Enforce ASC sorting for the node activity view.
+ */
+function activities_mods_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  if ($view->id() !== 'activities_mods_node_activity') {
+    return;
+  }
+
+  $query->orderby = [];
+  $query->addOrderBy('user_activities', 'created', 'ASC');
 }
