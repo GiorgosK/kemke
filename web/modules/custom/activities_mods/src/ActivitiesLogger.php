@@ -50,6 +50,21 @@ class ActivitiesLogger extends BaseActivitiesLogger {
       return NULL;
     }
 
+    if ($op === 'update') {
+      // Avoid logging updates while the entity is still new (e.g. presave
+      // hooks during creation) or when we lack an original to compare.
+      if ($this->isNewOrMissingOriginal($entity)) {
+        return NULL;
+      }
+
+      // Skip noisy updates that happen immediately after a create for the same
+      // entity (e.g. extra presave hooks firing in the same minute) or repeat
+      // updates with identical info within the same window.
+      if ($this->shouldSuppressUpdate($entity)) {
+        return NULL;
+      }
+    }
+
     /** @var \Drupal\activities\Entity\UserActivitiesInterface $activities */
     $activities = $this->entityTypeManager->getStorage('user_activities')->create();
     $activities->setOwner($user);
@@ -119,6 +134,61 @@ class ActivitiesLogger extends BaseActivitiesLogger {
       '@from' => $old_label,
       '@to' => $new_label,
     ]);
+  }
+
+  /**
+   * Returns the latest activity for an entity, if any.
+   */
+  protected function getLatestActivityForEntity(string $entity_type_id, $entity_id) {
+    $storage = $this->entityTypeManager->getStorage('user_activities');
+    $query = $storage->getQuery()
+      ->condition('entity_type_id', $entity_type_id)
+      ->condition('entity_id', $entity_id)
+      ->accessCheck(FALSE)
+      ->sort('created', 'DESC')
+      ->range(0, 1);
+
+    $ids = $query->execute();
+    if (empty($ids)) {
+      return NULL;
+    }
+
+    return $storage->load(reset($ids));
+  }
+
+  /**
+   * Determines whether an update should be suppressed as noise.
+   */
+  protected function shouldSuppressUpdate(EntityInterface $entity): bool {
+    $latest = $this->getLatestActivityForEntity($entity->getEntityTypeId(), $entity->id());
+    if (!$latest) {
+      return FALSE;
+    }
+
+    $request_time = \Drupal::time()->getRequestTime();
+    $threshold = 30;
+
+    // Suppress if the latest activity was a create inside the window.
+    if ($latest->getOperation() === 'create' && ($request_time - $latest->getCreatedTime()) < $threshold) {
+      return TRUE;
+    }
+
+    // Also suppress duplicate updates with identical info inside the window.
+    $current_info = $this->buildInfo($entity, 'update');
+    return $latest->getOperation() === 'update'
+      && $latest->getInfo() === $current_info
+      && ($request_time - $latest->getCreatedTime()) < $threshold;
+  }
+
+  /**
+   * Determines whether the entity lacks an original version for comparison.
+   */
+  protected function isNewOrMissingOriginal(EntityInterface $entity): bool {
+    if ($entity->isNew()) {
+      return TRUE;
+    }
+
+    return !isset($entity->original) || !$entity->original instanceof EntityInterface;
   }
 
 }
