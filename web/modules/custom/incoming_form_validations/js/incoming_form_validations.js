@@ -55,6 +55,17 @@
         },
       ],
     },
+    '#edit-group-plan': {
+      type: 'tab',
+      display: 'none',
+      valueNot: [
+        {
+          selector: '#edit-field-incoming-type',
+          type: 'select',
+          value: ['41','3'],
+        },
+      ],
+    },
   };
 
   const findLabelFor = (field) => {
@@ -156,6 +167,21 @@
       return null;
     }
     return document.querySelector(`.${config.tab_button_class}`);
+  };
+
+  const getTabElement = (tabSelector) => {
+    if (!tabSelector) {
+      return null;
+    }
+    if (tabSelector.startsWith('#')) {
+      const link = document.querySelector(
+        `.horizontal-tab-button a[href="${tabSelector}"], .vertical-tab-button a[href="${tabSelector}"], li a[href="${tabSelector}"]`
+      );
+      if (link) {
+        return link.closest('.horizontal-tab-button, .vertical-tab-button, li');
+      }
+    }
+    return document.querySelector(tabSelector);
   };
 
   const getFieldValue = (field, type) => {
@@ -321,7 +347,7 @@
   };
 
   const applyTabVisibility = (tabSelector, requirement) => {
-    const tab = document.querySelector(tabSelector);
+    const tab = getTabElement(tabSelector);
     if (!tab) {
       return;
     }
@@ -334,6 +360,10 @@
         return false;
       }
       const value = getFieldValue(field, cfg.type);
+      if (Array.isArray(cfg.value)) {
+        const allowed = cfg.value.map((v) => String(v));
+        return !allowed.includes(String(value));
+      }
       return String(value) !== String(cfg.value);
     });
 
