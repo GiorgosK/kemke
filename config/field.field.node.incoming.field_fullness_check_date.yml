@@ -1,17 +1,17 @@
-uuid: 2f1f25af-8265-4c0c-a659-d5fe7955762f
-langcode: en
+uuid: cb13b76d-0131-454b-a626-34af0722049c
+langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.node.field_completion_date
+    - field.storage.node.field_fullness_check_date
     - node.type.incoming
   module:
     - datetime
-id: node.incoming.field_completion_date
-field_name: field_completion_date
+id: node.incoming.field_fullness_check_date
+field_name: field_fullness_check_date
 entity_type: node
 bundle: incoming
-label: 'Ημερομηνία ολοκλήρωσης'
+label: 'Ημερομηνία πληρότητας'
 description: ''
 required: false
 translatable: false

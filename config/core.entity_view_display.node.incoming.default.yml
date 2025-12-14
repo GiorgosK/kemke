@@ -10,6 +10,7 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -41,6 +42,7 @@ dependencies:
     - node.type.incoming
   module:
     - datetime
+    - datetime_optional_time
     - entity_reference_revisions
     - field_group
     - file
@@ -92,6 +94,7 @@ third_party_settings:
         - field_requested_deadline
         - field_legal_deadline
         - field_interim_deadline
+        - field_fullness_check_date
         - field_completion_date
       label: Κατάσταση
       parent_name: group_tabs
@@ -256,7 +259,7 @@ content:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 6
+    weight: 7
     region: content
   field_entry_date:
     type: datetime_default
@@ -266,6 +269,16 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 13
+    region: content
+  field_fullness_check_date:
+    type: datetime_optional_time
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+      date_only_format_type: medium
+    third_party_settings: {  }
+    weight: 6
     region: content
   field_incoming_type:
     type: entity_reference_label
@@ -306,7 +319,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 11
+    weight: 12
     region: content
   field_plan:
     type: file_default

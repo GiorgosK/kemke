@@ -10,6 +10,7 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -58,6 +59,7 @@ third_party_settings:
         - field_requested_deadline
         - field_legal_deadline
         - field_interim_deadline
+        - field_fullness_check_date
         - field_completion_date
       label: Κατασταση
       region: content
@@ -275,13 +277,19 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_default
-    weight: 21
+    weight: 22
     region: content
     settings: {  }
     third_party_settings: {  }
   field_entry_date:
     type: datetime_default
     weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_fullness_check_date:
+    type: datetime_default
+    weight: 21
     region: content
     settings: {  }
     third_party_settings: {  }
