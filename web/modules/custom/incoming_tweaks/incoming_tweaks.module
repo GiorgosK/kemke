@@ -5,6 +5,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Component\Utility\Unicode;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\file\Entity\File;
 use Drupal\node\NodeInterface;
@@ -355,11 +356,17 @@ function incoming_tweaks_node_update(NodeInterface $node): void {
   }
 
   $attachment_paths = incoming_tweaks_resolve_file_paths($node, 'field_attachments');
-  $title = '';
+  $subject = '';
   if ($node->hasField('field_subject') && !$node->get('field_subject')->isEmpty()) {
-    $title = (string) $node->get('field_subject')->value;
+    $subject = strip_tags((string) $node->get('field_subject')->value);
+    $subject = trim($subject);
   }
-  $title = trim($title) !== '' ? $title : (string) $node->label();
+  if (mb_strlen($subject) > 100) {
+    $subject = Unicode::substr($subject, 0, 100) . '...';
+  }
+
+  $node_title = (string) $node->label();
+  $title = $subject !== '' ? sprintf('%s - %s', $node_title, $subject) : $node_title;
 
   $doc_payload = ['Document' => ['Title' => $title]];
 
