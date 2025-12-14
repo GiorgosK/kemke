@@ -44,7 +44,7 @@
         },
       ],
     },
-    '.horizontal-tab-button-6': {
+    '#edit-group-ee': {
       type: 'tab',
       display: 'none',
       valueNot: [
