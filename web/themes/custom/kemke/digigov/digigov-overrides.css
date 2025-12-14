@@ -152,6 +152,7 @@ pre {
   width: 100%
 }
 
+#field-remarks-values thead,
 .tabledrag-toggle-weight-wrapper,
 #field-documents-values thead,
 #field-documents-values td:empty,
