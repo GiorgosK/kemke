@@ -60,8 +60,27 @@ final class SideApiCommands extends DrushCommands {
    * @command side:register
    * @aliases sdr
    */
-  public function register(string $docJsonPath, string $filePath): void {
-    $response = $this->client->registerWithFile($docJsonPath, $filePath);
+  /**
+   * Register document with optional main file and attachments.
+   *
+   * Usage examples:
+   *   drush side:register ./doc.json
+   *   drush side:register ./doc.json --main=./main.pdf
+   *   drush side:register ./doc.json --main=./main.pdf --attach=./a1.pdf --attach=./a2.pdf
+   *
+   * @command side:register
+   * @aliases sdr
+   * @option main Path to main file (optional).
+   * @option attach[] Attachment file paths (repeatable).
+   */
+  public function register(string $docJsonPath, array $options = ['main' => '', 'attach' => []]): void {
+    $mainFilePath = $options['main'] ?? '';
+    $attachmentPaths = $options['attach'] ?? [];
+
+    $main = ($mainFilePath === '' || $mainFilePath === null) ? null : $mainFilePath;
+    $attachList = is_array($attachmentPaths) ? $attachmentPaths : [];
+
+    $response = $this->client->registerWithFiles($docJsonPath, $main, $attachList);
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 

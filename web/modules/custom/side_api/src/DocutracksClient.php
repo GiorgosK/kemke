@@ -305,14 +305,69 @@ final class DocutracksClient {
    * Prepare a register payload by merging defaults and a file attachment.
    *
    * Example:
-   *   $payload = $client->prepareRegisterPayload('min.json', 'dummy.pdf');
+   *   $payload = $client->prepareRegisterPayload('min.json', 'main.pdf', ['attach1.pdf']);
    *   $response = $client->registerDocument($payload, $client->loginToDocutracks());
    *
    * @return array<string, mixed>
    */
-  public function prepareRegisterPayload(array|string $docPayload, string $filePath): array {
-    $filePath = $this->resolvePath($filePath);
+  public function prepareRegisterPayload(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = []): array {
+    $decoded = is_array($docPayload) ? $docPayload : $this->loadJson($docPayload);
 
+    $payload = $this->mergeWithDefaults($decoded);
+
+    // Main file is optional.
+    if ($mainFilePath !== NULL && $mainFilePath !== '') {
+      $mainFilePath = $this->resolvePath($mainFilePath);
+      $fileData = file_get_contents($mainFilePath);
+      if ($fileData === FALSE) {
+        throw new RuntimeException('Unable to read main upload file.');
+      }
+      $payload['Document']['MainFile'] = [
+        'FileName' => basename($mainFilePath),
+        'Base64File' => base64_encode($fileData),
+      ];
+    }
+
+    // Attachments (0..n).
+    $attachments = $payload['Document']['Attachments'] ?? [];
+    if (!is_array($attachments)) {
+      $attachments = [];
+    }
+
+    foreach ($attachmentPaths as $attachPath) {
+      if ($attachPath === NULL || $attachPath === '') {
+        continue;
+      }
+      $attachPath = $this->resolvePath($attachPath);
+      $attachData = file_get_contents($attachPath);
+      if ($attachData === FALSE) {
+        throw new RuntimeException(sprintf('Unable to read attachment file: %s', $attachPath));
+      }
+      $attachments[] = [
+        'FileName' => basename($attachPath),
+        'Base64File' => base64_encode($attachData),
+      ];
+    }
+
+    if (!empty($attachments)) {
+      $payload['Document']['Attachments'] = $attachments;
+    }
+
+    return $payload;
+  }
+
+  /**
+   * Prepare a payload to append attachments to an existing document (experimental).
+   *
+   * @param array|string $docPayload
+   *   Either a PHP array or a JSON file path containing fields to merge (must include Document.Id).
+   * @param string $filePath
+   *   Attachment file to encode and append.
+   *
+   * @return array<string, mixed>
+   */
+  public function prepareAttachmentPayload(array|string $docPayload, string $filePath): array {
+    $filePath = $this->resolvePath($filePath);
     $decoded = is_array($docPayload) ? $docPayload : $this->loadJson($docPayload);
 
     $fileData = file_get_contents($filePath);
@@ -320,22 +375,32 @@ final class DocutracksClient {
       throw new RuntimeException('Unable to read upload file.');
     }
 
-    $mainFile = [
+    $attachment = [
       'FileName' => basename($filePath),
       'Base64File' => base64_encode($fileData),
     ];
 
     $payload = $this->mergeWithDefaults($decoded);
-    $payload['Document']['MainFile'] = $mainFile;
+    // Ensure Document.Id is present in overrides; otherwise we can't target an existing doc.
+    if (empty($payload['Document']['Id'])) {
+      throw new RuntimeException('Document.Id is required to append an attachment.');
+    }
 
+    // Append to Attachments; if none exist, create the array.
+    if (!isset($payload['Document']['Attachments']) || !is_array($payload['Document']['Attachments'])) {
+      $payload['Document']['Attachments'] = [];
+    }
+    $payload['Document']['Attachments'][] = $attachment;
+
+    // No MainFile override here; we are only appending attachments.
     return $payload;
   }
 
   /**
    * Convenience wrapper: build payload and register with login.
    */
-  public function registerWithFile(array|string $docPayload, string $filePath): array {
-    $payload = $this->prepareRegisterPayload($docPayload, $filePath);
+  public function registerWithFiles(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = []): array {
+    $payload = $this->prepareRegisterPayload($docPayload, $mainFilePath, $attachmentPaths);
     $jar = $this->loginToDocutracks();
     $result = $this->registerDocument($payload, $jar);
     return $result;
