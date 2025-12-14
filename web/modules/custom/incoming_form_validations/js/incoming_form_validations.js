@@ -44,6 +44,37 @@
         },
       ],
     },
+    '#edit-moderation-state-for-signature': [
+      {
+        type: 'button',
+        disabled: true,
+        toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+        emptyFields: [
+          {
+            selector: '#edit-field-plan-0-upload',
+            type: 'file',
+            tab_button_class: 'horizontal-tab-button-5',
+            tab_button_active_class: 'selected',
+            indicator: 'div',
+          },
+        ],
+      },
+      {
+        type: 'hideIf',
+        valueIsAND: [
+          {
+            selector: '#edit-field-incoming-type',
+            type: 'select',
+            value: ['9','2','5','42','8','9','_none'], 
+          },
+          {
+            selector: '#edit-moderation-state-under-processing',
+            type: 'input',
+            value: 'Αποθήκευση',
+          },
+        ],
+      },
+    ],
     '.horizontal-tab-button-6': {
       type: 'hideIf',
       display: 'none',
@@ -62,21 +93,6 @@
           selector: '#edit-field-incoming-type',
           type: 'select',
           value: ['41','3'],
-        },
-      ],
-    },
-    '#edit-moderation-state-for-signature': {
-      type: 'hideIf',
-      valueIsAND: [
-        {
-          selector: '#edit-field-incoming-type',
-          type: 'select',
-          value: ['9','2','5','42','8','9','_none'], 
-        },
-        {
-          selector: '#edit-moderation-state-under-processing',
-          type: 'input',
-          value: 'Αποθήκευση',
         },
       ],
     },
@@ -151,8 +167,35 @@
   }
 
   const isEmpty = (el, config = {}) => {
+    if (!el && config.type === 'file') {
+      const fallbackFidsSelector = config.selector?.replace('-upload', '-fids');
+      const hiddenFids =
+        (fallbackFidsSelector && document.querySelector(fallbackFidsSelector)) ||
+        document.querySelector('input[type="hidden"][name*="[fids]"][data-drupal-selector*="field-plan"]');
+      if (hiddenFids) {
+        const val = String(hiddenFids.value || '').trim();
+        return val === '';
+      }
+      return true;
+    }
     if (!el) {
       return true;
+    }
+    if (config.type === 'file' || el.type === 'file') {
+      if (el.files && el.files.length !== undefined) {
+        return el.files.length === 0;
+      }
+      const wrapper = el.closest('.js-form-managed-file');
+      if (wrapper) {
+        const hiddenFids = wrapper.querySelector('input[type="hidden"][name*="[fids]"]');
+        if (hiddenFids) {
+          const val = String(hiddenFids.value || '').trim();
+          if (val !== '') {
+            return false;
+          }
+        }
+      }
+      return !el.value;
     }
     if (config.type === 'select2') {
       const select2Empty = isSelect2Empty(el);
@@ -447,9 +490,23 @@
     applyVisibility(selector, requirement);
   };
 
+  const expandRequirements = () => {
+    const pairs = [];
+    Object.entries(requirements).forEach(([selector, requirement]) => {
+      if (Array.isArray(requirement)) {
+        requirement.forEach((req) => pairs.push([selector, req]));
+      }
+      else {
+        pairs.push([selector, requirement]);
+      }
+    });
+    return pairs;
+  };
+
   Drupal.behaviors.incomingFormValidations = {
     attach() {
-      Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
+      const reqs = expandRequirements();
+      reqs.forEach(([buttonSelector, requirement]) => {
         if (requirement.type === 'hideIf') {
           attachVisibilityHandler(buttonSelector, requirement);
           return;
@@ -458,7 +515,7 @@
       });
       // Safety: re-check shortly after attach for dynamic widgets (e.g. select2).
       setTimeout(() => {
-        Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
+        reqs.forEach(([buttonSelector, requirement]) => {
           if (requirement.type === 'hideIf') {
             applyVisibility(buttonSelector, requirement);
           }
@@ -472,7 +529,7 @@
       }, 300);
       // Second pass in case select2 initializes later.
       setTimeout(() => {
-        Object.entries(requirements).forEach(([buttonSelector, requirement]) => {
+        reqs.forEach(([buttonSelector, requirement]) => {
           if (requirement.type === 'hideIf') {
             applyVisibility(buttonSelector, requirement);
           }
