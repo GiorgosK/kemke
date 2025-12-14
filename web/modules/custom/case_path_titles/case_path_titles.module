@@ -1,0 +1,46 @@
+<?php
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_views_pre_render().
+ *
+ * Ensures the view title is updated before it is rendered.
+ */
+function case_path_titles_views_pre_render(ViewExecutable $view): void {
+  if ($view->id() !== 'incoming' || $view->current_display !== 'page_3') {
+    return;
+  }
+
+  if ($computed = _case_path_titles_compute_title()) {
+    $view->setTitle($computed);
+  }
+}
+
+/**
+ * Build the augmented title for incoming case pages.
+ *
+ * @return string|null
+ *   Computed title or NULL if not applicable.
+ */
+function _case_path_titles_compute_title(): ?string {
+  $route_match = \Drupal::routeMatch();
+
+  if ($route_match->getRouteName() !== 'view.incoming.page_3') {
+    return NULL;
+  }
+
+  $term_id = $route_match->getRawParameter('arg_0');
+  if (empty($term_id)) {
+    return NULL;
+  }
+
+  /** @var \Drupal\taxonomy\TermInterface|null $term */
+  $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load($term_id);
+  if (!$term) {
+    return NULL;
+  }
+
+  return $term->label();
+}

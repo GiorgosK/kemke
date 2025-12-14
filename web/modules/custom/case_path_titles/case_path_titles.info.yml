@@ -1,0 +1,7 @@
+name: 'Case Path Titles'
+type: module
+description: 'Appends the case taxonomy term name to incoming case page titles.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - taxonomy
