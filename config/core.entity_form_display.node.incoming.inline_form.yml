@@ -18,6 +18,8 @@ dependencies:
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
+    - field.field.node.incoming.field_plan_dt_success
+    - field.field.node.incoming.field_plan_dt_tries
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -159,6 +161,8 @@ hidden:
   field_operators: true
   field_plan: true
   field_plan_dt_api_response: true
+  field_plan_dt_success: true
+  field_plan_dt_tries: true
   field_primary: true
   field_protocol_date: true
   field_protocol_number_doc: true

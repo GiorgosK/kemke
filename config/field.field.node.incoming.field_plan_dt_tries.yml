@@ -1,0 +1,23 @@
+uuid: bf663f12-45ca-4489-86fd-6b20df45c5b7
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_plan_dt_tries
+    - node.type.incoming
+id: node.incoming.field_plan_dt_tries
+field_name: field_plan_dt_tries
+entity_type: node
+bundle: incoming
+label: 'Docutracks δοκιμές'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

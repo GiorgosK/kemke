@@ -17,6 +17,8 @@ dependencies:
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
+    - field.field.node.incoming.field_plan_dt_success
+    - field.field.node.incoming.field_plan_dt_tries
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -209,6 +211,8 @@ third_party_settings:
       children:
         - field_plan
         - field_attachments
+        - field_plan_dt_tries
+        - field_plan_dt_success
         - field_plan_dt_api_response
       label: Σχέδιο
       region: content
@@ -326,10 +330,24 @@ content:
     third_party_settings: {  }
   field_plan_dt_api_response:
     type: string_textarea
-    weight: 11
+    weight: 13
     region: content
     settings:
       rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_plan_dt_success:
+    type: boolean_checkbox
+    weight: 12
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_plan_dt_tries:
+    type: number
+    weight: 11
+    region: content
+    settings:
       placeholder: ''
     third_party_settings: {  }
   field_priority:
@@ -389,7 +407,7 @@ content:
     third_party_settings: {  }
   field_remarks:
     type: paragraphs
-    weight: 25
+    weight: 12
     region: content
     settings:
       title: Παρατήρησης

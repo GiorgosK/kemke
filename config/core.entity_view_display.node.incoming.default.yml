@@ -17,6 +17,8 @@ dependencies:
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
+    - field.field.node.incoming.field_plan_dt_success
+    - field.field.node.incoming.field_plan_dt_tries
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -203,6 +205,8 @@ third_party_settings:
       children:
         - field_plan
         - field_attachments
+        - field_plan_dt_tries
+        - field_plan_dt_success
         - field_plan_dt_api_response
       label: Σχέδιο
       parent_name: group_tabs
@@ -316,6 +320,25 @@ content:
     type: basic_string
     label: above
     settings: {  }
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_plan_dt_success:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_plan_dt_tries:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
     third_party_settings: {  }
     weight: 5
     region: content

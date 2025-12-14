@@ -1,0 +1,21 @@
+uuid: 1ae1740d-4d54-4414-8a5a-c8004052208f
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_plan_dt_success
+    - node.type.incoming
+id: node.incoming.field_plan_dt_success
+field_name: field_plan_dt_success
+entity_type: node
+bundle: incoming
+label: 'Ελήφθη απο docutracks'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ναι
+  off_label: Όχι
+field_type: boolean
