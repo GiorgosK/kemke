@@ -95,8 +95,9 @@
   ];
 /**
  * @endcode
-$databases = [];
 */
+
+// $databases = [];
 
 /**
  * Customizing database settings.

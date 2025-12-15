@@ -1,0 +1,19 @@
+<?php
+
+#$settings['file_temp_path'] = '_tmp';
+
+$databases['default']['default'] = array (
+  'database' => 'db',
+  'username' => 'user',
+  'password' => 'pass',
+  'prefix' => '',
+  'host' => 'localhost',
+  'port' => '3306',
+  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+  'driver' => 'mysql',
+  'pdo' => [],
+);
+
+$settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
+
+
