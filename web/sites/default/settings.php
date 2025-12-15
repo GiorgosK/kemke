@@ -78,19 +78,25 @@
  * specific needs.
  *
  * @code
- * $databases['default']['default'] = [
- *   'database' => 'database_name',
- *   'username' => 'sql_username',
- *   'password' => 'sql_password',
- *   'host' => 'localhost',
- *   'port' => '3306',
- *   'driver' => 'mysql',
- *   'prefix' => '',
- *   'collation' => 'utf8mb4_general_ci',
- * ];
+*/
+  $databases['default']['default'] = [
+    'database' => 'kemke_db',
+    'username' => 'localadmin',
+    'password' => 'S6MqIW2BHNhi0QzAhjKmIeHvB61dD27t',
+    'host' => 'min15-rg30-mysql01.mysql.database.azure.com',
+    'port' => '3306',
+    'driver' => 'mysql',
+    'pdo' => [
+      \PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
+      \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+    ],
+    'prefix' => '',
+    'collation' => 'utf8mb4_general_ci',
+  ];
+/**
  * @endcode
- */
 $databases = [];
+*/
 
 /**
  * Customizing database settings.
@@ -288,7 +294,7 @@ $settings['config_sync_directory'] = '../config';
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = '';
+$settings['hash_salt'] = '/etc/ssl/certs/ca-certificates.crt';
 
 /**
  * Deployment identifier.
