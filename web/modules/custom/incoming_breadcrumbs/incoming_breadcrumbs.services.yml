@@ -6,3 +6,8 @@ services:
       - '@string_translation'
     tags:
       - { name: breadcrumb_builder, priority: 250 }
+
+  incoming_breadcrumbs.listing_breadcrumb_builder:
+    class: Drupal\incoming_breadcrumbs\Breadcrumb\IncomingListingBreadcrumbBuilder
+    tags:
+      - { name: breadcrumb_builder, priority: 260 }

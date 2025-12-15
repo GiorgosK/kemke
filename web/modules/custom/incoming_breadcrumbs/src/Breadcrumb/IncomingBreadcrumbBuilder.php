@@ -67,6 +67,12 @@ final class IncomingBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
     $breadcrumb->addLink(Link::fromTextAndUrl($node->label(), $node->toUrl('canonical')));
 
+    // Append the current page title as the final crumb without a link.
+    $title = $route_match->getRouteObject()?->getDefault('_title');
+    if ($title) {
+      $breadcrumb->addLink(Link::fromTextAndUrl($this->t($title), Url::fromRoute('<none>')));
+    }
+
     return $breadcrumb;
   }
 

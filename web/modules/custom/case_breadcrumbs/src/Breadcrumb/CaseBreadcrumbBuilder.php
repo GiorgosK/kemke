@@ -35,7 +35,8 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    * {@inheritdoc}
    */
   public function applies(RouteMatchInterface $route_match): bool {
-    return $route_match->getRouteName() === 'view.incoming.page_3';
+    $route_name = $route_match->getRouteName();
+    return in_array($route_name, ['view.incoming.page_3', 'view.cases.page_1'], TRUE);
   }
 
   /**
@@ -45,6 +46,13 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $breadcrumb = (new Breadcrumb())
       ->addCacheContexts(['route']);
 
+    // Handle /cases listing breadcrumb.
+    if ($route_match->getRouteName() === 'view.cases.page_1') {
+      $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+      $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Υποθέσεις'), Url::fromRoute('<nolink>')));
+      return $breadcrumb;
+    }
+
     $term = $this->resolveTerm($route_match);
     if (!$term instanceof TermInterface) {
       return $breadcrumb;
@@ -53,12 +61,19 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $breadcrumb->addCacheableDependency($term);
     $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
 
-    foreach ($this->getCaseAncestry($term) as $ancestor) {
+    $ancestors = $this->getCaseAncestry($term);
+    $last_index = count($ancestors) - 1;
+    foreach ($ancestors as $index => $ancestor) {
       $breadcrumb->addCacheableDependency($ancestor);
-      $breadcrumb->addLink(Link::fromTextAndUrl(
-        $ancestor->label(),
-        Url::fromUserInput('/incoming/c/' . $ancestor->id()),
-      ));
+      if ($index === $last_index) {
+        $breadcrumb->addLink(Link::fromTextAndUrl($ancestor->label(), Url::fromRoute('<nolink>')));
+      }
+      else {
+        $breadcrumb->addLink(Link::fromTextAndUrl(
+          $ancestor->label(),
+          Url::fromUserInput('/incoming/c/' . $ancestor->id()),
+        ));
+      }
     }
 
     return $breadcrumb;
