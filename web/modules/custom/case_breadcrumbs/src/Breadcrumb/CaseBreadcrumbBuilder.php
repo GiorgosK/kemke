@@ -60,6 +60,10 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
     $breadcrumb->addCacheableDependency($term);
     $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink(Link::fromTextAndUrl(
+      $this->t('Υποθέσεις'),
+      Url::fromRoute('view.cases.page_1'),
+    ));
 
     $ancestors = $this->getCaseAncestry($term);
     $last_index = count($ancestors) - 1;
