@@ -1,0 +1,30 @@
+uuid: 5cc5766a-48fc-4219-a958-919c69621081
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_on_time
+field_name: field_on_time
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: den_ehei_ypologistei
+      label: 'Δεν έχει υπολογιστεί'
+    -
+      value: nai
+      label: Ναι
+    -
+      value: ohi
+      label: Όχι
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

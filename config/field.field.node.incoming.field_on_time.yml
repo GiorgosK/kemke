@@ -1,0 +1,23 @@
+uuid: 61cc9ff2-6dbf-4e1d-86c9-403904e21c11
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_on_time
+    - node.type.incoming
+  module:
+    - options
+id: node.incoming.field_on_time
+field_name: field_on_time
+entity_type: node
+bundle: incoming
+label: Εμπρόθεσμο
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: den_ehei_ypologistei
+default_value_callback: ''
+settings: {  }
+field_type: list_string

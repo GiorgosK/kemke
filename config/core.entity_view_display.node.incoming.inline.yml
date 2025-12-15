@@ -11,11 +11,13 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_field_legal_deadline_ext
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
+    - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -115,11 +117,13 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_field_legal_deadline_ext: true
   field_fullness_check_date: true
   field_incoming_type: true
   field_interim_deadline: true
   field_legal_deadline: true
   field_notes: true
+  field_on_time: true
   field_operators: true
   field_plan: true
   field_plan_dt_api_response: true

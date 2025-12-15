@@ -1,0 +1,8 @@
+uuid: 3a004cee-9c48-4680-b734-1d522dfa85be
+langcode: el
+status: true
+dependencies: {  }
+id: greek_date_with_day
+label: 'Greek date with day'
+locked: false
+pattern: 'D, j M Y'

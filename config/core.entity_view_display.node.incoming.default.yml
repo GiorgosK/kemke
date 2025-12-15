@@ -10,11 +10,13 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_field_legal_deadline_ext
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
+    - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -42,10 +44,10 @@ dependencies:
     - node.type.incoming
   module:
     - datetime
-    - datetime_optional_time
     - entity_reference_revisions
     - field_group
     - file
+    - options
     - reference_table_formatter
     - text
     - user
@@ -92,10 +94,12 @@ third_party_settings:
       children:
         - field_priority
         - field_requested_deadline
-        - field_legal_deadline
         - field_interim_deadline
+        - field_legal_deadline
+        - field_field_legal_deadline_ext
         - field_fullness_check_date
         - field_completion_date
+        - field_on_time
       label: Κατάσταση
       parent_name: group_tabs
       region: content
@@ -257,28 +261,36 @@ content:
     label: above
     settings:
       timezone_override: ''
-      format_type: medium
+      format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 7
+    weight: 8
     region: content
   field_entry_date:
     type: datetime_default
     label: above
     settings:
       timezone_override: ''
-      format_type: medium
+      format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 13
     region: content
-  field_fullness_check_date:
-    type: datetime_optional_time
+  field_field_legal_deadline_ext:
+    type: datetime_default
     label: above
     settings:
       timezone_override: ''
       format_type: medium
-      date_only_format_type: medium
     third_party_settings: {  }
     weight: 6
+    region: content
+  field_fullness_check_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: greek_date_with_day
+    third_party_settings: {  }
+    weight: 7
     region: content
   field_incoming_type:
     type: entity_reference_label
@@ -293,18 +305,18 @@ content:
     label: above
     settings:
       timezone_override: ''
-      format_type: medium
+      format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 5
+    weight: 4
     region: content
   field_legal_deadline:
     type: datetime_default
     label: above
     settings:
       timezone_override: ''
-      format_type: medium
+      format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 4
+    weight: 5
     region: content
   field_notes:
     type: basic_string
@@ -313,13 +325,20 @@ content:
     third_party_settings: {  }
     weight: 18
     region: content
+  field_on_time:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 9
+    region: content
   field_operators:
     type: entity_reference_label
     label: above
     settings:
       link: true
     third_party_settings: {  }
-    weight: 12
+    weight: 11
     region: content
   field_plan:
     type: file_default
@@ -334,7 +353,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 7
+    weight: 8
     region: content
   field_plan_dt_success:
     type: boolean
@@ -344,7 +363,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 6
+    weight: 7
     region: content
   field_plan_dt_tries:
     type: number_integer
@@ -396,7 +415,7 @@ content:
     label: above
     settings:
       timezone_override: ''
-      format_type: medium
+      format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 3
     region: content

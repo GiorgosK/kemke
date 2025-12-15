@@ -10,11 +10,13 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_field_legal_deadline_ext
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_notes
+    - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -57,10 +59,12 @@ third_party_settings:
       children:
         - field_priority
         - field_requested_deadline
-        - field_legal_deadline
         - field_interim_deadline
+        - field_legal_deadline
+        - field_field_legal_deadline_ext
         - field_fullness_check_date
         - field_completion_date
+        - field_on_time
       label: Κατασταση
       region: content
       parent_name: group_tabs
@@ -257,7 +261,7 @@ content:
     third_party_settings: {  }
   field_basic_operator:
     type: select2_entity_reference
-    weight: 9
+    weight: 10
     region: content
     settings:
       width: 100%
@@ -276,8 +280,8 @@ content:
       match_limit: 10
     third_party_settings: {  }
   field_completion_date:
-    type: datetime_default
-    weight: 22
+    type: datetime_optional_time_widget
+    weight: 23
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -287,9 +291,15 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_fullness_check_date:
+  field_field_legal_deadline_ext:
     type: datetime_default
     weight: 21
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_fullness_check_date:
+    type: datetime_optional_time_widget
+    weight: 22
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -300,14 +310,14 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_interim_deadline:
-    type: datetime_default
-    weight: 20
+    type: datetime_optional_time_widget
+    weight: 19
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
-    type: datetime_default
-    weight: 19
+    type: datetime_optional_time_widget
+    weight: 20
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -318,6 +328,12 @@ content:
     settings:
       rows: 3
       placeholder: ''
+    third_party_settings: {  }
+  field_on_time:
+    type: options_select
+    weight: 24
+    region: content
+    settings: {  }
     third_party_settings: {  }
   field_operators:
     type: select2_entity_reference
@@ -415,7 +431,7 @@ content:
     third_party_settings: {  }
   field_remarks:
     type: paragraphs
-    weight: 12
+    weight: 29
     region: content
     settings:
       title: Παρατήρησης
@@ -434,7 +450,7 @@ content:
         duplicate: '0'
     third_party_settings: {  }
   field_requested_deadline:
-    type: datetime_default
+    type: datetime_optional_time_widget
     weight: 18
     region: content
     settings: {  }
@@ -499,7 +515,7 @@ content:
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
-    weight: 20
+    weight: 21
     region: content
     settings:
       size: 60
@@ -515,7 +531,7 @@ content:
     third_party_settings: {  }
   field_transparency_requirement:
     type: string_textfield
-    weight: 26
+    weight: 23
     region: content
     settings:
       size: 60
@@ -523,7 +539,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 27
+    weight: 24
     region: content
     settings:
       placeholder: ''
