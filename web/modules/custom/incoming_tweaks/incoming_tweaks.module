@@ -93,15 +93,15 @@ function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime 
 }
 
 /**
- * Calculates field_legal_deadline when a new attachment is initiated.
+ * Calculates field_legal_deadline when a new incoming is initiated.
  */
 function incoming_tweaks_set_initial_legal_deadline(NodeInterface $node, DrupalDateTime $baseline): void {
   if ($node->get('field_legal_deadline')->isEmpty()) {
     $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
-    $dead_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
-    $node->set('field_legal_deadline', ['value' => $dead_formatted]);
+    $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+    $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
     // also set same date for field_fullness_check_date 
-    $node->set('field_fullness_check_date', ['value' => $dead_formatted]);
+    $node->set('field_fullness_check_date', ['value' => $deadline_formatted]);
   }
 }
 
@@ -122,12 +122,14 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
   $current_state = $node->get('moderation_state')->value;
 
   if ($previous_state === 'pending_issues' && $current_state === 'fullness_check') {
-    $deadline_baseline = new DrupalDateTime('now');
-    $deadline_baseline->setTime(0, 0, 0);
-    $deadline = incoming_tweaks_calculate_workday_deadline(20, $deadline_baseline);
-    $node->set('field_fullness_check_date', [
-      'value' => $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
-    ]);
+    $today = new DrupalDateTime('now');
+    $today->setTime(0, 0, 0);
+    $today_formatted = $today->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+    $deadline = incoming_tweaks_calculate_workday_deadline(20, $today);
+    $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+
+    $node->set('field_fullness_check_date', ['value' => $today_formatted]);
+    $node->set('field_legal_deadline_ext', ['value' => $deadline_formatted]);
   }
 }
 
