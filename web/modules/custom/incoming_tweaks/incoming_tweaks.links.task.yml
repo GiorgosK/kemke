@@ -1,0 +1,11 @@
+incoming_tweaks.incoming:
+  route_name: view.incoming.page_1
+  base_route: view.incoming.page_1
+  title: 'Εισερχόμενα'
+  weight: 0
+
+incoming_tweaks.incoming_all:
+  route_name: view.incoming.page_4
+  base_route: view.incoming.page_1
+  title: 'Αρχείο Εισερχομένων'
+  weight: 10
