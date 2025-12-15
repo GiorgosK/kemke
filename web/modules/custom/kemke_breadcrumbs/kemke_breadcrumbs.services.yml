@@ -1,0 +1,21 @@
+services:
+  kemke_breadcrumbs.case_breadcrumb_builder:
+    class: Drupal\kemke_breadcrumbs\Breadcrumb\CaseBreadcrumbBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+    tags:
+      - { name: breadcrumb_builder, priority: 245 }
+
+  kemke_breadcrumbs.incoming_breadcrumb_builder:
+    class: Drupal\kemke_breadcrumbs\Breadcrumb\IncomingBreadcrumbBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+    tags:
+      - { name: breadcrumb_builder, priority: 250 }
+
+  kemke_breadcrumbs.incoming_listing_breadcrumb_builder:
+    class: Drupal\kemke_breadcrumbs\Breadcrumb\IncomingListingBreadcrumbBuilder
+    tags:
+      - { name: breadcrumb_builder, priority: 260 }

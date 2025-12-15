@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\case_breadcrumbs\Breadcrumb;
+namespace Drupal\kemke_breadcrumbs\Breadcrumb;
 
 use Drupal\Core\Breadcrumb\Breadcrumb;
 use Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface;
