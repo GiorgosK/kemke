@@ -1654,11 +1654,11 @@ display:
         - 'config:workflow_list'
   page_4:
     id: page_4
-    display_title: 'Ολα τα Εισερχόμενα'
+    display_title: 'Αρχείο Εισερχομένων'
     display_plugin: page
     position: 1
     display_options:
-      title: 'Ολα τα Εισερχόμενα'
+      title: 'Αρχείο Εισερχομένων'
       access:
         type: role
         options:
