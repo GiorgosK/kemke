@@ -1,0 +1,21 @@
+uuid: 10cc16c0-55c3-406b-8099-528f6e22229f
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_legal_deadline_original
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_legal_deadline_original
+field_name: field_legal_deadline_original
+entity_type: node
+bundle: incoming
+label: 'Νόμιμη προθεσμία αρχική'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

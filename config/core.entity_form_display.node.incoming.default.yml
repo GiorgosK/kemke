@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
+    - field.field.node.incoming.field_legal_deadline_original
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
@@ -61,7 +62,6 @@ third_party_settings:
         - field_requested_deadline
         - field_interim_deadline
         - field_legal_deadline
-        - field_field_legal_deadline_ext
         - field_fullness_check_date
         - field_completion_date
         - field_on_time
@@ -240,7 +240,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 3
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -288,12 +288,6 @@ content:
   field_entry_date:
     type: datetime_default
     weight: 3
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_field_legal_deadline_ext:
-    type: datetime_default
-    weight: 21
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -559,41 +553,41 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 6
+    weight: 5
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 7
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 4
+    weight: 3
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 8
+    weight: 7
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 5
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 2
+    weight: 1
     region: content
     settings:
       match_operator: CONTAINS
@@ -603,6 +597,8 @@ content:
     third_party_settings: {  }
 hidden:
   field_documents: true
+  field_field_legal_deadline_ext: true
+  field_legal_deadline_original: true
   field_primary: true
   field_responsible_entity: true
   title: true
