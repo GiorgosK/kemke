@@ -13,6 +13,7 @@ dependencies:
     - content_moderation
     - filter
     - incoming_change_state
+    - kemke_reports
     - node
     - node_view_permissions
     - role_delegation
@@ -46,6 +47,7 @@ permissions:
   - 'delete terms in case'
   - 'edit any incoming content'
   - 'edit terms in case'
+  - 'setup reports'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'
   - 'use incoming_processing transition fullness_approved'
@@ -64,5 +66,6 @@ permissions:
   - 'view incoming revisions'
   - 'view latest version'
   - 'view own unpublished content'
+  - 'view reports'
   - 'view term revisions in case'
   - 'view the administration theme'

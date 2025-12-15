@@ -1,0 +1,7 @@
+view reports:
+  title: 'View reports'
+  description: 'Access reports listing and results.'
+
+setup reports:
+  title: 'Setup reports'
+  description: 'Configure report objectives and run on-time calculations.'

@@ -3,14 +3,14 @@ kemke_reports.config_page:
   defaults:
     _controller: '\Drupal\kemke_reports\Controller\ReportsConfigPageController::build'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'setup reports'
 
 kemke_reports.reports_form:
   path: '/reports'
   defaults:
     _form: '\Drupal\kemke_reports\Form\ReportsGenerateForm'
   requirements:
-    _permission: 'access content'
+    _permission: 'view reports'
 
 kemke_reports.results:
   path: '/reports/results'
@@ -18,4 +18,4 @@ kemke_reports.results:
     _controller: '\Drupal\kemke_reports\Controller\ReportsResultsController::build'
     _title: 'Report results'
   requirements:
-    _permission: 'access content'
+    _permission: 'view reports'
