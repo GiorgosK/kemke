@@ -38,7 +38,7 @@
         {
           selector: '#edit-field-incoming-type',
           type: 'select',
-          tab_button_class: 'horizontal-tab-button-0',
+          tab_button_class: 'horizontal-tab-button-2',
           tab_button_active_class: 'selected',
           indicator: 'select',
         },
