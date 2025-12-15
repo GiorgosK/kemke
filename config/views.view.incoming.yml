@@ -720,7 +720,7 @@ display:
         options:
           offset: 0
           pagination_heading_level: h4
-          items_per_page: 10
+          items_per_page: 20
           total_pages: null
           id: 0
           tags:
@@ -1643,6 +1643,279 @@ display:
         - url.query_args
         - 'user.node_grants:view'
         - user.permissions
+      tags:
+        - 'config:field.storage.node.field_basic_operator'
+        - 'config:field.storage.node.field_case'
+        - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
+        - 'config:field.storage.node.field_legal_deadline'
+        - 'config:field.storage.node.field_operators'
+        - 'config:field.storage.node.field_subject'
+        - 'config:workflow_list'
+  page_4:
+    id: page_4
+    display_title: 'Ολα τα Εισερχόμενα'
+    display_plugin: page
+    position: 1
+    display_options:
+      title: 'Ολα τα Εισερχόμενα'
+      access:
+        type: role
+        options:
+          role:
+            administrator: administrator
+            director_supervisor: director_supervisor
+            department_supervisor: department_supervisor
+            secretariat: secretariat
+            kemke_admin: kemke_admin
+      filters:
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            incoming: incoming
+          group: 1
+        moderation_state:
+          id: moderation_state
+          table: node_field_data
+          field: moderation_state
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          plugin_id: moderation_state_filter
+          operator: in
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: moderation_state_op
+            label: Κατάσταση
+            description: ''
+            use_operator: false
+            operator: moderation_state_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: state
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_incoming_type_target_id_op
+            label: Είδος
+            description: ''
+            use_operator: false
+            operator: field_incoming_type_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: type
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
+        field_case_target_id:
+          id: field_case_target_id
+          table: node__field_case
+          field: field_case_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_case_target_id_op
+            label: Υπόθεση
+            description: ''
+            use_operator: false
+            operator: field_case_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: case
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: case
+          type: textfield
+          hierarchy: true
+          limit: true
+          error_message: true
+        field_primary_value:
+          id: field_primary_value
+          table: node__field_primary
+          field: field_primary_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: boolean
+          operator: '='
+          value: '1'
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: ''
+            description: ''
+            use_operator: false
+            operator: ''
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: ''
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_subject_value:
+          id: field_subject_value
+          table: node__field_subject
+          field: field_subject_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: allwords
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_subject_value_op
+            label: Θέμα
+            description: ''
+            use_operator: false
+            operator: field_subject_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: sub
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: field_subject
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+      filter_groups:
+        operator: AND
+        groups:
+          1: AND
+      defaults:
+        access: false
+        title: false
+        filters: false
+        filter_groups: false
+      display_description: ''
+      display_extenders: {  }
+      path: incoming/all
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - 'user.node_grants:view'
+        - user.roles
       tags:
         - 'config:field.storage.node.field_basic_operator'
         - 'config:field.storage.node.field_case'
