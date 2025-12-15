@@ -65,3 +65,7 @@
 .govgr-table-simple td:first-child {
   padding-left: 16px;
 }
+
+.item-list {
+  font-size: 2rem;
+}

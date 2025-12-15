@@ -1,0 +1,14 @@
+kemke_reports.settings:
+  type: config_object
+  label: 'Kemke reports settings'
+  mapping:
+    objective_1:
+      type: mapping
+      label: 'Objective 1'
+      mapping:
+        description:
+          type: text
+          label: 'Description'
+        percentage:
+          type: float
+          label: 'Target percentage'

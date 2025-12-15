@@ -1,0 +1,23 @@
+kemke_reports.config_page:
+  path: '/reports/config'
+  defaults:
+    _controller: '\Drupal\kemke_reports\Controller\ReportsConfigPageController::build'
+    _title: 'Reports configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+kemke_reports.reports_form:
+  path: '/reports'
+  defaults:
+    _form: '\Drupal\kemke_reports\Form\ReportsGenerateForm'
+    _title: 'Reports'
+  requirements:
+    _permission: 'access content'
+
+kemke_reports.results:
+  path: '/reports/results'
+  defaults:
+    _controller: '\Drupal\kemke_reports\Controller\ReportsResultsController::build'
+    _title: 'Report results'
+  requirements:
+    _permission: 'access content'

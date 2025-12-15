@@ -48,6 +48,7 @@ module:
   incoming_tweaks: 0
   inline_entity_form: 0
   jquery_ui: 0
+  kemke_reports: 0
   language: 0
   link: 0
   locale: 0

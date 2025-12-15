@@ -1,0 +1,213 @@
+<?php
+
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Counts incoming nodes for a given year and filters.
+ */
+function kemke_reports_incoming_get_number_for(int $year, array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published'): int {
+  $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
+
+  $query = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming');
+
+  kemke_reports_apply_year_condition($query, $year);
+  kemke_reports_apply_incoming_filters($query, $conditions, $state);
+
+  return (int) $query->count()->execute();
+}
+
+/**
+ * Sets field_on_time based on completion date and legal deadlines.
+ *
+ * @return int
+ *   The number of updated nodes.
+ */
+function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE): int {
+  $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
+
+  $query = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming');
+
+  kemke_reports_apply_incoming_filters($query, $conditions, $state);
+
+  $nids = $query->execute();
+  if (empty($nids)) {
+    return 0;
+  }
+
+  $node_storage = \Drupal::entityTypeManager()->getStorage('node');
+  $nodes = $node_storage->loadMultiple($nids);
+
+  $updated = 0;
+  foreach ($nodes as $node) {
+    if (!$node instanceof NodeInterface) {
+      continue;
+    }
+
+    $is_on_time = kemke_reports_is_on_time($node);
+    $target_value = $is_on_time ? 'nai' : 'ohi';
+    $current_value = $node->get('field_on_time')->value ?? NULL;
+
+    if ($force_recalculate || $current_value !== $target_value) {
+      $node->set('field_on_time', $target_value);
+      $node->save();
+      $updated++;
+    }
+  }
+
+  // Report the number of nodes updated for visibility.
+  \Drupal::logger('kemke_reports')->notice('On time recalculation updated @count nodes.', ['@count' => $updated]);
+
+  return $updated;
+}
+
+/**
+ * Counts incoming nodes marked on time for a given year and filters.
+ */
+function kemke_reports_incoming_get_on_time_for(int $year, array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published'): int {
+  $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
+
+  $query = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming')
+    ->condition('field_on_time.value', 'nai');
+
+  kemke_reports_apply_year_condition($query, $year);
+  kemke_reports_apply_incoming_filters($query, $conditions, $state);
+
+  return (int) $query->count()->execute();
+}
+
+/**
+ * Adds incoming type, state, and other supported filters to a query.
+ */
+function kemke_reports_apply_incoming_filters(QueryInterface $query, array $conditions, string $state = 'published'): void {
+  if (isset($conditions['field_incoming_type'])) {
+    $tids = kemke_reports_resolve_incoming_type_ids($conditions['field_incoming_type']);
+    if (!empty($tids)) {
+      $query->condition('field_incoming_type.target_id', $tids, 'IN');
+    }
+  }
+
+  if ($state !== '') {
+    $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
+    if (isset($definitions['moderation_state'])) {
+      $query->condition('moderation_state', $state);
+    }
+    if ($state === 'published') {
+      // Ensure only published nodes are included.
+      $query->condition('status', 1);
+    }
+  }
+}
+
+/**
+ * Adds year boundaries to an entity query.
+ */
+function kemke_reports_apply_year_condition(QueryInterface $query, int $year): void {
+  $start = new DrupalDateTime("$year-01-01 00:00:00", new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+  $end = clone $start;
+  $end->modify('+1 year');
+
+  $query->condition(
+    'field_entry_date.value',
+    [
+      $start->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+      $end->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+    ],
+    'BETWEEN'
+  );
+}
+
+/**
+ * Resolves incoming type names or IDs to taxonomy term IDs.
+ *
+ * @param string|int|array $value
+ *   The provided value(s), e.g. 'Γνωμοδότηση'.
+ *
+ * @return array
+ *   An array of taxonomy term IDs.
+ */
+function kemke_reports_resolve_incoming_type_ids($value): array {
+  $values = is_array($value) ? $value : [$value];
+  $tids = [];
+
+  foreach ($values as $item) {
+    if (is_numeric($item)) {
+      $tids[] = (int) $item;
+      continue;
+    }
+
+    $terms = \Drupal::entityTypeManager()
+      ->getStorage('taxonomy_term')
+      ->loadByProperties([
+        'name' => $item,
+        'vid' => 'incoming_type',
+      ]);
+
+    foreach ($terms as $term) {
+      $tids[] = (int) $term->id();
+    }
+  }
+
+  return array_values(array_unique($tids));
+}
+
+/**
+ * Determines whether the given incoming node is on time.
+ */
+function kemke_reports_is_on_time(NodeInterface $node): bool {
+  $completion = kemke_reports_get_first_date_value($node, 'field_completion_date');
+  if (!$completion) {
+    return FALSE;
+  }
+
+  $deadline = kemke_reports_get_first_date_value($node, 'field_field_legal_deadline_ext');
+  if (!$deadline) {
+    $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline');
+  }
+
+  if (!$deadline) {
+    return FALSE;
+  }
+
+  return $completion->getTimestamp() <= $deadline->getTimestamp();
+}
+
+/**
+ * Extracts a date value from a node field.
+ */
+function kemke_reports_get_first_date_value(NodeInterface $node, string $field_name): ?DrupalDateTime {
+  if (!$node->hasField($field_name) || $node->get($field_name)->isEmpty()) {
+    return NULL;
+  }
+
+  $item = $node->get($field_name)->first();
+  if (!$item) {
+    return NULL;
+  }
+
+  $value = $item->getValue()['value'] ?? NULL;
+  if (!$value) {
+    return NULL;
+  }
+
+  try {
+    return DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+  }
+  catch (\Exception $exception) {
+    return NULL;
+  }
+}

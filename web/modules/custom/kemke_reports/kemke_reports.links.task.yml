@@ -1,0 +1,11 @@
+kemke_reports.reports:
+  route_name: kemke_reports.reports_form
+  base_route: kemke_reports.reports_form
+  title: 'Reports'
+  weight: 0
+
+kemke_reports.reports_config:
+  route_name: kemke_reports.config_page
+  base_route: kemke_reports.reports_form
+  title: 'Setup'
+  weight: 10
