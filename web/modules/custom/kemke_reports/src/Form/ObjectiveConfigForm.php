@@ -50,7 +50,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#min' => 0,
       '#max' => 100,
       '#step' => 0.01,
-      '#description' => $this->t('Target completion percentage.'),
+//      '#description' => $this->t('Target completion percentage.'),
     ];
 
     return parent::buildForm($form, $form_state);

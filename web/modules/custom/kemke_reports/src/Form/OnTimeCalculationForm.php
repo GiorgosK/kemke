@@ -79,7 +79,7 @@ class OnTimeCalculationForm extends FormBase {
     $form['on_time']['recalculate_all'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Recalculate all'),
-      '#description' => $this->t('If checked, recalculate on-time status for all incoming items, even if already set.'),
+//      '#description' => $this->t('If checked, recalculate on-time status for all incoming items, even if already set.'),
       '#default_value' => FALSE,
     ];
 

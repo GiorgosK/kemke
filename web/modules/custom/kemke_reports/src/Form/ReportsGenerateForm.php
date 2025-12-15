@@ -56,7 +56,7 @@ class ReportsGenerateForm extends FormBase {
       '#title' => $this->t('Year'),
       '#default_value' => $current_year,
       '#options' => $years,
-      '#description' => $this->t('Choose the year for the report.'),
+//      '#description' => $this->t('Choose the year for the report.'),
     ];
 
     $form['actions'] = [
