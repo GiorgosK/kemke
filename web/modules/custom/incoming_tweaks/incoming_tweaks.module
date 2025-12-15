@@ -97,11 +97,13 @@ function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime 
  */
 function incoming_tweaks_set_initial_legal_deadline(NodeInterface $node, DrupalDateTime $baseline): void {
   if ($node->get('field_legal_deadline')->isEmpty()) {
+    $baseline_formatted = $baseline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+    $node->set('field_fullness_check_date', ['value' => $baseline_formatted]);
+
     $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
     $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
     $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
-    // also set same date for field_fullness_check_date 
-    $node->set('field_fullness_check_date', ['value' => $deadline_formatted]);
+    $node->set('field_legal_deadline_original', ['value' => $deadline_formatted]);
   }
 }
 
@@ -129,6 +131,7 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
     $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
 
     $node->set('field_fullness_check_date', ['value' => $today_formatted]);
+    $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
     $node->set('field_legal_deadline_ext', ['value' => $deadline_formatted]);
   }
 }
