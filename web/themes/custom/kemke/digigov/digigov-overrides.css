@@ -122,9 +122,12 @@ pre {
 [class*="node-incoming-"] .details-wrapper .field--type-entity-reference,
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-string,
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-datetime, 
-[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference, 
-[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-file {
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference {
   width: 250px;
+}
+
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-file {
+  width: 450px;
 }
 
 [class*="node-incoming-"] .details-wrapper .field--name-field-related-incoming {
