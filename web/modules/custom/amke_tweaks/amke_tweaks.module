@@ -22,6 +22,10 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     return;
   }
 
+  // Make sure local task cache varies by role, otherwise removal gets reused
+  // for users who are not AMKE users.
+  $data['#cache']['contexts'][] = 'user.roles';
+
   $keep_fields = [
     'field_ref_id',
     'field_documents',
@@ -148,12 +152,13 @@ function amke_tweaks_incoming_new_validate(array &$form, FormStateInterface $for
 /**
  * Hide the "View" local task when editing a node.
  */
-function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, RouteMatchInterface $route_match, LocalTaskManagerInterface $local_task_manager): void {
+function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, $cacheable_metadata = NULL): void {
   if ($route_name !== 'entity.node.edit_form') {
     return;
   }
 
-  $node = $route_match->getParameter('node');
+  $route_match = \Drupal::routeMatch();
+  $node = $route_match?->getParameter('node');
   if (!$node instanceof NodeInterface) {
     return;
   }
@@ -162,6 +167,9 @@ function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, RouteMatc
   if (!$account->hasRole('amke_user')) {
     return;
   }
+
+  // Ensure local tasks vary by role so removal is not cached for everyone.
+  $data['#cache']['contexts'][] = 'user.roles';
 
   foreach ($data['tabs'] as &$tab_set) {
     if (!is_array($tab_set)) {
