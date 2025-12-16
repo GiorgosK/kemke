@@ -207,3 +207,9 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 .govgr-checkboxes__input {
   zoom: 71%;
 } 
+
+.govgr-panel__title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  margin-bottom: 0;
+}
