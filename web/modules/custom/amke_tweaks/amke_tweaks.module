@@ -30,7 +30,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     'field_remarks',
     'field_attachments',
     'field_plan',
-  ];  
+  ];
   $keep_always = ['actions'];
 
   foreach ($form as $key => $element) {
@@ -47,6 +47,10 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     }
   }
 
+  // Allow AMKE users to save new incoming nodes without transition errors.
+  if ($form_object->getEntity()->isNew()) {
+    $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
+  }
 }
 
 function amke_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form) {
@@ -109,5 +113,45 @@ function amke_tweaks_entity_presave(EntityInterface $entity): void {
 
   if (isset($map[$state])) {
     $entity->set('field_amke_status', $map[$state]);
+  }
+}
+
+/**
+ * Remove transition access errors for new incoming nodes by AMKE users.
+ */
+function amke_tweaks_incoming_new_validate(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  $entity = $form_object?->getEntity();
+  $account = \Drupal::currentUser();
+
+  if (
+    !$entity instanceof NodeInterface ||
+    !$entity->isNew() ||
+    $entity->bundle() !== 'incoming' ||
+    !$account->hasRole('amke_user')
+  ) {
+    return;
+  }
+
+  $errors = $form_state->getErrors();
+  if (!$errors) {
+    return;
+  }
+
+  $cleaned = [];
+  foreach ($errors as $name => $message) {
+    $text = (string) $message;
+    // Skip the transition access violation.
+    if (stripos($text, 'transition') !== FALSE) {
+      continue;
+    }
+    $cleaned[$name] = $message;
+  }
+
+  if (count($cleaned) !== count($errors)) {
+    $form_state->clearErrors();
+    foreach ($cleaned as $name => $message) {
+      $form_state->setErrorByName($name, $message);
+    }
   }
 }
