@@ -86,7 +86,7 @@ display:
           click_sort_column: value
           type: string
           settings:
-            link_to_entity: false
+            link_to_entity: true
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -517,6 +517,46 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_amke_status_value:
+          id: field_amke_status_value
+          table: node__field_amke_status
+          field: field_amke_status_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_amke_status_value_op
+            label: Kατάσταση
+            description: ''
+            use_operator: false
+            operator: field_amke_status_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: field_amke_status_value
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
         field_subject_value:
           id: field_subject_value
           table: node__field_subject

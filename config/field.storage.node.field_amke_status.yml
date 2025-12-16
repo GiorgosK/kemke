@@ -12,14 +12,14 @@ type: list_string
 settings:
   allowed_values:
     -
-      value: published
-      label: Ολοκληρωμένο
+      value: processing
+      label: 'Υπό επεξεργασία'
     -
       value: issues
       label: 'Με εκκρεμότητες'
     -
-      value: processing
-      label: 'Υπό επεξεργασία'
+      value: published
+      label: Ολοκληρωμένο
   allowed_values_function: ''
 module: options
 locked: false

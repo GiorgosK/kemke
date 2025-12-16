@@ -1,0 +1,156 @@
+uuid: bd8cd2f2-b203-4d01-b011-abd8cf0c6650
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.amke_view
+    - field.field.node.incoming.field_amke_status
+    - field.field.node.incoming.field_assignees
+    - field.field.node.incoming.field_attachments
+    - field.field.node.incoming.field_basic_operator
+    - field.field.node.incoming.field_case
+    - field.field.node.incoming.field_completion_date
+    - field.field.node.incoming.field_documents
+    - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_fullness_check_date
+    - field.field.node.incoming.field_incoming_type
+    - field.field.node.incoming.field_interim_deadline
+    - field.field.node.incoming.field_legal_deadline
+    - field.field.node.incoming.field_legal_deadline_ext
+    - field.field.node.incoming.field_legal_deadline_original
+    - field.field.node.incoming.field_notes
+    - field.field.node.incoming.field_on_time
+    - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_plan
+    - field.field.node.incoming.field_plan_dt_api_response
+    - field.field.node.incoming.field_plan_dt_success
+    - field.field.node.incoming.field_plan_dt_tries
+    - field.field.node.incoming.field_primary
+    - field.field.node.incoming.field_priority
+    - field.field.node.incoming.field_protocol_date
+    - field.field.node.incoming.field_protocol_number_doc
+    - field.field.node.incoming.field_protocol_number_sender
+    - field.field.node.incoming.field_ref_id
+    - field.field.node.incoming.field_related_incoming
+    - field.field.node.incoming.field_remarks
+    - field.field.node.incoming.field_requested_deadline
+    - field.field.node.incoming.field_responsible_entity
+    - field.field.node.incoming.field_sa_number
+    - field.field.node.incoming.field_sani_user
+    - field.field.node.incoming.field_sender
+    - field.field.node.incoming.field_subject
+    - field.field.node.incoming.field_supervisor
+    - field.field.node.incoming.field_taa_project
+    - field.field.node.incoming.field_thematic_unit
+    - field.field.node.incoming.field_transparency_requirement
+    - field.field.node.incoming.field_working_days
+    - node.type.incoming
+  module:
+    - datetime
+    - entity_reference_revisions
+    - field_group
+    - file
+    - options
+    - reference_table_formatter
+    - text
+    - user
+id: node.incoming.amke_view
+targetEntityType: node
+bundle: incoming
+mode: amke_view
+content:
+  field_documents:
+    type: entity_reference_revisions_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: '1'
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_entry_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_protocol_number_doc:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_protocol_number_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_ref_id:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_sender:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_subject:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+hidden:
+  content_moderation_control: true
+  field_amke_status: true
+  field_assignees: true
+  field_attachments: true
+  field_basic_operator: true
+  field_case: true
+  field_completion_date: true
+  field_fullness_check_date: true
+  field_incoming_type: true
+  field_interim_deadline: true
+  field_legal_deadline: true
+  field_legal_deadline_ext: true
+  field_legal_deadline_original: true
+  field_notes: true
+  field_on_time: true
+  field_operators: true
+  field_plan: true
+  field_plan_dt_api_response: true
+  field_plan_dt_success: true
+  field_plan_dt_tries: true
+  field_primary: true
+  field_priority: true
+  field_protocol_date: true
+  field_related_incoming: true
+  field_remarks: true
+  field_requested_deadline: true
+  field_responsible_entity: true
+  field_sa_number: true
+  field_sani_user: true
+  field_supervisor: true
+  field_taa_project: true
+  field_thematic_unit: true
+  field_transparency_requirement: true
+  field_working_days: true
+  langcode: true
+  links: true
+  workflow_buttons: true

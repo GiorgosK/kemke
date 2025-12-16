@@ -84,6 +84,30 @@ function amke_tweaks_route_alter(RouteCollection $collection): void {
 }
 
 /**
+ * Use the AMKE view mode for incoming nodes when AMKE users view them.
+ */
+function amke_tweaks_entity_view_mode_alter(&$view_mode, EntityInterface $entity, ?array &$context = NULL): void {
+  if (
+    !$entity instanceof NodeInterface ||
+    $entity->bundle() !== 'incoming'
+  ) {
+    return;
+  }
+
+  $context = $context ?? [];
+
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+
+  // Canonical node pages use the "full" view mode by default.
+  if ($view_mode === 'full') {
+    $view_mode = 'amke_view';
+  }
+}
+
+/**
  * Sync AMKE status with moderation state on save.
  */
 function amke_tweaks_entity_presave(EntityInterface $entity): void {
