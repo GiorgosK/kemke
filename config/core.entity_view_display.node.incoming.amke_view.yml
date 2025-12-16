@@ -25,6 +25,7 @@ dependencies:
     - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_plan_dt_success
     - field.field.node.incoming.field_plan_dt_tries
+    - field.field.node.incoming.field_plan_signed
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -125,6 +126,7 @@ hidden:
   field_plan_dt_api_response: true
   field_plan_dt_success: true
   field_plan_dt_tries: true
+  field_plan_signed: true
   field_primary: true
   field_priority: true
   field_protocol_date: true

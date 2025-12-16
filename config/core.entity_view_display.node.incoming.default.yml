@@ -24,6 +24,7 @@ dependencies:
     - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_plan_dt_success
     - field.field.node.incoming.field_plan_dt_tries
+    - field.field.node.incoming.field_plan_signed
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
     - field.field.node.incoming.field_protocol_date
@@ -212,6 +213,7 @@ third_party_settings:
     group_plan:
       children:
         - field_plan
+        - field_plan_signed
         - field_attachments
         - field_plan_dt_tries
         - field_plan_dt_success
@@ -239,7 +241,7 @@ content:
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
-    weight: 4
+    weight: 5
     region: content
   field_basic_operator:
     type: entity_reference_label
@@ -364,7 +366,15 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 5
+    weight: 6
+    region: content
+  field_plan_signed:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 4
     region: content
   field_priority:
     type: entity_reference_label
