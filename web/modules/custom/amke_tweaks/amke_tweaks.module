@@ -18,8 +18,12 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     return;
   }
 
+  // this field was only meant for amke_user to see
   $account = \Drupal::currentUser();
   if (!$account->hasRole('amke_user')) {
+    if (isset($form['field_documents'])) {
+      $form['field_documents']['#access'] = FALSE;
+    }
     return;
   }
 
