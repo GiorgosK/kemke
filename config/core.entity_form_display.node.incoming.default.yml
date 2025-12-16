@@ -185,6 +185,7 @@ third_party_settings:
     group_files:
       children:
         - field_related_incoming
+        - field_documents
       label: Αρχεία
       region: content
       parent_name: group_tabs
@@ -285,6 +286,24 @@ content:
     weight: 10
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_documents:
+    type: paragraphs
+    weight: 2
+    region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+      features:
+        collapse_edit_all: collapse_edit_all
+        duplicate: duplicate
     third_party_settings: {  }
   field_entry_date:
     type: datetime_default
@@ -408,7 +427,7 @@ content:
       conditional_fields: {  }
   field_related_incoming:
     type: inline_entity_form_complex_table_view_mode
-    weight: 8
+    weight: 1
     region: content
     settings:
       form_mode: default
@@ -598,7 +617,6 @@ content:
     third_party_settings: {  }
 hidden:
   field_amke_status: true
-  field_documents: true
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
   field_primary: true
