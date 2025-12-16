@@ -1,6 +1,10 @@
 <?php
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+use Symfony\Component\Routing\RouteCollection;
 
 
 /**
@@ -51,4 +55,27 @@ function amke_tweaks_field_group_form_process_build_alter(array &$element, FormS
   foreach ($group_changes as $key => $group) {
     $element[$key]['#group'] = $group;
   }
+}
+
+/**
+ * Add custom access checks on select routes.
+ */
+function amke_tweaks_route_alter(RouteCollection $collection): void {
+  if ($route = $collection->get('entity.node.canonical')) {
+    $route->setRequirement('_custom_access', 'Drupal\\amke_tweaks\\Access\\AmkeTweaksAccessCheck::nodeView');
+  }
+  if ($route = $collection->get('activities_mods.node_activity')) {
+    $route->setRequirement('_custom_access', 'Drupal\\amke_tweaks\\Access\\AmkeTweaksAccessCheck::nodeActivity');
+  }
+}
+
+/**
+ * Global node access guard for AMKE users.
+ */
+function amke_tweaks_node_access(NodeInterface $node, $op, AccountInterface $account): AccessResult {
+  if ($op === 'view' && $account->hasRole('amke_user')) {
+    return AccessResult::forbidden()->cachePerUser();
+  }
+
+  return AccessResult::neutral();
 }
