@@ -316,6 +316,13 @@ function incoming_tweaks_node_update(NodeInterface $node): void {
   static $reverting = [];
   static $processing = [];
 
+  incoming_tweaks_send_plan($node, $reverting, $processing);
+}
+
+/**
+ * Sends a plan to Docutracks when moving to for_signature state.
+ */
+function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array &$processing): void {
   if (
     $node->bundle() !== 'incoming' ||
     !$node->hasField('moderation_state') ||
@@ -326,14 +333,14 @@ function incoming_tweaks_node_update(NodeInterface $node): void {
     return;
   }
 
-  $nid = $node->id();
-
   $previous_state = $node->original->get('moderation_state')->isEmpty() ? NULL : $node->original->get('moderation_state')->value;
   $current_state = $node->get('moderation_state')->value;
 
   if ($previous_state !== 'under_processing' || $current_state !== 'for_signature') {
     return;
   }
+
+  $nid = $node->id();
 
   // Avoid re-entrancy when we revert the node within this hook.
   if (!empty($reverting[$nid])) {
