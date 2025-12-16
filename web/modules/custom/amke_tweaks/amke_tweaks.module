@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\node\NodeInterface;
@@ -78,4 +79,35 @@ function amke_tweaks_node_access(NodeInterface $node, $op, AccountInterface $acc
   }
 
   return AccessResult::neutral();
+}
+
+/**
+ * Sync AMKE status with moderation state on save.
+ */
+function amke_tweaks_entity_presave(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (!$entity->hasField('moderation_state') || !$entity->hasField('field_amke_status')) {
+    return;
+  }
+
+  $state = $entity->get('moderation_state')->value;
+  if ($state === NULL || $state === '') {
+    return;
+  }
+
+  $map = [
+    'draft' => 'processing',           // Προς χρέωση -> Υπό επεξεργασία
+    'fullness_check' => 'processing',  // Έλεγχος πληρότητας -> Υπό επεξεργασία
+    'pending_issues' => 'issues', // Με εκκρεμότητες -> Με εκκρεμότητες
+    'under_processing' => 'processing',   // Υπό επεξεργασία -> Υπό επεξεργασία
+    'for_signature' => 'processing',      // Εγκεκριμένο - Προς υπογραφή -> Υπό επεξεργασία
+    'published' => 'published',           // Ολοκληρωμένο -> Ολοκληρωμένο
+  ];
+
+  if (isset($map[$state])) {
+    $entity->set('field_amke_status', $map[$state]);
+  }
 }

@@ -11,7 +11,7 @@ id: node.incoming.field_amke_status
 field_name: field_amke_status
 entity_type: node
 bundle: incoming
-label: 'κατάσταση ΑΜΚΕ'
+label: 'Kατάσταση ΑΜΚΕ'
 description: ''
 required: false
 translatable: false

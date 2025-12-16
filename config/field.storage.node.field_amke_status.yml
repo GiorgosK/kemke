@@ -14,6 +14,12 @@ settings:
     -
       value: published
       label: Ολοκληρωμένο
+    -
+      value: issues
+      label: 'Με εκκρεμότητες'
+    -
+      value: processing
+      label: 'Υπό επεξεργασία'
   allowed_values_function: ''
 module: options
 locked: false
