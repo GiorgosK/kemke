@@ -530,6 +530,23 @@ function field_non_empty_lock_field_has_value($entity, array $field_config) {
 }
 
 /**
+ * Treats boolean FALSE/0 as empty for locking/hiding purposes.
+ */
+function field_non_empty_lock_boolean_false_is_empty(EntityInterface $entity, array $field_config): bool {
+  if (!$entity->hasField($field_config['field_name'])) {
+    return TRUE;
+  }
+
+  $field = $entity->get($field_config['field_name']);
+  if ($field->isEmpty()) {
+    return TRUE;
+  }
+
+  $value = $field->value ?? NULL;
+  return $value === NULL || $value === '' || $value === '0' || $value === 0 || $value === FALSE;
+}
+
+/**
  * Disables a widget recursively so it remains visible but not editable.
  *
  * @param array $widget
@@ -642,10 +659,27 @@ function field_non_empty_lock_get_node_field_map() {
       'field_protocol_date',
       'field_protocol_number_doc',
       'field_protocol_number_sender',
-      'field_plan_dt_success',
-      'field_plan_dt_tries',
-      'field_plan_dt_api_response',
-      'field_plan_dt_docid',
+      'field_plan_dt_success' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+        'is_empty_callback' => 'field_non_empty_lock_boolean_false_is_empty',
+      ],
+      'field_plan_dt_tries' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
+      'field_plan_dt_api_response' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
+      'field_plan_dt_docid' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
+      'field_plan_dt_success' => [
+        'hide_if_empty' => TRUE,
+        'hide_if_new' => TRUE,
+      ],
       //'field_requested_deadline',
       //'field_incoming_type',
       // Base field widgets can live deeper in the form array, so provide
