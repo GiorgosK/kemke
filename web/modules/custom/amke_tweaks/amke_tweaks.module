@@ -1,9 +1,9 @@
 <?php
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Menu\LocalTaskManagerInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeInterface;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -75,17 +75,6 @@ function amke_tweaks_route_alter(RouteCollection $collection): void {
 }
 
 /**
- * Global node access guard for AMKE users.
- */
-function amke_tweaks_node_access(NodeInterface $node, $op, AccountInterface $account): AccessResult {
-  if ($op === 'view' && $account->hasRole('amke_user')) {
-    return AccessResult::forbidden()->cachePerUser();
-  }
-
-  return AccessResult::neutral();
-}
-
-/**
  * Sync AMKE status with moderation state on save.
  */
 function amke_tweaks_entity_presave(EntityInterface $entity): void {
@@ -154,4 +143,35 @@ function amke_tweaks_incoming_new_validate(array &$form, FormStateInterface $for
       $form_state->setErrorByName($name, $message);
     }
   }
+}
+
+/**
+ * Hide the "View" local task when editing a node.
+ */
+function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, RouteMatchInterface $route_match, LocalTaskManagerInterface $local_task_manager): void {
+  if ($route_name !== 'entity.node.edit_form') {
+    return;
+  }
+
+  $node = $route_match->getParameter('node');
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+
+  foreach ($data['tabs'] as &$tab_set) {
+    if (!is_array($tab_set)) {
+      continue;
+    }
+    foreach (array_keys($tab_set) as $key) {
+      if (str_contains($key, 'entity.node.canonical')) {
+        unset($tab_set[$key]);
+      }
+    }
+  }
+  unset($tab_set);
 }
