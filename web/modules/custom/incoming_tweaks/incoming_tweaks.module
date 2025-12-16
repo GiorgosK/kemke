@@ -315,8 +315,10 @@ function incoming_tweaks_node_insert(NodeInterface $node): void {
 function incoming_tweaks_node_update(NodeInterface $node): void {
   static $reverting = [];
   static $processing = [];
+  static $processing_signed = [];
 
   incoming_tweaks_send_plan($node, $reverting, $processing);
+  incoming_tweaks_get_plan_signed($node, $processing_signed);
 }
 
 /**
@@ -414,7 +416,8 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
 
     // Persist the API response on the node without creating an extra revision.
     if ($node->hasField('field_plan_dt_api_response')) {
-      $node->set('field_plan_dt_api_response', Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+      $encoded = Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+      incoming_tweaks_append_dt_response($node, $encoded);
     }
     if ($node->hasField('field_plan_dt_success')) {
       $node->set('field_plan_dt_success', $is_success ? 1 : 0);
@@ -465,6 +468,78 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
   }
   finally {
     unset($processing[$nid]);
+  }
+}
+
+/**
+ * Downloads the signed plan from Docutracks when the node is published.
+ */
+function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing_signed): void {
+  if (
+    $node->bundle() !== 'incoming' ||
+    !$node->hasField('moderation_state') ||
+    $node->get('moderation_state')->isEmpty() ||
+    !$node->original instanceof EntityInterface ||
+    $node->original->getEntityTypeId() !== 'node'
+  ) {
+    return;
+  }
+
+  $previous_state = $node->original->get('moderation_state')->isEmpty() ? NULL : $node->original->get('moderation_state')->value;
+  $current_state = $node->get('moderation_state')->value;
+
+  if ($previous_state !== 'for_signature' || $current_state !== 'published') {
+    return;
+  }
+
+  $nid = $node->id();
+
+  if (!empty($processing_signed[$nid])) {
+    return;
+  }
+  $processing_signed[$nid] = TRUE;
+
+  try {
+    $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    if (!$doc_id) {
+      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: missing Docutracks document id.', ['@nid' => $nid]);
+      incoming_tweaks_revert_to_for_signature($node, 'Missing Docutracks document id.');
+      return;
+    }
+
+    /** @var \Drupal\side_api\DocutracksClient $client */
+    $client = \Drupal::service('side_api.docutracks_client');
+    $jar = $client->loginToDocutracks();
+    $doc = $client->fetchDocument((string) $doc_id, $jar);
+    $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
+
+    if (!$file_id) {
+      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: GeneratedFile.Id not found for doc @doc.', [
+        '@nid' => $nid,
+        '@doc' => $doc_id,
+      ]);
+      incoming_tweaks_revert_to_for_signature($node, 'Signed file not available yet.');
+      return;
+    }
+
+    $file = $client->downloadAndAttachFile((int) $file_id, (int) $doc_id, $node, 'field_plan_signed', $jar, NULL, TRUE);
+    $node->setNewRevision(FALSE);
+    $node->save();
+
+    \Drupal::logger('incoming_tweaks')->info('Downloaded signed plan for incoming @nid and attached file @fid.', [
+      '@nid' => $nid,
+      '@fid' => $file->id(),
+    ]);
+  }
+  catch (\Throwable $throwable) {
+    \Drupal::logger('incoming_tweaks')->error('Failed to download signed plan for incoming @nid: @message', [
+      '@nid' => $nid,
+      '@message' => $throwable->getMessage(),
+    ]);
+    incoming_tweaks_revert_to_for_signature($node, $throwable->getMessage());
+  }
+  finally {
+    unset($processing_signed[$nid]);
   }
 }
 
@@ -729,7 +804,7 @@ function incoming_tweaks_revert_to_under_processing(NodeInterface $node, array &
     $node->set('field_plan_dt_tries', $attempt_number);
   }
   if ($node->hasField('field_plan_dt_api_response') && $response !== NULL) {
-    $node->set('field_plan_dt_api_response', $response);
+    incoming_tweaks_append_dt_response($node, $response);
   }
 
   // Clear any pending status messages before saving the reverted node.
@@ -749,6 +824,46 @@ function incoming_tweaks_revert_to_under_processing(NodeInterface $node, array &
   \Drupal::request()->attributes->set('incoming_tweaks_dt_failed', TRUE);
 
   unset($reverting[$nid]);
+}
+
+/**
+ * Revert a published node back to for_signature when signed plan retrieval fails.
+ */
+function incoming_tweaks_revert_to_for_signature(NodeInterface $node, string $reason): void {
+  $nid = $node->id();
+
+  if ($node->hasField('moderation_state')) {
+    $node->set('moderation_state', 'for_signature');
+  }
+
+  \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+
+  $node->setNewRevision(FALSE);
+  $node->save();
+
+  \Drupal::messenger()->addError(t('Signed plan could not be fetched. Item returned to For signature. Reason: @reason', [
+    '@reason' => $reason,
+  ]));
+}
+
+/**
+ * Append a response string to the API response field, preserving history.
+ */
+function incoming_tweaks_append_dt_response(NodeInterface $node, string $response): void {
+  if (!$node->hasField('field_plan_dt_api_response')) {
+    return;
+  }
+
+  $existing = '';
+  if (!$node->get('field_plan_dt_api_response')->isEmpty()) {
+    $existing = (string) $node->get('field_plan_dt_api_response')->value;
+  }
+
+  $timestamp = date('Y-m-d H:i:s');
+  $entry = sprintf("[%s]\n%s", $timestamp, $response);
+
+  $combined = $existing !== '' ? $existing . "\n\n" . $entry : $entry;
+  $node->set('field_plan_dt_api_response', $combined);
 }
 
 /**

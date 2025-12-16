@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Drupal\side_api;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\node\NodeInterface;
+use Drupal\file\FileInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
@@ -121,6 +124,65 @@ final class DocutracksClient {
     ?string $baseUrl = null,
     bool $forceSigned = self::DEFAULT_FORCE_SIGNED
   ): void {
+    $bytes = $this->requestFileBytes($fileId, $documentId, $jar, $baseUrl, $forceSigned, $targetPath);
+
+    if (file_put_contents($targetPath, $bytes) === FALSE) {
+      throw new RuntimeException(sprintf('Unable to write downloaded file to %s', $targetPath));
+    }
+  }
+
+  /**
+   * Download a file and attach it to a node file field.
+   */
+  public function downloadAndAttachFile(
+    int $fileId,
+    int $documentId,
+    NodeInterface $node,
+    string $fieldName,
+    CookieJar $jar,
+    ?string $baseUrl = null,
+    bool $forceSigned = self::DEFAULT_FORCE_SIGNED
+  ): FileInterface {
+    if (!$node->hasField($fieldName)) {
+      throw new RuntimeException(sprintf('Field %s does not exist on node %d', $fieldName, $node->id()));
+    }
+
+    $bytes = $this->requestFileBytes($fileId, $documentId, $jar, $baseUrl, $forceSigned);
+    $filename = sprintf('docutracks-%d-%d.pdf', $documentId, $fileId);
+    $uri = 'public://docutracks/' . $filename;
+
+    /** @var \Drupal\Core\File\FileSystemInterface $fileSystem */
+    $fileSystem = \Drupal::service('file_system');
+    $dir = dirname($uri);
+    if (!$fileSystem->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+      throw new RuntimeException(sprintf('Destination directory %s is not writable or could not be created.', $dir));
+    }
+
+    /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
+    $fileRepository = \Drupal::service('file.repository');
+    $file = $fileRepository->writeData($bytes, $uri, FileSystemInterface::EXISTS_RENAME);
+    if (!$file instanceof FileInterface) {
+      throw new RuntimeException('Failed to create file entity for downloaded Docutracks file.');
+    }
+
+    $node->set($fieldName, [
+      'target_id' => $file->id(),
+    ]);
+
+    return $file;
+  }
+
+  /**
+   * Execute FileGet and return the raw bytes.
+   */
+  private function requestFileBytes(
+    int $fileId,
+    int $documentId,
+    CookieJar $jar,
+    ?string $baseUrl = null,
+    bool $forceSigned = self::DEFAULT_FORCE_SIGNED,
+    ?string $debugTargetPath = NULL
+  ): string {
     $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
 
     $payload = [
@@ -141,11 +203,7 @@ final class DocutracksClient {
     }
 
     $body = (string) $response->getBody();
-    $bytes = $this->extractBinaryFromResponse($body, $targetPath);
-
-    if (file_put_contents($targetPath, $bytes) === FALSE) {
-      throw new RuntimeException(sprintf('Unable to write downloaded file to %s', $targetPath));
-    }
+    return $this->extractBinaryFromResponse($body, $debugTargetPath ?? 'docutracks-download');
   }
 
   /**
