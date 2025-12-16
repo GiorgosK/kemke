@@ -415,6 +415,12 @@ function incoming_tweaks_node_update(NodeInterface $node): void {
     if ($node->hasField('field_plan_dt_tries')) {
       $node->set('field_plan_dt_tries', $attempt_number);
     }
+    if ($node->hasField('field_plan_dt_docid')) {
+      $document_id = $response['DocumentReference'] ?? NULL;
+      if ($document_id !== NULL) {
+        $node->set('field_plan_dt_docid', $document_id);
+      }
+    }
 
     if ($is_success) {
       $node->setNewRevision(FALSE);
