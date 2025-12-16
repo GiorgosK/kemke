@@ -1129,11 +1129,11 @@ display:
         - 'config:workflow_list'
   page_2:
     id: page_2
-    display_title: 'Εκκρεμή Εισερχόμενα'
+    display_title: Εισερχόμενα
     display_plugin: page
     position: 2
     display_options:
-      title: 'Εκκρεμή Εισερχόμενα'
+      title: Εισερχόμενα
       access:
         type: role
         options:
