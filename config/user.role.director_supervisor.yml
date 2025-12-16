@@ -41,7 +41,6 @@ permissions:
   - 'use incoming_processing transition stay_draft'
   - 'use incoming_processing transition stay_for_signature'
   - 'use incoming_processing transition stay_fullness_check'
-  - 'use incoming_processing transition stay_pending_issues'
   - 'use incoming_processing transition stay_published'
   - 'use incoming_processing transition stay_under_processing'
   - 'use text format full_html'

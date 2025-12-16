@@ -67,6 +67,12 @@ type_settings:
         - draft
       to: fullness_check
       weight: 2
+    issues_to_check:
+      label: 'Πρός έλεγχο'
+      from:
+        - pending_issues
+      to: fullness_check
+      weight: 11
     pending_issues:
       label: 'Έχει εκκρεμότητες'
       from:
