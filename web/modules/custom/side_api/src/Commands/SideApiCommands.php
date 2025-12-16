@@ -42,6 +42,37 @@ final class SideApiCommands extends DrushCommands {
   }
 
   /**
+   * Fetch a value from a document JSON using a dot path.
+   *
+   * Usage: drush side:fetchDocValue 25058 Document.GeneratedFile.Id
+   *
+   * @command side:fetchDocValue
+   * @aliases sdfv
+   */
+  public function fetchDocValue(int $docId, string $path): void {
+    $jar = $this->client->loginToDocutracks();
+    $doc = $this->client->fetchDocument((string) $docId, $jar);
+    $value = $this->client->extractValueByPath($doc, $path);
+
+    if ($value === null) {
+      $this->output()->writeln(sprintf('Path "%s" not found in document %d.', $path, $docId));
+      return;
+    }
+
+    if (is_array($value)) {
+      $this->output()->writeln(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+      return;
+    }
+
+    if (is_bool($value)) {
+      $this->output()->writeln($value ? 'true' : 'false');
+      return;
+    }
+
+    $this->output()->writeln((string) $value);
+  }
+
+  /**
    * Register a sample document (uses embedded dummy payload).
    *
    * @command side:register-sample

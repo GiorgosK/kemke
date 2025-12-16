@@ -545,4 +545,26 @@ final class DocutracksClient {
     $payload['Document'] = $document;
     return $payload;
   }
+
+  /**
+   * Traverse a dot-delimited path (e.g. "Document.GeneratedFile.Id") in data.
+   *
+   * @param array<string, mixed> $data
+   *
+   * @return mixed|null
+   */
+  public function extractValueByPath(array $data, string $path): mixed {
+    $parts = array_filter(explode('.', $path), static fn(string $part) => $part !== '');
+    $current = $data;
+
+    foreach ($parts as $part) {
+      if (is_array($current) && array_key_exists($part, $current)) {
+        $current = $current[$part];
+        continue;
+      }
+      return NULL;
+    }
+
+    return $current;
+  }
 }
