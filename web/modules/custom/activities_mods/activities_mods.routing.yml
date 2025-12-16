@@ -4,7 +4,7 @@ activities_mods.node_activity:
     _controller: '\Drupal\activities_mods\Controller\ActivitiesModsController::activity'
     _title: 'Activity'
   requirements:
-    _permission: 'access content'
+    _permission: 'access node activity'
   options:
     parameters:
       node:

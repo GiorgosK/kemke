@@ -10,6 +10,7 @@ dependencies:
     - taxonomy.vocabulary.priority
     - workflows.workflow.incoming_processing
   module:
+    - activities_mods
     - content_moderation
     - filter
     - incoming_change_state
@@ -27,6 +28,7 @@ is_admin: false
 permissions:
   - 'access administration pages'
   - 'access content'
+  - 'access node activity'
   - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
