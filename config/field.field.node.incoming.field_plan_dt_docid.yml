@@ -1,0 +1,19 @@
+uuid: c9a7c9e5-1405-444c-a8d4-9e42e97b080d
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_plan_dt_docid
+    - node.type.incoming
+id: node.incoming.field_plan_dt_docid
+field_name: field_plan_dt_docid
+entity_type: node
+bundle: incoming
+label: 'Docutracks DocId'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
