@@ -1,0 +1,24 @@
+uuid: 4e0c3e75-9f34-49d1-af57-2153a03475ef
+langcode: el
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_send_to
+field_name: field_send_to
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: amke
+      label: 'προς AMKE'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -5,7 +5,7 @@ dependencies:
   config:
     - field.field.paragraph.remark.field_comment
     - field.field.paragraph.remark.field_datetime
-    - field.field.paragraph.remark.field_to_amke
+    - field.field.paragraph.remark.field_send_to
     - field.field.paragraph.remark.field_user
     - paragraphs.paragraphs_type.remark
   module:
@@ -29,12 +29,11 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_to_amke:
-    type: boolean_checkbox
+  field_send_to:
+    type: options_select
     weight: 4
     region: content
-    settings:
-      display_label: true
+    settings: {  }
     third_party_settings: {  }
   field_user:
     type: entity_reference_autocomplete

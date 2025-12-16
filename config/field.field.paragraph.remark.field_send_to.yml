@@ -1,0 +1,21 @@
+uuid: eb87f29f-fa69-435d-a692-287a0dad08b5
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_send_to
+    - paragraphs.paragraphs_type.remark
+  module:
+    - options
+id: paragraph.remark.field_send_to
+field_name: field_send_to
+entity_type: paragraph
+bundle: remark
+label: Προς
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

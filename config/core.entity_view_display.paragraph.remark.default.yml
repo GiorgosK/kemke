@@ -5,10 +5,11 @@ dependencies:
   config:
     - field.field.paragraph.remark.field_comment
     - field.field.paragraph.remark.field_datetime
-    - field.field.paragraph.remark.field_to_amke
+    - field.field.paragraph.remark.field_send_to
     - field.field.paragraph.remark.field_user
     - paragraphs.paragraphs_type.remark
   module:
+    - options
     - text
 id: paragraph.remark.default
 targetEntityType: paragraph
@@ -42,13 +43,10 @@ content:
     third_party_settings: {  }
     weight: 2
     region: content
-  field_to_amke:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
+  field_send_to:
+    type: list_default
+    label: inline
+    settings: {  }
     third_party_settings: {  }
     weight: 4
     region: content

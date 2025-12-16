@@ -723,6 +723,7 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
         'field_comment',
         'field_user',
         'field_datetime',
+        'field_send_to',
       ],
     ],
   ];
