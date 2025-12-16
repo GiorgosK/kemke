@@ -13,7 +13,8 @@ use Symfony\Component\Routing\RouteCollection;
  */
 function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
   $form_object = $form_state->getFormObject();
-  if (!$form_object || $form_object->getEntity()->bundle() !== 'incoming') {
+  $entity = $form_object?->getEntity();
+  if (!$form_object || !$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
     return;
   }
 
@@ -22,11 +23,8 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     return;
   }
 
-  // Make sure local task cache varies by role, otherwise removal gets reused
-  // for users who are not AMKE users.
-  $data['#cache']['contexts'][] = 'user.roles';
-
-  $keep_fields = [
+  // Fields visible on edit.
+  $keep_fields_edit_form = [
     'field_ref_id',
     'field_documents',
     'field_entry_date',
@@ -35,6 +33,13 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     'field_attachments',
     'field_plan',
   ];
+  // Fields visible on new node form (stricter).
+  $keep_fields_new_form = [
+    'field_ref_id',
+    'field_documents',
+    'field_subject',
+  ];
+  $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
   $keep_always = ['actions'];
 
   foreach ($form as $key => $element) {
