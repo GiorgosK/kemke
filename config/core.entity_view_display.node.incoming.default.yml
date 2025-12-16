@@ -10,11 +10,11 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
-    - field.field.node.incoming.field_field_legal_deadline_ext
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
+    - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
@@ -309,15 +309,6 @@ content:
     third_party_settings: {  }
     weight: 20
     region: content
-  field_legal_deadline_original:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 1
-    region: content
   field_notes:
     type: basic_string
     label: above
@@ -503,7 +494,8 @@ hidden:
   content_moderation_control: true
   field_assignees: true
   field_documents: true
-  field_field_legal_deadline_ext: true
+  field_legal_deadline_ext: true
+  field_legal_deadline_original: true
   field_primary: true
   field_protocol_date: true
   field_protocol_number_doc: true

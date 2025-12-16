@@ -1,0 +1,21 @@
+uuid: ce56f50b-bc57-40f6-b08b-854dbb040670
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_to_amke
+    - paragraphs.paragraphs_type.remark
+id: paragraph.remark.field_to_amke
+field_name: field_to_amke
+entity_type: paragraph
+bundle: remark
+label: 'προς ΑΜΚΕ'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ανοικτό
+  off_label: Κλειστό
+field_type: boolean

@@ -1,0 +1,11 @@
+uuid: 89a8d04c-2d49-41a8-8525-29bded401931
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.amke_form
+label: 'amke form'
+description: null
+targetEntityType: node
+cache: true

@@ -10,11 +10,11 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
-    - field.field.node.incoming.field_field_legal_deadline_ext
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
+    - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
@@ -597,7 +597,7 @@ content:
     third_party_settings: {  }
 hidden:
   field_documents: true
-  field_field_legal_deadline_ext: true
+  field_legal_deadline_ext: true
   field_legal_deadline_original: true
   field_primary: true
   field_responsible_entity: true

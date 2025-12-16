@@ -1,0 +1,11 @@
+uuid: 5f9c883d-337e-4273-96d7-145b53b25fbc
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.amke_view
+label: 'amke view'
+description: null
+targetEntityType: node
+cache: true

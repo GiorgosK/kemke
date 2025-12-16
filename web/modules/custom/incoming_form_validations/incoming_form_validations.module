@@ -23,5 +23,10 @@ function incoming_form_validations_form_alter(array &$form, FormStateInterface $
     return;
   }
 
+  $account = \Drupal::currentUser();
+  if ($account->hasRole('amke_user')) {
+    return;
+  }
+
   $form['#attached']['library'][] = 'incoming_form_validations/incoming_form_validations';
 }

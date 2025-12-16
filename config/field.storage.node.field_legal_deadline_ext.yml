@@ -1,12 +1,12 @@
-uuid: dc76dbc6-8338-4d10-a093-5f7a0c8902d1
+uuid: 062a03fd-13ef-4b6d-b6bd-4ea54f60815c
 langcode: el
 status: true
 dependencies:
   module:
     - datetime
     - node
-id: node.field_field_legal_deadline_ext
-field_name: field_field_legal_deadline_ext
+id: node.field_legal_deadline_ext
+field_name: field_legal_deadline_ext
 entity_type: node
 type: datetime
 settings:
