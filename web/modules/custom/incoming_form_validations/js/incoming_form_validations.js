@@ -2,115 +2,223 @@
   'use strict';
 
   /**
-   * Configuration-driven requirements.
-   *
-   * - key: selector of the button to control.
-   * - emptyFields: list of field configs that must be non-empty.
+   * Rulesets are defined once and then explicitly composed per role.
+   * Add new keys under ruleSets, then include them in roleRuleSets.
    */
-
-  const requirements = {
-    '#edit-moderation-state-to-be-assigned': {
-      type: 'button',
-      disabled: true,
-      toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
-      emptyFields: [
-      ],
-    },
-    '#edit-moderation-state-fullness-check': {
-      type: 'button',
-      disabled: true,
-      toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
-      emptyFields: [
-        {
-          selector: '#edit-field-basic-operator',
-          type: 'select2',
-          tab_button_class: 'horizontal-tab-button-4',
-          tab_button_active_class: 'selected',
-          indicator: 'span',
-        },
-        {
-          selector: '#edit-field-supervisor',
-          type: 'select2',
-          tab_button_class: 'horizontal-tab-button-4',
-          tab_button_active_class: 'selected',
-          indicator: 'span',
-        },
-        {
-          selector: '#edit-field-incoming-type',
-          type: 'select',
-          tab_button_class: 'horizontal-tab-button-2',
-          tab_button_active_class: 'selected',
-          indicator: 'select',
-        },
-      ],
-    },
-    '#edit-moderation-state-for-signature': [
+  const ruleSets = {
+    baseAssignment: [
       {
-        type: 'button',
-        disabled: true,
-        toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
-        emptyFields: [
+        selector: '#edit-moderation-state-to-be-assigned',
+        rules: [
           {
-            selector: '#edit-field-plan-0-upload',
-            type: 'file',
-            tab_button_class: 'horizontal-tab-button-5',
-            tab_button_active_class: 'selected',
-            indicator: 'div',
-          },
-        ],
-      },
-      {
-        type: 'hideIf',
-        valueIsAND: [
-          {
-            selector: '#edit-field-incoming-type',
-            type: 'select',
-            value: ['9','2','5','42','8','9','_none'], 
-          },
-          {
-            selector: '#edit-moderation-state-under-processing',
-            type: 'input',
-            value: 'Αποθήκευση',
+            type: 'button',
+            disabled: true,
+            toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+            emptyFields: [],
           },
         ],
       },
     ],
-    '.horizontal-tab-button-6': {
-      type: 'hideIf',
-      display: 'none',
-      valueNot: [
-        {
-          selector: '#edit-field-incoming-type',
-          type: 'select',
-          value: '2',
-        },
-      ],
-    },
-    '.horizontal-tab-button-5': {
-      type: 'hideIf',
-      valueNot: [
-        {
-          selector: '#edit-field-incoming-type',
-          type: 'select',
-          value: ['41','3'],
-        },
-      ],
-    },
-    '#edit-moderation-state-published': {
-      type: 'hideIf',
-      valueIsAND: [
-        {
-          selector: '#edit-field-incoming-type',
-          type: 'select',
-          value: ['41','3'], // Αίτημα - Ερώτημα, Γνωμοδότηση
-        },
-        {
-          selector: '#edit-moderation-state-under-processing',
-          type: 'input',
-          value: 'Αποθήκευση',
-        },
-      ],
-    },
+    baseFullness: [
+      {
+        selector: '#edit-moderation-state-fullness-check',
+        rules: [
+          {
+            type: 'button',
+            disabled: true,
+            toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+            emptyFields: [
+              {
+                selector: '#edit-field-basic-operator',
+                type: 'select2',
+                tab_button_class: 'horizontal-tab-button-4',
+                tab_button_active_class: 'selected',
+                indicator: 'span',
+              },
+              {
+                selector: '#edit-field-supervisor',
+                type: 'select2',
+                tab_button_class: 'horizontal-tab-button-4',
+                tab_button_active_class: 'selected',
+                indicator: 'span',
+              },
+              {
+                selector: '#edit-field-incoming-type',
+                type: 'select',
+                tab_button_class: 'horizontal-tab-button-2',
+                tab_button_active_class: 'selected',
+                indicator: 'select',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    baseForSignature: [
+      {
+        selector: '#edit-moderation-state-for-signature',
+        rules: [
+          {
+            type: 'button',
+            disabled: true,
+            toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+            emptyFields: [
+              {
+                selector: '#edit-field-plan-0-upload',
+                type: 'file',
+                tab_button_class: 'horizontal-tab-button-5',
+                tab_button_active_class: 'selected',
+                indicator: 'div',
+              },
+            ],
+          },
+          {
+            type: 'hideIf',
+            valueIsAND: [
+              {
+                selector: '#edit-field-incoming-type',
+                type: 'select',
+                value: ['9', '2', '5', '42', '8', '9', '_none'],
+              },
+              {
+                selector: '#edit-moderation-state-under-processing',
+                type: 'input',
+                value: 'Αποθήκευση',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    baseTabsVisibility: [
+      {
+        selector: '.horizontal-tab-button-6',
+        rules: [
+          {
+            type: 'hideIf',
+            display: 'none',
+            valueNot: [
+              {
+                selector: '#edit-field-incoming-type',
+                type: 'select',
+                value: '2',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        selector: '.horizontal-tab-button-5',
+        rules: [
+          {
+            type: 'hideIf',
+            valueNot: [
+              {
+                selector: '#edit-field-incoming-type',
+                type: 'select',
+                value: ['41', '3'],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    basePublishedVisibility: [
+      {
+        selector: '#edit-moderation-state-published',
+        rules: [
+          {
+            type: 'hideIf',
+            valueIsAND: [
+              {
+                selector: '#edit-field-incoming-type',
+                type: 'select',
+                value: ['41', '3'], // Αίτημα - Ερώτημα, Γνωμοδότηση
+              },
+              {
+                selector: '#edit-moderation-state-under-processing',
+                type: 'input',
+                value: 'Αποθήκευση',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    // Example reusable ruleset (shared across multiple roles).
+    // rulesetExample: [
+    //   { selector: '#edit-submit', rules: [{ type: 'button', ... }] },
+    // ],
+    // Example showWhenFilled ruleset.
+    // rulesetShowWhenFilled: [
+    //   {
+    //     selector: '#edit-field-selector-wrapper',
+    //     rules: [
+    //       {
+    //         type: 'showWhenFilled',
+    //         mode: 'all', // or 'any'
+    //         display: 'none',
+    //         fields: [
+    //           { selector: '#edit-field-one', type: 'select' },
+    //           { selector: '#edit-field-two', type: 'input' },
+    //         ],
+    //       },
+    //     ],
+    //   },
+    // ],
+  };
+
+  /**
+   * Explicit assignment of rulesets per role.
+   * Compose using spread: default gets base sets; roles extend with extras.
+   */
+  const roleRuleSets = {
+    default: [
+      ...ruleSets.baseAssignment,
+      ...ruleSets.baseFullness,
+      ...ruleSets.baseForSignature,
+      ...ruleSets.baseTabsVisibility,
+      ...ruleSets.basePublishedVisibility,
+    ],
+    // amke_user: [
+    //   ...ruleSets.baseAssignment,
+    //   ...ruleSets.baseFullness,
+    //   ...ruleSets.baseForSignature,
+    //   ...ruleSets.baseTabsVisibility,
+    //   ...ruleSets.basePublishedVisibility,
+    //   ...ruleSets.rulesetShowWhenFilled,
+    // ],
+    // manager: [
+    //   ...ruleSets.baseAssignment,
+    //   ...ruleSets.baseFullness,
+    //   ...ruleSets.baseForSignature,
+    //   ...ruleSets.baseTabsVisibility,
+    //   ...ruleSets.rulesetExample,
+    // ],
+  };
+
+  const getCurrentRoles = () => {
+    const rolesFromSettings =
+      (typeof drupalSettings !== 'undefined' && (drupalSettings.user?.roles || drupalSettings.user?.data?.roles)) ||
+      [];
+    if (Array.isArray(rolesFromSettings)) {
+      return rolesFromSettings;
+    }
+    if (typeof rolesFromSettings === 'object' && rolesFromSettings !== null) {
+      return Object.keys(rolesFromSettings).filter((key) => rolesFromSettings[key]);
+    }
+    return [];
+  };
+
+  const buildActiveRequirements = () => {
+    const roles = getCurrentRoles();
+    const active = [...(roleRuleSets.default || [])];
+    roles.forEach((role) => {
+      if (roleRuleSets[role]) {
+        active.push(...roleRuleSets[role]);
+      }
+    });
+    return active;
   };
 
   const findLabelFor = (field) => {
@@ -322,8 +430,8 @@
     }
   };
 
-  const tabFieldsFilled = (tabClass, requirement) => {
-    const related = requirement.emptyFields.filter((cfg) => cfg.tab_button_class === tabClass);
+  const tabFieldsFilled = (tabClass, rule) => {
+    const related = (rule.emptyFields || []).filter((cfg) => cfg.tab_button_class === tabClass);
     if (!related.length) {
       return true;
     }
@@ -345,11 +453,11 @@
     }
   };
 
-  const updateButtonState = (button, requirement) => {
+  const updateButtonState = (button, rule) => {
     const tabStatus = {};
     let hasEmpty = false;
 
-    requirement.emptyFields.forEach((config) => {
+    (rule.emptyFields || []).forEach((config) => {
       const field = document.querySelector(config.selector);
       const indicator = resolveIndicator(field, config.indicator);
       const empty = isEmpty(field, config);
@@ -377,29 +485,29 @@
       }
     });
 
-    const disabled = requirement.disabled && hasEmpty;
+    const disabled = rule.disabled && hasEmpty;
     button.dataset.ifvDisabled = disabled ? 'true' : 'false';
     button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-    (requirement.toggleclasses || []).forEach((cls) => button.classList.toggle(cls, disabled));
+    (rule.toggleclasses || []).forEach((cls) => button.classList.toggle(cls, disabled));
   };
 
-  const attachHandlers = (buttonSelector, requirement) => {
+  const attachHandlers = (buttonSelector, rule) => {
     const button = document.querySelector(buttonSelector);
     if (!button || button.dataset.ifvAttached === 'true') {
       return;
     }
     button.dataset.ifvAttached = 'true';
 
-    const refresh = () => updateButtonState(button, requirement);
+    const refresh = () => updateButtonState(button, rule);
 
-    requirement.emptyFields.forEach((config) => {
+    (rule.emptyFields || []).forEach((config) => {
       const field = document.querySelector(config.selector);
       if (field) {
         const events = ['input', 'change', 'blur', 'keyup'];
         const handler = () => {
           if (!isEmpty(field, config)) {
             clearHighlight(resolveIndicator(field, config.indicator));
-            if (config.tab_button_class && tabFieldsFilled(config.tab_button_class, requirement)) {
+            if (config.tab_button_class && tabFieldsFilled(config.tab_button_class, rule)) {
               clearHighlight(getTabButton(config));
             }
           }
@@ -427,7 +535,7 @@
       // Clear any previous indicators before adding new ones.
       document.querySelectorAll('.ifv-missing').forEach((el) => clearHighlight(el));
 
-      requirement.emptyFields.forEach((config) => {
+      (rule.emptyFields || []).forEach((config) => {
         const field = document.querySelector(config.selector);
         const indicator = resolveIndicator(field, config.indicator);
         const tabButton = getTabButton(config);
@@ -443,29 +551,29 @@
     refresh();
   };
 
-  const applyVisibility = (selector, requirement) => {
+  const applyVisibility = (selector, rule) => {
     const el = document.querySelector(selector);
     const hasConditions =
-      (requirement.valueNotOR && requirement.valueNotOR.length) ||
-      (requirement.valueNot && requirement.valueNot.length) ||
-      (requirement.valueNotAND && requirement.valueNotAND.length) ||
-      (requirement.valueIsOR && requirement.valueIsOR.length) ||
-      (requirement.valueIs && requirement.valueIs.length) ||
-      (requirement.valueIsAND && requirement.valueIsAND.length);
+      (rule.valueNotOR && rule.valueNotOR.length) ||
+      (rule.valueNot && rule.valueNot.length) ||
+      (rule.valueNotAND && rule.valueNotAND.length) ||
+      (rule.valueIsOR && rule.valueIsOR.length) ||
+      (rule.valueIs && rule.valueIs.length) ||
+      (rule.valueIsAND && rule.valueIsAND.length);
     if (!el || !hasConditions) {
       return;
     }
-    el.style.display = shouldHideByRequirements(requirement) ? requirement.display || 'none' : '';
+    el.style.display = shouldHideByRequirements(rule) ? rule.display || 'none' : '';
   };
 
-  const attachVisibilityHandler = (selector, requirement) => {
+  const attachVisibilityHandler = (selector, rule) => {
     const watchers = [
-      ...(requirement.valueNotOR || []),
-      ...(requirement.valueNotAND || []),
-      ...(requirement.valueNot || []),
-      ...(requirement.valueIsOR || []),
-      ...(requirement.valueIsAND || []),
-      ...(requirement.valueIs || []),
+      ...(rule.valueNotOR || []),
+      ...(rule.valueNotAND || []),
+      ...(rule.valueNot || []),
+      ...(rule.valueIsOR || []),
+      ...(rule.valueIsAND || []),
+      ...(rule.valueIs || []),
     ];
     if (!watchers.length) {
       return;
@@ -476,7 +584,7 @@
         return;
       }
       const events = ['input', 'change', 'blur', 'keyup'];
-      const handler = () => applyVisibility(selector, requirement);
+      const handler = () => applyVisibility(selector, rule);
       events.forEach((evt) => field.addEventListener(evt, handler));
 
       if (cfg.type === 'select2' && window.jQuery) {
@@ -487,56 +595,102 @@
       }
     });
 
-    applyVisibility(selector, requirement);
+    applyVisibility(selector, rule);
   };
 
-  const expandRequirements = () => {
+  const showWhenFilled = (selector, rule) => {
+    const el = document.querySelector(selector);
+    if (!el || !(rule.fields || []).length) {
+      return;
+    }
+    const mode = rule.mode === 'any' ? 'any' : 'all';
+    const filledCount = (rule.fields || []).reduce((count, cfg) => {
+      const field = document.querySelector(cfg.selector);
+      return !isEmpty(field, cfg) ? count + 1 : count;
+    }, 0);
+    const shouldShow = mode === 'all'
+      ? filledCount === (rule.fields || []).length
+      : filledCount > 0;
+    el.style.display = shouldShow ? '' : rule.display || 'none';
+  };
+
+  const attachShowWhenFilled = (selector, rule) => {
+    const watchers = rule.fields || [];
+    if (!watchers.length) {
+      return;
+    }
+    const handler = () => showWhenFilled(selector, rule);
+    watchers.forEach((cfg) => {
+      const field = document.querySelector(cfg.selector);
+      if (!field) {
+        return;
+      }
+      const events = ['input', 'change', 'blur', 'keyup'];
+      events.forEach((evt) => field.addEventListener(evt, handler));
+      if (cfg.type === 'select2' && window.jQuery) {
+        const $field = window.jQuery(field);
+        if (typeof $field.on === 'function') {
+          $field.on('select2:select select2:unselect select2:clear select2:close select2:opening select2:closing select2:open', handler);
+        }
+      }
+    });
+    handler();
+  };
+
+  const expandRequirements = (requirements) => {
     const pairs = [];
-    Object.entries(requirements).forEach(([selector, requirement]) => {
-      if (Array.isArray(requirement)) {
-        requirement.forEach((req) => pairs.push([selector, req]));
-      }
-      else {
-        pairs.push([selector, requirement]);
-      }
+    requirements.forEach((req) => {
+      (req.rules || []).forEach((rule) => pairs.push([req.selector, rule]));
     });
     return pairs;
   };
 
   Drupal.behaviors.incomingFormValidations = {
     attach() {
-      const reqs = expandRequirements();
-      reqs.forEach(([buttonSelector, requirement]) => {
-        if (requirement.type === 'hideIf') {
-          attachVisibilityHandler(buttonSelector, requirement);
+      const activeRequirements = buildActiveRequirements();
+      const rules = expandRequirements(activeRequirements);
+
+      rules.forEach(([selector, rule]) => {
+        if (rule.type === 'hideIf') {
+          attachVisibilityHandler(selector, rule);
           return;
         }
-        attachHandlers(buttonSelector, requirement);
+        if (rule.type === 'showWhenFilled') {
+          attachShowWhenFilled(selector, rule);
+          return;
+        }
+        attachHandlers(selector, rule);
       });
       // Safety: re-check shortly after attach for dynamic widgets (e.g. select2).
       setTimeout(() => {
-        reqs.forEach(([buttonSelector, requirement]) => {
-          if (requirement.type === 'hideIf') {
-            applyVisibility(buttonSelector, requirement);
+        rules.forEach(([selector, rule]) => {
+          if (rule.type === 'hideIf') {
+            applyVisibility(selector, rule);
+          }
+          else if (rule.type === 'showWhenFilled') {
+            showWhenFilled(selector, rule);
           }
           else {
-            const button = document.querySelector(buttonSelector);
+            const button = document.querySelector(selector);
             if (button) {
-              updateButtonState(button, requirement);
+              updateButtonState(button, rule);
             }
           }
         });
       }, 300);
       // Second pass in case select2 initializes later.
       setTimeout(() => {
-        reqs.forEach(([buttonSelector, requirement]) => {
-          if (requirement.type === 'hideIf') {
-            applyVisibility(buttonSelector, requirement);
+        rules.forEach(([selector, rule]) => {
+          if (rule.type === 'hideIf') {
+            applyVisibility(selector, rule);
+          }
+          else if (rule.type === 'showWhenFilled') {
+            showWhenFilled(selector, rule);
           }
           else {
-            const button = document.querySelector(buttonSelector);
+            const button = document.querySelector(selector);
             if (button) {
-              updateButtonState(button, requirement);
+              updateButtonState(button, rule);
             }
           }
         });
