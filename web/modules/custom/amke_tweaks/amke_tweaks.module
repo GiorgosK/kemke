@@ -1,0 +1,54 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+
+
+/**
+ * Hide grouped elements for AMKE users on node forms.
+ */
+function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || $form_object->getEntity()->bundle() !== 'incoming') {
+    return;
+  }
+
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+
+  $keep_fields = [
+    'field_ref_id',
+    'field_documents',
+    'field_entry_date',
+    'field_subject',
+    'field_remarks',
+    'field_attachments',
+    'field_plan',
+  ];  
+  $keep_always = ['actions'];
+
+  foreach ($form as $key => $element) {
+    if (!is_array($element)) {
+      continue;
+    }
+    if (strpos((string) $key, '#') === 0) {
+      continue;
+    }
+    if (strpos((string) $key, 'field_') === 0) {
+      if (!in_array($key, $keep_fields, TRUE) && !in_array($key, $keep_always, TRUE)) {
+        unset($form[$key]);
+      }
+    }
+  }
+
+}
+
+function amke_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form) {
+  $group_changes = [
+    'field_entry_date' => 'group_general',
+  ];
+  foreach ($group_changes as $key => $group) {
+    $element[$key]['#group'] = $group;
+  }
+}

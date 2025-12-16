@@ -1,0 +1,7 @@
+name: AMKE tweaks
+type: module
+description: Tweaks related to AMKE user flows.
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - node
