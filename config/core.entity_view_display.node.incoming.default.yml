@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.incoming.field_amke_status
     - field.field.node.incoming.field_assignees
     - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
@@ -492,6 +493,7 @@ content:
     region: content
 hidden:
   content_moderation_control: true
+  field_amke_status: true
   field_assignees: true
   field_documents: true
   field_legal_deadline_ext: true

@@ -1,0 +1,24 @@
+uuid: 9f7542d0-cecc-40b1-bead-f5d06972eafb
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_amke_status
+field_name: field_amke_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: published
+      label: Ολοκληρωμένο
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
