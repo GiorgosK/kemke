@@ -30,8 +30,8 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     'field_entry_date',
     'field_subject',
     'field_remarks',
-    'field_attachments',
-    'field_plan',
+    // 'field_attachments',
+    // 'field_plan',
   ];
   // Fields visible on new node form (stricter).
   $keep_fields_new_form = [
