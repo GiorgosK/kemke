@@ -2,8 +2,10 @@
 
 namespace Drupal\kemke_reports\Controller;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Render\Markup;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -55,18 +57,20 @@ class ReportsResultsController extends ControllerBase {
     $calculated_formatted = number_format($calculated, 2);
 
     $items = [];
+    $counts_text = $this->t('On time: @on_time from: @total', [
+      '@on_time' => $on_time,
+      '@total' => $total,
+    ]);
+
     $items[] = [
-      '#markup' => $this->t(
-        '@description @target% - @on_time - @total - <strong><span style="color:@color">@calculated%</span></strong>',
-        [
-          '@description' => $description,
-          '@target' => $target,
-          '@on_time' => $on_time,
-          '@total' => $total,
-          '@color' => $color,
-          '@calculated' => $calculated_formatted,
-        ]
-      ),
+      '#markup' => Markup::create(sprintf(
+        '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
+        Html::escape($description),
+        $target,
+        Html::escape($counts_text),
+        Html::escape($color),
+        Html::escape($calculated_formatted)
+      )),
     ];
 
     $generated = $result['generated'] ?? NULL;
