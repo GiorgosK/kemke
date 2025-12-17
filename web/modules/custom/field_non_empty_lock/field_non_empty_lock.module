@@ -655,7 +655,7 @@ function field_non_empty_lock_get_node_field_map() {
       'field_protocol_incoming',
       'field_sender',
       'field_assignees',
-      'field_subject',
+      //'field_subject',
       'field_protocol_date',
       'field_protocol_number_doc',
       'field_protocol_number_sender',
