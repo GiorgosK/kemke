@@ -8,9 +8,7 @@ dependencies:
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
     - field.field.user.user.user_picture
-    - image.style.thumbnail
   module:
-    - image
     - user
 _core:
   default_config_hash: 00zr_RBdTjPjBGITD3h4c1ESQZimjdVCcHGt1trLqIY
@@ -19,20 +17,24 @@ targetEntityType: user
 bundle: user
 mode: compact
 content:
-  user_picture:
-    type: image
+  field_first_name:
+    type: string
     label: hidden
     settings:
-      image_link: content
-      image_style: thumbnail
-      image_loading:
-        attribute: lazy
+      link_to_entity: false
     third_party_settings: {  }
     weight: 0
     region: content
+  field_last_name:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
 hidden:
   field_absences: true
-  field_first_name: true
-  field_last_name: true
   langcode: true
   member_for: true
+  user_picture: true
