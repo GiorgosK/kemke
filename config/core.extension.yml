@@ -29,6 +29,7 @@ module:
   editor: 0
   entity_browser: 0
   entity_reference_revisions: 0
+  entityreference_filter: 0
   field: 0
   field_group: 0
   field_non_empty_lock: 0
