@@ -125,7 +125,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 16
+      weight: 18
       format_type: details
       format_settings:
         classes: ''
@@ -142,8 +142,9 @@ third_party_settings:
         - group_case
         - group_status
         - group_responsible
-        - group_remarks
         - group_plan
+        - group_ccopy
+        - group_remarks
         - group_ee
         - group_api
       label: Tabs
@@ -203,7 +204,7 @@ third_party_settings:
       label: EE
       parent_name: group_tabs
       region: content
-      weight: 18
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -215,12 +216,11 @@ third_party_settings:
     group_plan:
       children:
         - field_plan
-        - field_plan_signed
         - field_attachments
       label: Σχέδιο
       parent_name: group_tabs
       region: content
-      weight: 17
+      weight: 16
       format_type: tab
       format_settings:
         classes: ''
@@ -238,7 +238,22 @@ third_party_settings:
       label: API
       parent_name: group_tabs
       region: content
-      weight: 19
+      weight: 20
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_ccopy:
+      children:
+        - field_plan_signed
+      label: 'Ακριβες Αντίγραφο'
+      parent_name: group_tabs
+      region: content
+      weight: 17
       format_type: tab
       format_settings:
         classes: ''
@@ -395,7 +410,7 @@ content:
     region: content
   field_plan_signed:
     type: file_default
-    label: above
+    label: hidden
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
@@ -499,7 +514,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 23
+    weight: 24
     region: content
   field_thematic_unit:
     type: string

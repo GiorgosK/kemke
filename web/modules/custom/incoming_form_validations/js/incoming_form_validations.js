@@ -92,7 +92,7 @@
     ],
     baseTabsVisibility: [
       {
-        selector: '.horizontal-tab-button-6',
+        selector: '.horizontal-tab-button-7',
         rules: [
           {
             type: 'hideIf',

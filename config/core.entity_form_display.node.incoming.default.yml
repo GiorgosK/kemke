@@ -112,7 +112,7 @@ third_party_settings:
       label: EE
       region: content
       parent_name: group_tabs
-      weight: 19
+      weight: 20
       format_type: tab
       format_settings:
         classes: ''
@@ -128,7 +128,7 @@ third_party_settings:
       label: Παρατηρήσεις
       region: content
       parent_name: group_tabs
-      weight: 20
+      weight: 21
       format_type: tab
       format_settings:
         classes: ''
@@ -170,6 +170,7 @@ third_party_settings:
         - group_case
         - group_responsible
         - group_plan
+        - group_ccopy
         - group_ee
         - group_remarks
         - group_api
@@ -221,7 +222,6 @@ third_party_settings:
     group_plan:
       children:
         - field_plan
-        - field_plan_signed
         - field_attachments
       label: Σχέδιο
       region: content
@@ -245,7 +245,23 @@ third_party_settings:
       label: API
       region: content
       parent_name: group_tabs
-      weight: 21
+      weight: 22
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+    group_ccopy:
+      children:
+        - field_plan_signed
+      label: 'Ακριβες Αντίγραφο'
+      region: content
+      parent_name: group_tabs
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -262,7 +278,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 2
+    weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -564,7 +580,7 @@ content:
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
-    weight: 23
+    weight: 22
     region: content
     settings:
       size: 60
@@ -572,7 +588,7 @@ content:
     third_party_settings: {  }
   field_thematic_unit:
     type: string_textfield
-    weight: 24
+    weight: 23
     region: content
     settings:
       size: 60
@@ -580,7 +596,7 @@ content:
     third_party_settings: {  }
   field_transparency_requirement:
     type: string_textfield
-    weight: 25
+    weight: 24
     region: content
     settings:
       size: 60
@@ -588,7 +604,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 26
+    weight: 25
     region: content
     settings:
       placeholder: ''
@@ -608,41 +624,41 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 5
+    weight: 6
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 6
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
-    type: boolean_checkbox
-    weight: 3
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  status:
-    type: boolean_checkbox
-    weight: 7
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  sticky:
     type: boolean_checkbox
     weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 8
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    weight: 5
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 1
+    weight: 2
     region: content
     settings:
       match_operator: CONTAINS

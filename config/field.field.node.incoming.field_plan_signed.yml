@@ -11,7 +11,7 @@ id: node.incoming.field_plan_signed
 field_name: field_plan_signed
 entity_type: node
 bundle: incoming
-label: 'Σχέδιο Υπογεγραμμένο'
+label: 'Ακριβες Αντίγραφο'
 description: ''
 required: false
 translatable: false
