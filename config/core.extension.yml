@@ -79,6 +79,7 @@ module:
   views_autocomplete_filters: 0
   views_tree: 0
   views_ui: 0
+  views_year_filters: 0
   workflow_buttons: 0
   workflows: 0
   views: 10

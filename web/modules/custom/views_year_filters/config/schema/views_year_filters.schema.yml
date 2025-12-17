@@ -1,0 +1,13 @@
+# Schema for Views Year Filters module.
+
+views.filter.views_year_filters_date_year:
+  type: views.filter.numeric
+  label: 'Date year (Views Year Filters)'
+  mapping:
+    year_min:
+      type: integer
+      label: 'Minimum year'
+    year_max:
+      type: string
+      label: 'Maximum year ("current" or a year)'
+

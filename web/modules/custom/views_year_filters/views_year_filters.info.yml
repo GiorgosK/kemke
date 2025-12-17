@@ -1,0 +1,8 @@
+name: 'Views Year Filters'
+type: module
+description: 'Provides reusable Views filters for filtering date fields by year.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:views
+

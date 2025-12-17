@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Views integration for year-only date filtering.
+ */
+
+/**
+ * Implements hook_views_data_alter().
+ *
+ * Adds a "Year" filter option to any Views date/datetime field.
+ */
+function views_year_filters_views_data_alter(array &$data): void {
+  foreach ($data as $table_name => &$table) {
+    if (!is_array($table)) {
+      continue;
+    }
+
+    foreach ($table as $field_name => $field_info) {
+      if (!is_array($field_info)) {
+        continue;
+      }
+
+      // Detect existing date/datetime filters and add an additional "year"
+      // pseudo-field for them.
+      $filter_id = $field_info['filter']['id'] ?? NULL;
+      if (!in_array($filter_id, ['date', 'datetime'], TRUE)) {
+        continue;
+      }
+
+      // Use a stable key for the pseudo-field so it shows up under the same
+      // table in Views. Example: node__field_entry_date.field_entry_date_value_year
+      $year_key = $field_name . '_year';
+
+      $real_field = $field_info['filter']['field'] ?? $field_info['real field'] ?? $field_name;
+      $year_filter = $field_info['filter'];
+      $year_filter['id'] = 'views_year_filters_date_year';
+      $year_filter['field'] = $real_field;
+      $year_filter['table'] = $table_name;
+
+      if (isset($table[$year_key]) && is_array($table[$year_key])) {
+        // Core datetime provides several "YYYY/MM/DD" pseudo-fields but only as
+        // arguments/sorts. Add our filter onto the existing definition so it
+        // becomes available in the Filters UI.
+        if (!isset($table[$year_key]['filter'])) {
+          $table[$year_key]['filter'] = $year_filter;
+        }
+        continue;
+      }
+
+      // If no existing year pseudo-field exists, create one by cloning the
+      // original definition to preserve join/relationship metadata.
+      $year_info = $field_info;
+      $year_info['title'] = t('@label: Year', ['@label' => $field_info['title'] ?? $field_name]);
+      $year_info['help'] = t('Filter by the year portion of this date.');
+      $year_info['group'] = $field_info['group'] ?? ($table['table']['group'] ?? t('Content'));
+      $year_info['field'] = $real_field;
+      $year_info['real field'] = $real_field;
+      $year_info['filter'] = $year_filter;
+
+      $table[$year_key] = $year_info;
+    }
+  }
+}
