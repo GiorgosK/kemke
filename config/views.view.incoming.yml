@@ -26,10 +26,14 @@ dependencies:
     - datetime
     - entityreference_filter
     - node
+    - rest
+    - serialization
     - taxonomy
     - text
     - user
+    - views_data_export
     - views_year_filters
+    - xls_serialization
 id: incoming
 label: Incoming
 module: views
@@ -1054,6 +1058,50 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_basic_operator_target_id_entityreference_filter:
+          id: field_basic_operator_target_id_entityreference_filter
+          table: node__field_basic_operator
+          field: field_basic_operator_target_id_entityreference_filter
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: entityreference_filter_view_result
+          operator: or
+          value: null
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_basic_operator_target_id_entityreference_filter_op
+            label: 'Βασικός χειριστής '
+            description: ''
+            use_operator: false
+            operator: field_basic_operator_target_id_entityreference_filter_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: op
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          type: select
+          reference_display: 'operators_2:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
       filter_groups:
         operator: AND
         groups:
@@ -1081,6 +1129,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - user
         - 'user.node_grants:view'
         - user.permissions
       tags:
@@ -1092,6 +1141,345 @@ display:
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - user_list
+  data_export_1:
+    id: data_export_1
+    display_title: 'Data export'
+    display_plugin: data_export
+    position: 6
+    display_options:
+      filters:
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            incoming: incoming
+          group: 1
+        moderation_state:
+          id: moderation_state
+          table: node_field_data
+          field: moderation_state
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          plugin_id: moderation_state_filter
+          operator: in
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: moderation_state_op
+            label: Κατάσταση
+            description: ''
+            use_operator: false
+            operator: moderation_state_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: state
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_incoming_type_target_id_op
+            label: Είδος
+            description: ''
+            use_operator: false
+            operator: field_incoming_type_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: type
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
+        field_case_target_id:
+          id: field_case_target_id
+          table: node__field_case
+          field: field_case_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_case_target_id_op
+            label: Υπόθεση
+            description: ''
+            use_operator: false
+            operator: field_case_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: case
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: case
+          type: textfield
+          hierarchy: true
+          limit: true
+          error_message: true
+        field_primary_value:
+          id: field_primary_value
+          table: node__field_primary
+          field: field_primary_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: boolean
+          operator: '='
+          value: '1'
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: ''
+            description: ''
+            use_operator: false
+            operator: ''
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: ''
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_subject_value:
+          id: field_subject_value
+          table: node__field_subject
+          field: field_subject_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: allwords
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_subject_value_op
+            label: Θέμα
+            description: ''
+            use_operator: false
+            operator: field_subject_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: sub
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: field_subject
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_basic_operator_target_id_entityreference_filter:
+          id: field_basic_operator_target_id_entityreference_filter
+          table: node__field_basic_operator
+          field: field_basic_operator_target_id_entityreference_filter
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: entityreference_filter_view_result
+          operator: or
+          value: null
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_basic_operator_target_id_entityreference_filter_op
+            label: 'Βασικός χειριστής '
+            description: ''
+            use_operator: false
+            operator: field_basic_operator_target_id_entityreference_filter_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: op
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          type: select
+          reference_display: 'operators_2:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+      filter_groups:
+        operator: AND
+        groups:
+          1: AND
+      style:
+        type: data_export
+        options:
+          formats:
+            xls: xls
+          csv_settings:
+            delimiter: ','
+            enclosure: '"'
+            escape_char: \
+            strip_tags: true
+            trim: true
+            encoding: utf8
+            utf8_bom: '0'
+            use_serializer_encode_only: false
+            output_header: true
+          xml_settings:
+            encoding: UTF-8
+            root_node_name: response
+            item_node_name: item
+            format_output: false
+      defaults:
+        filters: false
+        filter_groups: false
+      display_extenders: {  }
+      path: incoming/all.xls
+      displays:
+        page_4: page_4
+        default: '0'
+        page_1: '0'
+        page_2: '0'
+        page_3: '0'
+      filename: ''
+      automatic_download: true
+      store_in_public_file_directory: false
+      custom_redirect_path: false
+      redirect_to_display: page_4
+      include_query_params: false
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - request_format
+        - url
+        - user
+        - 'user.node_grants:view'
+        - user.permissions
+      tags:
+        - 'config:field.storage.node.field_basic_operator'
+        - 'config:field.storage.node.field_case'
+        - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
+        - 'config:field.storage.node.field_legal_deadline'
+        - 'config:field.storage.node.field_operators'
+        - 'config:field.storage.node.field_subject'
+        - 'config:workflow_list'
+        - user_list
   page_1:
     id: page_1
     display_title: Εισερχόμενα
@@ -1119,6 +1507,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - user
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -1130,6 +1519,7 @@ display:
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - user_list
   page_2:
     id: page_2
     display_title: Εισερχόμενα
@@ -1961,7 +2351,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: field_basic_operator_target_id_entityreference_filter
+            identifier: op
             required: false
             remember: false
             multiple: false

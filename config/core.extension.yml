@@ -20,6 +20,7 @@ module:
   config: 0
   content_moderation: 0
   contextual: 0
+  csv_serialization: 0
   datetime: 0
   datetime_optional_time: 0
   datetime_range: 0
@@ -64,6 +65,7 @@ module:
   path_alias: 0
   permissions_filtering: 0
   reference_table_formatter: 0
+  rest: 0
   role_delegation: 0
   search: 0
   select2: 0
@@ -78,11 +80,13 @@ module:
   toolbar: 0
   user: 0
   views_autocomplete_filters: 0
+  views_data_export: 0
   views_tree: 0
   views_ui: 0
   views_year_filters: 0
   workflow_buttons: 0
   workflows: 0
+  xls_serialization: 0
   views: 10
   paragraphs: 11
   standard: 1000
