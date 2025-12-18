@@ -23,4 +23,4 @@ visibility:
   request_path:
     id: request_path
     negate: true
-    pages: "/incoming/c/*\r\n/incoming/all\r\n/incoming\r\n/cases\r\n/reports/results"
+    pages: "/incoming/c/*\r\n/incoming/all\r\n/incoming\r\n/cases\r\n/reports/results\r\n/amke\r\n/amke/all"
