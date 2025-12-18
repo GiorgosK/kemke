@@ -9,3 +9,23 @@ incoming_tweaks.incoming_all:
   base_route: view.incoming.page_1
   title: 'Αρχείο Εισερχομένων'
   weight: 10
+
+incoming_tweaks.incoming_amke:
+  route_name: view.incoming_amke.page_1
+  base_route: view.incoming_amke.page_1
+  title: 'Έγγραφα'
+  weight: 0
+
+incoming_tweaks.amke_all:
+  route_name: view.incoming_amke.page_2
+  base_route: view.incoming_amke.page_1
+  title: 'Αρχείο Εγγράφων'
+  weight: 10
+
+incoming_tweaks.incoming_amke_add:
+  route_name: node.add
+  route_parameters:
+    node_type: incoming
+  base_route: view.incoming_amke.page_1
+  title: 'Προσθήκη Εγγράφου'
+  weight: 12
