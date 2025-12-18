@@ -18,51 +18,51 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     return;
   }
 
-  // this field was only meant for amke_user to see
   $account = \Drupal::currentUser();
-  if (!$account->hasRole('amke_user')) {
-    if (isset($form['field_documents'])) {
-      $form['field_documents']['#access'] = FALSE;
+  if ($account->hasRole('amke_user')) {
+    // AMKE users: keep the original field restrictions.
+    $keep_fields_edit_form = [
+      'field_ref_id',
+      'field_documents',
+      'field_entry_date',
+      'field_subject',
+      'field_remarks',
+      // 'field_attachments',
+      // 'field_plan',
+    ];
+    $keep_fields_new_form = [
+      'field_ref_id',
+      'field_documents',
+      'field_subject',
+    ];
+    $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
+    $keep_always = ['actions'];
+
+    foreach ($form as $key => $element) {
+      if (!is_array($element) || strpos((string) $key, '#') === 0) {
+        continue;
+      }
+      if (strpos((string) $key, 'field_') === 0) {
+        if (!in_array($key, $keep_fields, TRUE) && !in_array($key, $keep_always, TRUE)) {
+          unset($form[$key]);
+        }
+      }
+    }
+
+    // Allow AMKE users to save new incoming nodes without transition errors.
+    if ($form_object->getEntity()->isNew()) {
+      $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
     }
     return;
   }
 
-  // Fields visible on edit.
-  $keep_fields_edit_form = [
-    'field_ref_id',
-    'field_documents',
-    'field_entry_date',
-    'field_subject',
-    'field_remarks',
-    // 'field_attachments',
-    // 'field_plan',
-  ];
-  // Fields visible on new node form (stricter).
-  $keep_fields_new_form = [
-    'field_ref_id',
-    'field_documents',
-    'field_subject',
-  ];
-  $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
-  $keep_always = ['actions'];
-
-  foreach ($form as $key => $element) {
-    if (!is_array($element)) {
-      continue;
-    }
-    if (strpos((string) $key, '#') === 0) {
-      continue;
-    }
-    if (strpos((string) $key, 'field_') === 0) {
-      if (!in_array($key, $keep_fields, TRUE) && !in_array($key, $keep_always, TRUE)) {
-        unset($form[$key]);
-      }
-    }
+  // Non-AMKE users: show documents on add, hide related; swap on edit.
+  $is_new = $entity->isNew();
+  if (isset($form['field_documents'])) {
+    $form['field_documents']['#access'] = $is_new ? TRUE : FALSE;
   }
-
-  // Allow AMKE users to save new incoming nodes without transition errors.
-  if ($form_object->getEntity()->isNew()) {
-    $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
+  if (isset($form['field_related_incoming'])) {
+    $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
   }
 }
 
