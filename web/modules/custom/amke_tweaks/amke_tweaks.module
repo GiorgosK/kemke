@@ -6,6 +6,7 @@ use Drupal\Core\Menu\LocalTaskManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeInterface;
 use Symfony\Component\Routing\RouteCollection;
+use Drupal\user\Entity\User;
 
 
 /**
@@ -53,6 +54,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     if ($form_object->getEntity()->isNew()) {
       $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
     }
+
+    // Auto-fill legal entity from the user's profile on submit.
+    $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
     return;
   }
 
@@ -64,6 +68,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
   if (isset($form['field_related_incoming'])) {
     $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
   }
+
+  // Auto-fill legal entity from the user's profile on submit.
+  $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
 }
 
 function amke_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form) {
@@ -117,6 +124,15 @@ function amke_tweaks_entity_view_mode_alter(&$view_mode, EntityInterface $entity
 function amke_tweaks_entity_presave(EntityInterface $entity): void {
   if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
     return;
+  }
+
+  // For AMKE users, autofill legal entity from their profile when missing.
+  $account = \Drupal::currentUser();
+  if ($account->hasRole('amke_user') && $entity->hasField('field_legal_entity') && $entity->get('field_legal_entity')->isEmpty()) {
+    $user = User::load($account->id());
+    if ($user && $user->hasField('field_legal_entity') && !$user->get('field_legal_entity')->isEmpty()) {
+      $entity->set('field_legal_entity', $user->get('field_legal_entity')->getValue());
+    }
   }
 
   if (!$entity->hasField('moderation_state') || !$entity->hasField('field_amke_status')) {
@@ -215,4 +231,28 @@ function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, $cacheabl
     }
   }
   unset($tab_set);
+}
+
+/**
+ * Submit handler to copy legal entity from user profile onto the node.
+ */
+function amke_tweaks_autofill_legal_entity(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  $node = $form_object?->getEntity();
+  if (!$node instanceof NodeInterface || $node->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (!$node->hasField('field_legal_entity')) {
+    return;
+  }
+
+  $account = \Drupal::currentUser();
+  $user = User::load($account->id());
+  if (!$user || !$user->hasField('field_legal_entity') || $user->get('field_legal_entity')->isEmpty()) {
+    return;
+  }
+
+  $value = $user->get('field_legal_entity')->getValue();
+  $node->set('field_legal_entity', $value);
 }
