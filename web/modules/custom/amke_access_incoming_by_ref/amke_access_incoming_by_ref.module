@@ -1,0 +1,115 @@
+<?php
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+use Drupal\user\Entity\User;
+use Drupal\views\Plugin\views\query\Sql;
+use Drupal\views\ViewExecutable;
+use Symfony\Component\Routing\RouteCollection;
+
+/**
+ * Deny incoming access for AMKE users when legal entities differ.
+ */
+function amke_access_incoming_by_ref_entity_access(EntityInterface $entity, $operation, AccountInterface $account): AccessResult {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return AccessResult::neutral();
+  }
+
+  if (!in_array($operation, ['view', 'update'], TRUE) || !$account->hasRole('amke_user')) {
+    return AccessResult::neutral();
+  }
+
+  /** @var \Drupal\user\UserInterface|null $user */
+  $user = User::load($account->id());
+  $node_legal_entity = $entity->get('field_legal_entity')->target_id ?? NULL;
+  $user_legal_entity = $user?->get('field_legal_entity')->target_id ?? NULL;
+
+  $base = AccessResult::neutral()->cachePerUser()->addCacheableDependency($entity);
+  if ($user) {
+    $base->addCacheableDependency($user);
+  }
+
+  // Allow if user authored the node.
+  if ((int) $entity->getOwnerId() === (int) $account->id()) {
+    return AccessResult::allowed()->cachePerUser()->addCacheableDependency($entity);
+  }
+
+  // Require matching legal entities.
+  if ($node_legal_entity && $user_legal_entity && ((int) $node_legal_entity === (int) $user_legal_entity)) {
+    return AccessResult::allowed()->cachePerUser()->addCacheableDependency($entity);
+  }
+
+  $denied = AccessResult::forbidden()->cachePerUser()->addCacheableDependency($entity);
+  if ($user) {
+    $denied->addCacheableDependency($user);
+  }
+  return $denied;
+}
+
+/**
+ * Restrict AMKE users' Views queries to own or matching legal entity.
+ */
+function amke_access_incoming_by_ref_views_query_alter(ViewExecutable $view, Sql $query): void {
+  // Only alter node-based views for incoming content.
+  if ($view->storage->get('base_table') !== 'node_field_data') {
+    return;
+  }
+
+  // Target only the incoming AMKE listings to avoid altering unrelated views.
+  if (!in_array($view->id(), ['incoming', 'incoming_amke'], TRUE)) {
+    return;
+  }
+
+  // Disable SQL rewrite so node_access grants do not exclude allowed rows;
+  // we apply our own filter below.
+  $query->options['disable_sql_rewrite'] = TRUE;
+
+  $account = \Drupal::currentUser();
+  if (!$account->isAuthenticated() || !$account->hasRole('amke_user')) {
+    return;
+  }
+
+  $user = User::load($account->id());
+  $user_legal_entity = $user?->get('field_legal_entity')->target_id ?? NULL;
+
+  $args = [
+    ':amke_uid' => (int) $account->id(),
+  ];
+  $parts = ["node_field_data.uid = :amke_uid"];
+
+  if ($user_legal_entity) {
+    $args[':amke_legal'] = (int) $user_legal_entity;
+    $parts[] = "EXISTS (SELECT 1 FROM {node__field_legal_entity} fle WHERE fle.entity_id = node_field_data.nid AND fle.deleted = 0 AND fle.field_legal_entity_target_id = :amke_legal)";
+  }
+
+  $query->addWhereExpression(0, implode(' OR ', $parts), $args);
+}
+
+/**
+ * Override canonical node access check for AMKE users.
+ */
+function amke_access_incoming_by_ref_route_alter(RouteCollection $collection): void {
+  if ($route = $collection->get('entity.node.canonical')) {
+    $route->setRequirement('_custom_access', 'Drupal\\amke_access_incoming_by_ref\\Access\\IncomingAccessCheck::nodeView');
+  }
+}
+
+/**
+ * Ensure our route alter runs last so our requirement wins.
+ */
+function amke_access_incoming_by_ref_module_implements_alter(array &$implementations, string $hook): void {
+  if ($hook !== 'route_alter') {
+    return;
+  }
+  if (!isset($implementations['amke_access_incoming_by_ref'])) {
+    return;
+  }
+
+  // Move our implementation to the end so it runs last.
+  $module = 'amke_access_incoming_by_ref';
+  $implementation = $implementations[$module];
+  unset($implementations[$module]);
+  $implementations[$module] = $implementation;
+}

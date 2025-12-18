@@ -1,0 +1,8 @@
+name: 'AMKE incoming access by reference'
+type: module
+description: 'Restricts AMKE users from viewing or editing incoming nodes when their legal entity does not match.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - node
+  - user
