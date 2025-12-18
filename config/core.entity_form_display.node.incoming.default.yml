@@ -17,7 +17,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
-    - field.field.node.incoming.field_legal_entty
+    - field.field.node.incoming.field_legal_entity
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
@@ -64,7 +64,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
-        - field_legal_entty
+        - field_legal_entity
         - field_priority
         - field_requested_deadline
         - field_interim_deadline
@@ -294,7 +294,7 @@ content:
     third_party_settings: {  }
   field_attachments:
     type: file_generic
-    weight: 11
+    weight: 23
     region: content
     settings:
       progress_indicator: throbber
@@ -311,7 +311,7 @@ content:
     third_party_settings: {  }
   field_case:
     type: select2_entity_reference
-    weight: 11
+    weight: 22
     region: content
     settings:
       width: 100%
@@ -373,7 +373,7 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_legal_entty:
+  field_legal_entity:
     type: select2_entity_reference
     weight: 5
     region: content
@@ -409,7 +409,7 @@ content:
     third_party_settings: {  }
   field_plan:
     type: file_generic
-    weight: 9
+    weight: 22
     region: content
     settings:
       progress_indicator: throbber
@@ -534,7 +534,7 @@ content:
     third_party_settings: {  }
   field_sa_number:
     type: string_textfield
-    weight: 21
+    weight: 22
     region: content
     settings:
       size: 60

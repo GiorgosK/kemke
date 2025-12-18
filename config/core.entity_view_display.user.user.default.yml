@@ -6,7 +6,7 @@ dependencies:
     - field.field.user.user.field_absences
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
-    - field.field.user.user.field_legal_entty
+    - field.field.user.user.field_legal_entity
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
@@ -47,7 +47,7 @@ content:
     third_party_settings: {  }
     weight: 7
     region: content
-  field_legal_entty:
+  field_legal_entity:
     type: entity_reference_label
     label: above
     settings:

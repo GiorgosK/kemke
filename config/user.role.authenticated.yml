@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.basic_html
   module:
+    - field_permissions
     - file
     - filter
     - search
@@ -20,3 +21,5 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'use text format basic_html'
+  - 'view field_legal_entity'
+  - 'view own field_legal_entity'

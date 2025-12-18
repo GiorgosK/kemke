@@ -7,7 +7,6 @@ dependencies:
     - node.type.incoming
     - workflows.workflow.incoming_processing
   module:
-    - access_by_ref
     - content_moderation
     - filter
     - node
@@ -21,7 +20,6 @@ is_admin: false
 permissions:
   - 'access content'
   - 'access content overview'
-  - 'access node by reference'
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'

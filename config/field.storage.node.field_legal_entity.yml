@@ -1,17 +1,17 @@
-uuid: 6a634718-540d-4420-b38e-dd3dd7173b36
+uuid: e43eb549-79d8-4805-a8c7-a29c1689ebcd
 langcode: el
 status: true
 dependencies:
   module:
     - field_permissions
+    - node
     - taxonomy
-    - user
 third_party_settings:
   field_permissions:
     permission_type: custom
-id: user.field_legal_entty
-field_name: field_legal_entty
-entity_type: user
+id: node.field_legal_entity
+field_name: field_legal_entity
+entity_type: node
 type: entity_reference
 settings:
   target_type: taxonomy_term

@@ -1,17 +1,16 @@
-uuid: cd9e1a4d-30c2-4867-a2f1-4331a61ff2b5
+uuid: d94c1463-5705-4a37-907f-44626a75470a
 langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.user.field_legal_entty
+    - field.storage.node.field_legal_entity
+    - node.type.incoming
     - taxonomy.vocabulary.legal_entity
-  module:
-    - user
-id: user.user.field_legal_entty
-field_name: field_legal_entty
-entity_type: user
-bundle: user
-label: Φορεας
+id: node.incoming.field_legal_entity
+field_name: field_legal_entity
+entity_type: node
+bundle: incoming
+label: Φορέας
 description: ''
 required: false
 translatable: false

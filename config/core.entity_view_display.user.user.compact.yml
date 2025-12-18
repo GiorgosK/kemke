@@ -7,7 +7,7 @@ dependencies:
     - field.field.user.user.field_absences
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
-    - field.field.user.user.field_legal_entty
+    - field.field.user.user.field_legal_entity
     - field.field.user.user.user_picture
   module:
     - user
@@ -36,7 +36,7 @@ content:
     region: content
 hidden:
   field_absences: true
-  field_legal_entty: true
+  field_legal_entity: true
   langcode: true
   member_for: true
   user_picture: true

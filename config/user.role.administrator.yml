@@ -11,8 +11,8 @@ label: Διαχειριστής
 weight: 3
 is_admin: true
 permissions:
-  - 'create field_legal_entty'
-  - 'edit field_legal_entty'
-  - 'edit own field_legal_entty'
-  - 'view field_legal_entty'
-  - 'view own field_legal_entty'
+  - 'create field_legal_entity'
+  - 'edit field_legal_entity'
+  - 'edit own field_legal_entity'
+  - 'view field_legal_entity'
+  - 'view own field_legal_entity'

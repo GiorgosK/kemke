@@ -1,15 +1,16 @@
-uuid: 8e876d05-3cce-4e5a-8230-a53f56fc5e32
+uuid: 9cfa935a-27e2-4ab5-87b6-081bb9cd22d5
 langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.node.field_legal_entty
-    - node.type.incoming
+    - field.storage.user.field_legal_entity
     - taxonomy.vocabulary.legal_entity
-id: node.incoming.field_legal_entty
-field_name: field_legal_entty
-entity_type: node
-bundle: incoming
+  module:
+    - user
+id: user.user.field_legal_entity
+field_name: field_legal_entity
+entity_type: user
+bundle: user
 label: Φορέας
 description: ''
 required: false

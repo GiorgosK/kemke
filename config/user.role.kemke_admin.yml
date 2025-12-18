@@ -12,6 +12,7 @@ dependencies:
   module:
     - activities_mods
     - content_moderation
+    - field_permissions
     - filter
     - incoming_change_state
     - kemke_reports
@@ -42,12 +43,15 @@ permissions:
   - 'assign secretariat role'
   - 'change own username'
   - 'change to arbitary state'
+  - 'create field_legal_entity'
   - 'create incoming content'
   - 'create terms in case'
   - 'create terms in incoming_type'
   - 'create terms in priority'
   - 'delete terms in case'
   - 'edit any incoming content'
+  - 'edit field_legal_entity'
+  - 'edit own field_legal_entity'
   - 'edit terms in case'
   - 'setup reports'
   - 'use incoming_processing transition completed'
