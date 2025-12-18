@@ -18,6 +18,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
+    - field.field.node.incoming.field_legal_entty
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
@@ -168,6 +169,7 @@ hidden:
   field_legal_deadline: true
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
+  field_legal_entty: true
   field_notes: true
   field_on_time: true
   field_operators: true

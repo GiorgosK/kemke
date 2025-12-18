@@ -1,0 +1,30 @@
+uuid: cd9e1a4d-30c2-4867-a2f1-4331a61ff2b5
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_legal_entty
+    - taxonomy.vocabulary.legal_entity
+  module:
+    - user
+id: user.user.field_legal_entty
+field_name: field_legal_entty
+entity_type: user
+bundle: user
+label: Φορεας
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:filter_existing_terms'
+  handler_settings:
+    target_bundles:
+      legal_entity: legal_entity
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

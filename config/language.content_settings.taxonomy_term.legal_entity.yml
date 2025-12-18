@@ -1,0 +1,11 @@
+uuid: 33728043-2d0e-46e7-9d05-84d49cbe4e03
+langcode: el
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.legal_entity
+id: taxonomy_term.legal_entity
+target_entity_type_id: taxonomy_term
+target_bundle: legal_entity
+default_langcode: site_default
+language_alterable: false

@@ -6,11 +6,13 @@ dependencies:
     - field.field.user.user.field_absences
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
+    - field.field.user.user.field_legal_entty
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
     - datetime_range
     - image
+    - select2
     - user
 _core:
   default_config_hash: FaQ9Ptcpxpg30AtiqRDtl_8zbJArHP1LPfug_s59TOA
@@ -31,7 +33,7 @@ content:
     third_party_settings: {  }
   field_absences:
     type: daterange_default
-    weight: 3
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -51,8 +53,18 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_legal_entty:
+    type: select2_entity_reference
+    weight: 3
+    region: content
+    settings:
+      width: 100%
+      autocomplete: false
+      match_operator: CONTAINS
+      match_limit: 10
+    third_party_settings: {  }
   language:
-    weight: 5
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -63,7 +75,7 @@ content:
     third_party_settings: {  }
   user_picture:
     type: image_image
-    weight: 4
+    weight: 5
     region: content
     settings:
       progress_indicator: throbber

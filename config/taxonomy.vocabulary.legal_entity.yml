@@ -1,0 +1,9 @@
+uuid: 41ee1ee7-fcd3-4ee4-aef4-6258b61bbc62
+langcode: el
+status: true
+dependencies: {  }
+name: Φορέας
+vid: legal_entity
+description: null
+weight: 0
+new_revision: false

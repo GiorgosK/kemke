@@ -1,0 +1,29 @@
+uuid: 8e876d05-3cce-4e5a-8230-a53f56fc5e32
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_legal_entty
+    - node.type.incoming
+    - taxonomy.vocabulary.legal_entity
+id: node.incoming.field_legal_entty
+field_name: field_legal_entty
+entity_type: node
+bundle: incoming
+label: Φορέας
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:filter_existing_terms'
+  handler_settings:
+    target_bundles:
+      legal_entity: legal_entity
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

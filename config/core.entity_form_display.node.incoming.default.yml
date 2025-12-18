@@ -17,6 +17,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
+    - field.field.node.incoming.field_legal_entty
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
@@ -63,6 +64,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
+        - field_legal_entty
         - field_priority
         - field_requested_deadline
         - field_interim_deadline
@@ -299,7 +301,7 @@ content:
     third_party_settings: {  }
   field_basic_operator:
     type: select2_entity_reference
-    weight: 10
+    weight: 13
     region: content
     settings:
       width: 100%
@@ -319,7 +321,7 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_optional_time_widget
-    weight: 10
+    weight: 11
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -349,7 +351,7 @@ content:
     third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_optional_time_widget
-    weight: 9
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -361,15 +363,25 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_optional_time_widget
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_optional_time_widget
-    weight: 8
+    weight: 9
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_legal_entty:
+    type: select2_entity_reference
+    weight: 5
+    region: content
+    settings:
+      width: 100%
+      autocomplete: false
+      match_operator: CONTAINS
+      match_limit: 10
     third_party_settings: {  }
   field_notes:
     type: string_textarea
@@ -381,13 +393,13 @@ content:
     third_party_settings: {  }
   field_on_time:
     type: options_select
-    weight: 11
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
   field_operators:
     type: select2_entity_reference
-    weight: 11
+    weight: 14
     region: content
     settings:
       width: 100%
@@ -441,7 +453,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 5
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -496,7 +508,7 @@ content:
     third_party_settings: {  }
   field_remarks:
     type: paragraphs
-    weight: 29
+    weight: 20
     region: content
     settings:
       title: Παρατήρησης
@@ -516,7 +528,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_optional_time_widget
-    weight: 6
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -570,7 +582,7 @@ content:
     third_party_settings: {  }
   field_supervisor:
     type: select2_entity_reference
-    weight: 8
+    weight: 12
     region: content
     settings:
       width: 100%
@@ -580,7 +592,7 @@ content:
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
-    weight: 22
+    weight: 23
     region: content
     settings:
       size: 60
@@ -588,7 +600,7 @@ content:
     third_party_settings: {  }
   field_thematic_unit:
     type: string_textfield
-    weight: 23
+    weight: 24
     region: content
     settings:
       size: 60
@@ -596,7 +608,7 @@ content:
     third_party_settings: {  }
   field_transparency_requirement:
     type: string_textfield
-    weight: 24
+    weight: 25
     region: content
     settings:
       size: 60
@@ -604,7 +616,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 25
+    weight: 26
     region: content
     settings:
       placeholder: ''

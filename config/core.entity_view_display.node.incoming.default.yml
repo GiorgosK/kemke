@@ -17,6 +17,7 @@ dependencies:
     - field.field.node.incoming.field_legal_deadline
     - field.field.node.incoming.field_legal_deadline_ext
     - field.field.node.incoming.field_legal_deadline_original
+    - field.field.node.incoming.field_legal_entty
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_operators
@@ -98,6 +99,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
+        - field_legal_entty
         - field_priority
         - field_requested_deadline
         - field_interim_deadline
@@ -298,7 +300,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 22
+    weight: 23
     region: content
   field_entry_date:
     type: datetime_default
@@ -316,7 +318,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 21
+    weight: 22
     region: content
   field_incoming_type:
     type: entity_reference_label
@@ -333,7 +335,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 19
+    weight: 20
     region: content
   field_legal_deadline:
     type: datetime_default
@@ -342,7 +344,15 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 20
+    weight: 21
+    region: content
+  field_legal_entty:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 17
     region: content
   field_notes:
     type: basic_string
@@ -356,7 +366,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 23
+    weight: 24
     region: content
   field_operators:
     type: entity_reference_label
@@ -414,7 +424,7 @@ content:
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
-    weight: 4
+    weight: 25
     region: content
   field_priority:
     type: entity_reference_label
@@ -422,7 +432,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 17
+    weight: 18
     region: content
   field_ref_id:
     type: string
@@ -459,7 +469,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 18
+    weight: 19
     region: content
   field_responsible_entity:
     type: entity_reference_label
@@ -514,7 +524,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 24
+    weight: 23
     region: content
   field_thematic_unit:
     type: string
