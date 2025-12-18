@@ -1,0 +1,51 @@
+{
+  "viewports": [
+    {
+      "label": "mobile",
+      "width": 375,
+      "height": 667
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "desktop",
+      "width": 1280,
+      "height": 800
+    }
+  ],
+  "defaults": {
+    "readySelector": "body",
+    "waitTimeout": 8000,
+    "threshold": 0.01,
+    "waitForImages": true,
+    "waitForBackgroundImages": false,
+    "_removeBySelector": [".tile__background--image"],
+    "cookiebot": true,
+    "cookiebotSelector": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+    "referenceURL": "https://kemke.webx2.com",
+    "testURL": "https://kemke.ddev.site",
+  },
+  "scenarios": [
+    {
+      "label": "Homepage",
+      "url": "/",
+      "threshold": 0.0001
+    },
+    {
+      "label": "Contact",
+      "url": "/contact"
+    },
+    {
+      "label": "Create a user",
+      "url": "/user/register",
+      "wait": 1
+    },
+    {
+      "label": "Login",
+      "url": "/user/login"
+    },
+  ]
+}

@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test';
+
+test('threshold debug', async ({ page }) => {
+  // Generate a minimal valid HTML page
+  await page.setContent(`
+    <html>
+      <body>
+        <div style="width:50px;height:50px;background:red"></div>
+      </body>
+    </html>
+  `);
+
+  // Capture ACTUAL PNG screenshot
+  const actual = await page.screenshot();
+
+  // Compare against baseline
+  expect(actual).toMatchSnapshot('debug.png', {
+    maxDiffPixelRatio: 0.001
+  });
+});
