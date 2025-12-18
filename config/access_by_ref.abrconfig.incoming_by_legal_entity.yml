@@ -1,0 +1,14 @@
+uuid: 1a211126-c304-4ae8-8418-fd8c5fb689fa
+langcode: el
+status: true
+dependencies: {  }
+id: incoming_by_legal_entity
+label: 'incoming by legal entity'
+bundle: incoming
+field: field_legal_entty
+reference_type: shared
+extra: field_legal_entty
+rights_type: ''
+rights_read: true
+rights_update: true
+rights_delete: false
