@@ -1,6 +1,6 @@
 # Schema overview
 
-- Generated: 2025-12-19 06:30:39 UTC
+- Generated: 2025-12-19 09:43:57 UTC
 - Scope: custom bundles/fields (Drupal base fields omitted)
 - Focus: content types, taxonomies, user fields
 
