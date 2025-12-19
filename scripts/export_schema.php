@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 $root = dirname(__DIR__);
 $drupalRoot = $root . '/web';
+$excludedContentTypes = ['article', 'page']; // Machine names to omit from content type output.
+$includeUserProfile = false; // Toggle user profile field output.
 $autoload = $drupalRoot . '/autoload.php';
 if (!file_exists($autoload)) {
     throw new RuntimeException('Cannot locate web/autoload.php. Run this script from the project root.');
@@ -17,6 +19,13 @@ if (!file_exists($autoload)) {
 $cwd = getcwd();
 chdir($drupalRoot);
 $classLoader = require $autoload;
+
+// Local CLI may lack the MySQL PDO driver; fail fast with guidance instead of
+// letting Drupal die with "could not find driver".
+if (!extension_loaded('pdo_mysql')) {
+    fwrite(STDERR, "MySQL PDO extension is not available in this PHP CLI. Run this script in the project runtime (e.g., `ddev exec php scripts/export_schema.php`) or enable pdo_mysql locally.\n");
+    exit(1);
+}
 
 // Ensure preview/title constants exist even before modules are fully loaded.
 if (!defined('DRUPAL_DISABLED')) {
@@ -118,6 +127,9 @@ $nodeTypes = $entityTypeManager->getStorage('node_type')->loadMultiple();
 if ($nodeTypes) {
     $lines[] = '## Content types';
     foreach ($nodeTypes as $type) {
+        if (in_array($type->id(), $excludedContentTypes, true)) {
+            continue;
+        }
         $lines[] = '';
         $lines[] = "### {$type->label()} (`{$type->id()}`)";
         $desc = trim((string) $type->getDescription());
@@ -162,17 +174,19 @@ if ($vocabularies) {
 }
 
 // User fields.
-$lines[] = '## User profile';
-$userFields = collectFields('user', 'user', $fieldManager, $fieldTypeManager);
-if ($userFields) {
-    $lines[] = '- Fields:';
-    foreach ($userFields as $field) {
-        $lines[] = "  - {$field['label']} (`{$field['name']}`): {$field['details']}" . ($field['description'] ? " — {$field['description']}" : '');
+if ($includeUserProfile) {
+    $lines[] = '## User profile';
+    $userFields = collectFields('user', 'user', $fieldManager, $fieldTypeManager);
+    if ($userFields) {
+        $lines[] = '- Fields:';
+        foreach ($userFields as $field) {
+            $lines[] = "  - {$field['label']} (`{$field['name']}`): {$field['details']}" . ($field['description'] ? " — {$field['description']}" : '');
+        }
+    } else {
+        $lines[] = '- Fields: none (custom fields not configured)';
     }
-} else {
-    $lines[] = '- Fields: none (custom fields not configured)';
+    $lines[] = '';
 }
-$lines[] = '';
 
 $markdown = implode(PHP_EOL, $lines) . PHP_EOL;
 if (file_put_contents($outputFile, $markdown) === false) {
