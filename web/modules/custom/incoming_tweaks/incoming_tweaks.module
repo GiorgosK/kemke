@@ -385,7 +385,8 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
 
   $doc_payload = ['Document' => ['Title' => $title]];
 
-  $timeout = 30.0;
+  // The first request after a long idle period can be slow; give login more time.
+  $timeout = 60.0;
 
   try {
     /** @var \Drupal\side_api\DocutracksClient $client */
@@ -509,7 +510,7 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
 
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
-    $jar = $client->loginToDocutracks();
+    $jar = $client->loginToDocutracks(timeout: 60.0);
     $doc = $client->fetchDocument((string) $doc_id, $jar);
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
 

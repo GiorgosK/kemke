@@ -36,7 +36,7 @@ final class DocutracksClient {
 
   private const DEFAULT_FORCE_SIGNED = FALSE;
   // Default timeout used by the client; callers can override per request.
-  private const DEFAULT_TIMEOUT = 30.0;
+  private const DEFAULT_TIMEOUT = 60.0;
 
   public function __construct(private readonly ClientInterface $httpClient) {
   }
@@ -50,7 +50,9 @@ final class DocutracksClient {
     ?string $adminPass = null,
     ?string $appUser = null,
     ?string $appPass = null,
-    float $timeout = self::DEFAULT_TIMEOUT
+    float $timeout = self::DEFAULT_TIMEOUT,
+    int $maxAttempts = 2,
+    float $retryDelaySeconds = 2.0
   ): CookieJar {
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $env = $this->detectEnvironment();
@@ -60,31 +62,51 @@ final class DocutracksClient {
     $appUser = $appUser ?? $env['app_user'];
     $appPass = $appPass ?? $env['app_pass'];
 
-    $jar = new CookieJar();
-
     $payload = ['UserName' => $appUser, 'Password' => $appPass];
     $auth = [$adminUser, $adminPass];
 
-    try {
-      \Drupal::logger('side_api')->info('Docutracks login request: @details', [
-        '@details' => Json::encode([
-          'base_url' => $resolvedBaseUrl,
+    $attempt = 0;
+    $lastException = null;
+
+    while ($attempt < $maxAttempts) {
+      $attempt++;
+      $jar = new CookieJar();
+
+      try {
+        \Drupal::logger('side_api')->info('Docutracks login request: @details', [
+          '@details' => Json::encode([
+            'base_url' => $resolvedBaseUrl,
+            'timeout' => $timeout,
+            'attempt' => $attempt,
+          ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+        ]);
+        $this->httpClient->request('POST', $resolvedBaseUrl . '/services/authentication/login', [
+          'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+          'auth' => $auth,
+          'json' => $payload,
+          'cookies' => $jar,
           'timeout' => $timeout,
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-      ]);
-      $this->httpClient->request('POST', $resolvedBaseUrl . '/services/authentication/login', [
-        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-        'auth' => $auth,
-        'json' => $payload,
-        'cookies' => $jar,
-        'timeout' => $timeout,
-      ]);
-    }
-    catch (GuzzleException $e) {
-      throw new RuntimeException(sprintf('Login request failed: %s', $e->getMessage()), 0, $e);
+        ]);
+        return $jar;
+      }
+      catch (GuzzleException $e) {
+        $lastException = $e;
+
+        if ($attempt >= $maxAttempts) {
+          break;
+        }
+
+        \Drupal::logger('side_api')->warning('Docutracks login attempt @attempt failed: @message (retrying in @delay seconds).', [
+          '@attempt' => $attempt,
+          '@message' => $e->getMessage(),
+          '@delay' => $retryDelaySeconds,
+        ]);
+
+        usleep((int) ($retryDelaySeconds * 1_000_000));
+      }
     }
 
-    return $jar;
+    throw new RuntimeException(sprintf('Login request failed: %s', $lastException?->getMessage() ?? 'Unknown error'), 0, $lastException);
   }
 
   /**
