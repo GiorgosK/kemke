@@ -18,7 +18,7 @@ WKHTML_FLAGS=(
 ddev drush sql-dump > db.sql
 zip -9qr artifacts/db.sql.zip db.sql 
 rm db.sql
-./package_tracked.sh
+"$SCRIPT_DIR/package_tracked.sh"
 ddev exec php scripts/export_schema.php
 pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
 pandoc docs/schema/schema-overview.md -o artifacts/schema-overview.pdf "${WKHTML_FLAGS[@]}"
