@@ -1,0 +1,33 @@
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      padding: 0 10mm 6mm 10mm;
+      font-family: "DejaVu Sans", sans-serif;
+      font-size: 9pt;
+      color: #555;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <span id="page"></span> / <span id="topage"></span>
+  <script>
+    (function () {
+      // wkhtmltopdf passes page numbers in the query string (?page=N&topage=M).
+      var query = {};
+      location.search.substring(1).split("&").forEach(function (part) {
+        var pair = part.split("=");
+        if (pair.length === 2) {
+          query[pair[0]] = decodeURIComponent(pair[1]);
+        }
+      });
+      var pageEl = document.getElementById("page");
+      var totalEl = document.getElementById("topage");
+      if (pageEl && query.page) pageEl.textContent = query.page;
+      if (totalEl && query.topage) totalEl.textContent = query.topage;
+    }());
+  </script>
+</body>
+</html>

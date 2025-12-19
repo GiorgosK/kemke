@@ -7,7 +7,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="$ROOT_DIR/artifacts"
 mkdir -p "$OUT_DIR"
-
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
 OUT="${1:-$OUT_DIR/tracked-$STAMP.tar.gz}"
 
@@ -18,8 +17,12 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
-# Collect tracked files and filter out composer-installed paths.
-FILES=$(git ls-files | grep -Ev '^(vendor/|web/core/|web/modules/contrib/|web/themes/contrib/)$' || true)
+# Collect tracked files and filter out excluded paths.
+# Excludes:
+# - composer-installed paths
+# - top-level tests/ and scripts/ directories
+EXCLUDE_REGEX='^(vendor/|web/core/|web/modules/contrib/|web/themes/contrib/|tests/|scripts/|docs/)'
+FILES=$(git ls-files | grep -Ev "$EXCLUDE_REGEX" || true)
 if [[ -z "$FILES" ]]; then
   echo "No files to archive." >&2
   exit 0
