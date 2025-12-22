@@ -302,7 +302,7 @@ display:
           exposed: true
           expose:
             operator_id: date_op
-            label: Ημερομηνία
+            label: Χρονιά
             description: ''
             use_operator: false
             operator: date_op
