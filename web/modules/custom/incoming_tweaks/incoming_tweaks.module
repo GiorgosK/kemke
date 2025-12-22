@@ -100,7 +100,7 @@ function incoming_tweaks_set_initial_legal_deadline(NodeInterface $node, DrupalD
     $baseline_formatted = $baseline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
     $node->set('field_fullness_check_date', ['value' => $baseline_formatted]);
 
-    $deadline = incoming_tweaks_calculate_workday_deadline(20, $baseline);
+    $deadline = greek_holidays_calculate_date_after($baseline, 20);
     $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
     $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
     $node->set('field_legal_deadline_original', ['value' => $deadline_formatted]);
@@ -127,7 +127,7 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
     $today = new DrupalDateTime('now');
     $today->setTime(0, 0, 0);
     $today_formatted = $today->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
-    $deadline = incoming_tweaks_calculate_workday_deadline(20, $today);
+    $deadline = greek_holidays_calculate_date_after($today, 20);
     $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
 
     $node->set('field_fullness_check_date', ['value' => $today_formatted]);
@@ -542,83 +542,6 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
   finally {
     unset($processing_signed[$nid]);
   }
-}
-
-/**
- * Calculates a date N working days from today.
- */
-function incoming_tweaks_calculate_workday_deadline(int $work_days, ?DrupalDateTime $start_date = NULL): DrupalDateTime {
-  $deadline = $start_date ? clone $start_date : new DrupalDateTime('now');
-  $deadline->setTime(0, 0, 0);
-  $added_days = 0;
-  $holiday_cache = [];
-
-  while ($added_days < $work_days) {
-    $deadline->modify('+1 day');
-    // Skip Saturdays (6) and Sundays (7).
-    if (in_array((int) $deadline->format('N'), [6, 7], TRUE)) {
-      continue;
-    }
-
-    $year = (int) $deadline->format('Y');
-    if (!isset($holiday_cache[$year])) {
-      $holiday_cache[$year] = array_flip(incoming_tweaks_fetch_greek_public_holidays($year));
-    }
-
-    if (isset($holiday_cache[$year][$deadline->format('Y-m-d')])) {
-      continue;
-    }
-
-    $added_days++;
-  }
-
-  return $deadline;
-}
-
-/**
- * Returns the list of Greek public holidays for the provided year.
- */
-function incoming_tweaks_fetch_greek_public_holidays(int $year): array {
-  static $holidays = [];
-  if (isset($holidays[$year])) {
-    return $holidays[$year];
-  }
-
-  $cid = "incoming_tweaks:holidays:$year";
-  $cache = \Drupal::cache()->get($cid);
-  if ($cache) {
-    return $holidays[$year] = $cache->data;
-  }
-
-  $holiday_dates = [];
-
-  try {
-    $client = \Drupal::httpClient();
-    $response = $client->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/GR", ['timeout' => 5]);
-
-    if ($response->getStatusCode() === 200) {
-      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
-      foreach ($data as $holiday) {
-        if (!empty($holiday['date'])) {
-          $holiday_dates[] = $holiday['date'];
-        }
-      }
-      \Drupal::logger('incoming_tweaks')->info('Fetched @count Greek holiday dates for @year: @dates.', [
-        '@count' => count($holiday_dates),
-        '@year' => $year,
-        '@dates' => implode(', ', $holiday_dates),
-      ]);
-    }
-  }
-  catch (\Exception $exception) {
-    \Drupal::logger('incoming_tweaks')->warning('Unable to fetch holidays for @year: @message', [
-      '@year' => $year,
-      '@message' => $exception->getMessage(),
-    ]);
-  }
-
-  \Drupal::cache()->set($cid, $holiday_dates, time() + 86400);
-  return $holidays[$year] = $holiday_dates;
 }
 
 /**
