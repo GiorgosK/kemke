@@ -1,0 +1,6 @@
+services:
+  greek_holidays.uninstall_validator:
+    class: Drupal\greek_holidays\GreekHolidaysUninstallValidator
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: module_install.uninstall_validator, priority: 100 }

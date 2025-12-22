@@ -1,0 +1,40 @@
+greek_holidays.list:
+  path: /greek_holidays
+  defaults:
+    _controller: '\Drupal\greek_holidays\Controller\HolidayListController::list'
+    _title: 'Greek holidays'
+  requirements:
+    _permission: 'view holiday list'
+
+greek_holidays.list_year:
+  path: /greek_holidays/{year}
+  defaults:
+    _controller: '\Drupal\greek_holidays\Controller\HolidayListController::list'
+    _title: 'Greek holidays'
+  requirements:
+    _permission: 'view holiday list'
+    year: '\d{4}'
+
+greek_holidays.add_form:
+  path: /greek_holidays/add
+  defaults:
+    _entity_form: 'holiday.add'
+    _title: 'Add holiday'
+  requirements:
+    _permission: 'add holiday entities'
+
+greek_holidays.edit_form:
+  path: /greek_holidays/{holiday}/edit
+  defaults:
+    _entity_form: 'holiday.edit'
+    _title: 'Edit holiday'
+  requirements:
+    _permission: 'edit holiday entities'
+
+greek_holidays.delete_form:
+  path: /greek_holidays/{holiday}/delete
+  defaults:
+    _entity_form: 'holiday.delete'
+    _title: 'Delete holiday'
+  requirements:
+    _permission: 'delete holiday entities'

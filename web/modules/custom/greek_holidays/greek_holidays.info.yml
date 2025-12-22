@@ -1,0 +1,5 @@
+name: Greek Holidays
+type: module
+description: Provides a holiday entity and Greek holiday utilities.
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11

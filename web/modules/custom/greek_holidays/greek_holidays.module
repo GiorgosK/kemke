@@ -1,0 +1,261 @@
+<?php
+
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Logger\RfcLogLevel;
+
+/**
+ * Implements hook_cron().
+ */
+function greek_holidays_cron(): void {
+  $year = (int) (new DrupalDateTime('now'))->format('Y');
+  greek_holidays_sync_greek_public_holidays($year);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function greek_holidays_uninstall(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('holiday');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->execute();
+  if ($ids) {
+    $storage->delete($storage->loadMultiple($ids));
+  }
+}
+
+/**
+ * Calculates the date after N working days, excluding holidays.
+ */
+function greek_holidays_calculate_date_after(DrupalDateTime $start_date, int $days): DrupalDateTime {
+  $start_year = (int) $start_date->format('Y');
+  greek_holidays_ensure_holidays_for_years([$start_year, $start_year + 1]);
+
+  $date_after = clone $start_date;
+  $date_after->setTime(0, 0, 0);
+  $added_days = 0;
+  $holiday_cache = [];
+
+  while ($added_days < $days) {
+    $date_after->modify('+1 day');
+
+    // Skip Saturdays (6) and Sundays (7).
+    if (in_array((int) $date_after->format('N'), [6, 7], TRUE)) {
+      continue;
+    }
+
+    $year = (int) $date_after->format('Y');
+    if (!isset($holiday_cache[$year])) {
+      if (greek_holidays_ensure_holidays_for_years([$year])) {
+        $holiday_cache[$year] = array_flip(greek_holidays_get_holidays_for_year($year, TRUE));
+      }
+      else {
+        $holiday_cache[$year] = array_flip(greek_holidays_get_holidays_for_year($year));
+      }
+    }
+
+    if (isset($holiday_cache[$year][$date_after->format('Y-m-d')])) {
+      continue;
+    }
+
+    $added_days++;
+  }
+
+  return $date_after;
+}
+
+/**
+ * Returns the list of holiday dates in storage for the provided year.
+ */
+function greek_holidays_get_holidays_for_year(int $year, bool $refresh = FALSE): array {
+  static $holidays = [];
+  if (!$refresh && isset($holidays[$year])) {
+    return $holidays[$year];
+  }
+  if ($refresh) {
+    unset($holidays[$year]);
+  }
+
+  $start = sprintf('%04d-01-01', $year);
+  $end = sprintf('%04d-12-31', $year);
+
+  $storage = \Drupal::entityTypeManager()->getStorage('holiday');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('date.value', $start, '>=')
+    ->condition('date.value', $end, '<=')
+    ->execute();
+
+  $dates = [];
+  if ($ids) {
+    foreach ($storage->loadMultiple($ids) as $holiday) {
+      $date_value = (string) $holiday->get('date')->value;
+      if ($date_value !== '') {
+        $dates[] = $date_value;
+      }
+    }
+  }
+
+  sort($dates);
+  return $holidays[$year] = $dates;
+}
+
+/**
+ * Ensures holidays exist for the provided years.
+ *
+ * @return bool
+ *   TRUE when at least one year was populated from the API.
+ */
+function greek_holidays_ensure_holidays_for_years(array $years): bool {
+  $created_any = FALSE;
+  foreach ($years as $year) {
+    $year = (int) $year;
+    if ($year <= 0) {
+      continue;
+    }
+
+    if (greek_holidays_year_has_holidays($year)) {
+      continue;
+    }
+
+    if (greek_holidays_sync_greek_public_holidays($year) > 0) {
+      $created_any = TRUE;
+    }
+  }
+
+  return $created_any;
+}
+
+/**
+ * Checks whether stored holidays exist for a year.
+ */
+function greek_holidays_year_has_holidays(int $year): bool {
+  $start = sprintf('%04d-01-01', $year);
+  $end = sprintf('%04d-12-31', $year);
+
+  $storage = \Drupal::entityTypeManager()->getStorage('holiday');
+  $count = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('date.value', $start, '>=')
+    ->condition('date.value', $end, '<=')
+    ->range(0, 1)
+    ->execute();
+
+  return !empty($count);
+}
+
+/**
+ * Fetches Greek public holidays from the external API for the provided year.
+ */
+function greek_holidays_fetch_greek_public_holidays(int $year): array {
+  static $holidays = [];
+  if (isset($holidays[$year])) {
+    return $holidays[$year];
+  }
+
+  $cid = "greek_holidays:holidays:$year";
+  $cache = \Drupal::cache()->get($cid);
+  if ($cache) {
+    return $holidays[$year] = $cache->data;
+  }
+
+  $holiday_dates = [];
+
+  try {
+    $client = \Drupal::httpClient();
+    $response = $client->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/GR", ['timeout' => 5]);
+
+    if ($response->getStatusCode() === 200) {
+      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
+      foreach ($data as $holiday) {
+        if (empty($holiday['date'])) {
+          continue;
+        }
+        $holiday_dates[] = [
+          'date' => $holiday['date'],
+          'local_name' => $holiday['localName'] ?? '',
+          'name' => $holiday['name'] ?? '',
+        ];
+      }
+      \Drupal::logger('greek_holidays')->info('Fetched @count Greek holiday dates for @year.', [
+        '@count' => count($holiday_dates),
+        '@year' => $year,
+      ]);
+    }
+  }
+  catch (\Exception $exception) {
+    \Drupal::logger('greek_holidays')->warning('Unable to fetch holidays for @year: @message', [
+      '@year' => $year,
+      '@message' => $exception->getMessage(),
+    ]);
+  }
+
+  \Drupal::cache()->set($cid, $holiday_dates, time() + 86400);
+  return $holidays[$year] = $holiday_dates;
+}
+
+/**
+ * Syncs API-provided holidays for the provided year.
+ */
+function greek_holidays_sync_greek_public_holidays(int $year): int {
+  $holiday_dates = greek_holidays_fetch_greek_public_holidays($year);
+  if (!$holiday_dates) {
+    return 0;
+  }
+
+  $dates = [];
+  foreach ($holiday_dates as $holiday) {
+    if (!empty($holiday['date'])) {
+      $dates[] = $holiday['date'];
+    }
+  }
+  if (!$dates) {
+    return 0;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('holiday');
+  $existing_ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('date.value', $dates, 'IN')
+    ->execute();
+
+  $existing_dates = [];
+  if ($existing_ids) {
+    foreach ($storage->loadMultiple($existing_ids) as $holiday) {
+      $date_value = (string) $holiday->get('date')->value;
+      if ($date_value !== '') {
+        $existing_dates[$date_value] = TRUE;
+      }
+    }
+  }
+
+  $created = 0;
+  foreach ($holiday_dates as $holiday) {
+    $date = $holiday['date'] ?? '';
+    if ($date === '' || isset($existing_dates[$date])) {
+      continue;
+    }
+
+    $description = $holiday['local_name'] ?? '';
+    if ($description === '') {
+      $description = $holiday['name'] ?? '';
+    }
+
+    $entity = $storage->create([
+      'date' => $date,
+      'description' => $description,
+      'created_by' => 'api',
+    ]);
+    $entity->save();
+    $created++;
+  }
+
+  if ($created > 0) {
+    \Drupal::logger('greek_holidays')->log(RfcLogLevel::INFO, 'Created @count holidays for @year from API.', [
+      '@count' => $created,
+      '@year' => $year,
+    ]);
+  }
+
+  return $created;
+}

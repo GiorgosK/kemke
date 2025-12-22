@@ -39,6 +39,7 @@ module:
   field_ui: 0
   file: 0
   filter: 0
+  greek_holidays: 0
   ief_table_view_mode: 0
   image: 0
   incoming_api: 0

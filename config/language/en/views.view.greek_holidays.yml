@@ -1,0 +1,33 @@
+label: 'Greek holidays'
+description: 'Holiday list with edit/delete operations.'
+display:
+  default:
+    display_title: Master
+    display_options:
+      exposed_form:
+        options:
+          submit_button: Apply
+          reset_button_label: Reset
+          exposed_sorts_label: 'Sort by'
+          sort_asc_label: Asc
+          sort_desc_label: Desc
+      fields:
+        id:
+          label: ID
+        date:
+          label: Date
+        description:
+          label: Description
+        created_by:
+          label: 'Created by'
+        edit_holiday:
+          label: Edit
+        delete_holiday:
+          label: Delete
+  page_1:
+    display_title: Page
+    display_options:
+      arguments:
+        date_value_year:
+          exception:
+            title: All

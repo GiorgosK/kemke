@@ -1,0 +1,20 @@
+view holiday list:
+  title: 'View holiday list'
+  description: 'View the list of holidays.'
+
+add holiday entities:
+  title: 'Add holiday entities'
+  description: 'Create new holiday entries.'
+
+edit holiday entities:
+  title: 'Edit holiday entities'
+  description: 'Edit existing holidays.'
+
+delete holiday entities:
+  title: 'Delete holiday entities'
+  description: 'Delete holidays.'
+
+administer holiday entities:
+  title: 'Administer holiday entities'
+  description: 'Edit and delete holidays.'
+  restrict access: true
