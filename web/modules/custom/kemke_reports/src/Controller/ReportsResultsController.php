@@ -45,6 +45,21 @@ class ReportsResultsController extends ControllerBase {
       ];
     }
 
+    $generated = $result['generated'] ?? NULL;
+    $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
+
+    $output = $this->calculate_report_objective_1($result);
+    $output['meta'] = [
+      '#markup' => $generated_text ? $this->t('Generated for @year on @date.', ['@year' => $result['year'], '@date' => $generated_text]) : '',
+    ];
+
+    return $output;
+  }
+
+  /**
+   * Builds the report output for objective 1.
+   */
+  private function calculate_report_objective_1(array $result): array {
     $objective = $result['objective'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 1');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -60,26 +75,24 @@ class ReportsResultsController extends ControllerBase {
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
 
-    $items = [];
     $counts_text = $this->t('On time: @on_time from: @total', [
       '@on_time' => $on_time,
       '@total' => $total,
     ]);
 
-    $items[] = [
-      '#markup' => Markup::create(sprintf(
-        '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
-        Html::escape($description),
-        $target,
-        Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
-        Html::escape($counts_text),
-        Html::escape($color),
-        Html::escape($calculated_formatted)
-      )),
+    $items = [
+      [
+        '#markup' => Markup::create(sprintf(
+          '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
+          Html::escape($description),
+          $target,
+          Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
+          Html::escape($counts_text),
+          Html::escape($color),
+          Html::escape($calculated_formatted)
+        )),
+      ],
     ];
-
-    $generated = $result['generated'] ?? NULL;
-    $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
 
     return [
       'objective_1' => [
@@ -91,9 +104,6 @@ class ReportsResultsController extends ControllerBase {
           '#theme' => 'item_list',
           '#items' => $items,
         ],
-      ],
-      'meta' => [
-        '#markup' => $generated_text ? $this->t('Generated for @year on @date.', ['@year' => $result['year'], '@date' => $generated_text]) : '',
       ],
     ];
   }

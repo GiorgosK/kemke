@@ -1,3 +1,5 @@
 objective_1:
   description: 'Στόχος 1 - Γνωμοδοτήσεις'
   percentage: 90.0
+  deadline_days_default: 20
+  deadline_days_for_report: 1
