@@ -174,7 +174,7 @@ function kemke_reports_is_on_time(NodeInterface $node): bool {
     return FALSE;
   }
 
-  $deadline = kemke_reports_get_first_date_value($node, 'field_field_legal_deadline_ext');
+  $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline_ext');
   if (!$deadline) {
     $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline');
   }
