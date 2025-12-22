@@ -55,7 +55,7 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
     }
 
     $is_on_time = kemke_reports_is_on_time($node);
-    $target_value = $is_on_time ? 'nai' : 'ohi';
+    $target_value = $is_on_time ? 'yes' : 'no';
     $current_value = $node->get('field_on_time')->value ?? NULL;
 
     if ($force_recalculate || $current_value !== $target_value) {
@@ -82,7 +82,7 @@ function kemke_reports_incoming_get_on_time_for(int $year, array $conditions = [
     ->getQuery()
     ->accessCheck(FALSE)
     ->condition('type', 'incoming')
-    ->condition('field_on_time.value', 'nai');
+    ->condition('field_on_time.value', 'yes');
 
   kemke_reports_apply_year_condition($query, $year);
   kemke_reports_apply_incoming_filters($query, $conditions, $state);

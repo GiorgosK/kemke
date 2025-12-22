@@ -103,7 +103,7 @@ class OnTimeCalculationForm extends FormBase {
     $filters = ['field_incoming_type' => 'Γνωμοδότηση'];
     if (!$recalculate_all) {
       // Only update items not calculated yet.
-      $filters['field_on_time.value'] = 'den_ehei_ypologistei';
+      $filters['field_on_time.value'] = 'not_calculated';
     }
 
     $updated = kemke_reports_incoming_set_on_time_for($filters, 'published', $recalculate_all);

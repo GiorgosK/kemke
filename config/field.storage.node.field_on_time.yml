@@ -12,13 +12,13 @@ type: list_string
 settings:
   allowed_values:
     -
-      value: den_ehei_ypologistei
+      value: not_calculated
       label: 'Δεν έχει υπολογιστεί'
     -
-      value: nai
+      value: 'yes'
       label: Ναι
     -
-      value: ohi
+      value: 'no'
       label: Όχι
   allowed_values_function: ''
 module: options
