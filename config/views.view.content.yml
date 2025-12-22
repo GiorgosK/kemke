@@ -11,6 +11,7 @@ dependencies:
   module:
     - content_moderation
     - node
+    - options
     - taxonomy
     - user
 _core:
@@ -921,6 +922,46 @@ display:
           hierarchy: false
           limit: true
           error_message: true
+        field_on_time_value:
+          id: field_on_time_value
+          table: node__field_on_time
+          field: field_on_time_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_on_time_value_op
+            label: Εμπρόθεσμο
+            description: ''
+            use_operator: false
+            operator: field_on_time_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: field_on_time_value
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
       filter_groups:
         operator: AND
         groups:
