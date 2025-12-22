@@ -180,9 +180,7 @@ display:
           hide_empty: false
           empty_zero: false
           empty: ''
-          settings:
-            timezone_override: ''
-            format_type: html_date
+          settings: {  }
           plugin_id: field
         description:
           id: description
@@ -364,19 +362,13 @@ display:
           default_argument_options:
             index: 1
             use_alias: false
-          default_argument_skip_url: false
           summary:
             sort_order: asc
             number_of_records: 0
             format: default_summary
           summary_options:
             items_per_page: 25
-          specify_validation: true
-          validate:
-            type: regex
-            fail: 'Page not found'
-          validate_options:
-            regex: '^[0-9]{4}$'
+          specify_validation: false
           plugin_id: date_year
           entity_type: holiday
           entity_field: date

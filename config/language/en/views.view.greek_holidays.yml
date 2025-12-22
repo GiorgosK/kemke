@@ -12,8 +12,6 @@ display:
           sort_asc_label: Asc
           sort_desc_label: Desc
       fields:
-        id:
-          label: ID
         date:
           label: Date
         description:

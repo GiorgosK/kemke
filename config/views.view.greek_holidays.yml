@@ -24,15 +24,15 @@ display:
     position: 0
     display_options:
       fields:
-        id:
-          id: id
-          table: holiday
-          field: id
+        counter:
+          id: counter
+          table: views
+          field: counter
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: field
-          label: ID
+          plugin_id: counter
+          label: '#'
           exclude: false
           alter:
             alter_text: false
@@ -46,11 +46,26 @@ display:
             trim_whitespace: false
             alt: ''
             rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
           element_type: ''
           element_class: ''
           element_label_type: ''
           element_label_class: ''
-          element_label_colon: true
+          element_label_colon: false
           element_wrapper_type: ''
           element_wrapper_class: ''
           element_default_classes: true
@@ -58,6 +73,7 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
+          counter_start: 1
         date:
           id: date
           table: holiday
@@ -92,9 +108,7 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          settings:
-            timezone_override: ''
-            format_type: html_date
+          settings: {  }
         description:
           id: description
           table: holiday
@@ -271,7 +285,57 @@ display:
           expose:
             label: ''
           exposed: false
-      filters: {  }
+      filters:
+        date:
+          id: date
+          table: holiday
+          field: date
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: holiday
+          entity_field: date
+          plugin_id: string
+          operator: word
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: date_op
+            label: Ημερομηνία
+            description: ''
+            use_operator: false
+            operator: date_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: date
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: date
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
       style:
         type: table
         options:
@@ -341,7 +405,30 @@ display:
           distinct: false
           replica: false
           query_tags: {  }
+      header:
+        area:
+          id: area
+          table: views
+          field: area
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text
+          empty: false
+          content:
+            value: '<a href="/greek_holidays/add" class="button govgr-btn govgr-btn-secondary">Νέα αργία</a>'
+            format: full_html
+          tokenize: false
       display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }
   page_1:
     id: page_1
     display_title: Σελίδα
@@ -375,14 +462,17 @@ display:
             sort_order: asc
             number_of_records: 0
             format: default_summary
-          specify_validation: true
-          validate:
-            type: regex
-            fail: 'Page not found'
-          validate_options:
-            regex: '^[0-9]{4}$'
-          default_argument_skip_url: false
+          specify_validation: false
       display_extenders: {  }
       path: greek_holidays
       menu:
         type: none
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }
