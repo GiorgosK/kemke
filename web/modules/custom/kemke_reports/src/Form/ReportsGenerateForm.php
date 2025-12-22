@@ -85,6 +85,8 @@ class ReportsGenerateForm extends FormBase {
     $objective = [
       'description' => $config->get('objective_1.description') ?? '',
       'percentage' => (float) ($config->get('objective_1.percentage') ?? 90),
+      'deadline_days_for_report' => (int) ($config->get('objective_1.deadline_days_for_report') ?? 0),
+      'deadline_days_default' => (int) ($config->get('objective_1.deadline_days_default') ?? 0),
     ];
 
     $this->tempStore->set('last_result', [

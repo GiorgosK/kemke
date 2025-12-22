@@ -48,6 +48,10 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 1');
     $target = (float) ($objective['percentage'] ?? 0);
+    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
+    if ($deadline_days_for_report <= 0) {
+      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
+    }
     $calculated = (float) ($result['calculated_percentage'] ?? 0);
     $total = (int) ($result['total'] ?? 0);
     $on_time = (int) ($result['on_time'] ?? 0);
@@ -64,9 +68,10 @@ class ReportsResultsController extends ControllerBase {
 
     $items[] = [
       '#markup' => Markup::create(sprintf(
-        '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
+        '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
         Html::escape($description),
         $target,
+        Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
         Html::escape($counts_text),
         Html::escape($color),
         Html::escape($calculated_formatted)

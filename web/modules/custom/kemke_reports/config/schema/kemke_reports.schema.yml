@@ -12,3 +12,9 @@ kemke_reports.settings:
         percentage:
           type: float
           label: 'Target percentage'
+        deadline_days_default:
+          type: integer
+          label: 'Default deadline days'
+        deadline_days_for_report:
+          type: integer
+          label: 'Deadline days for report'

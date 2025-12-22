@@ -174,7 +174,22 @@ function kemke_reports_is_on_time(NodeInterface $node): bool {
     return FALSE;
   }
 
-  $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline_ext');
+  $deadline = NULL;
+  $config = \Drupal::config('kemke_reports.settings');
+  $days_for_report = (int) ($config->get('objective_1.deadline_days_for_report') ?? 0);
+  $days_default = (int) ($config->get('objective_1.deadline_days_default') ?? 0);
+  $days = $days_for_report ?: $days_default;
+
+  if ($days > 0) {
+    $start_date = kemke_reports_get_first_date_value($node, 'field_fullness_check_date');
+    if ($start_date) {
+      $deadline = greek_holidays_calculate_date_after($start_date, $days);
+    }
+  }
+
+  if (!$deadline) {
+    $deadline = kemke_reports_get_first_date_value($node, 'field_field_legal_deadline_ext');
+  }
   if (!$deadline) {
     $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline');
   }
