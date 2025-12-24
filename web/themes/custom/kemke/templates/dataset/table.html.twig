@@ -41,7 +41,14 @@
  * @see template_preprocess_table()
  */
 #}
-<table{{ attributes }}>
+
+{%
+  set classes = [
+    'govgr-table-simple'
+  ]
+%}
+
+<table{{ attributes.addClass(classes) }}>
   {% if caption %}
     <caption>{{ caption }}</caption>
   {% endif %}
