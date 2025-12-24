@@ -497,7 +497,7 @@ content:
       override_labels: false
       label_singular: ''
       label_plural: ''
-      allow_new: false
+      allow_new: true
       allow_existing: true
       match_operator: CONTAINS
       allow_duplicate: false
