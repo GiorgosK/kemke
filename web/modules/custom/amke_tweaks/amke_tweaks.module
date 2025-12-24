@@ -24,10 +24,11 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     // AMKE users: keep the original field restrictions.
     $keep_fields_edit_form = [
       'field_ref_id',
-      'field_documents',
+      // 'field_documents',
       'field_entry_date',
       'field_subject',
       'field_remarks',
+      'field_related_incoming',
       // 'field_attachments',
       // 'field_plan',
     ];

@@ -1,0 +1,58 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+
+/**
+ * Limits inline forms for related incoming nodes.
+ */
+function incoming_related_field_inline_entity_form_entity_form_alter(array &$entity_form, FormStateInterface $form_state): void {
+  if (($entity_form['#entity_type'] ?? '') !== 'node' || ($entity_form['#bundle'] ?? '') !== 'incoming') {
+    return;
+  }
+
+  $op = $entity_form['#op'] ?? '';
+  if (!in_array($op, ['add', 'duplicate'], TRUE)) {
+    return;
+  }
+
+  $ief_id = $entity_form['#ief_id'] ?? NULL;
+  if (!$ief_id) {
+    return;
+  }
+
+  $field_definition = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
+  if (!$field_definition instanceof FieldDefinitionInterface || $field_definition->getName() !== 'field_related_incoming') {
+    return;
+  }
+
+  $keep_fields = [
+    'field_documents',
+    'field_subject',
+  ];
+  $keep_always = ['actions'];
+
+  foreach ($entity_form as $key => $element) {
+    if (!is_array($element) || strpos((string) $key, '#') === 0) {
+      continue;
+    }
+    if (in_array($key, $keep_always, TRUE)) {
+      continue;
+    }
+    if (strpos((string) $key, 'field_') === 0 && in_array($key, $keep_fields, TRUE)) {
+      continue;
+    }
+    unset($entity_form[$key]);
+  }
+
+  if (isset($entity_form['field_documents']['widget']) && is_array($entity_form['field_documents']['widget'])) {
+    if (isset($entity_form['field_documents']['widget']['#header'])) {
+      $entity_form['field_documents']['widget']['#header'] = [];
+    }
+    foreach ($entity_form['field_documents']['widget'] as $delta => $item) {
+      if (is_array($item) && isset($entity_form['field_documents']['widget'][$delta]['top'])) {
+        unset($entity_form['field_documents']['widget'][$delta]['top']);
+      }
+    }
+  }
+}
