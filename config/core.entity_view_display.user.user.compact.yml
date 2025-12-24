@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.user.compact
-    - field.field.user.user.field_absences
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
@@ -36,7 +35,6 @@ content:
     weight: 1
     region: content
 hidden:
-  field_absences: true
   field_absenses_ref: true
   field_legal_entity: true
   langcode: true

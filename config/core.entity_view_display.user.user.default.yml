@@ -3,7 +3,6 @@ langcode: el
 status: true
 dependencies:
   config:
-    - field.field.user.user.field_absences
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
@@ -11,7 +10,6 @@ dependencies:
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
-    - datetime_range
     - image
     - reference_table_formatter
     - user
@@ -22,17 +20,6 @@ targetEntityType: user
 bundle: user
 mode: default
 content:
-  field_absences:
-    type: daterange_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-      from_to: both
-      separator: '-'
-    third_party_settings: {  }
-    weight: 8
-    region: content
   field_absenses_ref:
     type: entity_reference_table
     label: hidden

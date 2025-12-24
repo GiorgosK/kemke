@@ -3,7 +3,6 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.user.user.field_absences
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
@@ -11,7 +10,6 @@ dependencies:
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
-    - datetime_range
     - field_group
     - ief_table_view_mode
     - image
@@ -86,12 +84,6 @@ content:
     third_party_settings: {  }
   contact:
     weight: 6
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_absences:
-    type: daterange_default
-    weight: 5
     region: content
     settings: {  }
     third_party_settings: {  }
