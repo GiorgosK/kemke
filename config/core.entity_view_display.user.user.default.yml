@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.user.user.field_absences
+    - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
     - field.field.user.user.field_legal_entity
@@ -12,6 +13,7 @@ dependencies:
   module:
     - datetime_range
     - image
+    - reference_table_formatter
     - user
 _core:
   default_config_hash: mZLyuWM9CQx2ZJVqFGSbzgFnHzudVbHBYmdU256A5Wk
@@ -30,6 +32,17 @@ content:
       separator: '-'
     third_party_settings: {  }
     weight: 8
+    region: content
+  field_absenses_ref:
+    type: entity_reference_table
+    label: hidden
+    settings:
+      view_mode: default
+      show_entity_label: false
+      empty_cell_value: ''
+      hide_header: '0'
+    third_party_settings: {  }
+    weight: 10
     region: content
   field_first_name:
     type: string

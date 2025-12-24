@@ -1,0 +1,20 @@
+uuid: 240fd1f4-9765-403b-af3c-554eee9bfc34
+langcode: el
+status: true
+dependencies:
+  module:
+    - datetime_range
+    - paragraphs
+id: paragraph.field_dates
+field_name: field_dates
+entity_type: paragraph
+type: daterange
+settings:
+  datetime_type: date
+module: datetime_range
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

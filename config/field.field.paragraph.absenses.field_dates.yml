@@ -1,0 +1,21 @@
+uuid: 1fc886ac-c7cb-4dc8-969c-f7b370fa4488
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_dates
+    - paragraphs.paragraphs_type.absenses
+  module:
+    - datetime_range
+id: paragraph.absenses.field_dates
+field_name: field_dates
+entity_type: paragraph
+bundle: absenses
+label: Ημερομηνίες
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: daterange

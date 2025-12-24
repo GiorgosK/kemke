@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.user.user.field_absences
+    - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
     - field.field.user.user.field_legal_entity
@@ -11,9 +12,66 @@ dependencies:
     - image.style.thumbnail
   module:
     - datetime_range
+    - field_group
+    - ief_table_view_mode
     - image
     - select2
     - user
+third_party_settings:
+  field_group:
+    group_tabs:
+      children:
+        - group_general
+        - group_other
+      label: tabs
+      region: content
+      parent_name: ''
+      weight: 0
+      format_type: tabs
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        direction: horizontal
+        width_breakpoint: 640
+    group_other:
+      children:
+        - account
+        - user_picture
+      label: Διάφορα
+      region: content
+      parent_name: group_tabs
+      weight: 12
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+    group_general:
+      children:
+        - field_first_name
+        - field_last_name
+        - field_legal_entity
+        - field_absenses_ref
+        - field_absences
+      label: Γενικά
+      region: content
+      parent_name: group_tabs
+      weight: 4
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
 _core:
   default_config_hash: FaQ9Ptcpxpg30AtiqRDtl_8zbJArHP1LPfug_s59TOA
 id: user.user.default
@@ -33,13 +91,31 @@ content:
     third_party_settings: {  }
   field_absences:
     type: daterange_default
-    weight: 4
+    weight: 5
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_absenses_ref:
+    type: inline_entity_form_complex_table_view_mode
+    weight: 3
+    region: content
+    settings:
+      form_mode: default
+      override_labels: false
+      label_singular: ''
+      label_plural: ''
+      allow_new: true
+      allow_existing: false
+      match_operator: CONTAINS
+      allow_duplicate: false
+      collapsible: false
+      collapsed: false
+      revision: false
+      removed_reference: optional
+    third_party_settings: {  }
   field_first_name:
     type: string_textfield
-    weight: 1
+    weight: 0
     region: content
     settings:
       size: 60
@@ -47,7 +123,7 @@ content:
     third_party_settings: {  }
   field_last_name:
     type: string_textfield
-    weight: 2
+    weight: 1
     region: content
     settings:
       size: 60
@@ -55,7 +131,7 @@ content:
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 3
+    weight: 2
     region: content
     settings:
       width: 100%
@@ -63,19 +139,9 @@ content:
       match_operator: CONTAINS
       match_limit: 10
     third_party_settings: {  }
-  language:
-    weight: 6
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  timezone:
-    weight: 7
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   user_picture:
     type: image_image
-    weight: 5
+    weight: 1
     region: content
     settings:
       progress_indicator: throbber
@@ -83,3 +149,5 @@ content:
     third_party_settings: {  }
 hidden:
   langcode: true
+  language: true
+  timezone: true

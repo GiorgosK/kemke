@@ -1,0 +1,35 @@
+uuid: d758a350-b48b-4f7a-b787-444829d4e758
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.absenses.field_dates
+    - field.field.paragraph.absenses.field_type
+    - paragraphs.paragraphs_type.absenses
+  module:
+    - datetime_range
+    - options
+id: paragraph.absenses.default
+targetEntityType: paragraph
+bundle: absenses
+mode: default
+content:
+  field_dates:
+    type: daterange_default
+    label: hidden
+    settings:
+      timezone_override: ''
+      format_type: greek_date
+      from_to: both
+      separator: '-'
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_type:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden: {  }

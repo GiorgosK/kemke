@@ -1,0 +1,30 @@
+uuid: 55375aa5-948d-42c9-bd9b-00ad45d280be
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.absenses.field_dates
+    - field.field.paragraph.absenses.field_type
+    - paragraphs.paragraphs_type.absenses
+  module:
+    - datetime_range
+id: paragraph.absenses.default
+targetEntityType: paragraph
+bundle: absenses
+mode: default
+content:
+  field_dates:
+    type: daterange_default
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_type:
+    type: options_select
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

@@ -1,0 +1,11 @@
+uuid: 87d2845d-2ff6-496d-8d42-39c5d349a05a
+langcode: el
+status: true
+dependencies: {  }
+id: absenses
+label: Absenses
+icon_uuid: null
+icon_default: null
+description: ''
+save_empty: true
+behavior_plugins: {  }
