@@ -30,11 +30,16 @@ class ObjectiveConfigForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config('kemke_reports.settings');
 
+    $form['objectives_tabs'] = [
+      '#type' => 'horizontal_tabs',
+      '#title' => $this->t('Objectives'),
+    ];
+
     $form['objective_1'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 1',
-      '#open' => TRUE,
       '#tree' => TRUE,
+      '#group' => 'objectives_tabs',
     ];
 
     $form['objective_1']['description'] = [
@@ -74,8 +79,8 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $form['objective_6'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 6',
-      '#open' => TRUE,
       '#tree' => TRUE,
+      '#group' => 'objectives_tabs',
     ];
 
     $form['objective_6']['description'] = [
