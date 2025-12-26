@@ -42,6 +42,8 @@ dependencies:
     - field.field.node.incoming.field_sa_number
     - field.field.node.incoming.field_sani_user
     - field.field.node.incoming.field_sender
+    - field.field.node.incoming.field_signature_rejection
+    - field.field.node.incoming.field_signature_rejection_date
     - field.field.node.incoming.field_subject
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
@@ -144,6 +146,8 @@ hidden:
   field_sa_number: true
   field_sani_user: true
   field_sender: true
+  field_signature_rejection: true
+  field_signature_rejection_date: true
   field_supervisor: true
   field_taa_project: true
   field_thematic_unit: true

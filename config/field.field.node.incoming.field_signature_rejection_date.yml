@@ -1,0 +1,21 @@
+uuid: a7e24a9d-78d9-4656-914a-092cfe59e5e9
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_signature_rejection_date
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_signature_rejection_date
+field_name: field_signature_rejection_date
+entity_type: node
+bundle: incoming
+label: 'Ημερομηνία υπογραφής απόρριψης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

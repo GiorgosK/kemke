@@ -1,0 +1,21 @@
+uuid: 78244e6d-49f7-4f1d-9471-d5c71b6bceef
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_signature_rejection
+    - node.type.incoming
+  module:
+    - options
+id: node.incoming.field_signature_rejection
+field_name: field_signature_rejection
+entity_type: node
+bundle: incoming
+label: 'Υπογραφή Απόρριψη'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string
