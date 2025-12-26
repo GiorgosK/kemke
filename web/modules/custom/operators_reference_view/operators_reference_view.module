@@ -52,8 +52,14 @@ function operators_reference_view_views_query_alter(ViewExecutable $view, Sql $q
   $start_value = $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
   $end_value = $end->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
 
-  $query->addWhere(0, "$dates_alias.field_dates_value", $start_value, '>=');
-  $query->addWhere(0, "$dates_alias.field_dates_value", $end_value, '<');
+  $query->addWhereExpression(
+    0,
+    "(($dates_alias.field_dates_value >= :abs_start AND $dates_alias.field_dates_value < :abs_end) OR $dates_alias.field_dates_value IS NULL)",
+    [
+      ':abs_start' => $start_value,
+      ':abs_end' => $end_value,
+    ]
+  );
 }
 
 /**
