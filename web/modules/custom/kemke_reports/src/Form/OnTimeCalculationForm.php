@@ -100,19 +100,34 @@ class OnTimeCalculationForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $recalculate_all = (bool) $form_state->getValue('recalculate_all');
-    $filters = ['field_incoming_type' => 'Γνωμοδότηση'];
+    $objective_1_filters = [
+      'field_incoming_type' => 'Γνωμοδότηση',
+      'field_hierarchy_request' => [
+        'operator' => '<>',
+        'value' => 1,
+        'include_null' => TRUE,
+      ],
+    ];
+    $objective_2_filters = [
+      'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
+      'field_hierarchy_request' => 1,
+    ];
     if (!$recalculate_all) {
       // Only update items not calculated yet.
-      $filters['field_on_time.value'] = 'not_calculated';
+      $objective_1_filters['field_on_time.value'] = 'not_calculated';
+      $objective_2_filters['field_on_time.value'] = 'not_calculated';
     }
 
-    $updated = kemke_reports_incoming_set_on_time_for($filters, 'published', $recalculate_all);
+    $updated_objective_1 = kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', $recalculate_all, 'objective_1');
+    $updated_objective_2 = kemke_reports_incoming_set_on_time_for($objective_2_filters, 'published', $recalculate_all, 'objective_2');
     $this->state->set('kemke_reports.last_on_time_run', $this->time->getCurrentTime());
 
     // Clear cached results so the next report reflects new calculations.
     $this->tempStoreFactory->get('kemke_reports')->delete('last_result');
 
-    $this->messenger()->addStatus($this->t('On time values recalculated (@count updated).', ['@count' => $updated]));
+    $this->messenger()->addStatus($this->t('On time values recalculated (@count updated).', [
+      '@count' => $updated_objective_1 + $updated_objective_2,
+    ]));
   }
 
 }

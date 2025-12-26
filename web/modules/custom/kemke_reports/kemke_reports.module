@@ -31,7 +31,7 @@ function kemke_reports_incoming_get_number_for(int $year, array $conditions = ['
  * @return int
  *   The number of updated nodes.
  */
-function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE): int {
+function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE, string $objective_key = 'objective_1'): int {
   $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
 
   $query = \Drupal::entityTypeManager()
@@ -56,7 +56,7 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
       continue;
     }
 
-    $is_on_time = kemke_reports_is_on_time($node);
+    $is_on_time = kemke_reports_is_on_time($node, $objective_key);
     $target_value = $is_on_time ? 'yes' : 'no';
     $current_value = $node->get('field_on_time')->value ?? NULL;
 
@@ -101,6 +101,31 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     if (!empty($tids)) {
       $query->condition('field_incoming_type.target_id', $tids, 'IN');
     }
+  }
+
+  if (array_key_exists('field_hierarchy_request', $conditions)) {
+    $hierarchy_condition = $conditions['field_hierarchy_request'];
+    if (is_array($hierarchy_condition)) {
+      $operator = $hierarchy_condition['operator'] ?? '=';
+      $value = $hierarchy_condition['value'] ?? 0;
+      $include_null = (bool) ($hierarchy_condition['include_null'] ?? FALSE);
+      if ($include_null && $operator === '<>') {
+        $group = $query->orConditionGroup()
+          ->condition('field_hierarchy_request', (int) $value, $operator)
+          ->notExists('field_hierarchy_request');
+        $query->condition($group);
+      }
+      else {
+        $query->condition('field_hierarchy_request', (int) $value, $operator);
+      }
+    }
+    else {
+      $query->condition('field_hierarchy_request', (int) (bool) $hierarchy_condition);
+    }
+  }
+
+  if (array_key_exists('field_on_time.value', $conditions)) {
+    $query->condition('field_on_time.value', $conditions['field_on_time.value']);
   }
 
   if ($state !== '') {
@@ -170,7 +195,7 @@ function kemke_reports_resolve_incoming_type_ids($value): array {
 /**
  * Determines whether the given incoming node is on time.
  */
-function kemke_reports_is_on_time(NodeInterface $node): bool {
+function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = 'objective_1'): bool {
   $completion = kemke_reports_get_first_date_value($node, 'field_completion_date');
   if (!$completion) {
     return FALSE;
@@ -178,8 +203,8 @@ function kemke_reports_is_on_time(NodeInterface $node): bool {
 
   $deadline = NULL;
   $config = \Drupal::config('kemke_reports.settings');
-  $days_for_report = (int) ($config->get('objective_1.deadline_days_for_report') ?? 0);
-  $days_default = (int) ($config->get('objective_1.deadline_days_default') ?? 0);
+  $days_for_report = (int) ($config->get($objective_key . '.deadline_days_for_report') ?? 0);
+  $days_default = (int) ($config->get($objective_key . '.deadline_days_default') ?? 0);
   $days = $days_for_report ?: $days_default;
 
   if ($days > 0) {
@@ -200,7 +225,7 @@ function kemke_reports_is_on_time(NodeInterface $node): bool {
     return FALSE;
   }
 
-  return $completion->getTimestamp() <= $deadline->getTimestamp();
+  return $completion->getTimestamp() < $deadline->getTimestamp();
 }
 
 /**
