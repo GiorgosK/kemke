@@ -110,6 +110,7 @@ pre {
   margin-top: 0.5rem;
 }
 
+.kemke-reports-objective-config-form .details-wrapper,
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform,
 [class*="node-incoming-"] .details-wrapper {
   display: flex;
@@ -117,6 +118,8 @@ pre {
   flex-wrap: wrap;
 }
 
+.kemke-reports-objective-config-form .details-wrapper .form-type-textfield,
+.kemke-reports-objective-config-form .details-wrapper .form-type-number,
 [class*="node-incoming-"] .details-wrapper .field--type-string,
 [class*="node-incoming-"] .details-wrapper .field--type-datetime, 
 [class*="node-incoming-"] .details-wrapper .field--type-entity-reference,
