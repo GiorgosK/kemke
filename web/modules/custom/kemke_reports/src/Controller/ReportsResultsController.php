@@ -49,6 +49,7 @@ class ReportsResultsController extends ControllerBase {
     $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
 
     $output = $this->calculate_report_objective_1($result);
+    $output += $this->calculate_report_objective_6($result);
     $output['meta'] = [
       '#markup' => $generated_text ? $this->t('Generated for @year on @date.', ['@year' => $result['year'], '@date' => $generated_text]) : '',
     ];
@@ -96,6 +97,53 @@ class ReportsResultsController extends ControllerBase {
 
     return [
       'objective_1' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['kemke-report-results'],
+        ],
+        'list' => [
+          '#theme' => 'item_list',
+          '#items' => $items,
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Builds the report output for objective 6.
+   */
+  private function calculate_report_objective_6(array $result): array {
+    $objective = $result['objective_6'] ?? [];
+    $description = $objective['description'] ?: $this->t('Objective 6');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $calculated = (float) ($result['seminar_percentage'] ?? 0);
+    $total = (int) ($result['seminar_total_users'] ?? 0);
+    $with_seminar = (int) ($result['seminar_users'] ?? 0);
+
+    $meets_target = $calculated >= $target;
+    $color = $meets_target ? 'green' : 'red';
+    $calculated_formatted = number_format($calculated, 2);
+
+    $counts_text = $this->t('Seminars: @with from: @total', [
+      '@with' => $with_seminar,
+      '@total' => $total,
+    ]);
+
+    $items = [
+      [
+        '#markup' => Markup::create(sprintf(
+          '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
+          Html::escape($description),
+          $target,
+          Html::escape($counts_text),
+          Html::escape($color),
+          Html::escape($calculated_formatted)
+        )),
+      ],
+    ];
+
+    return [
+      'objective_6' => [
         '#type' => 'container',
         '#attributes' => [
           'class' => ['kemke-report-results'],

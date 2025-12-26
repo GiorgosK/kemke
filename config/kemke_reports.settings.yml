@@ -3,3 +3,6 @@ objective_1:
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 1
+objective_6:
+  description: 'Στόχος 6 - Σεμινάρια'
+  percentage: 30.0

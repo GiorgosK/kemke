@@ -4,6 +4,8 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
+use Drupal\user\UserInterface;
 
 /**
  * Counts incoming nodes for a given year and filters.
@@ -225,4 +227,104 @@ function kemke_reports_get_first_date_value(NodeInterface $node, string $field_n
   catch (\Exception $exception) {
     return NULL;
   }
+}
+
+/**
+ * Calculates seminar attendance stats for users in a given year.
+ */
+function kemke_reports_get_seminar_users_for_year(int $year, array $excluded_roles = ['kemke_admin', 'amke_user']): array {
+  $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+  $uids = $user_storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('uid', 0, '>')
+    ->execute();
+
+  if (empty($uids)) {
+    return [
+      'total' => 0,
+      'with_seminar' => 0,
+    ];
+  }
+
+  $year_start = new DrupalDateTime("$year-01-01 00:00:00", new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+  $year_end = clone $year_start;
+  $year_end->modify('+1 year');
+  $year_start_ts = $year_start->getTimestamp();
+  $year_end_ts = $year_end->getTimestamp();
+
+  $total = 0;
+  $with_seminar = 0;
+
+  foreach ($user_storage->loadMultiple($uids) as $user) {
+    if (!$user instanceof UserInterface) {
+      continue;
+    }
+
+    if (array_intersect($excluded_roles, $user->getRoles())) {
+      continue;
+    }
+
+    $total++;
+
+    if (!$user->hasField('field_absenses_ref') || $user->get('field_absenses_ref')->isEmpty()) {
+      continue;
+    }
+
+    $found = FALSE;
+    foreach ($user->get('field_absenses_ref')->referencedEntities() as $paragraph) {
+      if (!$paragraph instanceof ParagraphInterface) {
+        continue;
+      }
+
+      $type_value = $paragraph->get('field_type')->value ?? NULL;
+      if ($type_value !== 'seminar') {
+        continue;
+      }
+
+      if (!$paragraph->hasField('field_dates') || $paragraph->get('field_dates')->isEmpty()) {
+        continue;
+      }
+
+      foreach ($paragraph->get('field_dates') as $date_item) {
+        $values = $date_item->getValue();
+        $start_value = $values['value'] ?? NULL;
+        $end_value = $values['end_value'] ?? NULL;
+
+        if (!$start_value) {
+          continue;
+        }
+
+        $start_date = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $start_value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+        if (!$start_date) {
+          continue;
+        }
+
+        $end_date = NULL;
+        if ($end_value) {
+          $end_date = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $end_value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+        }
+
+        $start_ts = $start_date->getTimestamp();
+        $end_ts = $end_date ? $end_date->getTimestamp() : $start_ts;
+
+        if ($start_ts < $year_end_ts && $end_ts >= $year_start_ts) {
+          $found = TRUE;
+          break;
+        }
+      }
+
+      if ($found) {
+        break;
+      }
+    }
+
+    if ($found) {
+      $with_seminar++;
+    }
+  }
+
+  return [
+    'total' => $total,
+    'with_seminar' => $with_seminar,
+  ];
 }

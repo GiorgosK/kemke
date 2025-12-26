@@ -80,6 +80,10 @@ class ReportsGenerateForm extends FormBase {
     $total = kemke_reports_incoming_get_number_for($year, $filters);
     $on_time = kemke_reports_incoming_get_on_time_for($year, $filters);
     $calculated_percentage = $total > 0 ? ($on_time / $total) * 100 : 0.0;
+    $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
+    $seminar_percentage = $seminar_counts['total'] > 0
+      ? ($seminar_counts['with_seminar'] / $seminar_counts['total']) * 100
+      : 0.0;
 
     $config = \Drupal::config('kemke_reports.settings');
     $objective = [
@@ -88,6 +92,10 @@ class ReportsGenerateForm extends FormBase {
       'deadline_days_for_report' => (int) ($config->get('objective_1.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_1.deadline_days_default') ?? 0),
     ];
+    $objective_6 = [
+      'description' => $config->get('objective_6.description') ?? '',
+      'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
+    ];
 
     $this->tempStore->set('last_result', [
       'year' => $year,
@@ -95,6 +103,10 @@ class ReportsGenerateForm extends FormBase {
       'on_time' => $on_time,
       'calculated_percentage' => $calculated_percentage,
       'objective' => $objective,
+      'seminar_total_users' => $seminar_counts['total'],
+      'seminar_users' => $seminar_counts['with_seminar'],
+      'seminar_percentage' => $seminar_percentage,
+      'objective_6' => $objective_6,
       'generated' => $this->time->getCurrentTime(),
     ]);
 
