@@ -12,6 +12,7 @@ dependencies:
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
     - field.field.node.incoming.field_fullness_check_date
+    - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -64,6 +65,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
+        - field_hierarchy_request
         - field_legal_entity
         - field_priority
         - field_requested_deadline
@@ -114,7 +116,7 @@ third_party_settings:
       label: EE
       region: content
       parent_name: group_tabs
-      weight: 20
+      weight: 21
       format_type: tab
       format_settings:
         classes: ''
@@ -130,7 +132,7 @@ third_party_settings:
       label: Παρατηρήσεις
       region: content
       parent_name: group_tabs
-      weight: 21
+      weight: 22
       format_type: tab
       format_settings:
         classes: ''
@@ -228,7 +230,7 @@ third_party_settings:
       label: Σχέδιο
       region: content
       parent_name: group_tabs
-      weight: 18
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -247,7 +249,7 @@ third_party_settings:
       label: API
       region: content
       parent_name: group_tabs
-      weight: 22
+      weight: 23
       format_type: tab
       format_settings:
         classes: ''
@@ -263,7 +265,7 @@ third_party_settings:
       label: 'Ακριβες Αντίγραφο'
       region: content
       parent_name: group_tabs
-      weight: 19
+      weight: 20
       format_type: tab
       format_settings:
         classes: ''
@@ -321,7 +323,7 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_optional_time_widget
-    weight: 11
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -351,9 +353,16 @@ content:
     third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_optional_time_widget
-    weight: 10
+    weight: 11
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_hierarchy_request:
+    type: boolean_checkbox
+    weight: 5
+    region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   field_incoming_type:
     type: options_select
@@ -363,19 +372,19 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_optional_time_widget
-    weight: 8
+    weight: 9
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_optional_time_widget
-    weight: 9
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 5
+    weight: 6
     region: content
     settings:
       width: 100%
@@ -393,7 +402,7 @@ content:
     third_party_settings: {  }
   field_on_time:
     type: options_select
-    weight: 12
+    weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -453,7 +462,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 6
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -528,13 +537,13 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_optional_time_widget
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
   field_sa_number:
     type: string_textfield
-    weight: 22
+    weight: 23
     region: content
     settings:
       size: 60
@@ -542,7 +551,7 @@ content:
     third_party_settings: {  }
   field_sani_user:
     type: string_textfield
-    weight: 20
+    weight: 22
     region: content
     settings:
       size: 60
@@ -592,7 +601,7 @@ content:
     third_party_settings: {  }
   field_taa_project:
     type: string_textfield
-    weight: 23
+    weight: 24
     region: content
     settings:
       size: 60
@@ -600,7 +609,7 @@ content:
     third_party_settings: {  }
   field_thematic_unit:
     type: string_textfield
-    weight: 24
+    weight: 25
     region: content
     settings:
       size: 60
@@ -608,7 +617,7 @@ content:
     third_party_settings: {  }
   field_transparency_requirement:
     type: string_textfield
-    weight: 25
+    weight: 26
     region: content
     settings:
       size: 60
@@ -616,7 +625,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 26
+    weight: 27
     region: content
     settings:
       placeholder: ''

@@ -13,6 +13,7 @@ dependencies:
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
     - field.field.node.incoming.field_fullness_check_date
+    - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -165,6 +166,7 @@ hidden:
   field_case: true
   field_completion_date: true
   field_fullness_check_date: true
+  field_hierarchy_request: true
   field_interim_deadline: true
   field_legal_deadline: true
   field_legal_deadline_ext: true

@@ -1,0 +1,21 @@
+uuid: ff7e34e3-7937-49ec-910a-8a732c7a4855
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hierarchy_request
+    - node.type.incoming
+id: node.incoming.field_hierarchy_request
+field_name: field_hierarchy_request
+entity_type: node
+bundle: incoming
+label: 'Αίτημα από ιεραρχία'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ναι
+  off_label: ' Όχι'
+field_type: boolean
