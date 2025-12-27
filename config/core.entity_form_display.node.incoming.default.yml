@@ -46,6 +46,7 @@ dependencies:
     - field.field.node.incoming.field_signature_rejection
     - field.field.node.incoming.field_signature_rejection_date
     - field.field.node.incoming.field_subject
+    - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_thematic_unit
@@ -69,10 +70,9 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
-        - field_incoming_subtype
-        - field_hierarchy_request
-        - field_signature_rejection
-        - field_signature_rejection_date
+        - group_subtype
+        - group_extension
+        - group_signature_rejection
         - field_legal_entity
         - field_priority
         - field_requested_deadline
@@ -282,6 +282,54 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
+    group_signature_rejection:
+      children:
+        - field_signature_rejection
+        - field_signature_rejection_date
+      label: 'Υπογραφή Απόρριψη'
+      region: content
+      parent_name: group_status
+      weight: 9
+      format_type: fieldset
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        description: ''
+        required_fields: true
+    group_subtype:
+      children:
+        - field_incoming_subtype
+        - field_subtype_date
+      label: 'Υποκατηγορία εγγράφου'
+      region: content
+      parent_name: group_status
+      weight: 5
+      format_type: fieldset
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        description: ''
+        required_fields: true
+    group_extension:
+      children:
+        - field_extension
+        - field_extension_date
+      label: Παράταση
+      region: content
+      parent_name: group_status
+      weight: 6
+      format_type: fieldset
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        description: ''
+        required_fields: true
 id: node.incoming.default
 targetEntityType: node
 bundle: incoming
@@ -330,7 +378,7 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_optional_time_widget
-    weight: 15
+    weight: 16
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -360,20 +408,20 @@ content:
     third_party_settings: {  }
   field_extension:
     type: boolean_checkbox
-    weight: 9
+    weight: 7
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   field_extension_date:
     type: datetime_default
-    weight: 10
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_optional_time_widget
-    weight: 14
+    weight: 15
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -391,19 +439,19 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_optional_time_widget
-    weight: 12
+    weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_optional_time_widget
-    weight: 13
+    weight: 14
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 9
+    weight: 10
     region: content
     settings:
       width: 100%
@@ -421,7 +469,7 @@ content:
     third_party_settings: {  }
   field_on_time:
     type: options_select
-    weight: 16
+    weight: 17
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -481,7 +529,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 10
+    weight: 11
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -556,7 +604,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_optional_time_widget
-    weight: 11
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -604,6 +652,12 @@ content:
     settings:
       rows: 3
       placeholder: ''
+    third_party_settings: {  }
+  field_subtype_date:
+    type: datetime_default
+    weight: 6
+    region: content
+    settings: {  }
     third_party_settings: {  }
   field_supervisor:
     type: select2_entity_reference
@@ -681,7 +735,7 @@ content:
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 8
+    weight: 7
     region: content
     settings:
       display_label: true

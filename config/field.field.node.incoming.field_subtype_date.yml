@@ -1,0 +1,21 @@
+uuid: 28f32f38-0640-44c4-bbe0-f06da5bd9bcb
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_subtype_date
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_subtype_date
+field_name: field_subtype_date
+entity_type: node
+bundle: incoming
+label: 'Ημερομηνία υποκατηγορίας έγγραφου'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

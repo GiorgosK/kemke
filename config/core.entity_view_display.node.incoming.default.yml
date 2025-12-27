@@ -46,6 +46,7 @@ dependencies:
     - field.field.node.incoming.field_signature_rejection
     - field.field.node.incoming.field_signature_rejection_date
     - field.field.node.incoming.field_subject
+    - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_thematic_unit
@@ -561,6 +562,15 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 17
+    region: content
+  field_subtype_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 30
     region: content
   field_supervisor:
     type: entity_reference_label
