@@ -1,0 +1,37 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_form_alter().
+ */
+function checkbox_radios_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $watchlist = [
+    'node_incoming_form',
+    'node_incoming_edit_form',
+  ];
+
+  if (!in_array($form_id, $watchlist, TRUE)) {
+    return;
+  }
+
+  $entity = $form_state->getFormObject() ? $form_state->getFormObject()->getEntity() : $form_state->get('entity');
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $fields = [
+    'field_incoming_subtype',
+    'field_signature_rejection'
+  ];
+
+  if ($fields === []) {
+    return;
+  }
+
+  $form['#attached']['library'][] = 'checkbox_radios/checkbox_radios';
+  $form['#attached']['drupalSettings']['checkboxRadios'] = [
+    'fields' => array_values($fields),
+  ];
+}

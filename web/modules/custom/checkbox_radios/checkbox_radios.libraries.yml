@@ -1,0 +1,7 @@
+checkbox_radios:
+  js:
+    js/checkbox_radios.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings

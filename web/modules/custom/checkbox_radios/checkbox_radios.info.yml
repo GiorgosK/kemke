@@ -1,0 +1,7 @@
+name: 'Checkbox radios'
+type: module
+description: 'Turns selected checkbox fields into single-select toggles on incoming forms.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:node
