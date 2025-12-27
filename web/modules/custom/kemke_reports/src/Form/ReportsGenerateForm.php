@@ -77,15 +77,15 @@ class ReportsGenerateForm extends FormBase {
     $year = (int) $form_state->getValue('year');
     $objective_1_filters = [
       'field_incoming_type' => 'Γνωμοδότηση',
-      'field_hierarchy_request' => [
+      'field_incoming_subtype' => [
         'operator' => '<>',
-        'value' => 1,
+        'value' => 60,
         'include_null' => TRUE,
       ],
     ];
     $objective_2_filters = [
       'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-      'field_hierarchy_request' => 1,
+      'field_incoming_subtype' => 60,
     ];
     $objective_3_filters = [
       'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],

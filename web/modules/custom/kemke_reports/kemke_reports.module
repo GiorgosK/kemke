@@ -103,24 +103,24 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     }
   }
 
-  if (array_key_exists('field_hierarchy_request', $conditions)) {
-    $hierarchy_condition = $conditions['field_hierarchy_request'];
-    if (is_array($hierarchy_condition)) {
-      $operator = $hierarchy_condition['operator'] ?? '=';
-      $value = $hierarchy_condition['value'] ?? 0;
-      $include_null = (bool) ($hierarchy_condition['include_null'] ?? FALSE);
+  if (array_key_exists('field_incoming_subtype', $conditions)) {
+    $subtype_condition = $conditions['field_incoming_subtype'];
+    if (is_array($subtype_condition)) {
+      $operator = $subtype_condition['operator'] ?? '=';
+      $value = $subtype_condition['value'] ?? 0;
+      $include_null = (bool) ($subtype_condition['include_null'] ?? FALSE);
       if ($include_null && $operator === '<>') {
         $group = $query->orConditionGroup()
-          ->condition('field_hierarchy_request', (int) $value, $operator)
-          ->notExists('field_hierarchy_request');
+          ->condition('field_incoming_subtype.target_id', (int) $value, $operator)
+          ->notExists('field_incoming_subtype');
         $query->condition($group);
       }
       else {
-        $query->condition('field_hierarchy_request', (int) $value, $operator);
+        $query->condition('field_incoming_subtype.target_id', (int) $value, $operator);
       }
     }
     else {
-      $query->condition('field_hierarchy_request', (int) (bool) $hierarchy_condition);
+      $query->condition('field_incoming_subtype.target_id', (int) $subtype_condition);
     }
   }
 
