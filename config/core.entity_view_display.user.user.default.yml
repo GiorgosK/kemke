@@ -22,7 +22,7 @@ mode: default
 content:
   field_absenses_ref:
     type: entity_reference_table
-    label: hidden
+    label: above
     settings:
       view_mode: default
       show_entity_label: false
