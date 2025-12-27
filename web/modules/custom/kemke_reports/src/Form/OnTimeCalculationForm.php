@@ -112,21 +112,27 @@ class OnTimeCalculationForm extends FormBase {
       'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
       'field_hierarchy_request' => 1,
     ];
+    $objective_3_filters = [
+      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
+      'field_signature_rejection' => 'signature',
+    ];
     if (!$recalculate_all) {
       // Only update items not calculated yet.
       $objective_1_filters['field_on_time.value'] = 'not_calculated';
       $objective_2_filters['field_on_time.value'] = 'not_calculated';
+      $objective_3_filters['field_on_time.value'] = 'not_calculated';
     }
 
     $updated_objective_1 = kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', $recalculate_all, 'objective_1');
     $updated_objective_2 = kemke_reports_incoming_set_on_time_for($objective_2_filters, 'published', $recalculate_all, 'objective_2');
+    $updated_objective_3 = kemke_reports_incoming_set_on_time_for($objective_3_filters, 'published', $recalculate_all, 'objective_3', 'field_signature_rejection_date');
     $this->state->set('kemke_reports.last_on_time_run', $this->time->getCurrentTime());
 
     // Clear cached results so the next report reflects new calculations.
     $this->tempStoreFactory->get('kemke_reports')->delete('last_result');
 
     $this->messenger()->addStatus($this->t('On time values recalculated (@count updated).', [
-      '@count' => $updated_objective_1 + $updated_objective_2,
+      '@count' => $updated_objective_1 + $updated_objective_2 + $updated_objective_3,
     ]));
   }
 

@@ -87,6 +87,10 @@ class ReportsGenerateForm extends FormBase {
       'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
       'field_hierarchy_request' => 1,
     ];
+    $objective_3_filters = [
+      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
+      'field_signature_rejection' => 'signature',
+    ];
 
     $objective_1_total = kemke_reports_incoming_get_number_for($year, $objective_1_filters);
     $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters);
@@ -94,6 +98,9 @@ class ReportsGenerateForm extends FormBase {
     $objective_2_total = kemke_reports_incoming_get_number_for($year, $objective_2_filters);
     $objective_2_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_2_filters);
     $objective_2_percentage = $objective_2_total > 0 ? ($objective_2_on_time / $objective_2_total) * 100 : 0.0;
+    $objective_3_total = kemke_reports_incoming_get_number_for($year, $objective_3_filters);
+    $objective_3_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_3_filters);
+    $objective_3_percentage = $objective_3_total > 0 ? ($objective_3_on_time / $objective_3_total) * 100 : 0.0;
     $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
     $seminar_percentage = $seminar_counts['total'] > 0
       ? ($seminar_counts['with_seminar'] / $seminar_counts['total']) * 100
@@ -112,6 +119,12 @@ class ReportsGenerateForm extends FormBase {
       'deadline_days_for_report' => (int) ($config->get('objective_2.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_2.deadline_days_default') ?? 0),
     ];
+    $objective_3 = [
+      'description' => $config->get('objective_3.description') ?? '',
+      'percentage' => (float) ($config->get('objective_3.percentage') ?? 90),
+      'deadline_days_for_report' => (int) ($config->get('objective_3.deadline_days_for_report') ?? 0),
+      'deadline_days_default' => (int) ($config->get('objective_3.deadline_days_default') ?? 0),
+    ];
     $objective_6 = [
       'description' => $config->get('objective_6.description') ?? '',
       'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
@@ -127,6 +140,10 @@ class ReportsGenerateForm extends FormBase {
       'objective_2_on_time' => $objective_2_on_time,
       'objective_2_percentage' => $objective_2_percentage,
       'objective_2' => $objective_2,
+      'objective_3_total' => $objective_3_total,
+      'objective_3_on_time' => $objective_3_on_time,
+      'objective_3_percentage' => $objective_3_percentage,
+      'objective_3' => $objective_3,
       'seminar_total_users' => $seminar_counts['total'],
       'seminar_users' => $seminar_counts['with_seminar'],
       'seminar_percentage' => $seminar_percentage,

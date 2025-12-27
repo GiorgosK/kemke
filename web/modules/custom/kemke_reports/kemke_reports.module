@@ -31,7 +31,7 @@ function kemke_reports_incoming_get_number_for(int $year, array $conditions = ['
  * @return int
  *   The number of updated nodes.
  */
-function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE, string $objective_key = 'objective_1'): int {
+function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE, string $objective_key = 'objective_1', string $completion_field = 'field_completion_date'): int {
   $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
 
   $query = \Drupal::entityTypeManager()
@@ -56,7 +56,7 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
       continue;
     }
 
-    $is_on_time = kemke_reports_is_on_time($node, $objective_key);
+    $is_on_time = kemke_reports_is_on_time($node, $objective_key, $completion_field);
     $target_value = $is_on_time ? 'yes' : 'no';
     $current_value = $node->get('field_on_time')->value ?? NULL;
 
@@ -128,6 +128,18 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     $query->condition('field_on_time.value', $conditions['field_on_time.value']);
   }
 
+  if (array_key_exists('field_signature_rejection', $conditions)) {
+    $signature_condition = $conditions['field_signature_rejection'];
+    if (is_array($signature_condition)) {
+      $operator = $signature_condition['operator'] ?? '=';
+      $value = $signature_condition['value'] ?? '';
+      $query->condition('field_signature_rejection', $value, $operator);
+    }
+    else {
+      $query->condition('field_signature_rejection', $signature_condition);
+    }
+  }
+
   if ($state !== '') {
     $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
     if (isset($definitions['moderation_state'])) {
@@ -195,8 +207,8 @@ function kemke_reports_resolve_incoming_type_ids($value): array {
 /**
  * Determines whether the given incoming node is on time.
  */
-function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = 'objective_1'): bool {
-  $completion = kemke_reports_get_first_date_value($node, 'field_completion_date');
+function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = 'objective_1', string $completion_field = 'field_completion_date'): bool {
+  $completion = kemke_reports_get_first_date_value($node, $completion_field);
   if (!$completion) {
     return FALSE;
   }

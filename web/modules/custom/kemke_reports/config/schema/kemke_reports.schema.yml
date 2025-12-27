@@ -34,6 +34,22 @@ kemke_reports.settings:
         deadline_days_for_report:
           type: integer
           label: 'Deadline days for report'
+    objective_3:
+      type: mapping
+      label: 'Objective 3'
+      mapping:
+        description:
+          type: text
+          label: 'Description'
+        percentage:
+          type: float
+          label: 'Target percentage'
+        deadline_days_default:
+          type: integer
+          label: 'Default deadline days'
+        deadline_days_for_report:
+          type: integer
+          label: 'Deadline days for report'
     objective_6:
       type: mapping
       label: 'Objective 6'
