@@ -377,7 +377,7 @@ content:
       match_limit: 10
     third_party_settings: {  }
   field_completion_date:
-    type: datetime_optional_time_widget
+    type: datetime_default
     weight: 16
     region: content
     settings: {  }
@@ -420,7 +420,7 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_fullness_check_date:
-    type: datetime_optional_time_widget
+    type: datetime_default
     weight: 15
     region: content
     settings: {  }
@@ -438,13 +438,13 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_interim_deadline:
-    type: datetime_optional_time_widget
+    type: datetime_default
     weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
-    type: datetime_optional_time_widget
+    type: datetime_default
     weight: 14
     region: content
     settings: {  }
@@ -603,7 +603,7 @@ content:
         duplicate: '0'
     third_party_settings: {  }
   field_requested_deadline:
-    type: datetime_optional_time_widget
+    type: datetime_default
     weight: 12
     region: content
     settings: {  }
