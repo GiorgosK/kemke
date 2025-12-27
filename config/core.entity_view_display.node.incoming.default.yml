@@ -14,7 +14,6 @@ dependencies:
     - field.field.node.incoming.field_extension
     - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
-    - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_subtype
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
@@ -348,16 +347,6 @@ content:
       format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 26
-    region: content
-  field_hierarchy_request:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
-    third_party_settings: {  }
-    weight: 18
     region: content
   field_incoming_subtype:
     type: entity_reference_label

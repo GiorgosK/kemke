@@ -14,7 +14,6 @@ dependencies:
     - field.field.node.incoming.field_extension
     - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
-    - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_subtype
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
@@ -377,13 +376,6 @@ content:
     weight: 14
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_hierarchy_request:
-    type: boolean_checkbox
-    weight: 6
-    region: content
-    settings:
-      display_label: true
     third_party_settings: {  }
   field_incoming_subtype:
     type: options_buttons
