@@ -1,0 +1,21 @@
+uuid: 25706d95-0d7c-43cd-a5ce-8feffc03dbcf
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_extension
+    - node.type.incoming
+id: node.incoming.field_extension
+field_name: field_extension
+entity_type: node
+bundle: incoming
+label: Παράταση
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ναι
+  off_label: Όχι
+field_type: boolean

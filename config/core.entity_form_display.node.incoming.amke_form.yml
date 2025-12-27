@@ -12,6 +12,8 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_extension
+    - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_type
@@ -133,6 +135,8 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_extension: true
+  field_extension_date: true
   field_fullness_check_date: true
   field_hierarchy_request: true
   field_incoming_type: true

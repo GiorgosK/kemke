@@ -11,6 +11,8 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_extension
+    - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_type
@@ -316,6 +318,25 @@ content:
       format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 15
+    region: content
+  field_extension:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 28
+    region: content
+  field_extension_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 29
     region: content
   field_fullness_check_date:
     type: datetime_default

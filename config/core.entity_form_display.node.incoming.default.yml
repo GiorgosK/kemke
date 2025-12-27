@@ -11,6 +11,8 @@ dependencies:
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_entry_date
+    - field.field.node.incoming.field_extension
+    - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_hierarchy_request
     - field.field.node.incoming.field_incoming_type
@@ -355,6 +357,19 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_extension:
+    type: boolean_checkbox
+    weight: 28
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_extension_date:
+    type: datetime_default
+    weight: 29
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_optional_time_widget
     weight: 13
@@ -561,22 +576,7 @@ content:
       size: 60
       placeholder: ''
     third_party_settings:
-      conditional_fields:
-        4932e61c-3f18-4c82-908f-92c763c4de71:
-          entity_type: node
-          bundle: incoming
-          dependee: field_incoming_type
-          settings:
-            state: visible
-            condition: value
-            grouping: AND
-            values_set: 1
-            value: ''
-            values: {  }
-            value_form: {  }
-            effect: show
-            effect_options: {  }
-            selector: ''
+      conditional_fields: {  }
   field_sender:
     type: string_textfield
     weight: 4

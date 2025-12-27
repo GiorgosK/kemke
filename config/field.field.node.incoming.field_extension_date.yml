@@ -1,0 +1,21 @@
+uuid: 5437f54d-6110-47f6-92e1-b260ad1881f6
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_extension_date
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_extension_date
+field_name: field_extension_date
+entity_type: node
+bundle: incoming
+label: 'Ημερομηνία παράτασης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

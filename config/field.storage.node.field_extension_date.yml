@@ -1,0 +1,20 @@
+uuid: 45ab8674-72d6-42ea-af8b-6edc9acf477c
+langcode: el
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+id: node.field_extension_date
+field_name: field_extension_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
