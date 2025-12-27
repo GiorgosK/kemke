@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_hierarchy_request
+    - field.field.node.incoming.field_incoming_subtype
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -69,6 +70,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
+        - field_incoming_subtype
         - field_hierarchy_request
         - field_signature_rejection
         - field_signature_rejection_date
@@ -288,7 +290,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 3
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -329,7 +331,7 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_optional_time_widget
-    weight: 14
+    weight: 15
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -359,29 +361,35 @@ content:
     third_party_settings: {  }
   field_extension:
     type: boolean_checkbox
-    weight: 28
+    weight: 9
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   field_extension_date:
     type: datetime_default
-    weight: 29
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_optional_time_widget
-    weight: 13
+    weight: 14
     region: content
     settings: {  }
     third_party_settings: {  }
   field_hierarchy_request:
     type: boolean_checkbox
-    weight: 5
+    weight: 6
     region: content
     settings:
       display_label: true
+    third_party_settings: {  }
+  field_incoming_subtype:
+    type: options_buttons
+    weight: 5
+    region: content
+    settings: {  }
     third_party_settings: {  }
   field_incoming_type:
     type: options_select
@@ -391,19 +399,19 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_optional_time_widget
-    weight: 11
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_optional_time_widget
-    weight: 12
+    weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 8
+    weight: 9
     region: content
     settings:
       width: 100%
@@ -421,7 +429,7 @@ content:
     third_party_settings: {  }
   field_on_time:
     type: options_select
-    weight: 15
+    weight: 16
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -481,7 +489,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: options_select
-    weight: 9
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -556,7 +564,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_optional_time_widget
-    weight: 10
+    weight: 11
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -587,13 +595,13 @@ content:
     third_party_settings: {  }
   field_signature_rejection:
     type: options_buttons
-    weight: 6
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   field_signature_rejection_date:
     type: datetime_default
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -661,20 +669,20 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 6
+    weight: 5
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 7
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 4
+    weight: 3
     region: content
     settings:
       display_label: true
@@ -688,14 +696,14 @@ content:
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 5
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 2
+    weight: 1
     region: content
     settings:
       match_operator: CONTAINS

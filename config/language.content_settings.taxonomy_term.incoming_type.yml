@@ -1,0 +1,11 @@
+uuid: 6e862f50-21fc-478b-90fa-c0c22288f32f
+langcode: el
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.incoming_type
+id: taxonomy_term.incoming_type
+target_entity_type_id: taxonomy_term
+target_bundle: incoming_type
+default_langcode: site_default
+language_alterable: false

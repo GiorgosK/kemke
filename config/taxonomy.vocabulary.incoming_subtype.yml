@@ -1,0 +1,9 @@
+uuid: b15c8623-fde5-46b4-887b-690bad18277a
+langcode: el
+status: true
+dependencies: {  }
+name: 'Υποκατηγορία εγγράφου'
+vid: incoming_subtype
+description: null
+weight: 0
+new_revision: false

@@ -1,0 +1,29 @@
+uuid: 5d6a4d3e-e32b-44c4-bb4b-d5f5f799051a
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_incoming_subtype
+    - node.type.incoming
+    - taxonomy.vocabulary.incoming_subtype
+id: node.incoming.field_incoming_subtype
+field_name: field_incoming_subtype
+entity_type: node
+bundle: incoming
+label: 'Υποκατηγορία εγγράφου'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:filter_existing_terms'
+  handler_settings:
+    target_bundles:
+      incoming_subtype: incoming_subtype
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

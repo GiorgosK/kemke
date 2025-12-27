@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.incoming.field_extension_date
     - field.field.node.incoming.field_fullness_check_date
     - field.field.node.incoming.field_hierarchy_request
+    - field.field.node.incoming.field_incoming_subtype
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
@@ -104,6 +105,7 @@ third_party_settings:
       children:
         - field_entry_date
         - field_incoming_type
+        - field_incoming_subtype
         - field_hierarchy_request
         - field_signature_rejection
         - field_signature_rejection_date
@@ -308,7 +310,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 26
+    weight: 27
     region: content
   field_entry_date:
     type: datetime_default
@@ -345,7 +347,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 25
+    weight: 26
     region: content
   field_hierarchy_request:
     type: boolean
@@ -354,6 +356,14 @@ content:
       format: default
       format_custom_false: ''
       format_custom_true: ''
+    third_party_settings: {  }
+    weight: 18
+    region: content
+  field_incoming_subtype:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
     third_party_settings: {  }
     weight: 17
     region: content
@@ -372,7 +382,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 23
+    weight: 24
     region: content
   field_legal_deadline:
     type: datetime_default
@@ -381,7 +391,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 24
+    weight: 25
     region: content
   field_legal_entity:
     type: entity_reference_label
@@ -389,7 +399,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 20
+    weight: 21
     region: content
   field_notes:
     type: basic_string
@@ -403,7 +413,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 27
+    weight: 28
     region: content
   field_operators:
     type: entity_reference_label
@@ -469,7 +479,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 21
+    weight: 22
     region: content
   field_ref_id:
     type: string
@@ -506,7 +516,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 22
+    weight: 23
     region: content
   field_responsible_entity:
     type: entity_reference_label
@@ -545,7 +555,7 @@ content:
     label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 18
+    weight: 19
     region: content
   field_signature_rejection_date:
     type: datetime_default
@@ -554,7 +564,7 @@ content:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 19
+    weight: 20
     region: content
   field_subject:
     type: text_default
