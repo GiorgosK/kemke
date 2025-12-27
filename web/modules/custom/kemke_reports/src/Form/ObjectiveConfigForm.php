@@ -55,7 +55,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#min' => 0,
       '#max' => 100,
       '#step' => 0.01,
-      '#description' => $this->t('Target completion percentage.'),
     ];
 
     $form['objective_1']['deadline_days_default'] = [
@@ -64,7 +63,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_1.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Fallback working days when no report-specific deadline is set.'),
     ];
 
     $form['objective_1']['deadline_days_for_report'] = [
@@ -73,7 +71,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_1.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Working days used to calculate on-time status for reports.'),
     ];
 
     $form['objective_2'] = [
@@ -96,7 +93,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#min' => 0,
       '#max' => 100,
       '#step' => 0.01,
-      '#description' => $this->t('Target completion percentage.'),
     ];
 
     $form['objective_2']['deadline_days_default'] = [
@@ -105,7 +101,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_2.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Fallback working days when no report-specific deadline is set.'),
     ];
 
     $form['objective_2']['deadline_days_for_report'] = [
@@ -114,7 +109,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_2.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Working days used to calculate on-time status for reports.'),
     ];
 
     $form['objective_3'] = [
@@ -137,7 +131,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#min' => 0,
       '#max' => 100,
       '#step' => 0.01,
-      '#description' => $this->t('Target completion percentage.'),
     ];
 
     $form['objective_3']['deadline_days_default'] = [
@@ -146,7 +139,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_3.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Fallback working days when no report-specific deadline is set.'),
     ];
 
     $form['objective_3']['deadline_days_for_report'] = [
@@ -155,7 +147,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_3.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#description' => $this->t('Working days used to calculate on-time status for reports.'),
     ];
 
     $form['objective_6'] = [
@@ -178,7 +169,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#min' => 0,
       '#max' => 100,
       '#step' => 0.01,
-      '#description' => $this->t('Target completion percentage.'),
     ];
 
     return parent::buildForm($form, $form_state);
