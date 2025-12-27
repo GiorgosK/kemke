@@ -1,19 +1,8 @@
-langcode: el
 objective_1:
   description: 'Στόχος 1 - Γνωμοδοτήσεις'
-  percentage: 90.0
-  deadline_days_default: 20
-  deadline_days_for_report: 20
 objective_2:
   description: 'Στόχος 2 - Αιτήματα από ιεραρχία'
-  percentage: 80.0
-  deadline_days_default: 10
-  deadline_days_for_report: 10
 objective_3:
   description: 'Στόχος 3 - Κοινοποιήσεις Γνωστοποιήσεiς'
-  percentage: 90.0
-  deadline_days_default: 20
-  deadline_days_for_report: 20
 objective_6:
   description: 'Στόχος 6 - Σεμινάρια'
-  percentage: 30.0
