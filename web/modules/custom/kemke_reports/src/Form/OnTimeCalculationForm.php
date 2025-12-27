@@ -110,7 +110,7 @@ class OnTimeCalculationForm extends FormBase {
     ];
     $objective_2_filters = [
       'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-      'field_incoming_subtype' => 60,
+      'field_incoming_subtype' => 59, // Αίτημα από ιεραρχία
     ];
     $objective_3_filters = [
       'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
