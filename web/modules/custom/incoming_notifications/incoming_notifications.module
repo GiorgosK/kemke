@@ -45,6 +45,11 @@ function incoming_notifications_entity_presave(EntityInterface $entity) {
       _incoming_notifications_send_mail('fullness_check', $entity, [$user->getEmail()]);
     }
   }
+
+  if ($new_state === 'pending_issues') {
+    $recipients = _incoming_notifications_get_users_by_legal_entity($entity);
+    _incoming_notifications_send_mail('pending_issues', $entity, $recipients);
+  }
 }
 
 /**
@@ -109,6 +114,51 @@ function _incoming_notifications_get_users_by_role(string $role_id): array {
 }
 
 /**
+ * Finds active users matching the incoming node legal entity.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ *   The incoming node being processed.
+ *
+ * @return array
+ *   Email addresses.
+ */
+function _incoming_notifications_get_users_by_legal_entity(EntityInterface $entity): array {
+  if (!$entity->hasField('field_legal_entity')) {
+    return [];
+  }
+
+  $target_ids = [];
+  foreach ($entity->get('field_legal_entity')->getValue() as $item) {
+    if (!empty($item['target_id'])) {
+      $target_ids[] = (int) $item['target_id'];
+    }
+  }
+  $target_ids = array_values(array_unique($target_ids));
+  if (empty($target_ids)) {
+    return [];
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('user');
+  $query = $storage->getQuery()
+    ->condition('status', 1)
+    ->condition('field_legal_entity', $target_ids, 'IN');
+  $user_ids = $query->execute();
+  if (empty($user_ids)) {
+    return [];
+  }
+
+  $users = $storage->loadMultiple($user_ids);
+  $emails = [];
+  foreach ($users as $user) {
+    if ($user instanceof UserInterface && $user->getEmail()) {
+      $emails[] = $user->getEmail();
+    }
+  }
+
+  return $emails;
+}
+
+/**
  * Implements hook_mail().
  */
 function incoming_notifications_mail($key, &$message, $params) {
@@ -132,6 +182,14 @@ function incoming_notifications_mail($key, &$message, $params) {
     case 'fullness_check':
       $message['subject'] = t('@site: Incoming "@title" in fullness check', ['@site' => $site_name, '@title' => $params['incoming_title']]);
       $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Έλεγχος πληρότητας". You are listed as the operator.', [
+        '@title' => $params['incoming_title'],
+        '@id' => $params['incoming_id'],
+      ]);
+      break;
+
+    case 'pending_issues':
+      $message['subject'] = t('@site: Incoming "@title" has pending issues', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+      $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Με εκκρεμότητες". Please review the pending issues.', [
         '@title' => $params['incoming_title'],
         '@id' => $params['incoming_id'],
       ]);
