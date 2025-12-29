@@ -9,6 +9,7 @@ kemke_reports.reports_form:
   path: '/reports'
   defaults:
     _form: '\Drupal\kemke_reports\Form\ReportsGenerateForm'
+    _title: 'Reports'
   requirements:
     _permission: 'view reports'
 
