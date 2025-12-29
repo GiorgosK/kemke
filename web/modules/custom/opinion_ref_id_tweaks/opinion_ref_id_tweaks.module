@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * Builds the opinion reference ID, e.g. "ΓΝ-2025-1".
@@ -35,7 +37,7 @@ function opinion_ref_id_tweaks_generate_reference_id(?int $year = NULL): string 
 /**
  * Validates uniqueness and increments the next number if available.
  */
-function opinion_ref_id_tweaks_check_unique_and_increment(string $value): bool {
+function opinion_ref_id_tweaks_check_unique_and_increment(string $value, ?int $exclude_nid = NULL): bool {
   $value = trim($value);
   if ($value === '') {
     return FALSE;
@@ -45,6 +47,9 @@ function opinion_ref_id_tweaks_check_unique_and_increment(string $value): bool {
     ->accessCheck(FALSE)
     ->condition('type', 'incoming')
     ->condition('field_opinion_ref_id', $value);
+  if ($exclude_nid) {
+    $query->condition('nid', $exclude_nid, '<>');
+  }
 
   $existing = $query->count()->execute();
   if ($existing > 0) {
@@ -68,4 +73,74 @@ function opinion_ref_id_tweaks_check_unique_and_increment(string $value): bool {
   }
 
   return TRUE;
+}
+
+/**
+ * Adds the "Get next" link to incoming edit/add forms.
+ */
+function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if (!in_array($form_id, ['node_incoming_form', 'node_incoming_edit_form'], TRUE)) {
+    return;
+  }
+
+  if (!isset($form['field_opinion_ref_id']['widget'][0]['value'])) {
+    return;
+  }
+
+  $form['#attached']['library'][] = 'core/drupal.ajax';
+
+  $field = &$form['field_opinion_ref_id']['widget'][0]['value'];
+  $field['#attributes']['id'] = $field['#attributes']['id'] ?? 'opinion-ref-id-field';
+
+  $form['field_opinion_ref_id']['widget'][0]['opinion_ref_id_tweaks_generate'] = [
+    '#type' => 'link',
+    '#title' => t('Get next'),
+    '#url' => Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
+      'query' => [
+        '_wrapper_format' => 'drupal_ajax',
+        'target' => $field['#attributes']['id'],
+      ],
+    ]),
+    '#attributes' => [
+      'class' => ['use-ajax', 'opinion-ref-id-generate'],
+      'data-dialog-type' => 'ajax',
+      'data-opinion-ref-id-target' => $field['#attributes']['id'],
+    ],
+    '#weight' => 10,
+  ];
+
+  $form['field_opinion_ref_id']['widget'][0]['#attributes']['class'][] = 'container-inline';
+
+  $form['#validate'][] = 'opinion_ref_id_tweaks_incoming_validate';
+}
+
+/**
+ * Validates the opinion reference ID for incoming forms.
+ */
+function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterface $form_state): void {
+  $value = (string) $form_state->getValue(['field_opinion_ref_id', 0, 'value']);
+  $value = trim($value);
+  if ($value === '') {
+    return;
+  }
+
+  if ($form_state->get('opinion_ref_id_tweaks_incremented')) {
+    return;
+  }
+
+  $entity = $form_state->getFormObject()->getEntity();
+  if ($entity && $entity->hasField('field_opinion_ref_id') && !$entity->isNew()) {
+    $original = (string) $entity->get('field_opinion_ref_id')->value;
+    if ($original === $value) {
+      return;
+    }
+  }
+
+  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
+  if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
+    $form_state->setErrorByName('field_opinion_ref_id', t('This opinion reference ID already exists.'));
+    return;
+  }
+
+  $form_state->set('opinion_ref_id_tweaks_incremented', TRUE);
 }

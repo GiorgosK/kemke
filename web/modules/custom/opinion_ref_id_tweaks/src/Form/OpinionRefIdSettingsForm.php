@@ -61,14 +61,17 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
     $form['example_container']['generate_next'] = [
       '#type' => 'link',
       '#title' => $this->t('Get next'),
-      '#url' => Url::fromRoute('opinion_ref_id_tweaks.generate_next'),
+      '#url' => Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
+        'query' => [
+          '_wrapper_format' => 'drupal_ajax',
+          'target' => 'opinion-ref-id-example',
+        ],
+      ]),
       '#attributes' => [
         'class' => ['use-ajax', 'opinion-ref-id-generate'],
         'data-dialog-type' => 'ajax',
       ],
     ];
-
-    $form['#attached']['library'][] = 'opinion_ref_id_tweaks/opinion_ref_id_tweaks';
 
     return parent::buildForm($form, $form_state);
   }

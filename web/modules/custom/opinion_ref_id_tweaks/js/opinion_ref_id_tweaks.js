@@ -16,7 +16,10 @@
           }
 
           var url = new URL(href, window.location.origin);
-          url.searchParams.set('value', input.value);
+          var target = link.getAttribute('data-opinion-ref-id-target');
+          if (target) {
+            url.searchParams.set('target', target);
+          }
           link.setAttribute('href', url.pathname + url.search);
         });
       });

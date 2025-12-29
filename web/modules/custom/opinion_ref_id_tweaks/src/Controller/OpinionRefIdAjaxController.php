@@ -18,9 +18,14 @@ class OpinionRefIdAjaxController extends ControllerBase {
    */
   public function generateNext(): AjaxResponse {
     $candidate = opinion_ref_id_tweaks_generate_reference_id();
+    $request = \Drupal::request();
+    $target = trim((string) $request->query->get('target'));
+    if ($target === '' || !preg_match('/^[-_a-zA-Z0-9]+$/', $target)) {
+      $target = 'opinion-ref-id-example';
+    }
 
     $response = new AjaxResponse();
-    $response->addCommand(new InvokeCommand('input#opinion-ref-id-example', 'val', [$candidate]));
+    $response->addCommand(new InvokeCommand('input#' . $target, 'val', [$candidate]));
 
     return $response;
   }
