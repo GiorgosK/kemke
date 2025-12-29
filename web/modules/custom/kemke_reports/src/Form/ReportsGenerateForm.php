@@ -99,6 +99,12 @@ class ReportsGenerateForm extends FormBase {
       'field_incoming_subtype' => 61, // Ανάκτηση
     ];
 
+    // Recalculate on-time values for the selected report year.
+    kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', TRUE, 'objective_1', 'field_completion_date', $year);
+    kemke_reports_incoming_set_on_time_for($objective_2_filters, 'published', TRUE, 'objective_2', 'field_completion_date', $year);
+    kemke_reports_incoming_set_on_time_for($objective_3_filters, 'published', TRUE, 'objective_3', 'field_signature_rejection_date', $year);
+    kemke_reports_incoming_set_on_time_for($objective_5_filters, 'published', TRUE, 'objective_5', 'field_subtype_date', $year);
+
     $objective_1_total = kemke_reports_incoming_get_number_for($year, $objective_1_filters);
     $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters);
     $objective_1_percentage = $objective_1_total > 0 ? ($objective_1_on_time / $objective_1_total) * 100 : 0.0;
