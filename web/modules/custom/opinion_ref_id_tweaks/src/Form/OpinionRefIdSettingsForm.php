@@ -83,6 +83,19 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
     $next_number = trim((string) $form_state->getValue('next_number'));
     if ($next_number === '' || !ctype_digit($next_number) || (int) $next_number < 1) {
       $form_state->setErrorByName('next_number', $this->t('Next number must be a positive integer.'));
+      return;
+    }
+
+    $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
+    $candidate = opinion_ref_id_tweaks_build_reference_id($year, (int) $next_number);
+    $query = \Drupal::entityQuery('node')
+      ->accessCheck(FALSE)
+      ->condition('type', 'incoming')
+      ->condition('field_opinion_ref_id', $candidate);
+    if ($query->count()->execute() > 0) {
+      $form_state->setErrorByName('next_number', $this->t('Next number is already used (@value). Choose a higher number.', [
+        '@value' => $candidate,
+      ]));
     }
   }
 
@@ -90,9 +103,16 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $next_number = (int) $form_state->getValue('next_number');
+    $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
     $this->config('opinion_ref_id_tweaks.settings')
-      ->set('next_number', (int) $form_state->getValue('next_number'))
+      ->set('next_number', $next_number)
+      ->set('next_number_year', $year)
       ->save();
+
+    $state = \Drupal::state();
+    $counter_key = "opinion_ref_id_tweaks.ref_counter.$year";
+    $state->set($counter_key, max(0, $next_number - 1));
 
     parent::submitForm($form, $form_state);
   }

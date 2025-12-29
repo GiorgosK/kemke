@@ -20,12 +20,16 @@ class OpinionRefIdAjaxController extends ControllerBase {
     $candidate = opinion_ref_id_tweaks_generate_reference_id();
     $request = \Drupal::request();
     $target = trim((string) $request->query->get('target'));
-    if ($target === '' || !preg_match('/^[-_a-zA-Z0-9]+$/', $target)) {
-      $target = 'opinion-ref-id-example';
-    }
 
     $response = new AjaxResponse();
-    $response->addCommand(new InvokeCommand('input#' . $target, 'val', [$candidate]));
+    if ($target !== '' && preg_match('/^[-_a-zA-Z0-9]+$/', $target)) {
+      $response->addCommand(new InvokeCommand('input#' . $target, 'val', [$candidate]));
+      return $response;
+    }
+
+    // Fallback: update known IDs so the value lands where available.
+    $response->addCommand(new InvokeCommand('input#opinion-ref-id-example', 'val', [$candidate]));
+    $response->addCommand(new InvokeCommand('input#opinion-ref-id-field', 'val', [$candidate]));
 
     return $response;
   }

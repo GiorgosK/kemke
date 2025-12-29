@@ -14,3 +14,14 @@ function opinion_ref_id_tweaks_update_9001(): void {
       ->save();
   }
 }
+
+/**
+ * Initialize next_number_year for automatic yearly reset.
+ */
+function opinion_ref_id_tweaks_update_9002(): void {
+  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
+  if ($config->get('next_number_year') === NULL) {
+    $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
+    $config->set('next_number_year', $year)->save();
+  }
+}

@@ -5,3 +5,6 @@ opinion_ref_id_tweaks.settings:
     next_number:
       type: integer
       label: 'Next number'
+    next_number_year:
+      type: integer
+      label: 'Next number year'
