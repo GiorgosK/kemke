@@ -96,6 +96,8 @@ function kemke_reports_incoming_get_on_time_for(int $year, array $conditions = [
  * Adds incoming type, state, and other supported filters to a query.
  */
 function kemke_reports_apply_incoming_filters(QueryInterface $query, array $conditions, string $state = 'published'): void {
+  $query->condition('field_primary', 1);
+
   if (isset($conditions['field_incoming_type'])) {
     $tids = kemke_reports_resolve_incoming_type_ids($conditions['field_incoming_type']);
     if (!empty($tids)) {
