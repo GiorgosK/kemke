@@ -1,25 +1,25 @@
 langcode: el
 objective_1:
-  description: 'Στόχος 1 - Γνωμοδοτήσεις'
+  description: '1 - Γνωμοδοτήσεις'
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 20
 objective_2:
-  description: 'Στόχος 2 - Αιτήματα από ιεραρχία'
+  description: '2 - Αιτήματα από ιεραρχία'
   percentage: 80.0
   deadline_days_default: 10
   deadline_days_for_report: 10
 objective_3:
-  description: 'Στόχος 3 - Κοινοποιήσεις Γνωστοποιήσεiς'
+  description: '3 - Κοινοποιήσεις Γνωστοποιήσεiς'
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 20
 objective_4:
-  description: 'Στόχος 4 - Έκθεση Δαπανών SARI'
+  description: '4 - Έκθεση Δαπανών SARI'
   percentage: 90.0
 objective_5:
-  description: 'Στόχος 5 - Ανάκτηση'
+  description: '5 - Ανάκτηση'
   percentage: 90.0
 objective_6:
-  description: 'Στόχος 6 - Σεμινάρια'
+  description: '6 - Σεμινάρια'
   percentage: 30.0

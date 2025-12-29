@@ -69,7 +69,7 @@ class ReportsResultsController extends ControllerBase {
       'report_table' => [
         '#type' => 'table',
         '#header' => [
-          $this->t('Description'),
+          $this->t('Objective'),
           $this->t('Deadline (days)'),
           $this->t('On target'),
           $this->t('From'),
