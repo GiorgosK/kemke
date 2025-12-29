@@ -94,6 +94,10 @@ class ReportsGenerateForm extends FormBase {
       'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
       'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
     ];
+    $objective_5_filters = [
+      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+      'field_incoming_subtype' => 61, // Ανάκτηση
+    ];
 
     $objective_1_total = kemke_reports_incoming_get_number_for($year, $objective_1_filters);
     $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters);
@@ -107,6 +111,9 @@ class ReportsGenerateForm extends FormBase {
     $objective_4_total = kemke_reports_incoming_get_number_for($year, $objective_4_filters);
     $objective_4_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_4_filters);
     $objective_4_percentage = $objective_4_total > 0 ? ($objective_4_on_time / $objective_4_total) * 100 : 0.0;
+    $objective_5_total = kemke_reports_incoming_get_number_for($year, $objective_5_filters);
+    $objective_5_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_5_filters);
+    $objective_5_percentage = $objective_5_total > 0 ? ($objective_5_on_time / $objective_5_total) * 100 : 0.0;
     $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
     $seminar_percentage = $seminar_counts['total'] > 0
       ? ($seminar_counts['with_seminar'] / $seminar_counts['total']) * 100
@@ -135,6 +142,10 @@ class ReportsGenerateForm extends FormBase {
       'description' => $config->get('objective_4.description') ?? '',
       'percentage' => (float) ($config->get('objective_4.percentage') ?? 90),
     ];
+    $objective_5 = [
+      'description' => $config->get('objective_5.description') ?? '',
+      'percentage' => (float) ($config->get('objective_5.percentage') ?? 90),
+    ];
     $objective_6 = [
       'description' => $config->get('objective_6.description') ?? '',
       'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
@@ -158,6 +169,10 @@ class ReportsGenerateForm extends FormBase {
       'objective_4_on_time' => $objective_4_on_time,
       'objective_4_percentage' => $objective_4_percentage,
       'objective_4' => $objective_4,
+      'objective_5_total' => $objective_5_total,
+      'objective_5_on_time' => $objective_5_on_time,
+      'objective_5_percentage' => $objective_5_percentage,
+      'objective_5' => $objective_5,
       'seminar_total_users' => $seminar_counts['total'],
       'seminar_users' => $seminar_counts['with_seminar'],
       'seminar_percentage' => $seminar_percentage,

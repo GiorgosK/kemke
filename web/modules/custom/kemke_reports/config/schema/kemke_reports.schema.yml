@@ -60,6 +60,16 @@ kemke_reports.settings:
         percentage:
           type: float
           label: 'Target percentage'
+    objective_5:
+      type: mapping
+      label: 'Objective 5'
+      mapping:
+        description:
+          type: text
+          label: 'Description'
+        percentage:
+          type: float
+          label: 'Target percentage'
     objective_6:
       type: mapping
       label: 'Objective 6'

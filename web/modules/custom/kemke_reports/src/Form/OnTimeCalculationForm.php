@@ -120,25 +120,31 @@ class OnTimeCalculationForm extends FormBase {
       'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
       'field_incoming_subtype' => 59,  // Έκθεση Δαπανών SARI
     ];
+    $objective_5_filters = [
+      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+      'field_incoming_subtype' => 61,  // Ανάκτηση
+    ];
     if (!$recalculate_all) {
       // Only update items not calculated yet.
       $objective_1_filters['field_on_time.value'] = 'not_calculated';
       $objective_2_filters['field_on_time.value'] = 'not_calculated';
       $objective_3_filters['field_on_time.value'] = 'not_calculated';
       $objective_4_filters['field_on_time.value'] = 'not_calculated';
+      $objective_5_filters['field_on_time.value'] = 'not_calculated';
     }
 
     $updated_objective_1 = kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', $recalculate_all, 'objective_1');
     $updated_objective_2 = kemke_reports_incoming_set_on_time_for($objective_2_filters, 'published', $recalculate_all, 'objective_2');
     $updated_objective_3 = kemke_reports_incoming_set_on_time_for($objective_3_filters, 'published', $recalculate_all, 'objective_3', 'field_signature_rejection_date');
     $updated_objective_4 = kemke_reports_incoming_set_on_time_for($objective_4_filters, 'published', $recalculate_all, 'objective_4', 'field_subtype_date');
+    $updated_objective_5 = kemke_reports_incoming_set_on_time_for($objective_5_filters, 'published', $recalculate_all, 'objective_5', 'field_subtype_date');
     $this->state->set('kemke_reports.last_on_time_run', $this->time->getCurrentTime());
 
     // Clear cached results so the next report reflects new calculations.
     $this->tempStoreFactory->get('kemke_reports')->delete('last_result');
 
     $this->messenger()->addStatus($this->t('On time values recalculated (@count updated).', [
-      '@count' => $updated_objective_1 + $updated_objective_2 + $updated_objective_3 + $updated_objective_4,
+      '@count' => $updated_objective_1 + $updated_objective_2 + $updated_objective_3 + $updated_objective_4 + $updated_objective_5,
     ]));
   }
 
