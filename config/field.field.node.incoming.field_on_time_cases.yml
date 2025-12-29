@@ -1,0 +1,19 @@
+uuid: 47e5369d-e40a-4764-ae5b-98af780d8e6e
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_on_time_cases
+    - node.type.incoming
+id: node.incoming.field_on_time_cases
+field_name: field_on_time_cases
+entity_type: node
+bundle: incoming
+label: 'Εμπρόθεσμες Υποθέσεις'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

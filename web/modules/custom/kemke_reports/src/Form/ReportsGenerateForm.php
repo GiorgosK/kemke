@@ -108,9 +108,26 @@ class ReportsGenerateForm extends FormBase {
     $objective_3_total = kemke_reports_incoming_get_number_for($year, $objective_3_filters);
     $objective_3_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_3_filters);
     $objective_3_percentage = $objective_3_total > 0 ? ($objective_3_on_time / $objective_3_total) * 100 : 0.0;
-    $objective_4_total = kemke_reports_incoming_get_number_for($year, $objective_4_filters);
-    $objective_4_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_4_filters);
-    $objective_4_percentage = $objective_4_total > 0 ? ($objective_4_on_time / $objective_4_total) * 100 : 0.0;
+    $objective_4_warning = NULL;
+    $objective_4_on_time = 0;
+    $objective_4_total = 0;
+    $objective_4_percentage = 0.0;
+    $objective_4_ids = kemke_reports_incoming_get_ids_for($year, $objective_4_filters);
+    if (count($objective_4_ids) !== 1) {
+      $objective_4_warning = $this->t('Waiting for 1 document but found @count', [
+        '@count' => count($objective_4_ids),
+      ]);
+    }
+    else {
+      $node = \Drupal::entityTypeManager()->getStorage('node')->load(reset($objective_4_ids));
+      if ($node) {
+        $objective_4_on_time = (int) ($node->get('field_on_time_cases')->value ?? 0);
+        $objective_4_total = (int) ($node->get('field_total_cases')->value ?? 0);
+        if ($objective_4_total > 0 && $objective_4_on_time > 0) {
+          $objective_4_percentage = ($objective_4_on_time / $objective_4_total) * 100;
+        }
+      }
+    }
     $objective_5_total = kemke_reports_incoming_get_number_for($year, $objective_5_filters);
     $objective_5_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_5_filters);
     $objective_5_percentage = $objective_5_total > 0 ? ($objective_5_on_time / $objective_5_total) * 100 : 0.0;
@@ -169,6 +186,7 @@ class ReportsGenerateForm extends FormBase {
       'objective_4_on_time' => $objective_4_on_time,
       'objective_4_percentage' => $objective_4_percentage,
       'objective_4' => $objective_4,
+      'objective_4_warning' => $objective_4_warning,
       'objective_5_total' => $objective_5_total,
       'objective_5_on_time' => $objective_5_on_time,
       'objective_5_percentage' => $objective_5_percentage,

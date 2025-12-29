@@ -26,6 +26,25 @@ function kemke_reports_incoming_get_number_for(int $year, array $conditions = ['
 }
 
 /**
+ * Returns incoming node IDs for a given year and filters.
+ */
+function kemke_reports_incoming_get_ids_for(int $year, array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published'): array {
+  $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
+
+  $query = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming');
+
+  kemke_reports_apply_year_condition($query, $year);
+  kemke_reports_apply_incoming_filters($query, $conditions, $state);
+
+  $nids = $query->execute();
+  return $nids ? array_values($nids) : [];
+}
+
+/**
  * Sets field_on_time based on completion date and legal deadlines.
  *
  * @return int

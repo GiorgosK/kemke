@@ -147,6 +147,13 @@ class ReportsResultsController extends ControllerBase {
   private function build_objective_4_row(array $result): array {
     $objective = $result['objective_4'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 4');
+    $warning = $result['objective_4_warning'] ?? '';
+    if ($warning) {
+      $description = $this->t('@description (@warning)', [
+        '@description' => $description,
+        '@warning' => $warning,
+      ]);
+    }
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_4_percentage'] ?? 0);
     $total = (int) ($result['objective_4_total'] ?? 0);

@@ -24,6 +24,7 @@ dependencies:
     - field.field.node.incoming.field_legal_entity
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
+    - field.field.node.incoming.field_on_time_cases
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -51,6 +52,7 @@ dependencies:
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_thematic_unit
+    - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
     - field.field.node.incoming.field_working_days
     - node.type.incoming
@@ -148,6 +150,7 @@ hidden:
   field_legal_entity: true
   field_notes: true
   field_on_time: true
+  field_on_time_cases: true
   field_operators: true
   field_plan: true
   field_plan_dt_api_response: true
@@ -171,6 +174,7 @@ hidden:
   field_subtype_date: true
   field_supervisor: true
   field_thematic_unit: true
+  field_total_cases: true
   field_transparency_requirement: true
   field_working_days: true
   langcode: true

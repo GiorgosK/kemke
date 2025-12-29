@@ -23,6 +23,7 @@ dependencies:
     - field.field.node.incoming.field_legal_entity
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
+    - field.field.node.incoming.field_on_time_cases
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -50,6 +51,7 @@ dependencies:
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_thematic_unit
+    - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
     - field.field.node.incoming.field_working_days
     - node.type.incoming
@@ -405,6 +407,14 @@ content:
     third_party_settings: {  }
     weight: 28
     region: content
+  field_on_time_cases:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 31
+    region: content
   field_operators:
     type: entity_reference_label
     label: above
@@ -595,6 +605,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 24
+    region: content
+  field_total_cases:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 32
     region: content
   field_transparency_requirement:
     type: string

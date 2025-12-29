@@ -1,0 +1,19 @@
+uuid: d31c3b36-1fd3-4c4c-b5dc-e676926f56e6
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_total_cases
+    - node.type.incoming
+id: node.incoming.field_total_cases
+field_name: field_total_cases
+entity_type: node
+bundle: incoming
+label: 'Συνολικές Υποθέσεις'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -23,6 +23,7 @@ dependencies:
     - field.field.node.incoming.field_legal_entity
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time
+    - field.field.node.incoming.field_on_time_cases
     - field.field.node.incoming.field_operators
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -50,6 +51,7 @@ dependencies:
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_thematic_unit
+    - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
     - field.field.node.incoming.field_working_days
     - node.type.incoming
@@ -302,6 +304,8 @@ third_party_settings:
       children:
         - field_incoming_subtype
         - field_subtype_date
+        - field_on_time_cases
+        - field_total_cases
       label: 'Υποκατηγορία εγγράφου'
       region: content
       parent_name: group_status
@@ -472,6 +476,14 @@ content:
     weight: 17
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_on_time_cases:
+    type: string_textfield
+    weight: 7
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_operators:
     type: select2_entity_reference
@@ -680,6 +692,14 @@ content:
   field_thematic_unit:
     type: string_textfield
     weight: 25
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_total_cases:
+    type: string_textfield
+    weight: 8
     region: content
     settings:
       size: 60
