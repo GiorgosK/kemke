@@ -48,11 +48,9 @@ function opinion_ref_id_tweaks_check_unique_and_increment(string $value, ?int $e
 
   $year = opinion_ref_id_tweaks_extract_year($value);
   $next = opinion_ref_id_tweaks_next_reference_sequence($year, TRUE);
-  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
-  $config
-    ->set('next_number', max(1, $next + 1))
-    ->set('next_number_year', $year)
-    ->save();
+  $state = \Drupal::state();
+  $state->set('opinion_ref_id_tweaks.next_number', max(1, $next + 1));
+  $state->set('opinion_ref_id_tweaks.next_number_year', $year);
 
   return TRUE;
 }
@@ -72,8 +70,8 @@ function opinion_ref_id_tweaks_next_reference_sequence(int $year, bool $incremen
   }
 
   opinion_ref_id_tweaks_sync_next_number_year($year);
-  $config = \Drupal::config('opinion_ref_id_tweaks.settings');
-  $next_number = max(1, (int) $config->get('next_number'));
+  $state = \Drupal::state();
+  $next_number = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
   $default_current = max(0, $next_number - 1);
 
   $stored = (int) $state->get($counter_key, $default_current);
@@ -108,19 +106,17 @@ function opinion_ref_id_tweaks_extract_year(string $value): int {
  * Resets next number when the year changes while keeping it editable later.
  */
 function opinion_ref_id_tweaks_sync_next_number_year(int $year): void {
-  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
-  $stored_year = (int) $config->get('next_number_year');
+  $state = \Drupal::state();
+  $stored_year = (int) $state->get('opinion_ref_id_tweaks.next_number_year', 0);
 
   if ($stored_year === 0) {
-    $config->set('next_number_year', $year)->save();
+    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
     return;
   }
 
   if ($stored_year !== $year) {
-    $config
-      ->set('next_number', 1)
-      ->set('next_number_year', $year)
-      ->save();
+    $state->set('opinion_ref_id_tweaks.next_number', 1);
+    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
   }
 }
 
@@ -129,20 +125,17 @@ function opinion_ref_id_tweaks_sync_next_number_year(int $year): void {
  */
 function opinion_ref_id_tweaks_sync_next_number_state(int $year, int $desired_next): void {
   $desired_next = max(1, $desired_next);
-  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
-  $config_next = max(1, (int) $config->get('next_number'));
+  $state = \Drupal::state();
+  $config_next = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
 
   $counter_key = "opinion_ref_id_tweaks.ref_counter.$year";
-  $state = \Drupal::state();
   $state_current = (int) $state->get($counter_key, max(0, $config_next - 1));
 
   $target_next = max($desired_next, $config_next, $state_current + 1);
 
   if ($config_next !== $target_next) {
-    $config
-      ->set('next_number', $target_next)
-      ->set('next_number_year', $year)
-      ->save();
+    $state->set('opinion_ref_id_tweaks.next_number', $target_next);
+    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
   }
 
   $target_current = $target_next - 1;

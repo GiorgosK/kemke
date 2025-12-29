@@ -25,3 +25,26 @@ function opinion_ref_id_tweaks_update_9002(): void {
     $config->set('next_number_year', $year)->save();
   }
 }
+
+/**
+ * Move opinion ref counters from config into state and delete config.
+ */
+function opinion_ref_id_tweaks_update_9003(): void {
+  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
+  if ($config->isNew()) {
+    return;
+  }
+
+  $state = \Drupal::state();
+  $next_number = (int) $config->get('next_number') ?: 1;
+  $next_year = (int) $config->get('next_number_year');
+  if ($next_year === 0) {
+    $next_year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
+  }
+
+  $state->set('opinion_ref_id_tweaks.next_number', max(1, $next_number));
+  $state->set('opinion_ref_id_tweaks.next_number_year', $next_year);
+  $state->set("opinion_ref_id_tweaks.ref_counter.$next_year", max(0, $next_number - 1));
+
+  $config->delete();
+}

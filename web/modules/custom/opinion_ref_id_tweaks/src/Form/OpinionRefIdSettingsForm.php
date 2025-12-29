@@ -4,21 +4,14 @@ declare(strict_types=1);
 
 namespace Drupal\opinion_ref_id_tweaks\Form;
 
-use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 
 /**
  * Settings form for the opinion reference ID generator.
  */
-class OpinionRefIdSettingsForm extends ConfigFormBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getEditableConfigNames(): array {
-    return ['opinion_ref_id_tweaks.settings'];
-  }
+class OpinionRefIdSettingsForm extends FormBase {
 
   /**
    * {@inheritdoc}
@@ -31,14 +24,15 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $config = $this->config('opinion_ref_id_tweaks.settings');
+    $state = \Drupal::state();
+    $next_number = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
 
     $form['#attached']['library'][] = 'core/drupal.ajax';
 
     $form['next_number'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Next number'),
-      '#default_value' => $config->get('next_number') ?? 1,
+      '#default_value' => $next_number,
       '#required' => TRUE,
       '#size' => 10,
     ];
@@ -73,7 +67,15 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
       ],
     ];
 
-    return parent::buildForm($form, $form_state);
+    $form['actions'] = [
+      '#type' => 'actions',
+    ];
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Save'),
+    ];
+
+    return $form;
   }
 
   /**
@@ -105,16 +107,12 @@ class OpinionRefIdSettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $next_number = (int) $form_state->getValue('next_number');
     $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
-    $this->config('opinion_ref_id_tweaks.settings')
-      ->set('next_number', $next_number)
-      ->set('next_number_year', $year)
-      ->save();
-
     $state = \Drupal::state();
-    $counter_key = "opinion_ref_id_tweaks.ref_counter.$year";
-    $state->set($counter_key, max(0, $next_number - 1));
+    $state->set('opinion_ref_id_tweaks.next_number', $next_number);
+    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
+    $state->set("opinion_ref_id_tweaks.ref_counter.$year", max(0, $next_number - 1));
 
-    parent::submitForm($form, $form_state);
+    $this->messenger()->addStatus($this->t('Next number updated.'));
   }
 
 }
