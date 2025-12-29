@@ -14,6 +14,9 @@ objective_3:
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 20
+objective_4:
+  description: 'Στόχος 4 - Έκθεση Δαπανών SARI'
+  percentage: 90.0
 objective_6:
   description: 'Στόχος 6 - Σεμινάρια'
   percentage: 30.0

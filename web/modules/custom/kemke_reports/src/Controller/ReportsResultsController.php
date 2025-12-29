@@ -51,6 +51,7 @@ class ReportsResultsController extends ControllerBase {
     $output = $this->calculate_report_objective_1($result);
     $output += $this->calculate_report_objective_2($result);
     $output += $this->calculate_report_objective_3($result);
+    $output += $this->calculate_report_objective_4($result);
     $output += $this->calculate_report_objective_6($result);
     $output['meta'] = [
       '#markup' => $generated_text ? $this->t('Generated for @year on @date.', ['@year' => $result['year'], '@date' => $generated_text]) : '',
@@ -203,6 +204,53 @@ class ReportsResultsController extends ControllerBase {
 
     return [
       'objective_3' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['kemke-report-results'],
+        ],
+        'list' => [
+          '#theme' => 'item_list',
+          '#items' => $items,
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Builds the report output for objective 4.
+   */
+  private function calculate_report_objective_4(array $result): array {
+    $objective = $result['objective_4'] ?? [];
+    $description = $objective['description'] ?: $this->t('Objective 4');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $calculated = (float) ($result['objective_4_percentage'] ?? 0);
+    $total = (int) ($result['objective_4_total'] ?? 0);
+    $on_time = (int) ($result['objective_4_on_time'] ?? 0);
+
+    $meets_target = $calculated >= $target;
+    $color = $meets_target ? 'green' : 'red';
+    $calculated_formatted = number_format($calculated, 2);
+
+    $counts_text = $this->t('On time: @on_time from: @total', [
+      '@on_time' => $on_time,
+      '@total' => $total,
+    ]);
+
+    $items = [
+      [
+        '#markup' => Markup::create(sprintf(
+          '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
+          Html::escape($description),
+          $target,
+          Html::escape($counts_text),
+          Html::escape($color),
+          Html::escape($calculated_formatted)
+        )),
+      ],
+    ];
+
+    return [
+      'objective_4' => [
         '#type' => 'container',
         '#attributes' => [
           'class' => ['kemke-report-results'],

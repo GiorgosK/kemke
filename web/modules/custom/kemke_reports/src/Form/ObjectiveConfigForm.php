@@ -149,6 +149,28 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#step' => 1,
     ];
 
+    $form['objective_4'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Objective') . ' 4',
+      '#tree' => TRUE,
+      '#group' => 'objectives_tabs',
+    ];
+
+    $form['objective_4']['description'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Description'),
+      '#default_value' => $config->get('objective_4.description') ?? '',
+    ];
+
+    $form['objective_4']['percentage'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Percentage'),
+      '#default_value' => $config->get('objective_4.percentage') ?? 90,
+      '#min' => 0,
+      '#max' => 100,
+      '#step' => 0.01,
+    ];
+
     $form['objective_6'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 6',
@@ -200,6 +222,11 @@ class ObjectiveConfigForm extends ConfigFormBase {
       ->set('objective_3.percentage', (float) ($values['percentage'] ?? 90))
       ->set('objective_3.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
       ->set('objective_3.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
+
+    $values = $form_state->getValue('objective_4') ?? [];
+    $objective_1
+      ->set('objective_4.description', $values['description'] ?? '')
+      ->set('objective_4.percentage', (float) ($values['percentage'] ?? 90));
 
     $values = $form_state->getValue('objective_6') ?? [];
     $objective_1

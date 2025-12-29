@@ -208,7 +208,29 @@ function kemke_reports_resolve_incoming_type_ids($value): array {
  * Determines whether the given incoming node is on time.
  */
 function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = 'objective_1', string $completion_field = 'field_completion_date'): bool {
-  $completion = kemke_reports_get_first_date_value($node, $completion_field);
+  if ($objective_key === 'objective_4') {
+    if ((int) ($node->get('field_incoming_subtype')->target_id ?? 0) !== 59) {
+      return FALSE;
+    }
+
+    $completion = kemke_reports_get_first_date_value($node, 'field_completion_date');
+    if (!$completion) {
+      return FALSE;
+    }
+
+    $extension_enabled = (bool) ($node->get('field_extension')->value ?? FALSE);
+    if ($extension_enabled) {
+      $extension_date = kemke_reports_get_first_date_value($node, 'field_extension_date');
+      if ($extension_date && $extension_date->getTimestamp() > $completion->getTimestamp()) {
+        return TRUE;
+      }
+    }
+
+    $subtype_date = kemke_reports_get_first_date_value($node, 'field_subtype_date');
+    return $subtype_date && $subtype_date->getTimestamp() > $completion->getTimestamp();
+  }
+
+  $completion = kemke_reports_get_completion_date_for_objective($node, $objective_key, $completion_field);
   if (!$completion) {
     return FALSE;
   }
@@ -238,6 +260,13 @@ function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = '
   }
 
   return $completion->getTimestamp() < $deadline->getTimestamp();
+}
+
+/**
+ * Resolves completion dates per objective.
+ */
+function kemke_reports_get_completion_date_for_objective(NodeInterface $node, string $objective_key, string $completion_field = 'field_completion_date'): ?DrupalDateTime {
+  return kemke_reports_get_first_date_value($node, $completion_field);
 }
 
 /**
