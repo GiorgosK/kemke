@@ -47,6 +47,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_set_completion_date_on_publish($entity);
 
   incoming_tweaks_remove_primary_from_newly_related($entity);
+  incoming_tweaks_restore_primary_for_removed_related($entity);
 
   if ($is_new) {
     incoming_tweaks_set_primary_flag($entity);
@@ -232,23 +233,12 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
  * Marks newly-related incoming nodes as non-primary.
  */
 function incoming_tweaks_remove_primary_from_newly_related(NodeInterface $node): void {
-  if (!$node->hasField('field_related_incoming') || !$node->original instanceof EntityInterface) {
+  if (!$node->hasField('field_related_incoming') || !$node->original instanceof NodeInterface) {
     return;
   }
 
-  $current_ids = [];
-  foreach ($node->get('field_related_incoming') as $item) {
-    if (!empty($item->target_id)) {
-      $current_ids[] = (int) $item->target_id;
-    }
-  }
-
-  $original_ids = [];
-  foreach ($node->original->get('field_related_incoming') as $item) {
-    if (!empty($item->target_id)) {
-      $original_ids[] = (int) $item->target_id;
-    }
-  }
+  $current_ids = incoming_tweaks_collect_related_incoming_ids($node);
+  $original_ids = incoming_tweaks_collect_related_incoming_ids($node->original);
 
   $new_ids = array_diff($current_ids, $original_ids);
   if (!$new_ids) {
@@ -268,6 +258,56 @@ function incoming_tweaks_remove_primary_from_newly_related(NodeInterface $node):
     $related->setNewRevision(FALSE);
     $related->save();
   }
+}
+
+/**
+ * Restores primary status for nodes removed from field_related_incoming.
+ */
+function incoming_tweaks_restore_primary_for_removed_related(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming') || !$node->original instanceof NodeInterface) {
+    return;
+  }
+
+  $current_ids = incoming_tweaks_collect_related_incoming_ids($node);
+  $original_ids = incoming_tweaks_collect_related_incoming_ids($node->original);
+  $removed_ids = array_diff($original_ids, $current_ids);
+  if (!$removed_ids) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $removed_nodes = $storage->loadMultiple($removed_ids);
+  foreach ($removed_nodes as $removed) {
+    if (!$removed instanceof NodeInterface || !$removed->hasField('field_primary')) {
+      continue;
+    }
+
+    $removed->set('field_primary', 1);
+    $removed->setNewRevision(FALSE);
+    $removed->save();
+  }
+}
+
+/**
+ * Collects related incoming IDs from field_related_incoming.
+ *
+ * @return int[]
+ *   The list of related incoming node IDs.
+ */
+function incoming_tweaks_collect_related_incoming_ids(NodeInterface $node): array {
+  if (!$node->hasField('field_related_incoming')) {
+    return [];
+  }
+
+  $ids = [];
+  foreach ($node->get('field_related_incoming') as $item) {
+    if (!empty($item->target_id)) {
+      $ids[] = (int) $item->target_id;
+    }
+  }
+
+  return $ids;
 }
 
 /**
