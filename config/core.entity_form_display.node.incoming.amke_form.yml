@@ -26,6 +26,7 @@ dependencies:
     - field.field.node.incoming.field_on_time
     - field.field.node.incoming.field_on_time_cases
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_opinion_ref_id
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
     - field.field.node.incoming.field_plan_dt_docid
@@ -152,6 +153,7 @@ hidden:
   field_on_time: true
   field_on_time_cases: true
   field_operators: true
+  field_opinion_ref_id: true
   field_plan: true
   field_plan_dt_api_response: true
   field_plan_dt_docid: true

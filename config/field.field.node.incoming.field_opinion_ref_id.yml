@@ -1,0 +1,19 @@
+uuid: 8f39c332-7289-4463-bc41-9674d00cb26a
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_opinion_ref_id
+    - node.type.incoming
+id: node.incoming.field_opinion_ref_id
+field_name: field_opinion_ref_id
+entity_type: node
+bundle: incoming
+label: 'Αριθμός γνωμοδότησης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
