@@ -47,24 +47,50 @@ class ReportsResultsController extends ControllerBase {
 
     $generated = $result['generated'] ?? NULL;
     $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
+    $year = $result['year'] ?? NULL;
 
-    $output = $this->calculate_report_objective_1($result);
-    $output += $this->calculate_report_objective_2($result);
-    $output += $this->calculate_report_objective_3($result);
-    $output += $this->calculate_report_objective_4($result);
-    $output += $this->calculate_report_objective_5($result);
-    $output += $this->calculate_report_objective_6($result);
-    $output['meta'] = [
-      '#markup' => $generated_text ? $this->t('Generated for @year on @date.', ['@year' => $result['year'], '@date' => $generated_text]) : '',
+    $rows = [];
+    $rows[] = $this->build_objective_1_row($result);
+    $rows[] = $this->build_objective_2_row($result);
+    $rows[] = $this->build_objective_3_row($result);
+    $rows[] = $this->build_objective_4_row($result);
+    $rows[] = $this->build_objective_5_row($result);
+    $rows[] = $this->build_objective_6_row($result);
+
+    return [
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h2',
+        '#value' => $year ? $this->t('Objectives for @year', ['@year' => $year]) : '',
+        '#attributes' => [
+          'class' => ['page-title', 'govgr-heading-lg'],
+        ],
+      ],
+      'report_table' => [
+        '#type' => 'table',
+        '#header' => [
+          $this->t('Description'),
+          $this->t('Deadline (days)'),
+          $this->t('On target'),
+          $this->t('From'),
+          $this->t('Target'),
+          '',
+        ],
+        '#rows' => $rows,
+        '#attributes' => [
+          'class' => ['kemke-report-results'],
+        ],
+      ],
+      'meta' => [
+        '#markup' => $generated_text ? $this->t('Generated on @date.', ['@date' => $generated_text]) : '',
+      ],
     ];
-
-    return $output;
   }
 
   /**
-   * Builds the report output for objective 1.
+   * Builds a row for objective 1.
    */
-  private function calculate_report_objective_1(array $result): array {
+  private function build_objective_1_row(array $result): array {
     $objective = $result['objective_1'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 1');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -76,47 +102,13 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_1_total'] ?? 0);
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
-    $meets_target = $calculated >= $target;
-    $color = $meets_target ? 'green' : 'red';
-    $calculated_formatted = number_format($calculated, 2);
-
-    $counts_text = $this->t('On time: @on_time from: @total', [
-      '@on_time' => $on_time,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
-    return [
-      'objective_1' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
-    ];
+    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
-   * Builds the report output for objective 2.
+   * Builds a row for objective 2.
    */
-  private function calculate_report_objective_2(array $result): array {
+  private function build_objective_2_row(array $result): array {
     $objective = $result['objective_2'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 2');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -128,47 +120,13 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_2_total'] ?? 0);
     $on_time = (int) ($result['objective_2_on_time'] ?? 0);
 
-    $meets_target = $calculated >= $target;
-    $color = $meets_target ? 'green' : 'red';
-    $calculated_formatted = number_format($calculated, 2);
-
-    $counts_text = $this->t('On time: @on_time from: @total', [
-      '@on_time' => $on_time,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
-    return [
-      'objective_2' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
-    ];
+    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
-   * Builds the report output for objective 3.
+   * Builds a row for objective 3.
    */
-  private function calculate_report_objective_3(array $result): array {
+  private function build_objective_3_row(array $result): array {
     $objective = $result['objective_3'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 3');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -180,47 +138,13 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_3_total'] ?? 0);
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
-    $meets_target = $calculated >= $target;
-    $color = $meets_target ? 'green' : 'red';
-    $calculated_formatted = number_format($calculated, 2);
-
-    $counts_text = $this->t('On time: @on_time from: @total', [
-      '@on_time' => $on_time,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape(sprintf('Deadline %s days', $deadline_days_for_report)),
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
-    return [
-      'objective_3' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
-    ];
+    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
-   * Builds the report output for objective 4.
+   * Builds a row for objective 4.
    */
-  private function calculate_report_objective_4(array $result): array {
+  private function build_objective_4_row(array $result): array {
     $objective = $result['objective_4'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 4');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -228,46 +152,13 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_4_total'] ?? 0);
     $on_time = (int) ($result['objective_4_on_time'] ?? 0);
 
-    $meets_target = $calculated >= $target;
-    $color = $meets_target ? 'green' : 'red';
-    $calculated_formatted = number_format($calculated, 2);
-
-    $counts_text = $this->t('On time: @on_time from: @total', [
-      '@on_time' => $on_time,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
-    return [
-      'objective_4' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
-    ];
+    return $this->format_row($description, NULL, $on_time, $total, $target, $calculated);
   }
 
   /**
-   * Builds the report output for objective 5.
+   * Builds a row for objective 5.
    */
-  private function calculate_report_objective_5(array $result): array {
+  private function build_objective_5_row(array $result): array {
     $objective = $result['objective_5'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 5');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -275,46 +166,13 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_5_total'] ?? 0);
     $on_time = (int) ($result['objective_5_on_time'] ?? 0);
 
-    $meets_target = $calculated >= $target;
-    $color = $meets_target ? 'green' : 'red';
-    $calculated_formatted = number_format($calculated, 2);
-
-    $counts_text = $this->t('On time: @on_time from: @total', [
-      '@on_time' => $on_time,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
-    return [
-      'objective_5' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
-    ];
+    return $this->format_row($description, NULL, $on_time, $total, $target, $calculated);
   }
 
   /**
-   * Builds the report output for objective 6.
+   * Builds a row for objective 6.
    */
-  private function calculate_report_objective_6(array $result): array {
+  private function build_objective_6_row(array $result): array {
     $objective = $result['objective_6'] ?? [];
     $description = $objective['description'] ?: $this->t('Objective 6');
     $target = (float) ($objective['percentage'] ?? 0);
@@ -322,39 +180,24 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['seminar_total_users'] ?? 0);
     $with_seminar = (int) ($result['seminar_users'] ?? 0);
 
+    return $this->format_row($description, NULL, $with_seminar, $total, $target, $calculated);
+  }
+
+  /**
+   * Formats a report table row.
+   */
+  private function format_row($description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
     $meets_target = $calculated >= $target;
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
 
-    $counts_text = $this->t('Seminars: @with from: @total', [
-      '@with' => $with_seminar,
-      '@total' => $total,
-    ]);
-
-    $items = [
-      [
-        '#markup' => Markup::create(sprintf(
-          '%s %s%% - %s - <strong><span style="color:%s">%s%%</span></strong>',
-          Html::escape($description),
-          $target,
-          Html::escape($counts_text),
-          Html::escape($color),
-          Html::escape($calculated_formatted)
-        )),
-      ],
-    ];
-
     return [
-      'objective_6' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['kemke-report-results'],
-        ],
-        'list' => [
-          '#theme' => 'item_list',
-          '#items' => $items,
-        ],
-      ],
+      Html::escape($description),
+      $deadline !== NULL ? (string) $deadline : '',
+      (string) $on_time,
+      (string) $total,
+      Html::escape(sprintf('%s%%', $target)),
+      Markup::create(sprintf('<span style="color:%s">%s%%</span>', Html::escape($color), Html::escape($calculated_formatted))),
     ];
   }
 
