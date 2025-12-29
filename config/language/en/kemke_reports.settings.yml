@@ -4,5 +4,9 @@ objective_2:
   description: 'Στόχος 2 - Αιτήματα από ιεραρχία'
 objective_3:
   description: 'Στόχος 3 - Κοινοποιήσεις Γνωστοποιήσεiς'
+objective_4:
+  description: 'Στόχος 4 - Έκθεση Δαπανών SARI'
+objective_5:
+  description: 'Στόχος 5 - Ανάκτηση'
 objective_6:
   description: 'Στόχος 6 - Σεμινάρια'
