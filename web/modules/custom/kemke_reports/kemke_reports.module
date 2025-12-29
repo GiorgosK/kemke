@@ -50,7 +50,7 @@ function kemke_reports_incoming_get_ids_for(int $year, array $conditions = ['fie
  * @return int
  *   The number of updated nodes.
  */
-function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE, string $objective_key = 'objective_1', string $completion_field = 'field_completion_date'): int {
+function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', bool $force_recalculate = FALSE, string $objective_key = 'objective_1', string $completion_field = 'field_completion_date', ?int $year = NULL): int {
   $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
 
   $query = \Drupal::entityTypeManager()
@@ -58,6 +58,10 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
     ->getQuery()
     ->accessCheck(FALSE)
     ->condition('type', 'incoming');
+
+  if ($year) {
+    kemke_reports_apply_year_condition($query, $year);
+  }
 
   kemke_reports_apply_incoming_filters($query, $conditions, $state);
 
