@@ -1,0 +1,3 @@
+administer opinion ref id settings:
+  title: 'Administer opinion reference ID settings'
+  description: 'Configure the opinion reference ID generator.'

@@ -1,0 +1,5 @@
+name: 'Opinion Reference ID Tweaks'
+type: module
+description: 'Provides settings and generator for opinion reference IDs.'
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11

@@ -1,0 +1,7 @@
+opinion_ref_id_tweaks.settings:
+  type: config_object
+  label: 'Opinion reference ID settings'
+  mapping:
+    next_number:
+      type: integer
+      label: 'Next number'

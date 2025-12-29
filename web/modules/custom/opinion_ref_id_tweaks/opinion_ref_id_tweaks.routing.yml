@@ -1,0 +1,16 @@
+opinion_ref_id_tweaks.settings:
+  path: '/settings/opinion_ref_id'
+  defaults:
+    _form: '\Drupal\opinion_ref_id_tweaks\Form\OpinionRefIdSettingsForm'
+    _title: 'Opinion reference ID'
+  requirements:
+    _permission: 'administer opinion ref id settings'
+
+opinion_ref_id_tweaks.generate_next:
+  path: '/settings/opinion_ref_id/generate-next'
+  defaults:
+    _controller: '\Drupal\opinion_ref_id_tweaks\Controller\OpinionRefIdAjaxController::generateNext'
+  requirements:
+    _permission: 'administer opinion ref id settings'
+  options:
+    _format: 'drupal_ajax'

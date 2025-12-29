@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Migrate start_number to next_number in config.
+ */
+function opinion_ref_id_tweaks_update_9001(): void {
+  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
+  if ($config->get('start_number') !== NULL && $config->get('next_number') === NULL) {
+    $config
+      ->set('next_number', (int) $config->get('start_number'))
+      ->clear('start_number')
+      ->save();
+  }
+}

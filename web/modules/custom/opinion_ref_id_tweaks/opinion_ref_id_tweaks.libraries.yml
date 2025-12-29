@@ -1,0 +1,7 @@
+opinion_ref_id_tweaks:
+  js:
+    js/opinion_ref_id_tweaks.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/once

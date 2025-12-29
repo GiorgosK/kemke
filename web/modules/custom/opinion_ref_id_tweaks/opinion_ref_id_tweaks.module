@@ -1,0 +1,71 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Datetime\DrupalDateTime;
+
+/**
+ * Builds the opinion reference ID, e.g. "ΓΝ-2025-1".
+ */
+function opinion_ref_id_tweaks_build_reference_id(int $year, int $sequence): string {
+  return sprintf('ΓΝ-%d-%d', $year, $sequence);
+}
+
+/**
+ * Returns the next number from config, clamped to 1+.
+ */
+function opinion_ref_id_tweaks_get_next_number(): int {
+  $config = \Drupal::config('opinion_ref_id_tweaks.settings');
+  $next_number = (int) $config->get('next_number');
+
+  return max(1, $next_number);
+}
+
+/**
+ * Generates the next reference ID without incrementing the counter.
+ */
+function opinion_ref_id_tweaks_generate_reference_id(?int $year = NULL): string {
+  $now = new DrupalDateTime('now');
+  $year = $year ?? (int) $now->format('Y');
+  $sequence = opinion_ref_id_tweaks_get_next_number();
+
+  return opinion_ref_id_tweaks_build_reference_id($year, $sequence);
+}
+
+/**
+ * Validates uniqueness and increments the next number if available.
+ */
+function opinion_ref_id_tweaks_check_unique_and_increment(string $value): bool {
+  $value = trim($value);
+  if ($value === '') {
+    return FALSE;
+  }
+
+  $query = \Drupal::entityQuery('node')
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming')
+    ->condition('field_opinion_ref_id', $value);
+
+  $existing = $query->count()->execute();
+  if ($existing > 0) {
+    return FALSE;
+  }
+
+  $lock = \Drupal::lock();
+  $lock_name = 'opinion_ref_id_tweaks.next_number';
+  $acquired = $lock->acquire($lock_name, 5.0);
+  if (!$acquired) {
+    \Drupal::logger('opinion_ref_id_tweaks')->warning('Unable to acquire next number lock, falling back to non-locked increment.');
+  }
+
+  $config = \Drupal::service('config.factory')->getEditable('opinion_ref_id_tweaks.settings');
+  $next_number = (int) $config->get('next_number');
+  $next_number = max(1, $next_number + 1);
+  $config->set('next_number', $next_number)->save();
+
+  if ($acquired) {
+    $lock->release($lock_name);
+  }
+
+  return TRUE;
+}
