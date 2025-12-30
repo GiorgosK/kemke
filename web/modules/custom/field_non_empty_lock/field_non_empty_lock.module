@@ -732,9 +732,9 @@ function field_non_empty_lock_get_paragraph_field_map() {
       'field_files',
     ],
     'remark' => [
-      'field_comment',
-      'field_user',
-      'field_datetime',
+      // 'field_comment',
+      // 'field_user',
+      // 'field_datetime',
     ],
   ];
 }
@@ -755,10 +755,11 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
     ],
     'field_remarks' => [
       'remark' => [
-        'field_comment',
-        'field_user',
-        'field_datetime',
-        'field_send_to',
+        // 'field_comment',
+        // 'field_user',
+        // 'field_datetime',
+        // 'field_send_to',
+        // 'field_visible_to',
       ],
     ],
   ];
@@ -770,8 +771,8 @@ function field_non_empty_lock_get_node_paragraph_field_map() {
 function field_non_empty_lock_get_paragraph_hidden_field_map() {
   return [
     'remark' => [
-      'field_user',
-      'field_datetime',
+      // 'field_user',
+      // 'field_datetime',
     ],
     // 'documents' => [
     //   'field_protocol',
