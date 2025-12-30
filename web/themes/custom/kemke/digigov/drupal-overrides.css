@@ -90,3 +90,9 @@
 .field-group-fieldset fieldset > legend {
   display: none;
 }
+
+.full-width-flexbox {
+  width: 100%;
+  display: flex;
+  gap: 20px;
+}
