@@ -25,9 +25,12 @@
         }
 
         checkboxes.forEach((other) => {
-          if (other !== checkbox) {
-            other.checked = false;
+          if (other === checkbox || !other.checked) {
+            return;
           }
+
+          other.checked = false;
+          other.dispatchEvent(new Event('change', { bubbles: true }));
         });
       });
     });
