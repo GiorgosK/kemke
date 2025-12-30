@@ -140,6 +140,7 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
 
   $storage = \Drupal::entityTypeManager()->getStorage('user');
   $query = $storage->getQuery()
+    ->accessCheck(FALSE)
     ->condition('status', 1)
     ->condition('field_legal_entity', $target_ids, 'IN');
   $user_ids = $query->execute();
