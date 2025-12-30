@@ -47,6 +47,18 @@
       type: 'input',
       value: 'Αποθήκευση',
     };
+  const ruleSubtypeSariChecked =
+    {
+      selector: '#edit-field-incoming-subtype-59',
+      type: 'checkbox',
+      value: 'checked',
+    };
+  const ruleSubtypeAnaktisiChecked =
+    {
+      selector: '#edit-field-incoming-subtype-61',
+      type: 'checkbox',
+      value: 'checked',
+    };
 
   const ruleSets = {
     baseAssignment: [
@@ -173,7 +185,7 @@
         selector: '#edit-group-subtype',
         rules: [{
             type: 'hideIf',
-            valueIs: [ruleIncTypeNone],
+            valueNotAND: [ruleIncTypeOpinion,ruleIncTypeEE],
         },],
       },
     ],
@@ -186,12 +198,57 @@
         },],
       },
     ],
+    baseSubtypeAnaktisiVis: [
+      {
+        selector: '.form-item-field-incoming-subtype-61',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleIncTypeEE],
+        },],
+      },
+    ],
+    baseSubtypeSariVis: [
+      {
+        selector: '.form-item-field-incoming-subtype-59',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleIncTypeEE],
+        },],
+      },
+    ],
     baseGroupSignatureVis: [
       {
         selector: '#edit-group-signature-rejection',
         rules: [{
             type: 'hideIf',
             valueNot: [ruleIncTypeKoinopGnostop],
+        },],
+      },
+    ],
+    baseGroupReportCasesVis: [
+      {
+        selector: '#edit-group-report-cases',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleSubtypeSariChecked],
+        },],
+      },
+    ],
+    baseGroupExtensionVis: [
+      {
+        selector: '#edit-group-extension',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleSubtypeAnaktisiChecked],
+        },],
+      },
+    ],
+    baseSubtypeDateVis: [
+      {
+        selector: '.field--name-field-subtype-date',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleSubtypeAnaktisiChecked],
         },],
       },
     ],
@@ -234,6 +291,11 @@
       ...ruleSets.baseEditGroupSubtypeVis,
       ...ruleSets.baseSubtypeHierarchyVis,
       ...ruleSets.baseGroupSignatureVis,
+      ...ruleSets.baseGroupReportCasesVis,
+      ...ruleSets.baseGroupExtensionVis,
+      ...ruleSets.baseSubtypeDateVis,
+      ...ruleSets.baseSubtypeAnaktisiVis,
+      ...ruleSets.baseSubtypeSariVis, 
     ],
     // amke_user: [
     //   ...ruleSets.baseAssignment,
@@ -407,6 +469,9 @@
   const getFieldValue = (field, type) => {
     if (!field) {
       return null;
+    }
+    if (type === 'checkbox' || field.type === 'checkbox') {
+      return field.checked ? 'checked' : 'unchecked';
     }
     if (type === 'select2') {
       const select2Val = isSelect2Empty(field);
