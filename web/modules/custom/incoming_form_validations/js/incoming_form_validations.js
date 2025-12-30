@@ -5,6 +5,49 @@
    * Rulesets are defined once and then explicitly composed per role.
    * Add new keys under ruleSets, then include them in roleRuleSets.
    */
+  const ruleIncTypeOpinion = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['41', '3'], // Άποψη, Γνωμοδότηση
+    };
+  const ruleIncTypeAllExceptOpinion = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['9', '2', '5', '42', '8', '9', '_none'],
+    };
+  const ruleIncTypeEE = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: '2',
+    };
+  const ruleIncTypeNone = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['_none'],
+    };
+  const ruleIncTypeGnomodotisi = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['3'], // Γνωμοδότηση
+    };
+  const ruleIncTypeKoinopGnostop = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['5','6'], // Κοινοποιήση και Γνωστοποιήση
+    };
+  const ruleButtonUndeprocessingStay = 
+    {
+      selector: '#edit-moderation-state-under-processing',
+      type: 'input',
+      value: 'Αποθήκευση',
+    };
+
   const ruleSets = {
     baseAssignment: [
       {
@@ -75,35 +118,21 @@
           {
             type: 'hideIf',
             valueIsAND: [
-              {
-                selector: '#edit-field-incoming-type',
-                type: 'select',
-                value: ['9', '2', '5', '42', '8', '9', '_none'],
-              },
-              {
-                selector: '#edit-moderation-state-under-processing',
-                type: 'input',
-                value: 'Αποθήκευση',
-              },
+              ruleIncTypeAllExceptOpinion,
+              ruleButtonUndeprocessingStay
             ],
           },
         ],
       },
     ],
-    baseTabsVisibility: [
+    baseTabsVis: [
       {
         selector: '.horizontal-tab-button-7',
         rules: [
           {
             type: 'hideIf',
             display: 'none',
-            valueNot: [
-              {
-                selector: '#edit-field-incoming-type',
-                type: 'select',
-                value: '2',
-              },
-            ],
+            valueNot: [ruleIncTypeEE],
           },
         ],
       },
@@ -112,39 +141,61 @@
         rules: [
           {
             type: 'hideIf',
-            valueNot: [
-              {
-                selector: '#edit-field-incoming-type',
-                type: 'select',
-                value: ['41', '3'],
-              },
-            ],
+            valueNot: [ruleIncTypeOpinion],
           },
         ],
       },
     ],
-    basePublishedVisibility: [
+    basePublishedVis: [
       {
         selector: '#edit-moderation-state-published',
         rules: [
           {
             type: 'hideIf',
-            valueIsAND: [
-              {
-                selector: '#edit-field-incoming-type',
-                type: 'select',
-                value: ['41', '3'], // Αίτημα - Ερώτημα, Γνωμοδότηση
-              },
-              {
-                selector: '#edit-moderation-state-under-processing',
-                type: 'input',
-                value: 'Αποθήκευση',
-              },
-            ],
+            valueIsAND: [ruleIncTypeOpinion,ruleButtonUndeprocessingStay],
           },
         ],
       },
     ],
+    baseOpinionRefIdVis: [
+      {
+        selector: '.field--name-field-opinion-ref-id',
+        rules: [
+          {
+            type: 'hideIf',
+            valueNot: [ruleIncTypeGnomodotisi],
+          },
+        ],
+      },
+    ],
+    baseEditGroupSubtypeVis: [
+      {
+        selector: '#edit-group-subtype',
+        rules: [{
+            type: 'hideIf',
+            valueIs: [ruleIncTypeNone],
+        },],
+      },
+    ],
+    baseSubtypeHierarchyVis: [
+      {
+        selector: '.form-item-field-incoming-subtype-60',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleIncTypeOpinion],
+        },],
+      },
+    ],
+    baseGroupSignatureVis: [
+      {
+        selector: '#edit-group-signature-rejection',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleIncTypeKoinopGnostop],
+        },],
+      },
+    ],
+   
     // Example reusable ruleset (shared across multiple roles).
     // rulesetExample: [
     //   { selector: '#edit-submit', rules: [{ type: 'button', ... }] },
@@ -177,8 +228,12 @@
       ...ruleSets.baseAssignment,
       ...ruleSets.baseFullness,
       ...ruleSets.baseForSignature,
-      ...ruleSets.baseTabsVisibility,
-      ...ruleSets.basePublishedVisibility,
+      ...ruleSets.baseTabsVis,
+      ...ruleSets.basePublishedVis,
+      ...ruleSets.baseOpinionRefIdVis,
+      ...ruleSets.baseEditGroupSubtypeVis,
+      ...ruleSets.baseSubtypeHierarchyVis,
+      ...ruleSets.baseGroupSignatureVis,
     ],
     // amke_user: [
     //   ...ruleSets.baseAssignment,
