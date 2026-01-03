@@ -1,0 +1,20 @@
+uuid: 6db2c80f-5acf-49a1-958a-ea445076f0f6
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_docutracks_json
+  module:
+    - user
+id: user.user.field_docutracks_json
+field_name: field_docutracks_json
+entity_type: user
+bundle: user
+label: 'Docutracks JSON'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

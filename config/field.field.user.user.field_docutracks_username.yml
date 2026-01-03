@@ -1,0 +1,20 @@
+uuid: 1b98c61e-5b99-4ed3-8338-d8180e364bb5
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_docutracks_username
+  module:
+    - user
+id: user.user.field_docutracks_username
+field_name: field_docutracks_username
+entity_type: user
+bundle: user
+label: 'Docutracks username'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

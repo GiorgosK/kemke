@@ -1,0 +1,21 @@
+uuid: 9ef0743e-5e94-40a0-a39f-8c392141ac4d
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_docutracks_username
+field_name: field_docutracks_username
+entity_type: user
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

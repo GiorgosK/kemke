@@ -4,15 +4,89 @@ status: true
 dependencies:
   config:
     - field.field.user.user.field_absenses_ref
+    - field.field.user.user.field_docutracks_email
+    - field.field.user.user.field_docutracks_json
+    - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
     - field.field.user.user.field_legal_entity
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
+    - field_group
     - image
     - reference_table_formatter
     - user
+third_party_settings:
+  field_group:
+    group_tabs:
+      children:
+        - group_general
+        - group_other
+        - group_docutracks
+      label: tabs
+      parent_name: ''
+      region: content
+      weight: 6
+      format_type: tabs
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        direction: horizontal
+        width_breakpoint: 640
+    group_general:
+      children:
+        - field_first_name
+        - field_last_name
+        - field_absenses_ref
+        - field_legal_entity
+      label: Γενικα
+      parent_name: group_tabs
+      region: content
+      weight: 7
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_other:
+      children:
+        - user_picture
+        - member_for
+      label: Διαφορα
+      parent_name: group_tabs
+      region: content
+      weight: 8
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_docutracks:
+      children:
+        - field_docutracks_username
+        - field_docutracks_json
+        - field_docutracks_email
+      label: docutracks
+      parent_name: group_tabs
+      region: content
+      weight: 9
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
 _core:
   default_config_hash: mZLyuWM9CQx2ZJVqFGSbzgFnHzudVbHBYmdU256A5Wk
 id: user.user.default
@@ -29,7 +103,29 @@ content:
       empty_cell_value: ''
       hide_header: '0'
     third_party_settings: {  }
-    weight: 10
+    weight: 4
+    region: content
+  field_docutracks_email:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_docutracks_json:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_docutracks_username:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
     region: content
   field_first_name:
     type: string
@@ -37,7 +133,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 6
+    weight: 2
     region: content
   field_last_name:
     type: string
@@ -45,7 +141,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 7
+    weight: 3
     region: content
   field_legal_entity:
     type: entity_reference_label
@@ -53,12 +149,12 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 9
+    weight: 5
     region: content
   member_for:
     settings: {  }
     third_party_settings: {  }
-    weight: 5
+    weight: 1
     region: content
   user_picture:
     type: image

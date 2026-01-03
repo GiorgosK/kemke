@@ -1,0 +1,19 @@
+uuid: 514febac-2c32-4f7b-b301-6e35b4c1eee8
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_docutracks_json
+field_name: field_docutracks_json
+entity_type: user
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
