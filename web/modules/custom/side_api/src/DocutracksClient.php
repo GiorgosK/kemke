@@ -112,6 +112,9 @@ final class DocutracksClient {
   /**
    * Fetch document metadata by ID.
    *
+   * @param int $typeId
+   *   Docutracks document type id (default 1).
+   *
    * @return array<string, mixed>
    */
   public function fetchDocument(string $docId, CookieJar $jar, ?string $baseUrl = null): array {
@@ -274,31 +277,60 @@ final class DocutracksClient {
   }
 
   /**
-  * Minimal required doc payload for quick testing.
+   * Minimal required doc payload for quick testing.
+   *
+   * @param int $typeId
+   *   Docutracks document type id (default 1).
   *
   * @return array<string, mixed>
   */
-  public function getRequiredDocValues(bool $includeFile = TRUE): array {
+  public function getRequiredDocValues(bool $includeFile = TRUE, int $typeId = 1): array {
+    $defaults = $this->defaults();
     $payload = [
       'Document' => [
         'Title' => 'Sample incoming document 2',
-        'CreatedBy' => ['Id' => $this->defaults()['created_by']],
-        'CreatedByGroup' => ['Id' => $this->defaults()['created_by_group']],
+        'CreatedBy' => ['Id' => $defaults['created_by']],
+        'CreatedByGroup' => ['Id' => $defaults['created_by_group']],
         'Kind' => ['Id' => 1],
-        'Type' => ['Id' => 1],
+        'Type' => ['Id' => $typeId],
         'Apostoleas' => [
-          'Name' => $this->defaults()['Apostoleas_Name'],
-          'Email' => $this->defaults()['Apostoleas_NameEmail'],
+          'Name' => $defaults['Apostoleas_Name'],
+          'Email' => $defaults['Apostoleas_NameEmail'],
         ],
         'Comments' => 'Created via kemke side_api .',
         'DocumentCopies' => [
           [
-            'CreatedByGroup' => ['Id' => $this->defaults()['created_by_group']],
-            'OwnedByGroup' => ['Id' => $this->defaults()['owned_by_group']],
+            'CreatedByGroup' => ['Id' => $defaults['created_by_group']],
+            'OwnedByGroup' => ['Id' => $defaults['owned_by_group']],
           ],
         ],
       ],
     ];
+
+    if ($typeId === 3) {
+      $createdByGroupId = $defaults['created_by_group'] ?? NULL;
+      $createdById = $defaults['created_by'] ?? NULL;
+
+      if ($createdByGroupId) {
+        $payload['Document']['CreatedForGroup'] = ['Id' => $createdByGroupId];
+        $payload['Document']['Signatures'] = [
+          [
+            'ToSign' => ['Id' => $createdByGroupId],
+            'Type' => ['Id' => 1],
+          ],
+        ];
+      }
+
+      if ($createdByGroupId && $createdById) {
+        $payload['Document']['CoAuthorsWithSignature'] = [
+          [
+            'ToSign' => ['Id' => $createdByGroupId],
+            'Type' => ['Id' => 3],
+            'Signator' => ['Id' => $createdById],
+          ],
+        ];
+      }
+    }
 
     if ($includeFile) {
       $payload['Document']['MainFile'] = [
@@ -412,15 +444,18 @@ final class DocutracksClient {
    * Prepare a register payload by merging defaults and a file attachment.
    *
    * Example:
-   *   $payload = $client->prepareRegisterPayload('min.json', 'main.pdf', ['attach1.pdf']);
+   *   $payload = $client->prepareRegisterPayload('min.json', 'main.pdf', ['attach1.pdf'], 1);
    *   $response = $client->registerDocument($payload, $client->loginToDocutracks());
+   *
+   * @param int $typeId
+   *   Docutracks document type id (default 1).
    *
    * @return array<string, mixed>
    */
-  public function prepareRegisterPayload(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = []): array {
+  public function prepareRegisterPayload(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = [], int $typeId = 1): array {
     $decoded = is_array($docPayload) ? $docPayload : $this->loadJson($docPayload);
 
-    $payload = $this->mergeWithDefaults($decoded);
+    $payload = $this->mergeWithDefaults($decoded, $typeId);
 
     // Main file is optional.
     if ($mainFilePath !== NULL && $mainFilePath !== '') {
@@ -505,9 +540,12 @@ final class DocutracksClient {
 
   /**
    * Convenience wrapper: build payload and register with login.
+   *
+   * @param int $typeId
+   *   Docutracks document type id (default 1).
    */
-  public function registerWithFiles(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = []): array {
-    $payload = $this->prepareRegisterPayload($docPayload, $mainFilePath, $attachmentPaths);
+  public function registerWithFiles(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = [], int $typeId = 1): array {
+    $payload = $this->prepareRegisterPayload($docPayload, $mainFilePath, $attachmentPaths, $typeId);
     $jar = $this->loginToDocutracks();
     $result = $this->registerDocument($payload, $jar);
     return $result;
@@ -547,10 +585,13 @@ final class DocutracksClient {
    * @param array<string, mixed> $overrides
    *   e.g. ['Document' => ['Apostoleas' => [...], 'MainFile' => ['FileName' => 'x.pdf', 'Base64File' => '...']]]
    *
+   * @param int $typeId
+   *   Docutracks document type id (default 1).
+   *
    * @return array<string, mixed>
    */
-  public function mergeWithDefaults(array $overrides): array {
-    $defaults = $this->getRequiredDocValues(FALSE);
+  public function mergeWithDefaults(array $overrides, int $typeId = 1): array {
+    $defaults = $this->getRequiredDocValues(FALSE, $typeId);
     $merged = $defaults;
 
     if (isset($overrides['Document']) && is_array($overrides['Document'])) {
