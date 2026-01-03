@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_entity_presave().
+ */
+function users_tweaks_entity_presave(EntityInterface $entity): void {
+  if (!$entity instanceof UserInterface) {
+    return;
+  }
+
+  if (
+    !$entity->hasField('field_docutracks_username') ||
+    !$entity->hasField('field_docutracks_json') ||
+    !$entity->hasField('field_docutracks_email')
+  ) {
+    return;
+  }
+
+  $username = trim((string) $entity->get('field_docutracks_username')->value);
+  if ($username === '') {
+    return;
+  }
+
+  if (!$entity->get('field_docutracks_json')->isEmpty()) {
+    return;
+  }
+
+  try {
+    /** @var \Drupal\side_api\DocutracksClient $client */
+    $client = \Drupal::service('side_api.docutracks_client');
+    $payload = $client->fetchUserByUsername($username);
+    $encoded = Json::encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $entity->set('field_docutracks_json', $encoded);
+
+    $email = $client->extractValueByPath($payload, 'User.Email');
+    if (is_string($email) && $email !== '') {
+      $entity->set('field_docutracks_email', $email);
+    }
+  }
+  catch (\Throwable $throwable) {
+    \Drupal::logger('users_tweaks')->error('Docutracks user lookup failed for @username: @message', [
+      '@username' => $username,
+      '@message' => $throwable->getMessage(),
+    ]);
+  }
+}
+
+/**
+ * Extract a Docutracks JSON value from a user field by dot path.
+ */
+function users_tweaks_get_docutracks_value(UserInterface $account, string $path): mixed {
+  if (!$account->hasField('field_docutracks_json') || $account->get('field_docutracks_json')->isEmpty()) {
+    return NULL;
+  }
+
+  $decoded = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
+  if (!is_array($decoded)) {
+    return NULL;
+  }
+
+  /** @var \Drupal\side_api\DocutracksClient $client */
+  $client = \Drupal::service('side_api.docutracks_client');
+  return $client->extractValueByPath($decoded, $path);
+}

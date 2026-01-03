@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Implements hook_install().
+ */
+function users_tweaks_install(): void {
+  if (!FieldStorageConfig::loadByName('user', 'field_docutracks_username')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_docutracks_username',
+      'entity_type' => 'user',
+      'type' => 'string',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+      'settings' => [
+        'max_length' => 255,
+      ],
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_docutracks_username')) {
+    FieldConfig::create([
+      'field_name' => 'field_docutracks_username',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'Docutracks username',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('user', 'field_docutracks_json')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_docutracks_json',
+      'entity_type' => 'user',
+      'type' => 'string_long',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_docutracks_json')) {
+    FieldConfig::create([
+      'field_name' => 'field_docutracks_json',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'Docutracks JSON',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('user', 'field_docutracks_email')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_docutracks_email',
+      'entity_type' => 'user',
+      'type' => 'email',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_docutracks_email')) {
+    FieldConfig::create([
+      'field_name' => 'field_docutracks_email',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'Docutracks email',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+}
+
+/**
+ * Add Docutracks email field to users.
+ */
+function users_tweaks_update_9001(): void {
+  if (!FieldStorageConfig::loadByName('user', 'field_docutracks_email')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_docutracks_email',
+      'entity_type' => 'user',
+      'type' => 'email',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_docutracks_email')) {
+    FieldConfig::create([
+      'field_name' => 'field_docutracks_email',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'Docutracks email',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+}
