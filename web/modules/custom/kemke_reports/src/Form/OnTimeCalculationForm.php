@@ -79,7 +79,7 @@ class OnTimeCalculationForm extends FormBase {
     $form['on_time'] = [
       '#type' => 'details',
       '#title' => $this->t('On time calculations'),
-      '#open' => TRUE,
+      '#open' => FALSE,
     ];
 
     $form['on_time']['last_run'] = [
