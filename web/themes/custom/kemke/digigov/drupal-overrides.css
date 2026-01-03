@@ -101,7 +101,7 @@
 .incoming-remarks-field.field-comment {
   width: 100%;
 }
-div.visible-to-amke {
+div.incoming-remarks-field.visible-to-amke {
   font-weight: bold;
   font-size: 120%;
 }
