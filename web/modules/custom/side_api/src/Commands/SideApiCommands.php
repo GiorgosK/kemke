@@ -115,4 +115,16 @@ final class SideApiCommands extends DrushCommands {
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 
+  /**
+   * Fetch a Docutracks user by username.
+   *
+   * @command side:user-get
+   * @aliases sdug
+   */
+  public function getUserByUsername(string $username): void {
+    $jar = $this->client->loginToDocutracks();
+    $response = $this->client->fetchUserByUsername($username, $jar);
+    $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
 }

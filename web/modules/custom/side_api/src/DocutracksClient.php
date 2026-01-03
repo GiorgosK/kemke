@@ -552,6 +552,36 @@ final class DocutracksClient {
   }
 
   /**
+   * Fetch a user by username.
+   *
+   * @return array<string, mixed>
+   */
+  public function fetchUserByUsername(string $username, ?\GuzzleHttp\Cookie\CookieJarInterface $jar = NULL, ?string $baseUrl = NULL, float $timeout = 30.0): array {
+    $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+    $jar = $jar ?? $this->loginToDocutracks(baseUrl: $resolvedBaseUrl, timeout: $timeout);
+
+    try {
+      $response = $this->httpClient->request('POST', $resolvedBaseUrl . '/services/user/get/byusername', [
+        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+        'json' => ['Username' => $username],
+        'cookies' => $jar,
+        'timeout' => $timeout,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      throw new RuntimeException(sprintf('Get user by username failed: %s', $e->getMessage()), 0, $e);
+    }
+
+    $body = (string) $response->getBody();
+    $decoded = json_decode($body, TRUE);
+    if (!is_array($decoded)) {
+      throw new RuntimeException('Get user by username response could not be decoded as JSON.');
+    }
+
+    return $decoded;
+  }
+
+  /**
    * Defaults for CreatedBy / CreatedByGroup depending on environment.
    *
    * @return array{created_by:int, created_by_group:int}
