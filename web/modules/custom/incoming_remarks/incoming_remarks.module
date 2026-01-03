@@ -1,9 +1,22 @@
 <?php
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldableEntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\OptGroup;
+use Drupal\Core\Link;
+use Drupal\Core\Render\Element;
+use Drupal\Core\TypedData\OptionsProviderInterface;
+use Drupal\Core\Url;
+use Drupal\file\FileInterface;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * Provides the default value for the remark user field.
@@ -58,6 +71,81 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
 
   if ($entity->hasField('field_datetime') && $entity->get('field_datetime')->isEmpty()) {
     $entity->set('field_datetime', ['value' => \Drupal::time()->getRequestTime()]);
+  }
+
+  $account = \Drupal::currentUser();
+  if ($account->hasRole('amke_user') && !incoming_remarks_account_can_bypass_visibility($account)) {
+    if ($entity->hasField('field_visible_to')) {
+    $entity->set('field_visible_to', ['value' => 'amke']);
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_access().
+ */
+function incoming_remarks_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
+  if ($operation !== 'view') {
+    return AccessResult::neutral();
+  }
+  if (incoming_remarks_account_can_bypass_visibility($account)) {
+    return AccessResult::neutral();
+  }
+  if (!$entity instanceof ParagraphInterface || $entity->bundle() !== 'remark') {
+    return AccessResult::neutral();
+  }
+  if (!$account->hasRole('amke_user')) {
+    return AccessResult::neutral();
+  }
+
+  $is_allowed = incoming_remarks_paragraph_is_visible_to_amke($entity);
+  return AccessResult::forbiddenIf(!$is_allowed)
+    ->addCacheableDependency($entity)
+    ->cachePerPermissions();
+}
+
+/**
+ * Implements hook_entity_view().
+ */
+function incoming_remarks_entity_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+  if (incoming_remarks_account_can_bypass_visibility($account)) {
+    return;
+  }
+
+  if ($entity instanceof ParagraphInterface && $entity->bundle() === 'remark') {
+    unset($build['field_visible_to']);
+    if (!incoming_remarks_paragraph_is_visible_to_amke($entity)) {
+      $build['#access'] = FALSE;
+    }
+    return;
+  }
+
+  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return;
+  }
+  if (!$entity->hasField('field_remarks') || empty($build['field_remarks'])) {
+    return;
+  }
+
+  if (empty($build['field_remarks']['#items'])) {
+    return;
+  }
+
+  foreach ($build['field_remarks']['#items'] as $delta => $item) {
+    if (!isset($build['field_remarks'][$delta])) {
+      continue;
+    }
+    $paragraph = $item->entity ?? NULL;
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'remark') {
+      continue;
+    }
+    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph)) {
+      unset($build['field_remarks'][$delta]);
+    }
   }
 }
 
@@ -120,4 +208,665 @@ function incoming_remarks_comment_is_empty(EntityInterface $entity): bool {
   }
 
   return TRUE;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the incoming content type form.
+ */
+function incoming_remarks_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state) {
+  incoming_remarks_lock_embedded_paragraph_fields($form, $form_state);
+  incoming_remarks_customize_paragraph_widgets($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the incoming edit form.
+ */
+function incoming_remarks_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  incoming_remarks_lock_embedded_paragraph_fields($form, $form_state);
+  incoming_remarks_customize_paragraph_widgets($form, $form_state);
+  incoming_remarks_filter_visible_paragraph_widgets($form, $form_state);
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for paragraph forms.
+ */
+function incoming_remarks_form_paragraph_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\paragraphs\ParagraphInterface $paragraph */
+  $paragraph = $form_object->getEntity();
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  $bundle = $paragraph->bundle();
+  $bundle_map = incoming_remarks_get_paragraph_field_map();
+  if (empty($bundle_map[$bundle])) {
+    return;
+  }
+
+  incoming_remarks_apply_paragraph_field_locks($form, $paragraph, $bundle_map[$bundle]);
+
+  if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
+    if (isset($form['field_visible_to'])) {
+      $form['field_visible_to']['#access'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Locks selected paragraph sub-fields embedded within node forms.
+ */
+function incoming_remarks_lock_embedded_paragraph_fields(array &$form, FormStateInterface $form_state) {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeInterface $node */
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  $paragraph_map = incoming_remarks_get_node_paragraph_field_map();
+  if (!$paragraph_map) {
+    return;
+  }
+
+  foreach ($paragraph_map as $node_field => $bundle_fields) {
+    if (!$node->hasField($node_field) || empty($form[$node_field]['widget'])) {
+      continue;
+    }
+
+    foreach ($node->get($node_field) as $delta => $item) {
+      if ($item->isEmpty()) {
+        continue;
+      }
+      $paragraph = $item->entity;
+      if (!$paragraph instanceof ParagraphInterface) {
+        continue;
+      }
+      $bundle = $paragraph->bundle();
+      if (empty($bundle_fields[$bundle])) {
+        continue;
+      }
+      if (empty($form[$node_field]['widget'][$delta]['subform'])) {
+        continue;
+      }
+
+      incoming_remarks_apply_paragraph_field_locks(
+        $form[$node_field]['widget'][$delta]['subform'],
+        $paragraph,
+        $bundle_fields[$bundle]
+      );
+    }
+  }
+}
+
+/**
+ * Hides remark paragraphs that are not visible to the current user.
+ */
+function incoming_remarks_filter_visible_paragraph_widgets(array &$form, FormStateInterface $form_state) {
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+  if (incoming_remarks_account_can_bypass_visibility($account)) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeInterface $node */
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface || !$node->hasField('field_remarks')) {
+    return;
+  }
+
+  if (empty($form['field_remarks']['widget'])) {
+    return;
+  }
+
+  foreach ($node->get('field_remarks') as $delta => $item) {
+    if (empty($form['field_remarks']['widget'][$delta])) {
+      continue;
+    }
+    $paragraph = $item->entity;
+    if (!empty($form['field_remarks']['widget'][$delta]['subform']['#entity'])) {
+      $paragraph = $form['field_remarks']['widget'][$delta]['subform']['#entity'];
+    }
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'remark') {
+      continue;
+    }
+    $visible_class = incoming_remarks_get_visible_to_class($paragraph);
+    if ($visible_class) {
+      $form['field_remarks']['widget'][$delta]['#attributes']['class'][] = $visible_class;
+      if (isset($form['field_remarks']['widget'][$delta]['subform']['#attributes']['class'])) {
+        $form['field_remarks']['widget'][$delta]['subform']['#attributes']['class'][] = $visible_class;
+      }
+    }
+    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph)) {
+      $form['field_remarks']['widget'][$delta]['#access'] = FALSE;
+      continue;
+    }
+  }
+
+  foreach (Element::children($form['field_remarks']['widget']) as $delta) {
+    if (isset($form['field_remarks']['widget'][$delta]['#access'])
+      && $form['field_remarks']['widget'][$delta]['#access'] === FALSE) {
+      unset($form['field_remarks']['widget'][$delta]);
+    }
+  }
+}
+
+/**
+ * Determines whether a remark paragraph is visible to AMKE users.
+ */
+function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $paragraph): bool {
+  if (!$paragraph->hasField('field_visible_to')) {
+    return TRUE;
+  }
+
+  $field = $paragraph->get('field_visible_to');
+  if ($field->isEmpty()) {
+    return TRUE;
+  }
+
+  $values = [];
+  foreach ($field->getValue() as $value) {
+    if (isset($value['value'])) {
+      $values[] = (string) $value['value'];
+    }
+  }
+
+  if (in_array('amke', $values, TRUE)) {
+    return TRUE;
+  }
+  if (in_array('only_kemke', $values, TRUE)) {
+    return FALSE;
+  }
+
+  $item = $field->first();
+  if ($item instanceof OptionsProviderInterface) {
+    $options = OptGroup::flattenOptions($item->getPossibleOptions());
+    foreach ($values as $value) {
+      $label = $options[$value] ?? '';
+      $normalized_label = strtolower(trim($label));
+      if ($normalized_label === 'amke') {
+        return TRUE;
+      }
+      if ($normalized_label === 'only kemke' || $normalized_label === 'only_kemke') {
+        return FALSE;
+      }
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Checks whether an account should bypass remark visibility filters.
+ */
+function incoming_remarks_account_can_bypass_visibility(AccountInterface $account): bool {
+  return $account->hasPermission('administer nodes')
+    || $account->hasPermission('administer site configuration')
+    || $account->hasRole('administrator')
+    || $account->hasRole('kemke_admin');
+}
+/**
+ * Returns a CSS class that reflects the remark visibility value.
+ */
+function incoming_remarks_get_visible_to_class(ParagraphInterface $paragraph): ?string {
+  if (!$paragraph->hasField('field_visible_to')) {
+    return NULL;
+  }
+
+  $field = $paragraph->get('field_visible_to');
+  if ($field->isEmpty()) {
+    return NULL;
+  }
+
+  $values = [];
+  foreach ($field->getValue() as $value) {
+    if (isset($value['value'])) {
+      $values[] = (string) $value['value'];
+    }
+  }
+
+  if (in_array('amke', $values, TRUE)) {
+    return 'visible-to-amke';
+  }
+  if (in_array('only_kemke', $values, TRUE)) {
+    return 'visible-to-only-kemke';
+  }
+
+  $item = $field->first();
+  if ($item instanceof OptionsProviderInterface) {
+    $options = OptGroup::flattenOptions($item->getPossibleOptions());
+    foreach ($values as $value) {
+      $label = strtolower(trim($options[$value] ?? ''));
+      if ($label === 'amke') {
+        return 'visible-to-amke';
+      }
+      if ($label === 'only kemke' || $label === 'only_kemke') {
+        return 'visible-to-only-kemke';
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Attempts to locate a paragraph entity within a table row render array.
+ */
+function incoming_remarks_find_paragraph_in_row(array $row): ?ParagraphInterface {
+  if (isset($row['data']) && is_array($row['data'])) {
+    foreach ($row['data'] as $cell) {
+      if (!is_array($cell)) {
+        continue;
+      }
+      $cell_data = $cell['data'] ?? NULL;
+      if (!is_array($cell_data)) {
+        continue;
+      }
+      if (isset($cell_data['#entity']) && $cell_data['#entity'] instanceof ParagraphInterface) {
+        return $cell_data['#entity'];
+      }
+      if (isset($cell_data['subform']['#entity']) && $cell_data['subform']['#entity'] instanceof ParagraphInterface) {
+        return $cell_data['subform']['#entity'];
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Hides configured fields in paragraph widgets (covers new subforms).
+ */
+function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInterface $form_state, $field_name) {
+  if (empty($form[$field_name]['widget'])) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object) {
+    return;
+  }
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+
+  $widget =& $form[$field_name]['widget'];
+
+  if (isset($widget['header_actions'])) {
+    $widget['header_actions']['#access'] = FALSE;
+    unset($widget['header_actions']);
+  }
+
+  if (isset($widget['#tabledrag'])) {
+    unset($widget['#tabledrag']);
+  }
+  if (!empty($widget['#attributes']['class'])) {
+    $widget['#attributes']['class'] = array_values(array_diff($widget['#attributes']['class'], ['draggable-table']));
+  }
+  if (isset($widget['top']['actions']['dropdown_actions']['dragdrop_mode'])) {
+    unset($widget['top']['actions']['dropdown_actions']['dragdrop_mode']);
+  }
+
+  foreach (Element::children($widget) as $delta) {
+    if (!isset($widget[$delta]) || !is_array($widget[$delta])) {
+      continue;
+    }
+    $element =& $widget[$delta];
+
+    if (!empty($element['#attributes']['class'])) {
+      $element['#attributes']['class'] = array_values(array_diff($element['#attributes']['class'], ['draggable', 'drag']));
+    }
+    $paragraph_entity = $element['subform']['#entity'] ?? NULL;
+    if ($paragraph_entity instanceof ParagraphInterface && $paragraph_entity->bundle() === 'remark') {
+      $visible_class = incoming_remarks_get_visible_to_class($paragraph_entity);
+      if ($visible_class) {
+        $element['#attributes']['class'][] = $visible_class;
+      }
+    }
+
+    // Remove top level controls and labels.
+    if (isset($element['top'])) {
+      $element['top']['#access'] = FALSE;
+    }
+    if (isset($element['actions'])) {
+      $element['actions']['#access'] = FALSE;
+    }
+    if (isset($element['title'])) {
+      $element['title']['#access'] = FALSE;
+    }
+    if (isset($element['weight'])) {
+      $element['weight']['#access'] = FALSE;
+    }
+
+    if (!empty($element['subform']) && is_array($element['subform'])) {
+      $bundle = $element['#paragraph_bundle']
+        ?? $element['#paragraph_type']
+        ?? $element['subform']['#paragraph_bundle']
+        ?? $element['subform']['#paragraph_type']
+        ?? NULL;
+      if (!$bundle && isset($element['subform']['#entity']) && $element['subform']['#entity'] instanceof ParagraphInterface) {
+        $bundle = $element['subform']['#entity']->bundle();
+      }
+      if ($bundle) {
+        incoming_remarks_hide_paragraph_fields($element['subform'], $bundle);
+        if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
+          if (isset($element['subform']['field_visible_to'])) {
+            $element['subform']['field_visible_to']['#access'] = FALSE;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Applies widget customizations to all managed paragraph reference fields.
+ */
+function incoming_remarks_customize_paragraph_widgets(array &$form, FormStateInterface $form_state) {
+  $paragraph_field_map = incoming_remarks_get_node_paragraph_field_map();
+  if (!$paragraph_field_map) {
+    return;
+  }
+
+  foreach (array_keys($paragraph_field_map) as $field_name) {
+    incoming_remarks_customize_paragraph_widget($form, $form_state, $field_name);
+  }
+}
+
+/**
+ * Implements hook_preprocess_field_multiple_value_form().
+ */
+function incoming_remarks_preprocess_field_multiple_value_form(array &$variables) {
+  $element = $variables['element'];
+  if (empty($element['#field_name']) || $element['#field_name'] !== 'field_remarks') {
+    return;
+  }
+  if (empty($variables['table']['#rows'])) {
+    return;
+  }
+
+  foreach ($variables['table']['#rows'] as $delta => &$row) {
+    $visible_class = NULL;
+    if (!empty($row['data']) && is_array($row['data'])) {
+      foreach ($row['data'] as $cell) {
+        if (!is_array($cell)) {
+          continue;
+        }
+        $cell_data = $cell['data'] ?? NULL;
+        if (!is_array($cell_data)) {
+          continue;
+        }
+        $subform = $cell_data['subform'] ?? NULL;
+        if (!is_array($subform)) {
+          continue;
+        }
+        foreach ($subform as $subform_item) {
+          if (!is_array($subform_item)) {
+            continue;
+          }
+          if (empty($subform_item['#attributes']['class'])) {
+            continue;
+          }
+          $classes = (array) $subform_item['#attributes']['class'];
+          if (in_array('visible-to-only-kemke', $classes, TRUE)) {
+            $visible_class = 'visible-to-only-kemke';
+            break 2;
+          }
+          if (in_array('visible-to-amke', $classes, TRUE)) {
+            $visible_class = 'visible-to-amke';
+            break 2;
+          }
+        }
+      }
+    }
+    if ($visible_class) {
+      $row['class'][] = $visible_class;
+    }
+  }
+  unset($row);
+}
+
+
+/**
+ * Applies lock behavior for paragraph fields in a subform render array.
+ */
+function incoming_remarks_apply_paragraph_field_locks(array &$subform, ParagraphInterface $paragraph, array $fields) {
+  $hidden_fields_map = incoming_remarks_get_paragraph_hidden_field_map();
+  $hidden_fields = $hidden_fields_map[$paragraph->bundle()] ?? [];
+
+  foreach ($fields as $field_name) {
+    if (!$paragraph->hasField($field_name)) {
+      continue;
+    }
+    if (!isset($subform[$field_name])) {
+      continue;
+    }
+
+    $paragraph_field = $paragraph->get($field_name);
+    $field_is_empty = $paragraph_field->isEmpty();
+
+    if (in_array($field_name, $hidden_fields, TRUE)) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+    elseif (!$field_is_empty) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+
+    if ($field_name === 'field_visible_to' && \Drupal::currentUser()->hasRole('amke_user')) {
+      continue;
+    }
+    if (!$field_is_empty && isset($subform[$field_name])) {
+      $display_classes = ['incoming-remarks-field', str_replace('_', '-', $field_name)];
+      if ($paragraph->bundle() === 'remark' && $field_name === 'field_visible_to') {
+        $visible_class = incoming_remarks_get_visible_to_class($paragraph);
+        if ($visible_class) {
+          $display_classes[] = $visible_class;
+        }
+      }
+      $subform[$field_name . '_display'] = [
+        '#type' => 'container',
+        '#attributes' => ['class' => $display_classes],
+        '#weight' => ($subform[$field_name]['#weight'] ?? 0) + 0.01,
+        'content' => incoming_remarks_render_field_preview($paragraph, $field_name),
+      ];
+    }
+  }
+}
+
+/**
+ * Hides fields that should never be shown in remark paragraph subforms.
+ */
+function incoming_remarks_hide_paragraph_fields(array &$subform, $bundle) {
+  $hidden_fields_map = incoming_remarks_get_paragraph_hidden_field_map();
+  $hidden_fields = $hidden_fields_map[$bundle] ?? [];
+  if (empty($hidden_fields)) {
+    return;
+  }
+
+  foreach ($hidden_fields as $field_name) {
+    if (isset($subform[$field_name])) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Builds a render array that previews the locked field value.
+ */
+function incoming_remarks_render_field_preview(ParagraphInterface $paragraph, $field_name) {
+  $definition = $paragraph->getFieldDefinition($field_name);
+  if (!$definition) {
+    return [];
+  }
+
+  if ($definition->getType() === 'file') {
+    $items = [];
+    $file_url_generator = \Drupal::service('file_url_generator');
+    foreach ($paragraph->get($field_name) as $file_item) {
+      /** @var \Drupal\file\FileInterface|null $file */
+      $file = $file_item->entity;
+      if (!$file instanceof FileInterface) {
+        continue;
+      }
+      $file_url = $file_url_generator->generateAbsoluteString($file->getFileUri());
+      $url = Url::fromUri($file_url);
+      $url->setOption('attributes', ['target' => '_blank']);
+      $items[] = Link::fromTextAndUrl($file->getFilename(), $url)->toRenderable();
+    }
+
+    return [
+      '#theme' => 'item_list',
+      '#title' => NULL,
+      '#items' => $items,
+      '#attributes' => ['class' => ['incoming-remarks-files']],
+    ];
+  }
+
+  $values = incoming_remarks_render_generic_preview_values($paragraph, $field_name, $definition->getType());
+
+  if (empty($values)) {
+    return [];
+  }
+
+  return [
+    '#theme' => 'item_list',
+    '#title' => NULL,
+    '#items' => $values,
+    '#attributes' => ['class' => ['incoming-remarks-text']],
+  ];
+}
+
+/**
+ * Builds preview render elements for non-file field types.
+ */
+function incoming_remarks_render_generic_preview_values(ParagraphInterface $paragraph, $field_name, $field_type) {
+  $values = [];
+  $items = $paragraph->get($field_name);
+
+  switch ($field_type) {
+    case 'entity_reference':
+      foreach ($items as $item) {
+        if ($item->entity) {
+          $label = $item->entity->label();
+          if ($field_name === 'field_user' && $item->entity instanceof UserInterface) {
+            $first = '';
+            $last = '';
+            if ($item->entity->hasField('field_first_name') && !$item->entity->get('field_first_name')->isEmpty()) {
+              $first = (string) $item->entity->get('field_first_name')->value;
+            }
+            if ($item->entity->hasField('field_last_name') && !$item->entity->get('field_last_name')->isEmpty()) {
+              $last = (string) $item->entity->get('field_last_name')->value;
+            }
+            $name = trim($first . ' ' . $last);
+            if ($name !== '') {
+              $label = $name;
+            }
+          }
+          $values[] = [
+            '#markup' => $label,
+          ];
+        }
+      }
+      break;
+
+    case 'timestamp':
+      $date_formatter = \Drupal::service('date.formatter');
+      foreach ($items as $item) {
+        if ($item->value) {
+          $values[] = [
+            '#markup' => $date_formatter->format($item->value, 'medium'),
+          ];
+        }
+      }
+      break;
+
+    case 'list_integer':
+    case 'list_string':
+      foreach ($items as $item) {
+        if (!isset($item->value)) {
+          continue;
+        }
+        $label = $item->value;
+        if ($item instanceof OptionsProviderInterface) {
+          $options = OptGroup::flattenOptions($item->getPossibleOptions());
+          $label = $options[$item->value] ?? $label;
+        }
+        $values[] = [
+          '#markup' => $label,
+        ];
+      }
+      break;
+
+    default:
+      foreach ($items->getValue() as $value) {
+        if (isset($value['value']) && $value['value'] !== '') {
+          $values[] = [
+            '#markup' => $value['value'],
+          ];
+        }
+      }
+      break;
+  }
+
+  return $values;
+}
+
+/**
+ * Provides a per-paragraph-bundle map of fields that lock once populated.
+ */
+function incoming_remarks_get_paragraph_field_map() {
+  return [
+    'remark' => [
+      'field_comment',
+      'field_user',
+      'field_datetime',
+      'field_send_to',
+      'field_visible_to',
+    ],
+  ];
+}
+
+/**
+ * Provides a map of node paragraph reference fields to paragraph field locks.
+ */
+function incoming_remarks_get_node_paragraph_field_map() {
+  return [
+    'field_remarks' => [
+      'remark' => [
+        'field_comment',
+        'field_user',
+        'field_datetime',
+        'field_send_to',
+        'field_visible_to',
+      ],
+    ],
+  ];
+}
+
+/**
+ * Provides fields that should always be hidden in paragraph subforms.
+ */
+function incoming_remarks_get_paragraph_hidden_field_map() {
+  return [
+    'remark' => [
+      'field_user',
+      'field_datetime',
+    ],
+  ];
 }

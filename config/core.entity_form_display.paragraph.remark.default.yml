@@ -7,6 +7,7 @@ dependencies:
     - field.field.paragraph.remark.field_datetime
     - field.field.paragraph.remark.field_send_to
     - field.field.paragraph.remark.field_user
+    - field.field.paragraph.remark.field_visible_to
     - paragraphs.paragraphs_type.remark
   module:
     - text
@@ -25,13 +26,7 @@ content:
     third_party_settings: {  }
   field_datetime:
     type: datetime_timestamp
-    weight: 2
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_send_to:
-    type: options_select
-    weight: 4
+    weight: 0
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -45,6 +40,13 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_visible_to:
+    type: options_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
 hidden:
   created: true
+  field_send_to: true
   status: true

@@ -1,0 +1,27 @@
+uuid: 576a2d10-8762-4b03-a43c-d4f48fa8bb3f
+langcode: el
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_visible_to
+field_name: field_visible_to
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: only_kemke
+      label: 'μόνο ΚΕΜΚΕ'
+    -
+      value: amke
+      label: ΑΜΚΕ
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

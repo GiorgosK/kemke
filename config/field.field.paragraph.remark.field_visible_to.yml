@@ -1,0 +1,23 @@
+uuid: 1884b1cd-d717-4696-95b0-f7a1487b81aa
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_visible_to
+    - paragraphs.paragraphs_type.remark
+  module:
+    - options
+id: paragraph.remark.field_visible_to
+field_name: field_visible_to
+entity_type: paragraph
+bundle: remark
+label: Εμφανές
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: only_kemke
+default_value_callback: ''
+settings: {  }
+field_type: list_string

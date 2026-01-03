@@ -96,3 +96,15 @@
   display: flex;
   gap: 20px;
 }
+
+.field--name-field-remarks,
+.incoming-remarks-field.field-comment {
+  width: 100%;
+}
+div.visible-to-amke {
+  font-weight: bold;
+  font-size: 120%;
+}
+tr.visible-to-amke {
+  border-left: 10px solid #999;
+}
