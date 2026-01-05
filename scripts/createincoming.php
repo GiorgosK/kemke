@@ -189,7 +189,7 @@ $incomingPayload = [
 
 $incomingPayload_simple = [
   //'title' => 'Υποθεση #' . $random,
-  'ref_id' => 'INC-2025-62',
+  //'ref_id' => 'INC-2025-62',
   'notes' => 'Εξτρα πληροφορίες ' . $random,
   'sender' => 'Ονομα Επώνυμο' . $random,
   'subject' => 'θέμα εισερχομένου ' . $random,  
