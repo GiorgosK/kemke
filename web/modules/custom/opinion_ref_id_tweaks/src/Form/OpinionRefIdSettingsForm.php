@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Drupal\opinion_ref_id_tweaks\Form;
 
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 
 /**
  * Settings form for the opinion reference ID generator.
@@ -53,17 +54,13 @@ class OpinionRefIdSettingsForm extends FormBase {
     ];
 
     $form['example_container']['generate_next'] = [
-      '#type' => 'link',
-      '#title' => $this->t('Get next'),
-      '#url' => Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
-        'query' => [
-          '_wrapper_format' => 'drupal_ajax',
-          'target' => 'opinion-ref-id-example',
-        ],
-      ]),
+      '#type' => 'button',
+      '#value' => $this->t('Get next'),
       '#attributes' => [
-        'class' => ['use-ajax', 'opinion-ref-id-generate'],
-        'data-dialog-type' => 'ajax',
+        'id' => 'edit-generate-next',
+      ],
+      '#ajax' => [
+        'callback' => '::ajaxGenerateNext',
       ],
     ];
 
@@ -113,6 +110,18 @@ class OpinionRefIdSettingsForm extends FormBase {
     $state->set("opinion_ref_id_tweaks.ref_counter.$year", max(0, $next_number - 1));
 
     $this->messenger()->addStatus($this->t('Next number updated.'));
+  }
+
+  /**
+   * AJAX callback for the example generator button.
+   */
+  public function ajaxGenerateNext(array &$form, FormStateInterface $form_state): AjaxResponse {
+    $response = new AjaxResponse();
+    $response->addCommand(new InvokeCommand('input#opinion-ref-id-example', 'val', [
+      opinion_ref_id_tweaks_generate_reference_id(),
+    ]));
+
+    return $response;
   }
 
 }
