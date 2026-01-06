@@ -75,6 +75,7 @@ backup_database() {
     section "Database Backup"
     info "Δημιουργία database backup..."
     mkdir -p "$BACKUP_DIR"
+    chown www-data:www-data -R "$DRUPAL_ROOT/vendor"
     if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" sql:dump --gzip --result-file="${DB_BACKUP_FILE%.gz}" 2>&1 | tee -a "$LOG_FILE"; then
         error "Αποτυχία δημιουργίας database backup"
         return 1
