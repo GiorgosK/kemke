@@ -15,22 +15,22 @@ type_settings:
       label: 'Προς χρέωση'
       weight: -7
       published: false
-      default_revision: false
+      default_revision: true
     for_signature:
       label: 'Εγκεκριμένο - Προς υπογραφή'
       weight: 3
       published: false
-      default_revision: false
+      default_revision: true
     fullness_check:
       label: 'Έλεγχος πληρότητας'
       weight: -4
       published: false
-      default_revision: false
+      default_revision: true
     pending_issues:
       label: 'Με εκκρεμότητες'
       weight: -3
       published: false
-      default_revision: false
+      default_revision: true
     published:
       label: Ολοκληρωμένο
       weight: 5
@@ -40,7 +40,7 @@ type_settings:
       label: 'Υπό επεξεργασία'
       weight: -1
       published: false
-      default_revision: false
+      default_revision: true
   transitions:
     completed:
       label: Ολοκληρωμένο
