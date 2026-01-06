@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # Drupal 11 Deployment Script - Production Ready
-# Safe Git Authentication - Uses SSH keys or token from environment
-# Usage: sudo ./update_code.sh [--dry-run] [--skip-backup]
-# Supports multiple branches via GIT_BRANCH env var (default: main)
+# Safe Git Authentication - Uses credentials from input
+# Usage: sudo ./update_code.sh
 
 set -euo pipefail
 
@@ -25,7 +24,7 @@ DB_BACKUP_FILE="$BACKUP_DIR/db_backup_$TIMESTAMP.sql"
 LOG_FILE="/var/log/drupal_deploy_$TIMESTAMP.log"
 DEPLOY_FAILED=false
 
-# Colors for output
+# Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -33,20 +32,17 @@ BLUE='\033[0;34m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
-# ========== LOGGING FUNCTIONS ==========
+# ========== LOGGING ==========
 log() { echo -e "${GREEN}[✓]${NC} $1" | tee -a "$LOG_FILE"; }
 warn() { echo -e "${YELLOW}[!]${NC} $1" | tee -a "$LOG_FILE"; }
 error() { echo -e "${RED}[✗]${NC} $1" | tee -a "$LOG_FILE"; }
 info() { echo -e "${BLUE}[i]${NC} $1" | tee -a "$LOG_FILE"; }
-debug() { [[ "${DEBUG:-0}" == "1" ]] && echo -e "${MAGENTA}[D]${NC} $1" | tee -a "$LOG_FILE"; }
 section() { echo -e "\n${MAGENTA}========== $1 ==========${NC}" | tee -a "$LOG_FILE"; }
 
-# ========== CLEANUP ON EXIT ==========
 cleanup() {
     local exit_code=$?
     if [[ $exit_code -ne 0 || "$DEPLOY_FAILED" == "true" ]]; then
         warn "Deployment failed or interrupted with code $exit_code"
-        # Re-enable site in case maintenance mode is still on
         if [[ -f "$DRUPAL_ROOT/vendor/bin/drush" ]]; then
             warn "Attempting to disable maintenance mode..."
             sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode FALSE 2>/dev/null || true
@@ -56,117 +52,62 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# ========== VALIDATION FUNCTIONS ==========
 validate_environment() {
     section "Environment Validation"
-    
-    # Check root privileges
-    if [[ $EUID -ne 0 ]]; then
-        error "Πρέπει να τρέξεις με sudo"
-    fi
+    if [[ $EUID -ne 0 ]]; then error "Πρέπει να τρέξεις με sudo"; fi
     log "Running as root"
-    
-    # Check Drupal root exists
-    if [[ ! -d "$DRUPAL_ROOT" ]]; then
-        error "Drupal root δεν υπάρχει: $DRUPAL_ROOT"
-    fi
+    [[ ! -d "$DRUPAL_ROOT" ]] && error "Drupal root δεν υπάρχει: $DRUPAL_ROOT"
     log "Drupal root exists: $DRUPAL_ROOT"
-    
-    # Check if Git repo exists
-    if [[ ! -d "$DRUPAL_ROOT/.git" ]]; then
-        error "Δεν είναι Git repository"
-    fi
+    [[ ! -d "$DRUPAL_ROOT/.git" ]] && error "Δεν είναι Git repository"
     log "Git repository found"
-    
-    # Check if composer.json exists
-    if [[ ! -f "$DRUPAL_ROOT/composer.json" ]]; then
-        error "Δεν βρέθηκε composer.json"
-    fi
+    [[ ! -f "$DRUPAL_ROOT/composer.json" ]] && error "Δεν βρέθηκε composer.json"
     log "composer.json found"
-    
-    # Check if Drush exists
-    if [[ ! -f "$DRUPAL_ROOT/vendor/bin/drush" ]]; then
-        error "Δεν βρέθηκε Drush"
-    fi
+    [[ ! -f "$DRUPAL_ROOT/vendor/bin/drush" ]] && error "Δεν βρέθηκε Drush"
     log "Drush found"
-    
-    # Check if user exists
-    if ! id "$DRUPAL_USER" &>/dev/null; then
-        error "User does not exist: $DRUPAL_USER"
-    fi
+    ! id "$DRUPAL_USER" &>/dev/null && error "User does not exist: $DRUPAL_USER"
     log "Drupal user exists: $DRUPAL_USER"
-    
-    # Verify git branch exists
     cd "$DRUPAL_ROOT"
-    if ! sudo -u "$DRUPAL_USER" git rev-parse --verify "origin/$BRANCH" &>/dev/null; then
-        error "Branch δεν υπάρχει: $BRANCH"
-    fi
+    ! sudo -u "$DRUPAL_USER" git rev-parse --verify "origin/$BRANCH" &>/dev/null && error "Branch δεν υπάρχει: $BRANCH"
     log "Git branch exists: $BRANCH"
-    
     log "Όλοι οι έλεγχοι πέρασαν"
 }
 
-# ========== BACKUP FUNCTIONS ==========
 backup_database() {
     section "Database Backup"
-    
     info "Δημιουργία database backup..."
     mkdir -p "$BACKUP_DIR"
-    
     if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" sql:dump --gzip --result-file="${DB_BACKUP_FILE%.gz}" 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Αποτυχία δημιουργίας database backup"
     fi
-    
-    if [[ ! -f "${DB_BACKUP_FILE}.gz" ]]; then
-        DEPLOY_FAILED=true
-        error "Database backup file not created"
-    fi
-    
+    [[ ! -f "${DB_BACKUP_FILE}.gz" ]] && DEPLOY_FAILED=true && error "Database backup file not created"
     local size=$(du -h "${DB_BACKUP_FILE}.gz" | cut -f1)
     log "Database backup δημιουργήθηκε: ${DB_BACKUP_FILE}.gz ($size)"
 }
 
 backup_codebase() {
     section "Codebase Backup"
-    
     info "Δημιουργία codebase backup..."
     mkdir -p "$BACKUP_DIR"
-    
-    if ! tar -czf "$BACKUP_FILE" \
-        --exclude='node_modules' \
-        --exclude='.git' \
-        --exclude='vendor' \
-        --exclude='web/sites/default/files' \
-        --exclude='private' \
-        -C "$(dirname "$DRUPAL_ROOT")" \
-        "$(basename "$DRUPAL_ROOT")" 2>&1 | tee -a "$LOG_FILE"; then
+    if ! tar -czf "$BACKUP_FILE" --exclude='node_modules' --exclude='.git' --exclude='vendor' --exclude='web/sites/default/files' --exclude='private' -C "$(dirname "$DRUPAL_ROOT")" "$(basename "$DRUPAL_ROOT")" 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Αποτυχία δημιουργίας codebase backup"
     fi
-    
     local size=$(du -h "$BACKUP_FILE" | cut -f1)
     log "Backup δημιουργήθηκε: $BACKUP_FILE ($size)"
 }
 
-# ========== GIT OPERATIONS ==========
 git_update() {
     section "Git Operations"
-    
     cd "$DRUPAL_ROOT"
-    
     info "Current branch: $(git rev-parse --abbrev-ref HEAD)"
     info "Έλεγχος για νέες αλλαγές..."
     
-    # Git credential helper function
-    git_cmd() {
-        echo "$GIT_PASSWORD" | git -c credential.helper='!read pass; echo password=$pass' -c credential.username="$GIT_USERNAME" "$@"
-    }
+    # Git with credentials
+    git -c "credential.https://github.com.username=$GIT_USERNAME" \
+        -c "credential.https://github.com.password=$GIT_PASSWORD" \
+        fetch origin 2>&1 | tee -a "$LOG_FILE" || true
     
-    # Fetch from remote
-    git_cmd fetch origin 2>&1 | tee -a "$LOG_FILE" || true
-    
-    # Check if there are changes
     local current_commit=$(git rev-parse HEAD)
     local remote_commit=$(git rev-parse origin/$BRANCH)
     
@@ -176,82 +117,57 @@ git_update() {
     fi
     
     log "Νέες αλλαγές ανιχνεύθηκαν"
-    
-    # Checkout and pull
     git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
-    git_cmd pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
-    
+    git -c "credential.https://github.com.username=$GIT_USERNAME" \
+        -c "credential.https://github.com.password=$GIT_PASSWORD" \
+        pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
     log "Κώδικας ενημερώθηκε: $current_commit → $remote_commit"
 }
 
-# ========== COMPOSER ==========
 composer_install() {
     section "Composer Install"
-    
     cd "$DRUPAL_ROOT"
-    
     info "Running: composer install --no-dev --optimize-autoloader"
-    
-    if ! sudo -u "$DRUPAL_USER" /usr/local/bin/composer install \
-        --no-dev \
-        --optimize-autoloader \
-        --no-interaction \
-        2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tee -a "$LOG_FILE"; then
         warn "Composer install finished with warnings/errors"
     fi
-    
     log "Dependencies εγκατάστησαν"
 }
 
-# ========== MAINTENANCE MODE ==========
 enable_maintenance() {
     section "Maintenance Mode"
-    
     info "Ενεργοποίηση Maintenance Mode..."
-    
     if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode TRUE 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Failed to enable maintenance mode"
     fi
-    
     log "Site είναι σε Maintenance Mode"
 }
 
 disable_maintenance() {
     section "Disable Maintenance Mode"
-    
     info "Απενεργοποίηση Maintenance Mode..."
-    
     if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode FALSE 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Failed to disable maintenance mode"
     fi
-    
     log "Site είναι Live"
 }
 
-# ========== DRUPAL UPDATES ==========
 run_drupal_updates() {
     section "Drupal Updates & Cache Rebuild"
-    
     cd "$DRUPAL_ROOT"
-    
-    # Database updates
     info "Running database updates..."
     if ! sudo -u "$DRUPAL_USER" ./vendor/bin/drush updatedb -y 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Database updates απέτυχαν"
     fi
     log "Database updates ολοκληρώθησαν"
-    
-    # Config import
     info "Importing configuration..."
     if ! sudo -u "$DRUPAL_USER" ./vendor/bin/drush cim -y 2>&1 | tee -a "$LOG_FILE"; then
         warn "Config import had issues (may be expected)"
     fi
     log "Configuration imported"
-    
-    # Cache rebuild
     info "Rebuilding caches..."
     if ! sudo -u "$DRUPAL_USER" ./vendor/bin/drush cr 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
@@ -260,37 +176,28 @@ run_drupal_updates() {
     log "Cache rebuilt"
 }
 
-# ========== FILE PERMISSIONS ==========
 fix_permissions() {
     section "File Permissions"
-    
     info "Διόρθωση δικαιωμάτων αρχείων..."
-    
     chown -R "$DRUPAL_USER:$DRUPAL_GROUP" "$DRUPAL_ROOT"
-    chmod -R 755 "$DRUPAL_ROOT"
-    chmod -R 775 "$DRUPAL_ROOT/web/sites/default/files"
-    
-    if [[ -d "$DRUPAL_ROOT/private" ]]; then
-        chmod -R 775 "$DRUPAL_ROOT/private"
-    fi
-    
+    find "$DRUPAL_ROOT" -type d -exec chmod 750 {} \;
+    find "$DRUPAL_ROOT" -type f -exec chmod 640 {} \;
+    chmod 770 "$DRUPAL_ROOT/web/sites/default/files" 2>/dev/null || true
+    chmod 770 "$DRUPAL_ROOT/private" 2>/dev/null || true
+    chmod 755 "$DRUPAL_ROOT/web"
+    chmod 440 "$DRUPAL_ROOT/web/sites/default/settings.php" 2>/dev/null || true
     log "Δικαιώματα αρχείων διορθώθησαν"
 }
 
-# ========== POST-DEPLOYMENT CHECKS ==========
 health_check() {
     section "Health Checks"
-    
     cd "$DRUPAL_ROOT"
-    
     info "Checking Drupal status..."
     if ! sudo -u "$DRUPAL_USER" ./vendor/bin/drush status 2>&1 | tee -a "$LOG_FILE" | grep -q "Drupal version"; then
         DEPLOY_FAILED=true
         error "Site δεν είναι accessible μετά την ανάπτυξη"
     fi
     log "Site είναι accessible"
-    
-    # Check database connection
     info "Checking database connection..."
     if ! sudo -u "$DRUPAL_USER" ./vendor/bin/drush sqlq "SELECT 1;" &>/dev/null; then
         DEPLOY_FAILED=true
@@ -299,35 +206,15 @@ health_check() {
     log "Database connection OK"
 }
 
-# ========== CLEANUP ==========
 cleanup_old_backups() {
     section "Backup Cleanup"
-    
     info "Καθαρισμός παλιών backups (retention: $BACKUP_RETENTION_DAYS days)..."
-    
     local deleted_count=$(find "$BACKUP_DIR" -name "backup_*.tar.gz" -mtime +$BACKUP_RETENTION_DAYS -delete -print | wc -l)
     local db_deleted=$(find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -mtime +$BACKUP_RETENTION_DAYS -delete -print | wc -l)
-    
     total_deleted=$((deleted_count + db_deleted))
-    
-    if [[ $total_deleted -gt 0 ]]; then
-        log "Deleted $total_deleted old backups"
-    else
-        info "No old backups to delete"
-    fi
+    [[ $total_deleted -gt 0 ]] && log "Deleted $total_deleted old backups" || info "No old backups to delete"
 }
 
-# ========== DRY RUN MODE ==========
-execute_or_skip() {
-    if [[ "$DRY_RUN" == "true" ]]; then
-        info "[DRY RUN] Would execute: $*"
-        return 0
-    else
-        "$@"
-    fi
-}
-
-# ========== MAIN EXECUTION ==========
 main() {
     section "Drupal 11 Deployment Started"
     info "Timestamp: $TIMESTAMP"
@@ -338,13 +225,8 @@ main() {
     mkdir -p "$BACKUP_DIR"
     mkdir -p "$(dirname "$LOG_FILE")"
     
-    # Pre-deployment checks
     validate_environment
-    
-    # Check for changes FIRST
     git_update
-    
-    # If we reach here, there are changes - proceed with backup and deployment
     backup_database
     backup_codebase
     enable_maintenance
@@ -355,7 +237,6 @@ main() {
     disable_maintenance
     cleanup_old_backups
     
-    # Final summary
     section "Deployment Summary"
     if [[ "$DEPLOY_FAILED" == "true" ]]; then
         error "DEPLOYMENT COMPLETED WITH ERRORS"
@@ -369,5 +250,4 @@ main() {
     fi
 }
 
-# ========== ENTRY POINT ==========
 main
