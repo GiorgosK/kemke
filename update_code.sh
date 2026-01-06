@@ -23,8 +23,6 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/backup_$TIMESTAMP.tar.gz"
 DB_BACKUP_FILE="$BACKUP_DIR/db_backup_$TIMESTAMP.sql"
 LOG_FILE="/var/log/drupal_deploy_$TIMESTAMP.log"
-DRY_RUN=false
-SKIP_BACKUP=false
 DEPLOY_FAILED=false
 
 # Colors for output
@@ -57,26 +55,6 @@ cleanup() {
     exit $exit_code
 }
 trap cleanup EXIT
-
-# ========== ARGUMENT PARSING ==========
-parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --dry-run)
-                DRY_RUN=true
-                warn "DRY RUN MODE - No changes will be made"
-                ;;
-            --skip-backup)
-                SKIP_BACKUP=true
-                warn "SKIPPING BACKUPS - This is risky!"
-                ;;
-            *)
-                error "Unknown argument: $1"
-                ;;
-        esac
-        shift
-    done
-}
 
 # ========== VALIDATION FUNCTIONS ==========
 validate_environment() {
@@ -132,11 +110,6 @@ validate_environment() {
 backup_database() {
     section "Database Backup"
     
-    if [[ "$SKIP_BACKUP" == "true" ]]; then
-        warn "Skipping database backup!"
-        return 0
-    fi
-    
     info "Δημιουργία database backup..."
     mkdir -p "$BACKUP_DIR"
     
@@ -156,11 +129,6 @@ backup_database() {
 
 backup_codebase() {
     section "Codebase Backup"
-    
-    if [[ "$SKIP_BACKUP" == "true" ]]; then
-        warn "Skipping codebase backup!"
-        return 0
-    fi
     
     info "Δημιουργία codebase backup..."
     mkdir -p "$BACKUP_DIR"
@@ -188,11 +156,7 @@ git_update() {
     cd "$DRUPAL_ROOT"
     
     info "Current branch: $(git rev-parse --abbrev-ref HEAD)"
-    info "Ενημέρωση κώδικα από $BRANCH branch..."
-    
-    # Store current commit for rollback if needed
-    local current_commit=$(git rev-parse HEAD)
-    debug "Current commit: $current_commit"
+    info "Έλεγχος για νέες αλλαγές..."
     
     # Git credential helper function
     git_cmd() {
@@ -200,43 +164,24 @@ git_update() {
     }
     
     # Fetch from remote
-    debug "Running: git fetch origin"
-    if ! git_cmd fetch origin 2>&1 | tee -a "$LOG_FILE"; then
-        DEPLOY_FAILED=true
-        error "Git fetch απέτυχε"
-    fi
-    log "Git fetch succeeded"
+    git_cmd fetch origin 2>&1 | tee -a "$LOG_FILE" || true
     
-    # Check for local changes
-    if ! git diff-index --quiet HEAD --; then
-        warn "Local changes detected. Stashing..."
-        git stash
-        debug "Local changes stashed"
+    # Check if there are changes
+    local current_commit=$(git rev-parse HEAD)
+    local remote_commit=$(git rev-parse origin/$BRANCH)
+    
+    if [[ "$current_commit" == "$remote_commit" ]]; then
+        warn "Δεν υπάρχουν νέες αλλαγές - Deployment ακυρώθηκε"
+        exit 0
     fi
     
-    # Checkout branch
-    debug "Running: git checkout $BRANCH"
-    if ! git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
-        DEPLOY_FAILED=true
-        error "Git checkout απέτυχε"
-    fi
-    log "Git checkout succeeded"
+    log "Νέες αλλαγές ανιχνεύθηκαν"
     
-    # Pull from remote
-    debug "Running: git pull origin $BRANCH"
-    if ! git_cmd pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
-        DEPLOY_FAILED=true
-        error "Git pull απέτυχε"
-    fi
+    # Checkout and pull
+    git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
+    git_cmd pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
     
-    local new_commit=$(git rev-parse HEAD)
-    debug "New commit: $new_commit"
-    
-    if [[ "$current_commit" == "$new_commit" ]]; then
-        warn "No code changes detected"
-    else
-        log "Κώδικας ενημερώθηκε: $current_commit → $new_commit"
-    fi
+    log "Κώδικας ενημερώθηκε: $current_commit → $remote_commit"
 }
 
 # ========== COMPOSER ==========
@@ -389,36 +334,26 @@ main() {
     info "Log file: $LOG_FILE"
     info "Branch: $BRANCH"
     info "Drupal root: $DRUPAL_ROOT"
-    [[ "$DRY_RUN" == "true" ]] && info "MODE: DRY RUN"
-    [[ "$SKIP_BACKUP" == "true" ]] && warn "SKIPPING BACKUPS"
     
     mkdir -p "$BACKUP_DIR"
     mkdir -p "$(dirname "$LOG_FILE")"
     
-    # Main workflow
+    # Pre-deployment checks
     validate_environment
     
-    if [[ "$DRY_RUN" != "true" ]]; then
-        backup_database
-        backup_codebase
-        enable_maintenance
-    else
-        info "[DRY RUN] Skipping backups"
-        info "[DRY RUN] Skipping maintenance mode"
-    fi
-    
+    # Check for changes FIRST
     git_update
-    composer_install
     
-    if [[ "$DRY_RUN" != "true" ]]; then
-        run_drupal_updates
-        fix_permissions
-        health_check
-        disable_maintenance
-        cleanup_old_backups
-    else
-        info "[DRY RUN] Skipping Drupal updates, permission fixes, health checks"
-    fi
+    # If we reach here, there are changes - proceed with backup and deployment
+    backup_database
+    backup_codebase
+    enable_maintenance
+    composer_install
+    run_drupal_updates
+    fix_permissions
+    health_check
+    disable_maintenance
+    cleanup_old_backups
     
     # Final summary
     section "Deployment Summary"
@@ -428,12 +363,11 @@ main() {
     else
         log "Ανάπτυξη ολοκληρώθηκε επιτυχώς!"
         info "Backup αρχείο: $BACKUP_FILE"
-        info "Database dump: $DB_BACKUP_FILE"
+        info "Database dump: ${DB_BACKUP_FILE}.gz"
         info "Log file: $LOG_FILE"
         return 0
     fi
 }
 
 # ========== ENTRY POINT ==========
-parse_args "$@"
 main
