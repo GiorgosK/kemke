@@ -65,6 +65,12 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
     return;
   }
 
+  if (\Drupal::currentUser()->hasRole('amke_user')) {
+    $selector = 'edit-field-related-incoming-actions-ief-add-existing';
+    $name = 'ief-field_related_incoming-form-add-existing';
+    incoming_related_field_update_button_access($form, $selector, $name, FALSE);
+  }
+
   $label = 'Προσθήκη αρχείου';
   $selector = 'edit-field-related-incoming-actions-ief-add';
   $name = 'ief-field_related_incoming-form-add';
@@ -102,6 +108,26 @@ function incoming_related_field_update_button_label(array &$element, string $sel
   foreach ($element as &$child) {
     if (is_array($child)) {
       incoming_related_field_update_button_label($child, $selector, $name, $label);
+    }
+  }
+  unset($child);
+}
+
+/**
+ * Recursively updates a button access by selector, name, or id.
+ */
+function incoming_related_field_update_button_access(array &$element, string $selector, string $name, bool $access): void {
+  $matches_selector = isset($element['#attributes']['data-drupal-selector']) && $element['#attributes']['data-drupal-selector'] === $selector;
+  $matches_id = isset($element['#attributes']['id']) && $element['#attributes']['id'] === $selector;
+  $matches_name = isset($element['#name']) && $element['#name'] === $name;
+
+  if ($matches_selector || $matches_id || $matches_name) {
+    $element['#access'] = $access;
+  }
+
+  foreach ($element as &$child) {
+    if (is_array($child)) {
+      incoming_related_field_update_button_access($child, $selector, $name, $access);
     }
   }
   unset($child);
