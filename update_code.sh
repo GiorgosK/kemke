@@ -7,6 +7,11 @@
 
 set -euo pipefail
 
+# ========== GIT CREDENTIALS ==========
+read -p "Enter GitHub username: " GIT_USERNAME
+read -sp "Enter GitHub password/token: " GIT_PASSWORD
+echo ""
+
 # ========== CONFIGURATION ==========
 DRUPAL_ROOT="${DRUPAL_ROOT:-/var/www/drupal}"
 DRUPAL_USER="${DRUPAL_USER:-www-data}"
@@ -16,7 +21,7 @@ BACKUP_DIR="${BACKUP_DIR:-/var/backups/drupal}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/backup_$TIMESTAMP.tar.gz"
-DB_BACKUP_FILE="$BACKUP_DIR/db_backup_$TIMESTAMP.sql.gz"
+DB_BACKUP_FILE="$BACKUP_DIR/db_backup_$TIMESTAMP.sql"
 LOG_FILE="/var/log/drupal_deploy_$TIMESTAMP.log"
 DRY_RUN=false
 SKIP_BACKUP=false
@@ -135,18 +140,18 @@ backup_database() {
     info "Δημιουργία database backup..."
     mkdir -p "$BACKUP_DIR"
     
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" sql:dump --gzip --result-file="$DB_BACKUP_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" sql:dump --gzip --result-file="${DB_BACKUP_FILE%.gz}" 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Αποτυχία δημιουργίας database backup"
     fi
     
-    if [[ ! -f "$DB_BACKUP_FILE" ]]; then
+    if [[ ! -f "${DB_BACKUP_FILE}.gz" ]]; then
         DEPLOY_FAILED=true
         error "Database backup file not created"
     fi
     
-    local size=$(du -h "$DB_BACKUP_FILE" | cut -f1)
-    log "Database backup δημιουργήθηκε: $DB_BACKUP_FILE ($size)"
+    local size=$(du -h "${DB_BACKUP_FILE}.gz" | cut -f1)
+    log "Database backup δημιουργήθηκε: ${DB_BACKUP_FILE}.gz ($size)"
 }
 
 backup_codebase() {
@@ -189,24 +194,29 @@ git_update() {
     local current_commit=$(git rev-parse HEAD)
     debug "Current commit: $current_commit"
     
+    # Git credential helper function
+    git_cmd() {
+        echo "$GIT_PASSWORD" | git -c credential.helper='!read pass; echo password=$pass' -c credential.username="$GIT_USERNAME" "$@"
+    }
+    
     # Fetch from remote
     debug "Running: git fetch origin"
-    if ! sudo -u "$DRUPAL_USER" git fetch origin 2>&1 | tee -a "$LOG_FILE"; then
+    if ! git_cmd fetch origin 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Git fetch απέτυχε"
     fi
     log "Git fetch succeeded"
     
     # Check for local changes
-    if ! sudo -u "$DRUPAL_USER" git diff-index --quiet HEAD --; then
+    if ! git diff-index --quiet HEAD --; then
         warn "Local changes detected. Stashing..."
-        sudo -u "$DRUPAL_USER" git stash
+        git stash
         debug "Local changes stashed"
     fi
     
     # Checkout branch
     debug "Running: git checkout $BRANCH"
-    if ! sudo -u "$DRUPAL_USER" git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+    if ! git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Git checkout απέτυχε"
     fi
@@ -214,7 +224,7 @@ git_update() {
     
     # Pull from remote
     debug "Running: git pull origin $BRANCH"
-    if ! sudo -u "$DRUPAL_USER" git pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+    if ! git_cmd pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
         DEPLOY_FAILED=true
         error "Git pull απέτυχε"
     fi
