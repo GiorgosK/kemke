@@ -4,6 +4,12 @@ incoming_tweaks.incoming:
   title: 'Εισερχόμενα'
   weight: 0
 
+incoming_tweaks.incoming_completed:
+  route_name: view.incoming.page_5
+  base_route: view.incoming.page_1
+  title: 'Ολοκληρωμένα'
+  weight: 5
+
 incoming_tweaks.incoming_all:
   route_name: view.incoming.page_4
   base_route: view.incoming.page_1
@@ -15,6 +21,12 @@ incoming_tweaks.incoming_amke:
   base_route: view.incoming_amke.page_1
   title: 'Έγγραφα'
   weight: 0
+
+incoming_tweaks.amke_completed:
+  route_name: view.incoming_amke.page_3
+  base_route: view.incoming_amke.page_1
+  title: 'Ολοκληρωμένα'
+  weight: 5
 
 incoming_tweaks.amke_all:
   route_name: view.incoming_amke.page_2

@@ -23,7 +23,7 @@ final class IncomingListingBreadcrumbBuilder implements BreadcrumbBuilderInterfa
    */
   public function applies(RouteMatchInterface $route_match): bool {
     $route_name = $route_match->getRouteName();
-    return in_array($route_name, ['view.incoming.page_1', 'view.incoming.page_4'], TRUE);
+    return in_array($route_name, ['view.incoming.page_1', 'view.incoming.page_4', 'view.incoming.page_5'], TRUE);
   }
 
   /**
@@ -48,6 +48,11 @@ final class IncomingListingBreadcrumbBuilder implements BreadcrumbBuilderInterfa
     if ($route_name === 'view.incoming.page_4') {
       // Archive/all listing as final crumb without link.
       $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Όλα τα Εισερχόμενα'), Url::fromRoute('<nolink>')));
+    }
+
+    if ($route_name === 'view.incoming.page_5') {
+      // Archive/all listing as final crumb without link.
+      $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Ολοκληρωμένα'), Url::fromRoute('<nolink>')));
     }
 
     return $breadcrumb;
