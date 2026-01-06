@@ -42,9 +42,9 @@ cleanup() {
     local exit_code=$?
     if [[ $exit_code -ne 0 ]]; then
         warn "Deployment failed or interrupted with code $exit_code"
-        if [[ -f "$DRUPAL_ROOT/vendor/bin/drush" ]]; then
+        if [[ -f "$DRUPAL_ROOT/vendor/drush/drush/drush" ]]; then
             warn "Attempting to disable maintenance mode..."
-            sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode FALSE 2>/dev/null || true
+            sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" state:set system.maintenance_mode FALSE 2>/dev/null || true
         fi
     fi
     exit $exit_code
@@ -61,7 +61,7 @@ validate_environment() {
     log "Git repository found"
     [[ ! -f "$DRUPAL_ROOT/composer.json" ]] && error "Δεν βρέθηκε composer.json"
     log "composer.json found"
-    [[ ! -f "$DRUPAL_ROOT/vendor/bin/drush" ]] && error "Δεν βρέθηκε Drush"
+    [[ ! -f "$DRUPAL_ROOT/vendor/drush/drush/drush" ]] && error "Δεν βρέθηκε Drush"
     log "Drush found"
     ! id "$DRUPAL_USER" &>/dev/null && error "User does not exist: $DRUPAL_USER"
     log "Drupal user exists: $DRUPAL_USER"
@@ -75,7 +75,7 @@ backup_database() {
     section "Database Backup"
     info "Δημιουργία database backup..."
     mkdir -p "$BACKUP_DIR"
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" sql:dump --gzip --result-file="${DB_BACKUP_FILE%.gz}" 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" sql:dump --gzip --result-file="${DB_BACKUP_FILE%.gz}" 2>&1 | tee -a "$LOG_FILE"; then
         error "Αποτυχία δημιουργίας database backup"
         return 1
     fi
@@ -99,7 +99,7 @@ backup_codebase() {
 enable_maintenance() {
     section "Maintenance Mode"
     info "Ενεργοποίηση Maintenance Mode..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode TRUE 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" state:set system.maintenance_mode TRUE 2>&1 | tee -a "$LOG_FILE"; then
         error "Failed to enable maintenance mode"
         return 1
     fi
@@ -109,7 +109,7 @@ enable_maintenance() {
 disable_maintenance() {
     section "Disable Maintenance Mode"
     info "Απενεργοποίηση Maintenance Mode..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" state:set system.maintenance_mode FALSE 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" state:set system.maintenance_mode FALSE 2>&1 | tee -a "$LOG_FILE"; then
         error "Failed to disable maintenance mode"
         return 1
     fi
@@ -130,18 +130,18 @@ run_drupal_updates() {
     section "Drupal Updates & Cache Rebuild"
     cd "$DRUPAL_ROOT"
     info "Running database updates..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" updatedb -y 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" updatedb -y 2>&1 | tee -a "$LOG_FILE"; then
         error "Database updates απέτυχαν"
         return 1
     fi
     log "Database updates ολοκληρώθησαν"
     info "Importing configuration..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" cim -y 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" cim -y 2>&1 | tee -a "$LOG_FILE"; then
         warn "Config import had issues (may be expected)"
     fi
     log "Configuration imported"
     info "Rebuilding caches..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" cr 2>&1 | tee -a "$LOG_FILE"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" cr 2>&1 | tee -a "$LOG_FILE"; then
         error "Cache rebuild απέτυχε"
         return 1
     fi
@@ -159,9 +159,6 @@ fix_permissions() {
     # Set files to 640
     find "$DRUPAL_ROOT" -type f -exec chmod 640 {} \;
     
-    # Make vendor/bin executables 755
-    find "$DRUPAL_ROOT/vendor/bin" -type f -exec chmod 755 {} \;
-    
     # Writable directories
     chmod 770 "$DRUPAL_ROOT/web/sites/default/files" 2>/dev/null || true
     chmod 770 "$DRUPAL_ROOT/private" 2>/dev/null || true
@@ -172,6 +169,13 @@ fix_permissions() {
     # Read-only configs
     chmod 440 "$DRUPAL_ROOT/web/sites/default/settings.php" 2>/dev/null || true
     
+    # LAST: Make vendor executables 755 (MUST be after chmod 640 for all files)
+    chmod 755 "$DRUPAL_ROOT/vendor/bin" 2>/dev/null || true
+    find "$DRUPAL_ROOT/vendor/bin" -type f -exec chmod 755 {} \;
+    
+    chmod 755 "$DRUPAL_ROOT/vendor/drush" 2>/dev/null || true
+    find "$DRUPAL_ROOT/vendor/drush" -type f -exec chmod 755 {} \;
+    
     log "Δικαιώματα αρχείων διορθώθησαν"
 }
 
@@ -179,13 +183,13 @@ health_check() {
     section "Health Checks"
     cd "$DRUPAL_ROOT"
     info "Checking Drupal status..."
-    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" status 2>&1 | tee -a "$LOG_FILE" | grep -q "Drupal version"; then
+    if ! sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" status 2>&1 | tee -a "$LOG_FILE" | grep -q "Drupal version"; then
         error "Site δεν είναι accessible μετά την ανάπτυξη"
         return 1
     fi
     log "Site είναι accessible"
     info "Checking database connection..."
-    if sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/bin/drush" sql:query "SELECT 1;" &>/dev/null; then
+    if sudo -u "$DRUPAL_USER" "$DRUPAL_ROOT/vendor/drush/drush/drush" sql:query "SELECT 1;" &>/dev/null; then
         log "Database connection OK"
     else
         error "Database connection failed"
@@ -212,9 +216,10 @@ main() {
     mkdir -p "$BACKUP_DIR"
     mkdir -p "$(dirname "$LOG_FILE")"
     
+    # STEP 1: Validate environment
     validate_environment
     
-    # CHECK FOR CHANGES FIRST
+    # STEP 2: Check for changes FIRST (before backup)
     cd "$DRUPAL_ROOT"
     info "Έλεγχος για νέες αλλαγές..."
     
@@ -232,12 +237,14 @@ main() {
     
     log "Νέες αλλαγές ανιχνεύθηκαν"
     
-    # BACKUP BEFORE APPLYING CHANGES
+    # STEP 3: BACKUP BEFORE APPLYING CHANGES
     backup_database || exit 1
     backup_codebase || exit 1
+    
+    # STEP 4: Enable maintenance mode BEFORE code changes
     enable_maintenance || exit 1
     
-    # APPLY CHANGES
+    # STEP 5: APPLY CODE CHANGES
     section "Git Operations"
     git checkout "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
     git -c "credential.https://github.com.username=$GIT_USERNAME" \
@@ -245,12 +252,16 @@ main() {
         pull origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE" || true
     log "Κώδικας ενημερώθηκε: $current_commit → $remote_commit"
     
-    # DEPLOYMENT STEPS
+    # STEP 6: Run deployment tasks
     composer_install || exit 1
     run_drupal_updates || exit 1
     fix_permissions || exit 1
     health_check || exit 1
+    
+    # STEP 7: Disable maintenance mode
     disable_maintenance || exit 1
+    
+    # STEP 8: Cleanup old backups
     cleanup_old_backups
     
     # FINAL SUMMARY
