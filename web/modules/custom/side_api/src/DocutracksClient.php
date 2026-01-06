@@ -7,6 +7,7 @@ namespace Drupal\side_api;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\node\NodeInterface;
 use Drupal\file\FileInterface;
 use GuzzleHttp\ClientInterface;
@@ -121,7 +122,7 @@ final class DocutracksClient {
   public function fetchDocument(string $docId, CookieJar $jar, ?string $baseUrl = null): array {
     if ($this->isSimulationEnabled()) {
       if ($this->shouldSimulateFailure('fetchDocument_return')) {
-        throw new RuntimeException('Document fetch failed: simulated failure.');
+        throw new RuntimeException((string) new TranslatableMarkup('Document fetch failed: simulated failure.'));
       }
       return $this->buildSimulatedDocument($docId);
     }
@@ -135,13 +136,13 @@ final class DocutracksClient {
       ]);
     }
     catch (GuzzleException $e) {
-      throw new RuntimeException(sprintf('Document fetch failed: %s', $e->getMessage()), 0, $e);
+      throw new RuntimeException((string) new TranslatableMarkup('Document fetch failed: @message', ['@message' => $e->getMessage()]), 0, $e);
     }
 
     $body = (string) $response->getBody();
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
-      throw new RuntimeException('Document response could not be decoded as JSON.');
+      throw new RuntimeException((string) new TranslatableMarkup('Document response could not be decoded as JSON.'));
     }
     return $decoded;
   }
@@ -249,7 +250,7 @@ final class DocutracksClient {
   public function registerDocument(array $payload, CookieJar $jar, ?string $baseUrl = null, float $timeout = self::DEFAULT_TIMEOUT): array {
     if ($this->isSimulationEnabled()) {
       if ($this->shouldSimulateFailure('registerDocument_return')) {
-        throw new RuntimeException('Register document failed: simulated failure.');
+        throw new RuntimeException((string) new TranslatableMarkup('Register document failed: simulated failure.'));
       }
       return $this->buildSimulatedRegisterResponse($payload);
     }
@@ -273,13 +274,13 @@ final class DocutracksClient {
       ]);
     }
     catch (GuzzleException $e) {
-      throw new RuntimeException(sprintf('Register document failed: %s', $e->getMessage()), 0, $e);
+      throw new RuntimeException((string) new TranslatableMarkup('Register document failed: @message', ['@message' => $e->getMessage()]), 0, $e);
     }
 
     $body = (string) $response->getBody();
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
-      throw new RuntimeException('Register document response could not be decoded as JSON.');
+      throw new RuntimeException((string) new TranslatableMarkup('Register document response could not be decoded as JSON.'));
     }
     \Drupal::logger('side_api')->info('Docutracks register response: @details', [
       '@details' => Json::encode([
