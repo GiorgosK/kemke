@@ -28,5 +28,6 @@ permissions:
   - 'use incoming_processing transition issues_to_check'
   - 'use incoming_processing transition stay_pending_issues'
   - 'use text format full_html'
+  - 'view any incoming content'
   - 'view own incoming content'
   - 'view own unpublished content'
