@@ -14,22 +14,22 @@ type_settings:
     draft:
       label: 'Προς χρέωση'
       weight: -7
-      published: false
+      published: true
       default_revision: true
     for_signature:
       label: 'Εγκεκριμένο - Προς υπογραφή'
       weight: 3
-      published: false
+      published: true
       default_revision: true
     fullness_check:
       label: 'Έλεγχος πληρότητας'
       weight: -4
-      published: false
+      published: true
       default_revision: true
     pending_issues:
       label: 'Με εκκρεμότητες'
       weight: -3
-      published: false
+      published: true
       default_revision: true
     published:
       label: Ολοκληρωμένο
@@ -39,7 +39,7 @@ type_settings:
     under_processing:
       label: 'Υπό επεξεργασία'
       weight: -1
-      published: false
+      published: true
       default_revision: true
   transitions:
     completed:
