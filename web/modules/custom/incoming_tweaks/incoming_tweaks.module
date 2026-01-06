@@ -555,6 +555,19 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     $client = \Drupal::service('side_api.docutracks_client');
     $jar = $client->loginToDocutracks(timeout: 60.0);
     $doc = $client->fetchDocument((string) $doc_id, $jar);
+    $signatures_status = $client->extractValueByPath($doc, 'Document.SignaturesStatus');
+
+    if (!incoming_tweaks_is_signatures_status_complete($signatures_status)) {
+      $status_label = $signatures_status ?: 'missing';
+      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: signature process incomplete (@status).', [
+        '@nid' => $nid,
+        '@status' => $status_label,
+      ]);
+      incoming_tweaks_revert_to_for_signature($node, t('Signature process incomplete (@status).', [
+        '@status' => $status_label,
+      ]));
+      return;
+    }
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
 
     if (!$file_id) {
@@ -588,6 +601,21 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
   finally {
     unset($processing_signed[$nid]);
   }
+}
+
+/**
+ * Determines whether the signature status shows completion.
+ */
+function incoming_tweaks_is_signatures_status_complete(?string $status): bool {
+  if ($status === NULL) {
+    return FALSE;
+  }
+
+  if (!preg_match('/^\s*(\d+)\D+(\d+)/', $status, $matches)) {
+    return FALSE;
+  }
+
+  return (int) $matches[1] === (int) $matches[2];
 }
 
 /**
