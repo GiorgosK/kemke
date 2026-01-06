@@ -56,3 +56,53 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
     }
   }
 }
+
+/**
+ * Updates the add button label for related incoming items.
+ */
+function incoming_related_field_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if (!in_array($form_id, ['node_incoming_form', 'node_incoming_edit_form'], TRUE)) {
+    return;
+  }
+
+  $label = 'Προσθήκη αρχείου';
+  $selector = 'edit-field-related-incoming-actions-ief-add';
+  $name = 'ief-field_related_incoming-form-add';
+
+  // Try the common IEF actions structure first.
+  if (isset($form['field_related_incoming']['widget']['actions']) && is_array($form['field_related_incoming']['widget']['actions'])) {
+    foreach ($form['field_related_incoming']['widget']['actions'] as &$action) {
+      if (is_array($action) && ($action['#type'] ?? '') === 'submit' && (($action['#name'] ?? '') === $name)) {
+        $action['#value'] = $label;
+      }
+    }
+    unset($action);
+  }
+
+  incoming_related_field_update_button_label($form, $selector, $name, $label);
+}
+
+/**
+ * Recursively updates a button label by selector, name, or id.
+ */
+function incoming_related_field_update_button_label(array &$element, string $selector, string $name, string $label): void {
+  $matches_selector = isset($element['#attributes']['data-drupal-selector']) && $element['#attributes']['data-drupal-selector'] === $selector;
+  $matches_id = isset($element['#attributes']['id']) && $element['#attributes']['id'] === $selector;
+  $matches_name = isset($element['#name']) && $element['#name'] === $name;
+
+  if ($matches_selector || $matches_id || $matches_name) {
+    if (isset($element['#value'])) {
+      $element['#value'] = $label;
+    }
+    if (isset($element['#title'])) {
+      $element['#title'] = $label;
+    }
+  }
+
+  foreach ($element as &$child) {
+    if (is_array($child)) {
+      incoming_related_field_update_button_label($child, $selector, $name, $label);
+    }
+  }
+  unset($child);
+}
