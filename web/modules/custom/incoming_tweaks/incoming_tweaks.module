@@ -542,9 +542,12 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
 
   try {
     $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    if (!$doc_id && incoming_tweaks_simulation_fetch_success()) {
+      $doc_id = 1;
+    }
     if (!$doc_id) {
-      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: missing Docutracks document id.', ['@nid' => $nid]);
-      incoming_tweaks_revert_to_for_signature($node, 'Missing Docutracks document id.');
+      incoming_tweaks_log_signed_fetch_issue($nid, 'Missing Docutracks document id.');
+      incoming_tweaks_revert_to_for_signature($node, t('Missing Docutracks document id.'));
       return;
     }
 
@@ -555,11 +558,14 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
 
     if (!$file_id) {
-      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: GeneratedFile.Id not found for doc @doc.', [
-        '@nid' => $nid,
-        '@doc' => $doc_id,
-      ]);
-      incoming_tweaks_revert_to_for_signature($node, 'Signed file not available yet.');
+      if (incoming_tweaks_simulation_allow_missing_generated_file()) {
+        \Drupal::logger('incoming_tweaks')->info('Skipping signed file fetch for incoming @nid: simulation enabled with missing GeneratedFile.Id.', [
+          '@nid' => $nid,
+        ]);
+        return;
+      }
+      incoming_tweaks_log_signed_fetch_issue($nid, 'GeneratedFile.Id not found.', ['@doc' => $doc_id]);
+      incoming_tweaks_revert_to_for_signature($node, t('Signed file not available yet.'));
       return;
     }
 
@@ -780,9 +786,14 @@ function incoming_tweaks_revert_to_under_processing(NodeInterface $node, array &
   // Remove any pre-existing status messages to avoid mixed success/failure.
   \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
 
-  \Drupal::messenger()->addError(t('Docutracks transmission failed and the item was returned to Under processing. Reason: @reason', [
-    '@reason' => $reason,
-  ]));
+  \Drupal::messenger()->addError([
+    '#type' => 'inline_template',
+    '#template' => '{{ reason }}<br>{{ line2 }}',
+    '#context' => [
+      'reason' => t('@reason', ['@reason' => $reason]),
+      'line2' => t('Document was returned to Under processing.'),
+    ],
+  ]);
 
   // Flag this request so form submit cleanup can remove any core success message.
   \Drupal::request()->attributes->set('incoming_tweaks_dt_failed', TRUE);
@@ -802,12 +813,90 @@ function incoming_tweaks_revert_to_for_signature(NodeInterface $node, string $re
 
   \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
 
-  $node->setNewRevision(FALSE);
+  // Save as a fresh default revision to avoid ER revisions conflicts.
+  $node->setNewRevision(TRUE);
+  $node->isDefaultRevision(TRUE);
+  if ($node->hasField('revision_default')) {
+    $node->set('revision_default', 1);
+  }
+  if ($node->hasField('revision_published')) {
+    $node->set('revision_published', 0);
+  }
+  if (method_exists($node, 'setPublished')) {
+    $node->setPublished(FALSE);
+  }
+  if (method_exists($node, 'setRevisionTranslationAffected')) {
+    $node->setRevisionTranslationAffected(FALSE);
+  }
   $node->save();
 
-  \Drupal::messenger()->addError(t('Signed plan could not be fetched. Item returned to For signature. Reason: @reason', [
-    '@reason' => $reason,
-  ]));
+  // Remove any pre-existing status messages to avoid mixed success/failure.
+  \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
+
+  \Drupal::messenger()->addError([
+    '#type' => 'inline_template',
+    '#template' => '{{ reason }}<br>{{ line2 }}',
+    '#context' => [
+      'reason' => t('@reason', ['@reason' => $reason]),
+      'line2' => t('Document was returned to For signature.'),
+    ],
+  ]);
+
+  // Flag this request so form submit cleanup can remove any core success message.
+  \Drupal::request()->attributes->set('incoming_tweaks_dt_failed', TRUE);
+}
+
+/**
+ * Read the side_api simulation settings array.
+ *
+ * @return array<string, mixed>
+ */
+function incoming_tweaks_simulation_settings(): array {
+  $settings = \Drupal\Core\Site\Settings::get('side_api', []);
+  return is_array($settings) ? $settings : [];
+}
+
+/**
+ * Return TRUE when simulation is enabled and fetchDocument is set to success.
+ */
+function incoming_tweaks_simulation_fetch_success(): bool {
+  $settings = incoming_tweaks_simulation_settings();
+  if (empty($settings['simulation'])) {
+    return FALSE;
+  }
+  $return = $settings['fetchDocument']['return'] ?? '';
+  return is_string($return) && strtolower($return) === 'success';
+}
+
+/**
+ * Return TRUE when simulation allows missing GeneratedFile.Id.
+ */
+function incoming_tweaks_simulation_allow_missing_generated_file(): bool {
+  $settings = incoming_tweaks_simulation_settings();
+  if (empty($settings['simulation'])) {
+    return FALSE;
+  }
+  if (!incoming_tweaks_simulation_fetch_success()) {
+    return FALSE;
+  }
+  return !empty($settings['fetchDocument']['allow_missing_generated_file_id']);
+}
+
+/**
+ * Log a signed-plan fetch issue with consistent formatting.
+ *
+ * @param array<string, mixed> $context
+ */
+function incoming_tweaks_log_signed_fetch_issue(int $nid, string $message, array $context = []): void {
+  $context['@nid'] = $nid;
+  $log_message = 'Unable to fetch signed plan for incoming @nid: @message';
+  if (!empty($context['@doc'])) {
+    $log_message .= ' (doc @doc)';
+  }
+  \Drupal::logger('incoming_tweaks')->warning($log_message, [
+    '@nid' => $context['@nid'],
+    '@message' => $message,
+  ] + $context);
 }
 
 /**

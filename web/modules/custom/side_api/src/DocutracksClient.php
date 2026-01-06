@@ -6,6 +6,7 @@ namespace Drupal\side_api;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\node\NodeInterface;
 use Drupal\file\FileInterface;
 use GuzzleHttp\ClientInterface;
@@ -118,6 +119,13 @@ final class DocutracksClient {
    * @return array<string, mixed>
    */
   public function fetchDocument(string $docId, CookieJar $jar, ?string $baseUrl = null): array {
+    if ($this->isSimulationEnabled()) {
+      if ($this->shouldSimulateFailure('fetchDocument_return')) {
+        throw new RuntimeException('Document fetch failed: simulated failure.');
+      }
+      return $this->buildSimulatedDocument($docId);
+    }
+
     $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
 
     try {
@@ -239,6 +247,13 @@ final class DocutracksClient {
    * @return array<string, mixed>
    */
   public function registerDocument(array $payload, CookieJar $jar, ?string $baseUrl = null, float $timeout = self::DEFAULT_TIMEOUT): array {
+    if ($this->isSimulationEnabled()) {
+      if ($this->shouldSimulateFailure('registerDocument_return')) {
+        throw new RuntimeException('Register document failed: simulated failure.');
+      }
+      return $this->buildSimulatedRegisterResponse($payload);
+    }
+
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $sanitized = $this->sanitizePayloadForLog($payload);
 
@@ -274,6 +289,81 @@ final class DocutracksClient {
       ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
     ]);
     return $decoded;
+  }
+
+
+  // Side API simulation settings for local Docutracks testing.
+  // $settings['side_api']['simulation'] = TRUE;
+  // $settings['side_api']['registerDocument']['return'] = 'success'; // 'success' or 'fail'
+  // $settings['side_api']['fetchDocument']['return'] = 'fail'; // 'success' or 'fail'
+  // $settings['side_api']['fetchDocument']['signatures_status'] = '1 από 3 υπογραφές';
+  // $settings['side_api']['fetchDocument']['generated_file_id'] = 0;
+  // $settings['side_api']['fetchDocument']['allow_missing_generated_file_id'] = TRUE;
+
+  /**
+   * Determine whether Docutracks simulation is enabled via settings.
+   */
+  private function isSimulationEnabled(): bool {
+    $settings = Settings::get('side_api', []);
+    return is_array($settings) && !empty($settings['simulation']);
+  }
+
+  /**
+   * Return TRUE when a simulation flag is set to fail.
+   */
+  private function shouldSimulateFailure(string $settingsKey): bool {
+    $settings = Settings::get('side_api', []);
+    $value = 'success';
+    if (is_array($settings)) {
+      if ($settingsKey === 'registerDocument_return') {
+        $value = $settings['registerDocument']['return'] ?? 'success';
+      }
+      elseif ($settingsKey === 'fetchDocument_return') {
+        $value = $settings['fetchDocument']['return'] ?? 'success';
+      }
+    }
+    $value = is_string($value) ? strtolower($value) : '';
+    return in_array($value, ['fail', 'failure', 'error'], TRUE);
+  }
+
+  /**
+   * Build a minimal simulated Docutracks document response.
+   *
+   * @return array<string, mixed>
+   */
+  private function buildSimulatedDocument(string $docId): array {
+    $settings = Settings::get('side_api', []);
+    $fetch_settings = is_array($settings) ? ($settings['fetchDocument'] ?? []) : [];
+    $signatures_status = is_array($fetch_settings) ? ($fetch_settings['signatures_status'] ?? '1 από 1 υπογραφές') : '1 από 1 υπογραφές';
+    $signatures_status = is_string($signatures_status) ? $signatures_status : '1 από 1 υπογραφές';
+    $generated_file_id = is_array($fetch_settings) ? ($fetch_settings['generated_file_id'] ?? 1) : 1;
+    $generated_file_id = is_numeric($generated_file_id) ? (int) $generated_file_id : 1;
+    $generated_file = $generated_file_id > 0 ? ['Id' => $generated_file_id] : NULL;
+
+    return [
+      'Document' => [
+        'Id' => (int) $docId,
+        'GeneratedFile' => $generated_file,
+        'SignaturesStatus' => $signatures_status,
+      ],
+    ];
+  }
+
+  /**
+   * Build a minimal simulated register response.
+   *
+   * @param array<string, mixed> $payload
+   *
+   * @return array<string, mixed>
+   */
+  private function buildSimulatedRegisterResponse(array $payload): array {
+    $docId = (int) ($payload['Document']['Id'] ?? 1);
+    return [
+      'Success' => TRUE,
+      'Document' => [
+        'Id' => $docId > 0 ? $docId : 1,
+      ],
+    ];
   }
 
   /**
