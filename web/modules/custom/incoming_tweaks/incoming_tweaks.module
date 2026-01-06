@@ -554,15 +554,15 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $jar = $client->loginToDocutracks(timeout: 60.0);
-    $doc = $client->fetchDocument((string) $doc_id, $jar);
-    $signatures_status = $client->extractValueByPath($doc, 'Document.SignaturesStatus');
+  $doc = $client->fetchDocument((string) $doc_id, $jar);
+  $signatures_status = $client->extractValueByPath($doc, 'Document.SignaturesStatus');
 
-    if (!incoming_tweaks_is_signatures_status_complete($signatures_status)) {
-      $status_label = $signatures_status ?: 'missing';
-      \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: signature process incomplete (@status).', [
-        '@nid' => $nid,
-        '@status' => $status_label,
-      ]);
+  if (!incoming_tweaks_get_plan_unsigned_enabled() && !incoming_tweaks_is_signatures_status_complete($signatures_status)) {
+    $status_label = $signatures_status ?: 'missing';
+    \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: signature process incomplete (@status).', [
+      '@nid' => $nid,
+      '@status' => $status_label,
+    ]);
       incoming_tweaks_revert_to_for_signature($node, t('Signature process incomplete (@status).', [
         '@status' => $status_label,
       ]));
@@ -882,6 +882,20 @@ function incoming_tweaks_revert_to_for_signature(NodeInterface $node, string $re
 function incoming_tweaks_simulation_settings(): array {
   $settings = \Drupal\Core\Site\Settings::get('side_api', []);
   return is_array($settings) ? $settings : [];
+}
+
+// $settings['incoming_tweaks']['get_plan_unsigned'] = TRUE;
+
+/**
+ * Return TRUE when signed plan download should ignore signature status.
+ */
+function incoming_tweaks_get_plan_unsigned_enabled(): bool {
+  $settings = \Drupal\Core\Site\Settings::get('incoming_tweaks', []);
+  if (!is_array($settings)) {
+    return FALSE;
+  }
+
+  return !empty($settings['get_plan_unsigned']);
 }
 
 /**
