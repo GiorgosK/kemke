@@ -2930,11 +2930,11 @@ display:
         - 'config:workflow_list'
   page_4:
     id: page_4
-    display_title: 'Αρχείο Εισερχομένων'
+    display_title: 'Όλα τα Εισερχόμενα'
     display_plugin: page
     position: 1
     display_options:
-      title: 'Αρχείο Εισερχομένων'
+      title: 'Όλα τα Εισερχόμενα'
       access:
         type: role
         options:
