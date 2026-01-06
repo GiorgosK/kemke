@@ -47,7 +47,7 @@ final class IncomingListingBreadcrumbBuilder implements BreadcrumbBuilderInterfa
 
     if ($route_name === 'view.incoming.page_4') {
       // Archive/all listing as final crumb without link.
-      $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Αρχείο Εισερχομένων'), Url::fromRoute('<nolink>')));
+      $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Όλα τα Εισερχόμενα'), Url::fromRoute('<nolink>')));
     }
 
     return $breadcrumb;

@@ -7,7 +7,7 @@ incoming_tweaks.incoming:
 incoming_tweaks.incoming_all:
   route_name: view.incoming.page_4
   base_route: view.incoming.page_1
-  title: 'Αρχείο Εισερχομένων'
+  title: 'Όλα τα Εισερχόμενα'
   weight: 10
 
 incoming_tweaks.incoming_amke:
@@ -19,7 +19,7 @@ incoming_tweaks.incoming_amke:
 incoming_tweaks.amke_all:
   route_name: view.incoming_amke.page_2
   base_route: view.incoming_amke.page_1
-  title: 'Αρχείο Εγγράφων'
+  title: 'Ολα τα Έγγραφα'
   weight: 10
 
 incoming_tweaks.incoming_amke_add:
