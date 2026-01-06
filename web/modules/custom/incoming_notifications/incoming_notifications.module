@@ -1,25 +1,70 @@
 <?php
 
+use Drupal\node\NodeInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\user\UserInterface;
 
 /**
- * Implements hook_entity_presave().
+ * Implements hook_module_implements_alter().
  */
-function incoming_notifications_entity_presave(EntityInterface $entity) {
-  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+function incoming_notifications_module_implements_alter(array &$implementations, string $hook): void {
+  if (!in_array($hook, ['node_update', 'node_insert'], TRUE)) {
     return;
   }
 
-  if (!$entity->hasField('moderation_state')) {
+  if (isset($implementations['incoming_notifications'])) {
+    $weight = $implementations['incoming_notifications'];
+    unset($implementations['incoming_notifications']);
+    $implementations['incoming_notifications'] = $weight;
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ *
+ * Kept as a no-op to avoid cached hook listeners calling a missing function.
+ */
+function incoming_notifications_entity_presave(EntityInterface $entity): void {
+  // Intentionally empty.
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for nodes.
+ */
+function incoming_notifications_node_insert(NodeInterface $node): void {
+  if ($node->bundle() !== 'incoming') {
     return;
   }
 
-  $new_state = $entity->get('moderation_state')->value;
   $original_state = NULL;
-  if ($entity->original instanceof EntityInterface && $entity->original->hasField('moderation_state')) {
-    $original_state = $entity->original->get('moderation_state')->value;
+  incoming_notifications_handle_state_change($node, $original_state);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for nodes.
+ */
+function incoming_notifications_node_update(NodeInterface $node): void {
+  if ($node->bundle() !== 'incoming') {
+    return;
   }
+
+  $original_state = NULL;
+  if ($node->original instanceof NodeInterface && $node->original->hasField('moderation_state')) {
+    $original_state = $node->original->get('moderation_state')->value;
+  }
+
+  incoming_notifications_handle_state_change($node, $original_state);
+}
+
+/**
+ * Sends notifications for incoming moderation state transitions.
+ */
+function incoming_notifications_handle_state_change(NodeInterface $node, ?string $original_state): void {
+  if (!$node->hasField('moderation_state') || $node->get('moderation_state')->isEmpty()) {
+    return;
+  }
+
+  $new_state = $node->get('moderation_state')->value;
 
   if ($new_state === $original_state || !$new_state) {
     return;
@@ -27,33 +72,33 @@ function incoming_notifications_entity_presave(EntityInterface $entity) {
 
   if ($new_state === 'draft') {
     $recipients = _incoming_notifications_get_users_by_role('secretariat');
-    _incoming_notifications_send_mail('draft', $entity, $recipients);
+    _incoming_notifications_send_mail('draft', $node, $recipients);
   }
 
-  if ($new_state === 'to_be_assigned' && $entity->hasField('field_supervisor')) {
-    $target_id = $entity->get('field_supervisor')->target_id;
+  if ($new_state === 'to_be_assigned' && $node->hasField('field_supervisor')) {
+    $target_id = $node->get('field_supervisor')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_mail('to_be_assigned', $entity, [$user->getEmail()]);
+      _incoming_notifications_send_mail('to_be_assigned', $node, [$user->getEmail()]);
     }
   }
 
-  if ($new_state === 'fullness_check' && $entity->hasField('field_basic_operator')) {
-    $target_id = $entity->get('field_basic_operator')->target_id;
+  if ($new_state === 'fullness_check' && $node->hasField('field_basic_operator')) {
+    $target_id = $node->get('field_basic_operator')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_mail('fullness_check', $entity, [$user->getEmail()]);
+      _incoming_notifications_send_mail('fullness_check', $node, [$user->getEmail()]);
     }
   }
 
   if ($new_state === 'pending_issues') {
-    $recipients = _incoming_notifications_get_users_by_legal_entity($entity);
-    _incoming_notifications_send_mail('pending_issues', $entity, $recipients);
+    $recipients = _incoming_notifications_get_users_by_legal_entity($node);
+    _incoming_notifications_send_mail('pending_issues', $node, $recipients);
   }
 
   if ($new_state === 'published') {
-    $recipients = _incoming_notifications_get_users_by_legal_entity($entity);
-    _incoming_notifications_send_mail('published', $entity, $recipients);
+    $recipients = _incoming_notifications_get_users_by_legal_entity($node);
+    _incoming_notifications_send_mail('published', $node, $recipients);
   }
 }
 
