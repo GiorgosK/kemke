@@ -40,6 +40,7 @@
         "drupal/inline_entity_form": "^3.0@RC",
         "drupal/node_view_permissions": "^2.0",
         "drupal/paragraphs": "^1.19",
+        "drupal/password_policy": "^4.0",
         "drupal/reference_table_formatter": "^2.0",
         "drupal/role_delegation": "^1.4",
         "drupal/select2": "^2.0",
