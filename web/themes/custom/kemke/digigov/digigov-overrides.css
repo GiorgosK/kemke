@@ -216,3 +216,7 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
   line-height: 2rem;
   margin-bottom: 0;
 }
+
+.govgr-hint {
+  font-size: 14px;
+}
