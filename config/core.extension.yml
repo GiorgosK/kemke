@@ -85,6 +85,7 @@ module:
   text: 0
   toolbar: 0
   user: 0
+  user_import: 0
   users_tweaks: 0
   views_autocomplete_filters: 0
   views_data_export: 0

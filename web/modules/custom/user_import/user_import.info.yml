@@ -1,0 +1,5 @@
+name: User Import
+type: module
+description: Import users from a CSV/TSV file via Drush.
+core_version_requirement: ^9 || ^10 || ^11
+package: Custom

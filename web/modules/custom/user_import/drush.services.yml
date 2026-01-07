@@ -1,0 +1,8 @@
+services:
+  user_import.commands:
+    class: Drupal\user_import\Commands\UserImportCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@transliteration'
+    tags:
+      - { name: drush.command }
