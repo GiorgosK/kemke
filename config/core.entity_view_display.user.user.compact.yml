@@ -11,6 +11,7 @@ dependencies:
     - field.field.user.user.field_first_name
     - field.field.user.user.field_last_name
     - field.field.user.user.field_legal_entity
+    - field.field.user.user.field_serial_number
     - field.field.user.user.user_picture
   module:
     - user
@@ -43,6 +44,7 @@ hidden:
   field_docutracks_json: true
   field_docutracks_username: true
   field_legal_entity: true
+  field_serial_number: true
   langcode: true
   member_for: true
   user_picture: true

@@ -1,0 +1,24 @@
+uuid: ded07f5b-7e5f-4bba-8948-04f172c4d95e
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_serial_number
+  module:
+    - user
+id: user.user.field_serial_number
+field_name: field_serial_number
+entity_type: user
+bundle: user
+label: 'Αύξων αριθμός'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 1
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
