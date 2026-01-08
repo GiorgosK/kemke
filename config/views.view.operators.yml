@@ -575,6 +575,10 @@ display:
     display_plugin: entity_reference
     position: 1
     display_options:
+      pager:
+        type: none
+        options:
+          offset: 0
       style:
         type: entity_reference
         options:
@@ -864,6 +868,10 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
+      pager:
+        type: none
+        options:
+          offset: 0
       filters:
         status:
           id: status
