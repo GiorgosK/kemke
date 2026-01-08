@@ -46,6 +46,8 @@
         "drupal/select2": "^2.0",
         "drupal/taxonomy_manager": "^2.0",
         "drupal/views_autocomplete_filters": "^2.0",
+        "drupal/views_bulk_edit": "^3.0",
+        "drupal/views_bulk_operations": "^4.4",
         "drupal/views_data_export": "^1.8",
         "drupal/views_tree": "^3.0",
         "drupal/workflow_buttons": "^1.0@beta",
