@@ -344,7 +344,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: Άδειες
+          label: ' -  Άδειες'
           exclude: false
           alter:
             alter_text: false
@@ -436,7 +436,20 @@ display:
         type: tag
         options: {  }
       empty: {  }
-      sorts: {  }
+      sorts:
+        field_serial_number_value:
+          id: field_serial_number_value
+          table: user__field_serial_number
+          field: field_serial_number_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: ASC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
       arguments: {  }
       filters:
         status:
@@ -493,6 +506,10 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+      filter_groups:
+        operator: AND
+        groups:
+          1: AND
       style:
         type: default
         options:
