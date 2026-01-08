@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -67,4 +68,22 @@ function users_tweaks_get_docutracks_value(UserInterface $account, string $path)
   /** @var \Drupal\side_api\DocutracksClient $client */
   $client = \Drupal::service('side_api.docutracks_client');
   return $client->extractValueByPath($decoded, $path);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_edit form.
+ */
+function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $current_user = \Drupal::currentUser();
+  if ($current_user->hasRole('administrator')) {
+    return;
+  }
+
+  if (isset($form['roles']['#options']['administrator'])) {
+    unset($form['roles']['#options']['administrator']);
+  }
+
+  if (isset($form['account']['roles']['#options']['administrator'])) {
+    unset($form['account']['roles']['#options']['administrator']);
+  }
 }
