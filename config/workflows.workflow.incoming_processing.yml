@@ -17,7 +17,7 @@ type_settings:
       published: true
       default_revision: true
     for_signature:
-      label: 'Εγκεκριμένο - Προς υπογραφή'
+      label: 'Εγκεκριμένο – Αποστολή στο ΣΗΔΕ προς υπογραφή'
       weight: 3
       published: true
       default_revision: true
