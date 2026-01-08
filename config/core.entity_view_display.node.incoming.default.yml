@@ -41,7 +41,6 @@ dependencies:
     - field.field.node.incoming.field_related_incoming
     - field.field.node.incoming.field_remarks
     - field.field.node.incoming.field_requested_deadline
-    - field.field.node.incoming.field_responsible_entity
     - field.field.node.incoming.field_sa_number
     - field.field.node.incoming.field_sani_user
     - field.field.node.incoming.field_sender
@@ -587,14 +586,6 @@ content:
       format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 25
-    region: content
-  field_responsible_entity:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 13
     region: content
   field_sa_number:
     type: string

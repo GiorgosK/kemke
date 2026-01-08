@@ -1,9 +1,0 @@
-uuid: 39ec668c-36ca-434a-97b8-e57c9fe6dfc8
-langcode: en
-status: true
-dependencies: {  }
-name: 'Responsible Entity'
-vid: responsible_entity
-description: null
-weight: 0
-new_revision: false

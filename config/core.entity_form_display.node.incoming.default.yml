@@ -41,7 +41,6 @@ dependencies:
     - field.field.node.incoming.field_related_incoming
     - field.field.node.incoming.field_remarks
     - field.field.node.incoming.field_requested_deadline
-    - field.field.node.incoming.field_responsible_entity
     - field.field.node.incoming.field_sa_number
     - field.field.node.incoming.field_sani_user
     - field.field.node.incoming.field_sender
@@ -865,5 +864,4 @@ hidden:
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
   field_primary: true
-  field_responsible_entity: true
   title: true
