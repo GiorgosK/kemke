@@ -6,7 +6,9 @@ dependencies:
     - filter.format.full_html
     - node.type.incoming
     - taxonomy.vocabulary.case
+    - taxonomy.vocabulary.incoming_subtype
     - taxonomy.vocabulary.incoming_type
+    - taxonomy.vocabulary.legal_entity
     - taxonomy.vocabulary.priority
     - workflows.workflow.incoming_processing
   module:
@@ -46,13 +48,19 @@ permissions:
   - 'create field_legal_entity'
   - 'create incoming content'
   - 'create terms in case'
+  - 'create terms in incoming_subtype'
   - 'create terms in incoming_type'
+  - 'create terms in legal_entity'
   - 'create terms in priority'
   - 'delete terms in case'
   - 'edit any incoming content'
   - 'edit field_legal_entity'
   - 'edit own field_legal_entity'
   - 'edit terms in case'
+  - 'edit terms in incoming_subtype'
+  - 'edit terms in incoming_type'
+  - 'edit terms in legal_entity'
+  - 'edit terms in priority'
   - 'setup reports'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'
