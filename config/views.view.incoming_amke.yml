@@ -9,7 +9,9 @@ dependencies:
     - field.storage.node.field_subject
     - node.type.incoming
     - user.role.amke_user
+    - workflows.workflow.incoming_processing
   module:
+    - content_moderation
     - datetime
     - entity_reference_revisions
     - node
@@ -583,46 +585,6 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_amke_status_value:
-          id: field_amke_status_value
-          table: node__field_amke_status
-          field: field_amke_status_value
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: list_field
-          operator: or
-          value: {  }
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_amke_status_value_op
-            label: Kατάσταση
-            description: ''
-            use_operator: false
-            operator: field_amke_status_value_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: field_amke_status_value
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          reduce_duplicates: false
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -714,6 +676,46 @@ display:
             group_items: {  }
           year_min: 2025
           year_max: current
+        field_amke_status_value:
+          id: field_amke_status_value
+          table: node__field_amke_status
+          field: field_amke_status_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_amke_status_value_op
+            label: Kατάσταση
+            description: ''
+            use_operator: false
+            operator: field_amke_status_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: status
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
       filter_groups:
         operator: AND
         groups:
@@ -771,48 +773,6 @@ display:
           value:
             incoming: incoming
           group: 1
-        field_amke_status_value_1:
-          id: field_amke_status_value_1
-          table: node__field_amke_status
-          field: field_amke_status_value
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: list_field
-          operator: or
-          value:
-            processing: processing
-            issues: issues
-          group: 1
-          exposed: false
-          expose:
-            operator_id: ''
-            label: ''
-            description: ''
-            use_operator: false
-            operator: ''
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: ''
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          reduce_duplicates: false
         field_primary_value:
           id: field_primary_value
           table: node__field_primary
@@ -851,27 +811,33 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_amke_status_value:
-          id: field_amke_status_value
-          table: node__field_amke_status
-          field: field_amke_status_value
+        moderation_state:
+          id: moderation_state
+          table: node_field_data
+          field: moderation_state
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: list_field
-          operator: or
-          value: {  }
+          entity_type: node
+          plugin_id: moderation_state_filter
+          operator: in
+          value:
+            incoming_processing-draft: incoming_processing-draft
+            incoming_processing-fullness_check: incoming_processing-fullness_check
+            incoming_processing-pending_issues: incoming_processing-pending_issues
+            incoming_processing-under_processing: incoming_processing-under_processing
+            incoming_processing-for_signature: incoming_processing-for_signature
           group: 1
-          exposed: true
+          exposed: false
           expose:
-            operator_id: field_amke_status_value_op
-            label: Kατάσταση
+            operator_id: ''
+            label: ''
             description: ''
             use_operator: false
-            operator: field_amke_status_value_op
+            operator: ''
             operator_limit_selection: false
             operator_list: {  }
-            identifier: field_amke_status_value
+            identifier: ''
             required: false
             remember: false
             multiple: false
@@ -890,7 +856,6 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          reduce_duplicates: false
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -939,6 +904,91 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_entry_date_value_year:
+          id: field_entry_date_value_year
+          table: node__field_entry_date
+          field: field_entry_date_value_year
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: views_year_filters_date_year
+          operator: '='
+          value: '2025'
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_year_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_year_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: year
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: ''
+            max_placeholder: ''
+            placeholder: ''
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          year_min: 2025
+          year_max: current
+        field_amke_status_value:
+          id: field_amke_status_value
+          table: node__field_amke_status
+          field: field_amke_status_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value:
+            processing: processing
+            issues: issues
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_amke_status_value_op
+            label: Kατάσταση
+            description: ''
+            use_operator: false
+            operator: field_amke_status_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: status
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: true
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: true
       filter_groups:
         operator: AND
         groups:
@@ -979,6 +1029,7 @@ display:
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
         - 'config:field.storage.node.field_subject'
+        - 'config:workflow_list'
   page_2:
     id: page_2
     display_title: 'Ολα τα Έγγραφα'
