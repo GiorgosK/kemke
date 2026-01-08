@@ -32,6 +32,7 @@ settings:
       - '|'
       - fontColor
       - fontBackgroundColor
+      - fontSize
       - heading
       - codeBlock
       - '|'
@@ -103,6 +104,8 @@ settings:
       font_color_document_colors: 10
       bg_color_columns: 5
       bg_color_document_colors: 10
+    ckeditor5_plugin_pack_font__font_size:
+      options: ''
     ckeditor5_sourceEditing:
       allowed_tags: {  }
 image_upload:
