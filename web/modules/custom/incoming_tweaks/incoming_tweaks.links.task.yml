@@ -19,7 +19,7 @@ incoming_tweaks.incoming_all:
 incoming_tweaks.incoming_amke:
   route_name: view.incoming_amke.page_1
   base_route: view.incoming_amke.page_1
-  title: 'Έγγραφα'
+  title: 'Έγγραφα προς απάντηση'
   weight: 0
 
 incoming_tweaks.amke_completed:
@@ -39,5 +39,5 @@ incoming_tweaks.incoming_amke_add:
   route_parameters:
     node_type: incoming
   base_route: view.incoming_amke.page_1
-  title: 'Προσθήκη Εγγράφου'
+  title: 'Καταχώρηση Εγγράφου'
   weight: 12
