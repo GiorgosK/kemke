@@ -38,6 +38,7 @@
         "drupal/field_permissions": "^1.4",
         "drupal/ief_table_view_mode": "^3.0",
         "drupal/inline_entity_form": "^3.0@RC",
+        "drupal/nocurrent_pass": "^2.0",
         "drupal/node_view_permissions": "^2.0",
         "drupal/paragraphs": "^1.19",
         "drupal/password_policy": "^4.0",

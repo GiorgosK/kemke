@@ -61,6 +61,7 @@ module:
   menu_link_content: 0
   menu_ui: 0
   mysql: 0
+  nocurrent_pass: 0
   node: 0
   node_view_permissions: 0
   operators_reference_view: 0
