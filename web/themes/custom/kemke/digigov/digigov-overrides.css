@@ -62,7 +62,8 @@
 .views-exposed-form .govgr-btn,
 .views-exposed-form .govgr-field {
   position: relative;
-  margin-bottom: 0px;  
+  margin-bottom: 0px;
+  max-width: 250px;
 }
 
 .views-exposed-form .form--inline {
@@ -70,6 +71,7 @@
   gap: 10px;
   align-items: end;
   margin-bottom: 10px;
+  flex-wrap: wrap;  
 }
 
 .views-exposed-form .govgr-form {
