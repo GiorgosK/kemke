@@ -58,6 +58,7 @@ final class DocutracksClient {
   ): CookieJar {
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $env = $this->detectEnvironment();
+    $verify = $this->getTlsVerify();
 
     $adminUser = $adminUser ?? $env['admin_user'];
     $adminPass = $adminPass ?? $env['admin_pass'];
@@ -88,6 +89,7 @@ final class DocutracksClient {
           'json' => $payload,
           'cookies' => $jar,
           'timeout' => $timeout,
+          'verify' => $verify,
         ]);
         return $jar;
       }
@@ -128,11 +130,13 @@ final class DocutracksClient {
     }
 
     $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+    $verify = $this->getTlsVerify();
 
     try {
       $response = $this->httpClient->request('GET', $baseUrl . '/services/document/get/' . rawurlencode($docId), [
         'headers' => ['Accept' => 'application/json'],
         'cookies' => $jar,
+        'verify' => $verify,
       ]);
     }
     catch (GuzzleException $e) {
@@ -218,6 +222,7 @@ final class DocutracksClient {
     ?string $debugTargetPath = NULL
   ): string {
     $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+    $verify = $this->getTlsVerify();
 
     $payload = [
       'FileReference' => $fileId,
@@ -230,6 +235,7 @@ final class DocutracksClient {
         'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
         'json' => $payload,
         'cookies' => $jar,
+        'verify' => $verify,
       ]);
     }
     catch (GuzzleException $e) {
@@ -257,6 +263,7 @@ final class DocutracksClient {
 
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $sanitized = $this->sanitizePayloadForLog($payload);
+    $verify = $this->getTlsVerify();
 
     try {
       \Drupal::logger('side_api')->info('Docutracks register request: @details', [
@@ -271,6 +278,7 @@ final class DocutracksClient {
         'json' => $payload,
         'cookies' => $jar,
         'timeout' => $timeout,
+        'verify' => $verify,
       ]);
     }
     catch (GuzzleException $e) {
@@ -650,6 +658,7 @@ final class DocutracksClient {
   public function fetchUserByUsername(string $username, ?\GuzzleHttp\Cookie\CookieJarInterface $jar = NULL, ?string $baseUrl = NULL, float $timeout = 30.0): array {
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $jar = $jar ?? $this->loginToDocutracks(baseUrl: $resolvedBaseUrl, timeout: $timeout);
+    $verify = $this->getTlsVerify();
 
     try {
       $response = $this->httpClient->request('POST', $resolvedBaseUrl . '/services/user/get/byusername', [
@@ -657,6 +666,7 @@ final class DocutracksClient {
         'json' => ['Username' => $username],
         'cookies' => $jar,
         'timeout' => $timeout,
+        'verify' => $verify,
       ]);
     }
     catch (GuzzleException $e) {
@@ -733,7 +743,11 @@ final class DocutracksClient {
    */
   private function detectEnvironment(): array {
     $host = $_SERVER['HTTP_HOST'] ?? '';
+    $settings = Settings::get('side_api', []);
     $devHosts = ['kemke.webx2.com', 'kemke.ddev.site'];
+    if (is_array($settings) && isset($settings['dev_hosts']) && is_array($settings['dev_hosts'])) {
+      $devHosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
+    }
     $isDev = in_array($host, $devHosts, TRUE);
 
     if ($isDev) {
@@ -747,11 +761,11 @@ final class DocutracksClient {
     }
 
     return [
-      'base_url' => self::LIVE_BASE_URL,
-      'admin_user' => self::LIVE_ADMIN_USER,
-      'admin_pass' => self::LIVE_ADMIN_PASS,
-      'app_user' => self::LIVE_APP_USER,
-      'app_pass' => self::LIVE_APP_PASS,
+      'base_url' => is_array($settings) ? (string) ($settings['live_base_url'] ?? self::LIVE_BASE_URL) : self::LIVE_BASE_URL,
+      'admin_user' => is_array($settings) ? (string) ($settings['live_admin_user'] ?? self::LIVE_ADMIN_USER) : self::LIVE_ADMIN_USER,
+      'admin_pass' => is_array($settings) ? (string) ($settings['live_admin_pass'] ?? self::LIVE_ADMIN_PASS) : self::LIVE_ADMIN_PASS,
+      'app_user' => is_array($settings) ? (string) ($settings['live_app_user'] ?? self::LIVE_APP_USER) : self::LIVE_APP_USER,
+      'app_pass' => is_array($settings) ? (string) ($settings['live_app_pass'] ?? self::LIVE_APP_PASS) : self::LIVE_APP_PASS,
     ];
   }
 
@@ -786,6 +800,17 @@ final class DocutracksClient {
 
     $payload['Document'] = $document;
     return $payload;
+  }
+
+  /**
+   * Read TLS verification setting for Docutracks requests.
+   */
+  private function getTlsVerify(): bool {
+    $settings = Settings::get('side_api', []);
+    if (is_array($settings) && array_key_exists('verify_ssl', $settings)) {
+      return (bool) $settings['verify_ssl'];
+    }
+    return TRUE;
   }
 
   /**
