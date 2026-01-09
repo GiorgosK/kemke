@@ -773,7 +773,9 @@ final class DocutracksClient {
    * Resolve the base URL based on explicit override or environment.
    */
   public function resolveBaseUrl(?string $baseUrl = NULL): string {
-    return rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+    $resolved = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+    $this->assertValidBaseUrl($resolved);
+    return $resolved;
   }
 
   /**
@@ -811,6 +813,15 @@ final class DocutracksClient {
       return (bool) $settings['verify_ssl'];
     }
     return TRUE;
+  }
+
+  /**
+   * Ensure we have a usable base URL before making requests.
+   */
+  private function assertValidBaseUrl(string $baseUrl): void {
+    if ($baseUrl === '' || !str_starts_with($baseUrl, 'http')) {
+      throw new RuntimeException('Docutracks base URL is not configured. Set $settings[\'side_api\'][\'live_base_url\'] (and credentials) in settings.php or settings.local.php.');
+    }
   }
 
   /**
