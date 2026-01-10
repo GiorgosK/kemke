@@ -12,7 +12,22 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
     return;
   }
 
-  if ($term->bundle() !== 'case') {
+  if ($term->bundle() === 'case') {
+    $allow_keys = [
+      'name',
+      'parent',
+      'field_name_typed',
+      'actions',
+      'form_build_id',
+      'form_token',
+      'form_id',
+    ];
+
+    if (isset($form['name'])) {
+      $form['name']['#attributes']['class'][] = 'visually-hidden';
+    }
+  }
+  else {
     $allow_keys = [
       'name',
       'actions',
@@ -20,22 +35,22 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
       'form_token',
       'form_id',
     ];
-
-    foreach ($form as $key => &$element) {
-      if (isset($element['#type']) && $element['#type'] === 'hidden') {
-        continue;
-      }
-      if (in_array($key, $allow_keys, TRUE)) {
-        continue;
-      }
-      if (str_starts_with((string) $key, '#')) {
-        continue;
-      }
-
-      $element['#access'] = FALSE;
-    }
-    unset($element);
   }
+
+  foreach ($form as $key => &$element) {
+    if (isset($element['#type']) && $element['#type'] === 'hidden') {
+      continue;
+    }
+    if (in_array($key, $allow_keys, TRUE)) {
+      continue;
+    }
+    if (str_starts_with((string) $key, '#')) {
+      continue;
+    }
+
+    $element['#access'] = FALSE;
+  }
+  unset($element);
 
   if (isset($form['actions']['overview'])) {
     $form['actions']['overview']['#value'] = t('Αποθήκευση');
