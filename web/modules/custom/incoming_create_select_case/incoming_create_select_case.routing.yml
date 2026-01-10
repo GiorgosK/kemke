@@ -1,0 +1,7 @@
+incoming_create_select_case.case_modal_form:
+  path: '/incoming-create-select-case/modal/taxonomy-term/{bundle}'
+  defaults:
+    _controller: '\Drupal\incoming_create_select_case\Controller\IncomingCreateSelectCaseModalController::build'
+    _title: 'Add term'
+  requirements:
+    _access: 'TRUE'

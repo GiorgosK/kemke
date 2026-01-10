@@ -1,0 +1,5 @@
+name: Incoming create/select case
+type: module
+description: Adds a modal create-case flow and auto-selects the new term on incoming forms.
+core_version_requirement: ^10 || ^11
+package: Custom

@@ -1,0 +1,116 @@
+<?php
+
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\CloseDialogCommand;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+use Drupal\taxonomy\TermInterface;
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function incoming_create_select_case_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $entity = $form_state->getFormObject()->getEntity();
+
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming' || !isset($form['field_case'])) {
+    return;
+  }
+
+  $case_link = Link::fromTextAndUrl(
+    t('Δημιουργία νέας υπόθεσης'),
+    Url::fromRoute('incoming_create_select_case.case_modal_form', [
+      'bundle' => 'case',
+    ], [
+      'attributes' => [
+        'class' => [
+          'govgr-btn',
+          'govgr-btn-secondary',
+          'use-ajax',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => Json::encode(['width' => '80%']),
+      ],
+      'query' => [
+        '_wrapper_format' => 'drupal_modal',
+      ],
+    ])
+  )->toString();
+
+  $form['field_case']['#description'] = $case_link;
+  if (isset($form['field_case']['widget'])) {
+    $form['field_case']['widget']['#description'] = $case_link;
+  }
+
+  $form['#attached']['library'][] = 'core/drupal.ajax';
+  $form['#attached']['library'][] = 'core/drupal.dialog';
+  $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+  $form['#attached']['library'][] = 'incoming_create_select_case/case-modal';
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function incoming_create_select_case_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if ($route_name !== 'incoming_create_select_case.case_modal_form') {
+    return;
+  }
+
+  $form['#prefix'] = '<div class="incoming-create-select-case-modal">';
+  $form['#suffix'] = '</div>';
+  $form['status_messages'] = [
+    '#type' => 'status_messages',
+    '#weight' => -100,
+  ];
+
+  if (isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#ajax'] = [
+      'callback' => 'incoming_create_select_case_modal_submit',
+    ];
+    $form['actions']['submit']['#type'] = 'button';
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('select2')) {
+    $form['#attached']['library'][] = 'select2/select2';
+  }
+  if (\Drupal::moduleHandler()->moduleExists('select2_level_class')) {
+    $form['#attached']['library'][] = 'select2_level_class/select2-level-class';
+  }
+}
+
+/**
+ * AJAX submit handler for the case modal form.
+ */
+function incoming_create_select_case_modal_submit(array &$form, FormStateInterface $form_state): AjaxResponse {
+  $response = new AjaxResponse();
+
+  if ($form_state->hasAnyErrors()) {
+    $response->addCommand(new ReplaceCommand('.incoming-create-select-case-modal', $form));
+    return $response;
+  }
+
+  $form_state->getFormObject()->submitForm($form, $form_state);
+  $term = $form_state->getFormObject()->getEntity();
+  if ($term instanceof TermInterface && $term->isNew()) {
+    $term->save();
+  }
+  if ($term && method_exists($term, 'id')) {
+    $payload = Json::encode([
+      'tid' => (int) $term->id(),
+      'label' => $term->label(),
+    ]);
+    $response->addCommand(new InvokeCommand(NULL, 'incomingCreateSelectCaseInject', [$payload]));
+  }
+
+  $response->addCommand(new CloseDialogCommand());
+  $form_state->disableRedirect();
+  $form_state->setResponse($response);
+
+  return $response;
+}

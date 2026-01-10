@@ -1,0 +1,10 @@
+case-modal:
+  js:
+    js/incoming_create_select_case.case_modal.js: {}
+    js/incoming_create_select_case.modal_select2.js: {}
+  css:
+    component:
+      css/incoming_create_select_case.modal_select2.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery

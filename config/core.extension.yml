@@ -45,6 +45,7 @@ module:
   image: 0
   incoming_api: 0
   incoming_change_state: 0
+  incoming_create_select_case: 0
   incoming_form_validations: 0
   incoming_notifications: 0
   incoming_related_field: 0
