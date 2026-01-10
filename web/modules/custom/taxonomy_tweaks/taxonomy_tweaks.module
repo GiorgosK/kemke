@@ -17,5 +17,13 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
     return;
   }
 
-  $form['#title'] = t('Νέα @vocabulary', ['@vocabulary' => $vocabulary->label()]);
+  $prefix_map = [
+    'legal_entity' => 'Νέος',
+  ];
+
+  $prefix = $prefix_map[$term->bundle()] ?? 'Νέα';
+  $form['#title'] = t('@prefix @vocabulary', [
+    '@prefix' => $prefix,
+    '@vocabulary' => $vocabulary->label(),
+  ]);
 }
