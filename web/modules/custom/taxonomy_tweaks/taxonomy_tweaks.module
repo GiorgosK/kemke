@@ -1,7 +1,25 @@
 <?php
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\taxonomy\TermInterface;
+
+/**
+ * Implements hook_entity_prepare_form().
+ */
+function taxonomy_tweaks_entity_prepare_form(EntityInterface $entity, string $operation, FormStateInterface $form_state): void {
+  if (!$entity instanceof TermInterface || $entity->bundle() !== 'case' || !$entity->isNew()) {
+    return;
+  }
+
+  if (!\Drupal::currentUser()->hasRole('administrator')) {
+    $parent_id = (int) \Drupal::request()->query->get('parent');
+    if ($parent_id > 0) {
+      $entity->set('parent', [$parent_id]);
+    }
+  }
+}
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter().
