@@ -5,6 +5,8 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\Component\Utility\Unicode;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\file\Entity\File;
@@ -15,10 +17,29 @@ use Drupal\node\NodeInterface;
  */
 function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
   $current_user = \Drupal::currentUser();
+  $entity = $form_state->getFormObject()->getEntity();
 
   if (!$current_user->hasPermission('administer nodes') && isset($form['revision_information'])) {
     // Remove revision tab entirely for non-admin users.
     $form['revision_information']['#access'] = FALSE;
+  }
+
+  if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming' && isset($form['field_case'])) {
+    $case_link = Link::fromTextAndUrl(
+      t('Δημιουργία νέας υπόθεσης'),
+      Url::fromUri('internal:/admin/structure/taxonomy/manage/case/add', [
+        'attributes' => [
+          'class' => 'govgr-btn govgr-btn-secondary',
+          'target' => '_blank',
+          'rel' => 'noopener noreferrer',
+        ],
+      ])
+    )->toString();
+
+    $form['field_case']['#description'] = $case_link;
+    if (isset($form['field_case']['widget'])) {
+      $form['field_case']['widget']['#description'] = $case_link;
+    }
   }
 
   // Post-submit cleanup: if Docutracks failed, remove core status messages.
