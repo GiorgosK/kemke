@@ -108,3 +108,7 @@ div.incoming-remarks-field.visible-to-amke {
 tr.visible-to-amke {
   border-left: 10px solid #999;
 }
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+  font-size: 20px;
+}

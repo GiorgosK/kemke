@@ -29,8 +29,8 @@ function incoming_create_select_case_form_node_form_alter(array &$form, FormStat
     ], [
       'attributes' => [
         'class' => [
-          'govgr-btn',
           'govgr-btn-secondary',
+          'govgr-btn-small',
           'use-ajax',
         ],
         'data-dialog-type' => 'modal',

@@ -94,6 +94,12 @@
   margin-right: 0.5rem;
 }
 
+.govgr-btn-small {
+  font-size: 15px;
+  padding: 5px 10px;
+  margin: 13px;
+  display: inline-block;
+}
 pre {
   background: rgba(var(--color-base-300-rgb));
   padding: 0.5rem;
