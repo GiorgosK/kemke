@@ -1,0 +1,5 @@
+name: Taxonomy tweaks
+type: module
+description: Adjusts taxonomy term forms and behavior.
+package: Custom
+core_version_requirement: ^9 || ^10 || ^11
