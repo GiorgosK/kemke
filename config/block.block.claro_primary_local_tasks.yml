@@ -2,6 +2,8 @@ uuid: 7543cadd-62b1-4a96-b836-3b8f897c1445
 langcode: el
 status: true
 dependencies:
+  module:
+    - system
   theme:
     - claro
 _core:
@@ -19,4 +21,8 @@ settings:
   provider: core
   primary: true
   secondary: false
-visibility: {  }
+visibility:
+  request_path:
+    id: request_path
+    negate: true
+    pages: '/taxonomy/term/*/edit'
