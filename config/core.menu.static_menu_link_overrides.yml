@@ -25,3 +25,39 @@ definitions:
     weight: 0
     expanded: false
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__priority':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.priority'
+    expanded: false
+    weight: 3
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__tags':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.tags'
+    weight: 3
+    expanded: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_type':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.incoming_type'
+    weight: 3
+    expanded: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_subtype':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.incoming_subtype'
+    weight: 3
+    expanded: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__case':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.case'
+    weight: 3
+    expanded: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__legal_entity':
+    enabled: false
+    menu_name: admin
+    parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.legal_entity'
+    weight: 3
+    expanded: false
