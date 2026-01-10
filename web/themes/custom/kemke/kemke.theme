@@ -8,6 +8,14 @@ use Drupal\Core\Render\Element;
  * Functions to support theming.
  */
 
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function kemke_preprocess_page(&$variables) {
+  $variables['site_name'] = \Drupal::config('system.site')->get('name');
+}
+
 /**
  * Implements hook_preprocess_image_widget().
  */

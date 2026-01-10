@@ -2,7 +2,7 @@ _core:
   default_config_hash: ijfbzDTN4CbE7Sr-6ubWzy_t1vH4OtU1doNCLssVz-4
 langcode: el
 uuid: 2caeae2a-70c7-45b8-8506-769378651fe9
-name: KEMKE
+name: 'Πλατφόρμα ενδοεπικοινωνίας ΚΕΜΚΕ'
 mail: kongeo@gmail.com
 slogan: ''
 page:
