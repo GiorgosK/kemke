@@ -8,7 +8,42 @@ use Drupal\taxonomy\TermInterface;
  */
 function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $term = $form_state->getFormObject()->getEntity();
-  if (!$term instanceof TermInterface || !$term->isNew()) {
+  if (!$term instanceof TermInterface) {
+    return;
+  }
+
+  if ($term->bundle() !== 'case') {
+    $allow_keys = [
+      'name',
+      'actions',
+      'form_build_id',
+      'form_token',
+      'form_id',
+    ];
+
+    foreach ($form as $key => &$element) {
+      if (isset($element['#type']) && $element['#type'] === 'hidden') {
+        continue;
+      }
+      if (in_array($key, $allow_keys, TRUE)) {
+        continue;
+      }
+      if (str_starts_with((string) $key, '#')) {
+        continue;
+      }
+
+      $element['#access'] = FALSE;
+    }
+    unset($element);
+  }
+
+  if (isset($form['actions']['overview'])) {
+    $form['actions']['overview']['#value'] = t('Αποθήκευση');
+    $form['actions']['overview']['#button_type'] = 'primary';
+    unset($form['actions']['submit']);
+  }
+
+  if (!$term->isNew()) {
     return;
   }
 
