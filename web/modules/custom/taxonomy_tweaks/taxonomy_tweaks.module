@@ -48,6 +48,13 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
     if (isset($form['name'])) {
       $form['name']['#attributes']['class'][] = 'visually-hidden';
     }
+
+    if (isset($form['parent']['#description'])) {
+      $form['parent']['#description'] = NULL;
+    }
+    if (isset($form['parent']['widget']['#description'])) {
+      $form['parent']['widget']['#description'] = NULL;
+    }
   }
   else {
     $allow_keys = [
