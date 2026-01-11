@@ -1,24 +1,30 @@
 objective_1:
+  name: 'Στόχος 1 - Γνωμοδοτήσεις'
   description: 'Στόχος 1 - Γνωμοδοτήσεις'
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 20
 objective_2:
+  name: 'Στόχος 2 - Αιτήματα από ιεραρχία'
   description: 'Στόχος 2 - Αιτήματα από ιεραρχία'
   percentage: 80.0
   deadline_days_default: 10
   deadline_days_for_report: 10
 objective_3:
+  name: 'Στόχος 3 - Κοινοποιήσεις Γνωστοποιήσεiς'
   description: 'Στόχος 3 - Κοινοποιήσεις Γνωστοποιήσεiς'
   percentage: 90.0
   deadline_days_default: 20
   deadline_days_for_report: 20
 objective_4:
+  name: 'Στόχος 4 - Έκθεση Δαπανών SARI'
   description: 'Στόχος 4 - Έκθεση Δαπανών SARI'
   percentage: 90.0
 objective_5:
+  name: 'Στόχος 5 - Ανάκτηση'
   description: 'Στόχος 5 - Ανάκτηση'
   percentage: 90.0
 objective_6:
+  name: 'Στόχος 6 - Σεμινάρια'
   description: 'Στόχος 6 - Σεμινάρια'
   percentage: 30.0

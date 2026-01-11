@@ -59,6 +59,10 @@ class OnTimeCalculationForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
+    if (!$this->currentUser()->hasRole('administrator')) {
+      return [];
+    }
+
     $last_run = $this->state->get('kemke_reports.last_on_time_run');
     $last_run_text = $last_run
       ? $this->dateFormatter->format($last_run, 'custom', 'Y-m-d H:i')

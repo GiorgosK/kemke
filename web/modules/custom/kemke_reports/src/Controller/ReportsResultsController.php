@@ -70,6 +70,7 @@ class ReportsResultsController extends ControllerBase {
         '#type' => 'table',
         '#header' => [
           $this->t('Objective'),
+          $this->t('Description'),
           $this->t('Deadline (days)'),
           $this->t('On target'),
           $this->t('From'),
@@ -92,6 +93,7 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_1_row(array $result): array {
     $objective = $result['objective_1'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 1');
     $description = $objective['description'] ?: $this->t('Objective 1');
     $target = (float) ($objective['percentage'] ?? 0);
     $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
@@ -102,7 +104,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_1_total'] ?? 0);
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
-    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -110,6 +112,7 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_2_row(array $result): array {
     $objective = $result['objective_2'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 2');
     $description = $objective['description'] ?: $this->t('Objective 2');
     $target = (float) ($objective['percentage'] ?? 0);
     $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
@@ -120,7 +123,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_2_total'] ?? 0);
     $on_time = (int) ($result['objective_2_on_time'] ?? 0);
 
-    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -128,6 +131,7 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_3_row(array $result): array {
     $objective = $result['objective_3'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 3');
     $description = $objective['description'] ?: $this->t('Objective 3');
     $target = (float) ($objective['percentage'] ?? 0);
     $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
@@ -138,7 +142,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_3_total'] ?? 0);
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
-    return $this->format_row($description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -146,6 +150,7 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_4_row(array $result): array {
     $objective = $result['objective_4'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 4');
     $description = $objective['description'] ?: $this->t('Objective 4');
     $warning = $result['objective_4_warning'] ?? '';
     if ($warning) {
@@ -159,7 +164,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_4_total'] ?? 0);
     $on_time = (int) ($result['objective_4_on_time'] ?? 0);
 
-    return $this->format_row($description, NULL, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -167,13 +172,14 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_5_row(array $result): array {
     $objective = $result['objective_5'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 5');
     $description = $objective['description'] ?: $this->t('Objective 5');
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_5_percentage'] ?? 0);
     $total = (int) ($result['objective_5_total'] ?? 0);
     $on_time = (int) ($result['objective_5_on_time'] ?? 0);
 
-    return $this->format_row($description, NULL, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -181,24 +187,26 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_6_row(array $result): array {
     $objective = $result['objective_6'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 6');
     $description = $objective['description'] ?: $this->t('Objective 6');
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['seminar_percentage'] ?? 0);
     $total = (int) ($result['seminar_total_users'] ?? 0);
     $with_seminar = (int) ($result['seminar_users'] ?? 0);
 
-    return $this->format_row($description, NULL, $with_seminar, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $with_seminar, $total, $target, $calculated);
   }
 
   /**
    * Formats a report table row.
    */
-  private function format_row($description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
+  private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
     $meets_target = $calculated >= $target;
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
 
     return [
+      Html::escape($name),
       Html::escape($description),
       $deadline !== NULL ? (string) $deadline : '',
       (string) $on_time,

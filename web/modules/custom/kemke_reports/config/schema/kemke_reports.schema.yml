@@ -6,6 +6,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 1'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'
@@ -22,6 +25,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 2'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'
@@ -38,6 +44,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 3'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'
@@ -54,6 +63,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 4'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'
@@ -64,6 +76,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 5'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'
@@ -74,6 +89,9 @@ kemke_reports.settings:
       type: mapping
       label: 'Objective 6'
       mapping:
+        name:
+          type: text
+          label: 'Name'
         description:
           type: text
           label: 'Description'

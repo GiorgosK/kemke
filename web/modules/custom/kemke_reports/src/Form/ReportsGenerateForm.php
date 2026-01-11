@@ -144,32 +144,38 @@ class ReportsGenerateForm extends FormBase {
 
     $config = \Drupal::config('kemke_reports.settings');
     $objective_1 = [
+      'name' => $config->get('objective_1.name') ?? '',
       'description' => $config->get('objective_1.description') ?? '',
       'percentage' => (float) ($config->get('objective_1.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_1.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_1.deadline_days_default') ?? 0),
     ];
     $objective_2 = [
+      'name' => $config->get('objective_2.name') ?? '',
       'description' => $config->get('objective_2.description') ?? '',
       'percentage' => (float) ($config->get('objective_2.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_2.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_2.deadline_days_default') ?? 0),
     ];
     $objective_3 = [
+      'name' => $config->get('objective_3.name') ?? '',
       'description' => $config->get('objective_3.description') ?? '',
       'percentage' => (float) ($config->get('objective_3.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_3.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_3.deadline_days_default') ?? 0),
     ];
     $objective_4 = [
+      'name' => $config->get('objective_4.name') ?? '',
       'description' => $config->get('objective_4.description') ?? '',
       'percentage' => (float) ($config->get('objective_4.percentage') ?? 90),
     ];
     $objective_5 = [
+      'name' => $config->get('objective_5.name') ?? '',
       'description' => $config->get('objective_5.description') ?? '',
       'percentage' => (float) ($config->get('objective_5.percentage') ?? 90),
     ];
     $objective_6 = [
+      'name' => $config->get('objective_6.name') ?? '',
       'description' => $config->get('objective_6.description') ?? '',
       'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
     ];
