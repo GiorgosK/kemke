@@ -25,10 +25,6 @@ function taxonomy_tweaks_entity_prepare_form(EntityInterface $entity, string $op
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
-  if (\Drupal::routeMatch()->getRouteName() === 'incoming_create_select_case.case_modal_form') {
-    return;
-  }
-
   if (\Drupal::currentUser()->hasRole('administrator')) {
     return;
   }
@@ -40,9 +36,8 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
 
   if ($term->bundle() === 'case') {
     $allow_keys = [
-      'name',
-      'parent',
       'field_name_typed',
+      'parent',
       'actions',
       'form_build_id',
       'form_token',

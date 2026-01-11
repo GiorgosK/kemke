@@ -69,6 +69,13 @@ function incoming_create_select_case_form_alter(array &$form, FormStateInterface
     '#weight' => -100,
   ];
 
+  if (!isset($form['actions']['submit']) && isset($form['actions']['overview'])) {
+    $form['actions']['submit'] = $form['actions']['overview'];
+  }
+  if (isset($form['actions']['overview'])) {
+    unset($form['actions']['overview']);
+  }
+
   if (isset($form['actions']['submit'])) {
     $form['actions']['submit']['#ajax'] = [
       'callback' => 'incoming_create_select_case_modal_submit',
