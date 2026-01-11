@@ -112,3 +112,18 @@ tr.visible-to-amke {
 .select2-container--default .select2-selection--single .select2-selection__clear {
   font-size: 20px;
 }
+.feed-icons .views-data-export-feed {
+  display: inline-flex;
+  align-items: center;
+}
+.feed-icons .views-data-export-feed .feed-icon {
+  width: 48px;
+  height: 48px;
+  background-size: 48px 48px;
+}
+.feed-icons .pdf-feed .feed-icon {
+  background-image: url(../images/icons/pdf.svg) !important;
+}
+.feed-icons .xls-feed .feed-icon {
+  background-image: url(../images/icons/xls.svg) !important;
+}
