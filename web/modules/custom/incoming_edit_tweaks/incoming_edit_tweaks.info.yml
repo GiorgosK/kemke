@@ -1,0 +1,5 @@
+name: Incoming Edit Tweaks
+type: module
+description: Adjusts incoming edit redirects and view operations.
+core_version_requirement: ^10 || ^11
+package: Custom

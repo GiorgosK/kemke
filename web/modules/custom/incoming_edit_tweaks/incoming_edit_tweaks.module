@@ -1,0 +1,152 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\ViewExecutable;
+
+/**
+ * @file
+ * Incoming edit tweaks.
+ */
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function incoming_edit_tweaks_views_pre_render(ViewExecutable $view): void {
+  if (!incoming_edit_tweaks_is_target_view($view)) {
+    return;
+  }
+
+  $GLOBALS['incoming_edit_tweaks_active_view'] = $view->id();
+
+  if (isset($view->field['operations']) && isset($view->field['operations']->options)) {
+    $view->field['operations']->options['destination'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_views_post_execute().
+ */
+function incoming_edit_tweaks_views_post_execute(ViewExecutable $view): void {
+  if (!incoming_edit_tweaks_is_target_view($view)) {
+    return;
+  }
+
+  unset($GLOBALS['incoming_edit_tweaks_active_view']);
+}
+
+/**
+ * Implements hook_entity_operation_alter().
+ */
+function incoming_edit_tweaks_entity_operation_alter(array &$operations, EntityInterface $entity): void {
+  if (empty($GLOBALS['incoming_edit_tweaks_active_view'])) {
+    return;
+  }
+
+  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $moderation_state = NULL;
+  if ($entity->hasField('moderation_state')) {
+    $moderation_state = $entity->get('moderation_state')->value;
+  }
+
+  if ($moderation_state === 'published') {
+    unset($operations['edit']);
+    if (!isset($operations['view']) && $entity->access('view') && $entity->hasLinkTemplate('canonical')) {
+      $operations['view'] = [
+        'title' => t('View'),
+        'weight' => 5,
+        'url' => $entity->toUrl('canonical'),
+      ];
+    }
+    return;
+  }
+
+  if (!isset($operations['edit']['url'])) {
+    return;
+  }
+
+  $url = $operations['edit']['url'];
+  $options = $url->getOptions();
+  $query = $options['query'] ?? [];
+  unset($query['destination']);
+  $url->setOption('query', $query);
+
+  if (isset($operations['edit']['query'])) {
+    unset($operations['edit']['query']['destination']);
+  }
+}
+
+/**
+ * Check if the view should be altered by this module.
+ */
+function incoming_edit_tweaks_is_target_view(ViewExecutable $view): bool {
+  return in_array($view->id(), ['incoming', 'incoming_amke'], TRUE);
+}
+
+/**
+ * Implements hook_entity_access().
+ */
+function incoming_edit_tweaks_entity_access(EntityInterface $entity, $operation, \Drupal\Core\Session\AccountInterface $account): AccessResult {
+  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return AccessResult::neutral();
+  }
+
+  if ($operation !== 'update') {
+    return AccessResult::neutral();
+  }
+
+  if (!$entity->hasField('moderation_state')) {
+    return AccessResult::neutral();
+  }
+
+  if ($entity->get('moderation_state')->value === 'published') {
+    if ($account->hasRole('administrator')) {
+      return AccessResult::neutral()->addCacheContexts(['user.roles']);
+    }
+    return AccessResult::forbidden()
+      ->addCacheableDependency($entity)
+      ->addCacheContexts(['user.roles']);
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming edit form.
+ */
+function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
+  $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming add form.
+ */
+function incoming_edit_tweaks_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state): void {
+  $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
+}
+
+/**
+ * Submit handler to redirect back to the edit form after save.
+ */
+function incoming_edit_tweaks_redirect_back_to_edit_submit(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof EntityInterface || $entity->getEntityTypeId() !== 'node') {
+    return;
+  }
+
+  $node_id = $entity->id();
+  if (!$node_id) {
+    return;
+  }
+
+  $form_state->setRedirect('entity.node.edit_form', ['node' => $node_id]);
+}
