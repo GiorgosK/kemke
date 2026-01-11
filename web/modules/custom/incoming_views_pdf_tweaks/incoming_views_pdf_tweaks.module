@@ -6,6 +6,7 @@
  */
 
 use Drupal\views\ViewExecutable;
+use Drupal\Component\Utility\UrlHelper;
 
 /**
  * Implements hook_views_pre_render().
@@ -15,11 +16,7 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
     return;
   }
 
-  if (!$view->display_handler || $view->display_handler->getPluginId() !== 'data_export') {
-    return;
-  }
-
-  // Ensure exposed input is populated for the PDF header template.
+  // Ensure exposed input is populated for exports and headers.
   $query = \Drupal::request()->query->all();
   $query = array_filter($query, static function ($value) {
     if (is_array($value)) {
@@ -29,7 +26,88 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
   });
   unset($query['page'], $query['_format'], $query['op']);
 
+  if ($view->current_display === 'page_1') {
+    $query['no_state'] = 'incoming_processing-published';
+  }
+  if ($view->current_display === 'page_5') {
+    $query['state'] = 'incoming_processing-published';
+  }
+
+  if (
+    $view->display_handler
+    && $view->display_handler->getPluginId() === 'data_export'
+  ) {
+    $query['no_state'] = 'completed';
+  }
+
+  if (empty($query['state'])) {
+    $defaults = incoming_views_pdf_tweaks_default_states($view);
+    if (!empty($defaults)) {
+      $query['state'] = $defaults;
+    }
+  }
+
   $view->setExposedInput($query);
+}
+
+/**
+ * Implements hook_views_post_build().
+ */
+function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view) {
+  if ($view->id() !== 'incoming' || !in_array($view->current_display, ['page_1', 'page_5'], TRUE)) {
+    return;
+  }
+
+  if (empty($view->feedIcons)) {
+    return;
+  }
+
+  foreach ($view->feedIcons as &$icon) {
+    if (empty($icon['#url']) || !is_string($icon['#url'])) {
+      continue;
+    }
+
+    $parsed = UrlHelper::parse($icon['#url']);
+    $existing = $parsed['query'] ?? [];
+
+    if ($view->current_display === 'page_5') {
+      $existing['state'] = 'incoming_processing-published';
+    }
+    elseif (!empty($existing['state']) && $existing['state'] !== 'All') {
+      unset($existing['no_state']);
+    }
+    else {
+      // Always default to no_state=completed on page_1 exports.
+      $existing['no_state'] = 'incoming_processing-published';
+    }
+
+    $query_string = UrlHelper::buildQuery($existing);
+    $icon['#url'] = $parsed['path']
+      . ($query_string !== '' ? '?' . $query_string : '')
+      . (!empty($parsed['fragment']) ? '#' . $parsed['fragment'] : '');
+  }
+}
+
+/**
+ * Gets default moderation state filter values for the incoming view.
+ */
+function incoming_views_pdf_tweaks_default_states(ViewExecutable $view): array {
+  $displays = $view->storage->get('display') ?? [];
+  foreach ($displays as $display) {
+    $filters = $display['display_options']['filters'] ?? [];
+    foreach ($filters as $filter) {
+      if (
+        ($filter['plugin_id'] ?? '') === 'moderation_state_filter'
+        && !empty($filter['exposed'])
+        && (($filter['expose']['identifier'] ?? '') === 'state')
+        && !empty($filter['value'])
+      ) {
+        return array_values($filter['value']);
+      }
+    }
+  }
+
+  return [];
 }
 
 /**
