@@ -1,0 +1,5 @@
+name: Incoming Views PDF Tweaks
+type: module
+description: Customizations for incoming views PDF exports.
+core_version_requirement: ^11
+package: Custom

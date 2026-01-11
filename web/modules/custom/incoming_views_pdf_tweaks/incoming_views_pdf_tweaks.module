@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Hooks for Incoming Views PDF Tweaks.
+ */
+
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
+  if ($view->id() !== 'incoming') {
+    return;
+  }
+
+  if (!$view->display_handler || $view->display_handler->getPluginId() !== 'data_export') {
+    return;
+  }
+
+  // Ensure exposed input is populated for the PDF header template.
+  $query = \Drupal::request()->query->all();
+  $query = array_filter($query, static function ($value) {
+    if (is_array($value)) {
+      return array_filter($value, static fn($item) => $item !== '' && $item !== NULL) !== [];
+    }
+    return $value !== '' && $value !== NULL;
+  });
+  unset($query['page'], $query['_format'], $query['op']);
+
+  $view->setExposedInput($query);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function incoming_views_pdf_tweaks_theme() {
+  $path = \Drupal::service('extension.list.module')
+    ->getPath('incoming_views_pdf_tweaks');
+  return [
+    'pdf_serialization_pdf_header__incoming' => [
+      'base hook' => 'pdf_serialization_pdf_header',
+      'template' => 'pdf-serialization-pdf-header--incoming',
+      'path' => $path . '/templates',
+    ],
+    'pdf_serialization_pdf__incoming' => [
+      'base hook' => 'pdf_serialization_pdf',
+      'template' => 'pdf-serialization-pdf--incoming',
+      'path' => $path . '/templates',
+    ],
+  ];
+}

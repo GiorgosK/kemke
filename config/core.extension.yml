@@ -53,6 +53,7 @@ module:
   incoming_remarks: 0
   incoming_state_validations: 0
   incoming_tweaks: 0
+  incoming_views_pdf_tweaks: 0
   inline_entity_form: 0
   jquery_ui: 0
   kemke_breadcrumbs: 0

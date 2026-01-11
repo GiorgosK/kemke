@@ -1,0 +1,35 @@
+{#
+/**
+ * @file
+ * PDF header for all incoming view PDF exports.
+ */
+#}
+{% set exposed = view.getExposedInput() ?? view.exposed_input ?? {} %}
+<div class="pdf-header">
+  <div>
+    <strong>Εισερχόμενα:</strong> {{ "now"|date("d/m/Y H:i") }}
+  </div>
+  {% if false %}
+    {% set parts = [] %}
+    {% for key, value in exposed %}
+      {% if value is iterable %}
+        {% set values = [] %}
+        {% for item in value %}
+          {% if item is not empty %}
+            {% set values = values|merge([item]) %}
+          {% endif %}
+        {% endfor %}
+        {% if values|length %}
+          {% set parts = parts|merge([key ~ "=" ~ values|join(", ")]) %}
+        {% endif %}
+      {% elseif value is not empty %}
+        {% set parts = parts|merge([key ~ "=" ~ value]) %}
+      {% endif %}
+    {% endfor %}
+    {% if parts|length %}
+      <div>
+        <strong>Filters:</strong> {{ parts|join("; ") }}
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
