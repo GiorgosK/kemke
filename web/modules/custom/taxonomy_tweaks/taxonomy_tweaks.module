@@ -2,6 +2,8 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\taxonomy\TermInterface;
 
@@ -18,6 +20,34 @@ function taxonomy_tweaks_entity_prepare_form(EntityInterface $entity, string $op
     if ($parent_id > 0) {
       $entity->set('parent', [$parent_id]);
     }
+  }
+}
+
+/**
+ * Implements hook_preprocess_breadcrumb().
+ */
+function taxonomy_tweaks_preprocess_breadcrumb(array &$variables): void {
+  if (\Drupal::routeMatch()->getRouteName() !== 'entity.taxonomy_term.edit_form') {
+    return;
+  }
+
+  if (empty($variables['breadcrumb']) || !is_array($variables['breadcrumb'])) {
+    return;
+  }
+
+  $last_index = array_key_last($variables['breadcrumb']);
+  if ($last_index === NULL) {
+    return;
+  }
+
+  $last_item = &$variables['breadcrumb'][$last_index];
+  if ($last_item instanceof Link) {
+    $last_item = Link::fromTextAndUrl($last_item->getText(), Url::fromRoute('<nolink>'));
+    return;
+  }
+
+  if (is_array($last_item) && isset($last_item['url'])) {
+    unset($last_item['url']);
   }
 }
 
