@@ -1,0 +1,44 @@
+/**
+ * @file
+ * Icon styles for the account menu.
+ */
+
+.kemke-account-menu .kemke-account-menu__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.kemke-account-menu .kemke-menu-icon {
+  display: inline-block;
+  width: 1.7rem;
+  height: 1.7rem;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.kemke-account-menu .kemke-menu-icon--report {
+  mask-image: url(../../images/icons/report.svg);
+  -webkit-mask-image: url(../../images/icons/report.svg);
+}
+
+.kemke-account-menu .kemke-menu-icon--case {
+  mask-image: url(../../images/icons/case.svg);
+  -webkit-mask-image: url(../../images/icons/case.svg);
+}
+
+.kemke-account-menu .kemke-menu-icon--incoming {
+  mask-image: url(../../images/icons/incoming.svg);
+  -webkit-mask-image: url(../../images/icons/incoming.svg);
+}
+
+.kemke-account-menu .kemke-menu-icon--logout {
+  mask-image: url(../../images/icons/logout.svg);
+  -webkit-mask-image: url(../../images/icons/logout.svg);
+}

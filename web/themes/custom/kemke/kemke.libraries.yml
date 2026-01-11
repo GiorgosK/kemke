@@ -91,6 +91,13 @@ progress:
       css/components/progress.css:
         weight: -10
 
+account-menu-icons:
+  version: VERSION
+  css:
+    component:
+      css/components/account-menu-icons.css:
+        weight: -10
+
 drupal.tablesort:
   version: VERSION
   css:

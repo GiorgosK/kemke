@@ -1,0 +1,43 @@
+{#
+/**
+ * @file
+ * Theme override to display the account menu with icons.
+ */
+#}
+{{ attach_library('kemke/account-menu-icons') }}
+{% if items %}
+  <ul{{ attributes.addClass('menu govgr-nav__list kemke-account-menu') }}>
+    {% for item in items %}
+      {%
+        set classes = [
+          'menu-item',
+          'govgr-nav__list-item',
+          item.is_expanded ? 'menu-item--expanded',
+          item.is_collapsed ? 'menu-item--collapsed',
+          item.in_active_trail ? 'menu-item--active-trail',
+        ]
+      %}
+      {% set item_path = item.url.toString %}
+      {% set icon_class = '' %}
+      {% set link_classes = ['govgr-nav__list-item-link', 'govgr-link', 'kemke-account-menu__link'] %}
+      {% if item.in_active_trail %}
+        {% set link_classes = link_classes|merge(['is-active']) %}
+      {% endif %}
+      {% if item_path starts with '/reports' %}
+        {% set icon_class = 'kemke-menu-icon--report' %}
+      {% elseif item_path starts with '/cases' %}
+        {% set icon_class = 'kemke-menu-icon--case' %}
+      {% elseif item_path starts with '/incoming' %}
+        {% set icon_class = 'kemke-menu-icon--incoming' %}
+      {% elseif item_path starts with '/user/logout' %}
+        {% set icon_class = 'kemke-menu-icon--logout' %}
+      {% endif %}
+      <li{{ item.attributes.addClass(classes) }}>
+        <a href="{{ item_path }}"{{ create_attribute({'class': link_classes, 'title': item.title}) }}>
+          <span class="kemke-menu-icon {{ icon_class }}" aria-hidden="true"></span>
+          <span class="visually-hidden">{{ item.title }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
