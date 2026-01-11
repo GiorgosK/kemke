@@ -42,6 +42,7 @@
         "drupal/node_view_permissions": "^2.0",
         "drupal/paragraphs": "^1.19",
         "drupal/password_policy": "^4.0",
+        "drupal/pdf_serialization": "^2.2",
         "drupal/reference_table_formatter": "^2.0",
         "drupal/role_delegation": "^1.4",
         "drupal/select2": "^2.0",
@@ -87,6 +88,7 @@
         },
         "drupal-lenient": {
             "allowed-list": [
+                "drupal/pdf_serialization"
             ]
         },
         "enable-patching": true,
@@ -153,6 +155,10 @@
             },
             "drupal/paragraphs": {
                 "Skip saving empty paragraphs for certain types dgo.re/2877695": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch"
+            },
+            "drupal/pdf_serialization": {
+                "Drupal 11 compatibility (core_version_requirement) dgo.re/3447418": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/9.patch",
+                "PHP Fatal error: Declaration of Drupal\\pdf_serialization dgo.re/3392153": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/6.patch"
             }
         }
     }

@@ -1,5 +1,5 @@
 {
-    "_hash": "60803fee6441a2cbfbae3deb17e7a7b4875a09e9cfaea7e84aab6daf11fcb719",
+    "_hash": "e5c5af3cb20e318eb6327ebeef394729677a50470e5a23be5bd212500cd8f1c7",
     "patches": {
         "drupal/core": [
             {
@@ -29,6 +29,28 @@
                 "description": "Skip saving empty paragraphs for certain types dgo.re/2877695",
                 "url": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch",
                 "sha256": "8d3d437fe8ddc4dd1140c0dcdb0ff627ce56e3f614ed9958efe201ed8b603019",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ],
+        "drupal/pdf_serialization": [
+            {
+                "package": "drupal/pdf_serialization",
+                "description": "Drupal 11 compatibility (core_version_requirement) dgo.re/3447418",
+                "url": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/9.patch",
+                "sha256": "27695eebc1a07270ae24373e2b44c469d7a3f7123db3d10f6719f7568c886f78",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            },
+            {
+                "package": "drupal/pdf_serialization",
+                "description": "PHP Fatal error: Declaration of Drupal\\pdf_serialization dgo.re/3392153",
+                "url": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/6.patch",
+                "sha256": "58cb84e426af2ed77000e3be352f6885454c07ca0c3e1a99e4b8ffa79e4a0203",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
