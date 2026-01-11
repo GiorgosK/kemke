@@ -9,7 +9,10 @@ use Drupal\Core\Render\Markup;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\pdf_serialization\PdfManager;
 use Drupal\Core\Url;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -91,10 +94,30 @@ class ReportsResultsController extends ControllerBase {
       'meta' => [
         '#markup' => $generated_text ? $this->t('Generated on @date.', ['@date' => $generated_text]) : '',
       ],
-      'pdf_link' => [
+      'export_links' => [
         '#type' => 'container',
         '#attributes' => [
           'class' => ['feed-icons'],
+        ],
+        'xls' => [
+          '#type' => 'container',
+          '#attributes' => [
+            'class' => [
+              'xls-feed',
+              'views-data-export-feed',
+              'views-data-export-feed--kemke-reports-xls',
+            ],
+          ],
+          'link' => [
+            '#type' => 'link',
+            '#title' => Markup::create('<span class="visually-hidden">' . $this->t('Download XLS') . '</span>'),
+            '#url' => Url::fromRoute('kemke_reports.results_xls'),
+            '#attributes' => [
+              'class' => ['feed-icon'],
+              'aria-label' => $this->t('Download XLS'),
+              'title' => $this->t('Report results'),
+            ],
+          ],
         ],
         'pdf' => [
           '#type' => 'container',
@@ -138,6 +161,48 @@ class ReportsResultsController extends ControllerBase {
       'Content-Type' => 'application/pdf',
       'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
     ]);
+  }
+
+  /**
+   * Builds the XLS response for the results page.
+   */
+  public function xls(): Response {
+    $result = $this->tempStore->get('last_result');
+    if (!$result) {
+      return new Response((string) $this->t('No report has been generated yet.'), 404);
+    }
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Report');
+
+    $header = [
+      $this->t('Objective'),
+      $this->t('Description'),
+      $this->t('Deadline (days)'),
+      $this->t('On target'),
+      $this->t('From'),
+      $this->t('Target'),
+      $this->t('Result'),
+    ];
+    $rows = $this->build_objective_rows_data($result);
+    $sheet->fromArray($header, NULL, 'A1');
+    if ($rows) {
+      $sheet->fromArray($rows, NULL, 'A2');
+    }
+    $sheet->getStyle('1:1')->getFont()->setBold(TRUE);
+
+    $writer = new Xlsx($spreadsheet);
+    $year = $result['year'] ?? NULL;
+    $filename = $year ? sprintf('kemke-report-%s.xlsx', $year) : 'kemke-report.xlsx';
+
+    $response = new StreamedResponse(function () use ($writer): void {
+      $writer->save('php://output');
+    });
+    $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $response->headers->set('Content-Disposition', sprintf('attachment; filename="%s"', $filename));
+
+    return $response;
   }
 
   /**
@@ -196,6 +261,20 @@ class ReportsResultsController extends ControllerBase {
   }
 
   /**
+   * Builds objective rows for XLS output.
+   */
+  private function build_objective_rows_data(array $result): array {
+    return [
+      $this->build_objective_1_row_data($result),
+      $this->build_objective_2_row_data($result),
+      $this->build_objective_3_row_data($result),
+      $this->build_objective_4_row_data($result),
+      $this->build_objective_5_row_data($result),
+      $this->build_objective_6_row_data($result),
+    ];
+  }
+
+  /**
    * Builds a row for objective 1.
    */
   private function build_objective_1_row(array $result): array {
@@ -212,6 +291,25 @@ class ReportsResultsController extends ControllerBase {
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
     return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+  }
+
+  /**
+   * Builds a row for objective 1 (XLS).
+   */
+  private function build_objective_1_row_data(array $result): array {
+    $objective = $result['objective_1'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 1');
+    $description = $objective['description'] ?: $this->t('Objective 1');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
+    if ($deadline_days_for_report <= 0) {
+      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
+    }
+    $calculated = (float) ($result['objective_1_percentage'] ?? 0);
+    $total = (int) ($result['objective_1_total'] ?? 0);
+    $on_time = (int) ($result['objective_1_on_time'] ?? 0);
+
+    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -234,6 +332,25 @@ class ReportsResultsController extends ControllerBase {
   }
 
   /**
+   * Builds a row for objective 2 (XLS).
+   */
+  private function build_objective_2_row_data(array $result): array {
+    $objective = $result['objective_2'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 2');
+    $description = $objective['description'] ?: $this->t('Objective 2');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
+    if ($deadline_days_for_report <= 0) {
+      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
+    }
+    $calculated = (float) ($result['objective_2_percentage'] ?? 0);
+    $total = (int) ($result['objective_2_total'] ?? 0);
+    $on_time = (int) ($result['objective_2_on_time'] ?? 0);
+
+    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+  }
+
+  /**
    * Builds a row for objective 3.
    */
   private function build_objective_3_row(array $result): array {
@@ -250,6 +367,25 @@ class ReportsResultsController extends ControllerBase {
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
     return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+  }
+
+  /**
+   * Builds a row for objective 3 (XLS).
+   */
+  private function build_objective_3_row_data(array $result): array {
+    $objective = $result['objective_3'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 3');
+    $description = $objective['description'] ?: $this->t('Objective 3');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
+    if ($deadline_days_for_report <= 0) {
+      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
+    }
+    $calculated = (float) ($result['objective_3_percentage'] ?? 0);
+    $total = (int) ($result['objective_3_total'] ?? 0);
+    $on_time = (int) ($result['objective_3_on_time'] ?? 0);
+
+    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -275,6 +411,28 @@ class ReportsResultsController extends ControllerBase {
   }
 
   /**
+   * Builds a row for objective 4 (XLS).
+   */
+  private function build_objective_4_row_data(array $result): array {
+    $objective = $result['objective_4'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 4');
+    $description = $objective['description'] ?: $this->t('Objective 4');
+    $warning = $result['objective_4_warning'] ?? '';
+    if ($warning) {
+      $description = $this->t('@description (@warning)', [
+        '@description' => $description,
+        '@warning' => $warning,
+      ]);
+    }
+    $target = (float) ($objective['percentage'] ?? 0);
+    $calculated = (float) ($result['objective_4_percentage'] ?? 0);
+    $total = (int) ($result['objective_4_total'] ?? 0);
+    $on_time = (int) ($result['objective_4_on_time'] ?? 0);
+
+    return $this->format_row_data($name, $description, NULL, $on_time, $total, $target, $calculated);
+  }
+
+  /**
    * Builds a row for objective 5.
    */
   private function build_objective_5_row(array $result): array {
@@ -287,6 +445,21 @@ class ReportsResultsController extends ControllerBase {
     $on_time = (int) ($result['objective_5_on_time'] ?? 0);
 
     return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated);
+  }
+
+  /**
+   * Builds a row for objective 5 (XLS).
+   */
+  private function build_objective_5_row_data(array $result): array {
+    $objective = $result['objective_5'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 5');
+    $description = $objective['description'] ?: $this->t('Objective 5');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $calculated = (float) ($result['objective_5_percentage'] ?? 0);
+    $total = (int) ($result['objective_5_total'] ?? 0);
+    $on_time = (int) ($result['objective_5_on_time'] ?? 0);
+
+    return $this->format_row_data($name, $description, NULL, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -305,6 +478,21 @@ class ReportsResultsController extends ControllerBase {
   }
 
   /**
+   * Builds a row for objective 6 (XLS).
+   */
+  private function build_objective_6_row_data(array $result): array {
+    $objective = $result['objective_6'] ?? [];
+    $name = $objective['name'] ?: $this->t('Objective 6');
+    $description = $objective['description'] ?: $this->t('Objective 6');
+    $target = (float) ($objective['percentage'] ?? 0);
+    $calculated = (float) ($result['seminar_percentage'] ?? 0);
+    $total = (int) ($result['seminar_total_users'] ?? 0);
+    $with_seminar = (int) ($result['seminar_users'] ?? 0);
+
+    return $this->format_row_data($name, $description, NULL, $with_seminar, $total, $target, $calculated);
+  }
+
+  /**
    * Formats a report table row.
    */
   private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
@@ -320,6 +508,23 @@ class ReportsResultsController extends ControllerBase {
       (string) $total,
       Html::escape(sprintf('%s%%', $target)),
       Markup::create(sprintf('<span style="color:%s">%s%%</span>', Html::escape($color), Html::escape($calculated_formatted))),
+    ];
+  }
+
+  /**
+   * Formats a report row for XLS output.
+   */
+  private function format_row_data($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
+    $calculated_formatted = number_format($calculated, 2);
+
+    return [
+      (string) $name,
+      (string) $description,
+      $deadline !== NULL ? (string) $deadline : '',
+      (string) $on_time,
+      (string) $total,
+      sprintf('%s%%', $target),
+      sprintf('%s%%', $calculated_formatted),
     ];
   }
 
