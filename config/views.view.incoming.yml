@@ -40,6 +40,7 @@ dependencies:
     - datetime
     - entityreference_filter
     - node
+    - pdf_serialization
     - rest
     - serialization
     - taxonomy
@@ -3270,6 +3271,75 @@ display:
         - 'config:field.storage.node.field_supervisor'
         - 'config:workflow_list'
         - user_list
+  data_export_2:
+    id: data_export_2
+    display_title: 'Data export incoming PDF'
+    display_plugin: data_export
+    position: 7
+    display_options:
+      style:
+        type: data_export
+        options:
+          formats:
+            pdf: pdf
+          csv_settings:
+            delimiter: ','
+            enclosure: '"'
+            escape_char: \
+            strip_tags: true
+            trim: true
+            encoding: utf8
+            utf8_bom: '0'
+            use_serializer_encode_only: false
+            output_header: true
+          xml_settings:
+            encoding: UTF-8
+            root_node_name: response
+            item_node_name: item
+            format_output: false
+          pdf_settings:
+            format: a4
+            show_page_number: 1
+            show_header: 0
+            header_content: ''
+            show_footer: 0
+            footer_content: ''
+      display_description: ''
+      display_extenders: {  }
+      path: incoming/inc.pdf
+      displays:
+        page_1: page_1
+        default: '0'
+        page_2: '0'
+        page_3: '0'
+        page_4: '0'
+        page_5: '0'
+      filename: inc.pdf
+      automatic_download: true
+      store_in_public_file_directory: false
+      custom_redirect_path: false
+      redirect_to_display: none
+      include_query_params: false
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - request_format
+        - url
+        - user
+        - 'user.node_grants:view'
+        - user.permissions
+      tags:
+        - 'config:field.storage.node.field_basic_operator'
+        - 'config:field.storage.node.field_case'
+        - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
+        - 'config:field.storage.node.field_legal_deadline'
+        - 'config:field.storage.node.field_sender'
+        - 'config:field.storage.node.field_subject'
+        - 'config:workflow_list'
+        - user_list
   page_1:
     id: page_1
     display_title: Εισερχόμενα
@@ -3896,47 +3966,6 @@ display:
             secretariat: secretariat
             kemke_admin: kemke_admin
       filters:
-        moderation_state_1:
-          id: moderation_state_1
-          table: node_field_data
-          field: moderation_state
-          relationship: none
-          group_type: group
-          admin_label: ''
-          entity_type: node
-          plugin_id: moderation_state_filter
-          operator: 'not in'
-          value:
-            incoming_processing-published: incoming_processing-published
-          group: 1
-          exposed: false
-          expose:
-            operator_id: ''
-            label: ''
-            description: ''
-            use_operator: false
-            operator: ''
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: ''
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
         field_primary_value:
           id: field_primary_value
           table: node__field_primary
@@ -4232,7 +4261,12 @@ display:
           entity_type: node
           plugin_id: moderation_state_filter
           operator: in
-          value: {  }
+          value:
+            incoming_processing-draft: incoming_processing-draft
+            incoming_processing-fullness_check: incoming_processing-fullness_check
+            incoming_processing-pending_issues: incoming_processing-pending_issues
+            incoming_processing-under_processing: incoming_processing-under_processing
+            incoming_processing-for_signature: incoming_processing-for_signature
           group: 1
           exposed: true
           expose:
@@ -4249,7 +4283,7 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            reduce: false
+            reduce: true
           is_grouped: false
           group_info:
             label: ''
