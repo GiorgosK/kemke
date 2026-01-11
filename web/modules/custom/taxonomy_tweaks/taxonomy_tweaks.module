@@ -25,6 +25,9 @@ function taxonomy_tweaks_entity_prepare_form(EntityInterface $entity, string $op
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $existing_style = $form['#attributes']['style'] ?? '';
+  $form['#attributes']['style'] = trim($existing_style . ' max-width: 600px; margin: 0 auto;');
+
   if (\Drupal::currentUser()->hasRole('administrator')) {
     return;
   }
