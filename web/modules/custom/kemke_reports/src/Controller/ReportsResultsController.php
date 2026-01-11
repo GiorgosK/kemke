@@ -7,6 +7,9 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\TempStore\PrivateTempStore;
+use Drupal\pdf_serialization\PdfManager;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,12 +28,18 @@ class ReportsResultsController extends ControllerBase {
   protected DateFormatterInterface $dateFormatter;
 
   /**
+   * PDF manager.
+   */
+  protected PdfManager $pdfManager;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
     $instance = new self();
     $instance->tempStore = $container->get('tempstore.private')->get('kemke_reports');
     $instance->dateFormatter = $container->get('date.formatter');
+    $instance->pdfManager = $container->get('pdf_serialization.pdf_manager');
     return $instance;
   }
 
@@ -49,15 +58,12 @@ class ReportsResultsController extends ControllerBase {
     $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
     $year = $result['year'] ?? NULL;
 
-    $rows = [];
-    $rows[] = $this->build_objective_1_row($result);
-    $rows[] = $this->build_objective_2_row($result);
-    $rows[] = $this->build_objective_3_row($result);
-    $rows[] = $this->build_objective_4_row($result);
-    $rows[] = $this->build_objective_5_row($result);
-    $rows[] = $this->build_objective_6_row($result);
+    $rows = $this->build_objective_rows($result);
 
     return [
+      '#cache' => [
+        'max-age' => 0,
+      ],
       'title' => [
         '#type' => 'html_tag',
         '#tag' => 'h2',
@@ -85,6 +91,107 @@ class ReportsResultsController extends ControllerBase {
       'meta' => [
         '#markup' => $generated_text ? $this->t('Generated on @date.', ['@date' => $generated_text]) : '',
       ],
+      'pdf_link' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['feed-icons'],
+        ],
+        'pdf' => [
+          '#type' => 'container',
+          '#attributes' => [
+            'class' => [
+              'pdf-feed',
+              'views-data-export-feed',
+              'views-data-export-feed--kemke-reports',
+            ],
+          ],
+          'link' => [
+            '#type' => 'link',
+            '#title' => Markup::create('<span class="visually-hidden">' . $this->t('Download PDF') . '</span>'),
+            '#url' => Url::fromRoute('kemke_reports.results_pdf'),
+            '#attributes' => [
+              'class' => ['feed-icon'],
+              'aria-label' => $this->t('Download PDF'),
+              'title' => $this->t('Report results'),
+            ],
+          ],
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Builds the PDF response for the results page.
+   */
+  public function pdf(): Response {
+    $result = $this->tempStore->get('last_result');
+    if (!$result) {
+      return new Response((string) $this->t('No report has been generated yet.'), 404);
+    }
+
+    $year = $result['year'] ?? NULL;
+    $build = $this->build_pdf_render_array($result);
+    $pdf = $this->pdfManager->getPdf($build);
+    $filename = $year ? sprintf('kemke-report-%s.pdf', $year) : 'kemke-report.pdf';
+
+    return new Response($pdf, 200, [
+      'Content-Type' => 'application/pdf',
+      'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+    ]);
+  }
+
+  /**
+   * Builds the render array used for PDF output.
+   */
+  private function build_pdf_render_array(array $result): array {
+    $generated = $result['generated'] ?? NULL;
+    $generated_text = $generated ? $this->dateFormatter->format($generated, 'short') : NULL;
+    $year = $result['year'] ?? NULL;
+    $rows = $this->build_objective_rows($result);
+
+    return [
+      '#cache' => [
+        'max-age' => 0,
+      ],
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['kemke-report-pdf'],
+      ],
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h2',
+        '#value' => $year ? $this->t('Objectives for @year', ['@year' => $year]) : '',
+      ],
+      'report_table' => [
+        '#type' => 'table',
+        '#header' => [
+          $this->t('Objective'),
+          $this->t('Description'),
+          $this->t('Deadline (days)'),
+          $this->t('On target'),
+          $this->t('From'),
+          $this->t('Target'),
+          '',
+        ],
+        '#rows' => $rows,
+      ],
+      'meta' => [
+        '#markup' => $generated_text ? $this->t('Generated on @date.', ['@date' => $generated_text]) : '',
+      ],
+    ];
+  }
+
+  /**
+   * Builds all objective rows.
+   */
+  private function build_objective_rows(array $result): array {
+    return [
+      $this->build_objective_1_row($result),
+      $this->build_objective_2_row($result),
+      $this->build_objective_3_row($result),
+      $this->build_objective_4_row($result),
+      $this->build_objective_5_row($result),
+      $this->build_objective_6_row($result),
     ];
   }
 

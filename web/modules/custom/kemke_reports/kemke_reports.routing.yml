@@ -20,3 +20,11 @@ kemke_reports.results:
     _title: 'Report results'
   requirements:
     _permission: 'view reports'
+
+kemke_reports.results_pdf:
+  path: '/reports/results/pdf'
+  defaults:
+    _controller: '\Drupal\kemke_reports\Controller\ReportsResultsController::pdf'
+    _title: 'Reports PDF'
+  requirements:
+    _permission: 'view reports'
