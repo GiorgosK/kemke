@@ -58,6 +58,10 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 
     // Auto-fill legal entity from the user's profile on submit.
     $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
+
+    if (isset($form['actions']['submit'])) {
+      $form['actions']['submit']['#value'] = t('Αποστολή στην ΚΕΜΚΕ');
+    }
     return;
   }
 
