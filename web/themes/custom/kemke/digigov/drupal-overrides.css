@@ -127,3 +127,25 @@ tr.visible-to-amke {
 .feed-icons .xls-feed .feed-icon {
   background-image: url(../images/icons/xls.svg) !important;
 }
+
+/* notify widget */
+.region-header {
+  display: flex;
+}
+.region-header #notify_widget {
+  z-index: 1000;
+  margin: 2px 15px;
+}
+#notify_widget #notify_widget_popup {
+  padding: 10px;
+}
+.region-header #notify_widget #notify_widget_popup .inner {
+  border: none;
+}
+.region-header #notify_widget>a {
+  background-image: url(../images/icons/bell.svg) !important;
+  background-size: 24px 24px;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0) invert(1);
+}
