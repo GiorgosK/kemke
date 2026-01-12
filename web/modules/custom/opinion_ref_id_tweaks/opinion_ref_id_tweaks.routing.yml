@@ -11,6 +11,6 @@ opinion_ref_id_tweaks.generate_next:
   defaults:
     _controller: '\Drupal\opinion_ref_id_tweaks\Controller\OpinionRefIdAjaxController::generateNext'
   requirements:
-    _permission: 'administer opinion ref id settings'
+    _permission: 'access content'
   options:
     _format: 'drupal_ajax'
