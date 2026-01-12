@@ -3,6 +3,7 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -148,5 +149,29 @@ function incoming_edit_tweaks_redirect_back_to_edit_submit(array &$form, FormSta
     return;
   }
 
-  $form_state->setRedirect('entity.node.edit_form', ['node' => $node_id]);
+  $entity_storage = \Drupal::entityTypeManager()->getStorage('node');
+  $reloaded_entity = $entity_storage->load($node_id);
+  if ($reloaded_entity instanceof EntityInterface) {
+    $entity = $reloaded_entity;
+  }
+
+  $account = \Drupal::currentUser();
+  $edit_url = $entity->toUrl('edit-form');
+  if ($edit_url->access($account)) {
+    $form_state->setRedirect('entity.node.edit_form', ['node' => $node_id]);
+    return;
+  }
+
+  if ($account->hasRole('amke_user')) {
+    $form_state->setRedirectUrl(Url::fromUserInput('/amke'));
+    return;
+  }
+
+  $kemke_roles = ['operator', 'director_supervisor', 'department_supervisor', 'secretariat'];
+  foreach ($kemke_roles as $role) {
+    if ($account->hasRole($role)) {
+      $form_state->setRedirectUrl(Url::fromUserInput('/incoming'));
+      return;
+    }
+  }
 }
