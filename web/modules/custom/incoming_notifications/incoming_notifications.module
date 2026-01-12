@@ -60,6 +60,8 @@ function incoming_notifications_node_update(NodeInterface $node): void {
  * Sends notifications for incoming moderation state transitions.
  */
 function incoming_notifications_handle_state_change(NodeInterface $node, ?string $original_state): void {
+  $memory = &drupal_static(__FUNCTION__, []);
+
   if (!$node->hasField('moderation_state') || $node->get('moderation_state')->isEmpty()) {
     return;
   }
@@ -70,16 +72,22 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     return;
   }
 
+  $dedupe_key = $node->id() . ':' . $new_state;
+  if (isset($memory[$dedupe_key])) {
+    return;
+  }
+  $memory[$dedupe_key] = TRUE;
+
   if ($new_state === 'draft') {
     $recipients = _incoming_notifications_get_users_by_role('secretariat');
-    _incoming_notifications_send_mail('draft', $node, $recipients);
+    _incoming_notifications_send_notifications('draft', $node, $recipients);
   }
 
   if ($new_state === 'to_be_assigned' && $node->hasField('field_supervisor')) {
     $target_id = $node->get('field_supervisor')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_mail('to_be_assigned', $node, [$user->getEmail()]);
+      _incoming_notifications_send_notifications('to_be_assigned', $node, [$user]);
     }
   }
 
@@ -87,33 +95,33 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     $target_id = $node->get('field_basic_operator')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_mail('fullness_check', $node, [$user->getEmail()]);
+      _incoming_notifications_send_notifications('fullness_check', $node, [$user]);
     }
   }
 
   if ($new_state === 'pending_issues') {
     $recipients = _incoming_notifications_get_users_by_legal_entity($node);
-    _incoming_notifications_send_mail('pending_issues', $node, $recipients);
+    _incoming_notifications_send_notifications('pending_issues', $node, $recipients);
   }
 
   if ($new_state === 'published') {
     $recipients = _incoming_notifications_get_users_by_legal_entity($node);
-    _incoming_notifications_send_mail('published', $node, $recipients);
+    _incoming_notifications_send_notifications('published', $node, $recipients);
   }
 }
 
 /**
- * Sends a notification email through Drupal mail manager.
+ * Sends notification email and notify_widget messages.
  *
  * @param string $key
  *   The mail key for hook_mail().
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The incoming node being processed.
  * @param array $recipients
- *   Array of email addresses.
+ *   Array of user entities.
  */
-function _incoming_notifications_send_mail(string $key, EntityInterface $entity, array $recipients): void {
-  $recipients = array_filter(array_unique($recipients));
+function _incoming_notifications_send_notifications(string $key, EntityInterface $entity, array $recipients): void {
+  $recipients = array_filter($recipients);
   if (empty($recipients)) {
     return;
   }
@@ -126,25 +134,46 @@ function _incoming_notifications_send_mail(string $key, EntityInterface $entity,
   }
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
+  $link = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
 
-  foreach ($recipients as $to) {
+  $notify_service_id = 'notify_widget.api';
+  $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
+
+  foreach ($recipients as $user) {
+    if (!$user instanceof UserInterface || !$user->getEmail()) {
+      continue;
+    }
     $params = [
       'incoming_title' => $title,
       'incoming_id' => $incoming_id,
       'state' => $state,
+      'incoming_link' => $link,
     ];
-    $mailManager->mail('incoming_notifications', $key, $to, $langcode, $params, NULL, TRUE);
+    $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
+
+    if ($notify_api) {
+      $subject = incoming_notifications_build_subject_notify($key, $params);
+      $body = incoming_notifications_build_body($key, $params);
+      $notify_api->send(
+        'incoming_notifications',
+        'warning',
+        $subject,
+        $body,
+        (int) $user->id(),
+        $link
+      );
+    }
   }
 }
 
 /**
- * Finds active users for a given role and returns their email addresses.
+ * Finds active users for a given role.
  *
  * @param string $role_id
  *   The machine name of the role.
  *
  * @return array
- *   Email addresses.
+ *   User entities.
  */
 function _incoming_notifications_get_users_by_role(string $role_id): array {
   $storage = \Drupal::entityTypeManager()->getStorage('user');
@@ -153,14 +182,14 @@ function _incoming_notifications_get_users_by_role(string $role_id): array {
     'roles' => $role_id,
   ]);
 
-  $emails = [];
+  $users_list = [];
   foreach ($users as $user) {
-    if ($user instanceof UserInterface && $user->getEmail()) {
-      $emails[] = $user->getEmail();
+    if ($user instanceof UserInterface) {
+      $users_list[] = $user;
     }
   }
 
-  return $emails;
+  return $users_list;
 }
 
 /**
@@ -170,7 +199,7 @@ function _incoming_notifications_get_users_by_role(string $role_id): array {
  *   The incoming node being processed.
  *
  * @return array
- *   Email addresses.
+ *   User entities.
  */
 function _incoming_notifications_get_users_by_legal_entity(EntityInterface $entity): array {
   if (!$entity->hasField('field_legal_entity')) {
@@ -199,59 +228,110 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
   }
 
   $users = $storage->loadMultiple($user_ids);
-  $emails = [];
+  $users_list = [];
   foreach ($users as $user) {
-    if ($user instanceof UserInterface && $user->getEmail()) {
-      $emails[] = $user->getEmail();
+    if ($user instanceof UserInterface) {
+      $users_list[] = $user;
     }
   }
 
-  return $emails;
+  return $users_list;
+}
+
+/**
+ * Builds the email subject for a notification.
+ */
+function incoming_notifications_build_subject_email(string $key, array $params): string {
+  $site_name = \Drupal::config('system.site')->get('name');
+  switch ($key) {
+    case 'draft':
+      return (string) t('@site: Document "@title" needs attention', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+
+    case 'to_be_assigned':
+      return (string) t('@site: Document "@title" needs assignment', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+
+    case 'fullness_check':
+      return (string) t('@site: Document "@title" in fullness check', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+
+    case 'pending_issues':
+      return (string) t('@site: Document "@title" has pending issues', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+
+    case 'published':
+      return (string) t('@site: Document "@title" published', ['@site' => $site_name, '@title' => $params['incoming_title']]);
+  }
+
+  return (string) t('@site: Document update', ['@site' => $site_name]);
+}
+
+/**
+ * Builds the notify_widget subject for a notification.
+ */
+function incoming_notifications_build_subject_notify(string $key, array $params): string {
+  switch ($key) {
+    case 'draft':
+      return (string) t('Document "@title" needs attention', ['@title' => $params['incoming_title']]);
+
+    case 'to_be_assigned':
+      return (string) t('Document "@title" needs assignment', ['@title' => $params['incoming_title']]);
+
+    case 'fullness_check':
+      return (string) t('Document "@title" in fullness check', ['@title' => $params['incoming_title']]);
+
+    case 'pending_issues':
+      return (string) t('Document "@title" has pending issues', ['@title' => $params['incoming_title']]);
+
+    case 'published':
+      return (string) t('Document "@title" published', ['@title' => $params['incoming_title']]);
+  }
+
+  return (string) t('Document update');
+}
+
+/**
+ * Builds the email body for a notification.
+ */
+function incoming_notifications_build_body(string $key, array $params): string {
+  switch ($key) {
+    case 'draft':
+      return (string) t('Incoming "@title" (NO ID) "Εισερχόμενη". Please assign it.', [
+        '@title' => $params['incoming_title'],
+      ]);
+
+    case 'to_be_assigned':
+      return (string) t('Incoming "@title" (ID: @id) moved to "Προς χρέωση". Please assign it.', [
+        '@title' => $params['incoming_title'],
+        '@id' => $params['incoming_id'],
+      ]);
+
+    case 'fullness_check':
+      return (string) t('Incoming "@title" (ID: @id) moved to "Έλεγχος πληρότητας". You are listed as the operator.', [
+        '@title' => $params['incoming_title'],
+        '@id' => $params['incoming_id'],
+      ]);
+
+    case 'pending_issues':
+      return (string) t('Incoming "@title" (ID: @id) moved to "Με εκκρεμότητες". Please review the pending issues.', [
+        '@title' => $params['incoming_title'],
+        '@id' => $params['incoming_id'],
+      ]);
+
+    case 'published':
+      return (string) t('Incoming "@title" (ID: @id) moved to "Published".', [
+        '@title' => $params['incoming_title'],
+        '@id' => $params['incoming_id'],
+      ]);
+  }
+
+  return (string) t('Incoming update.');
 }
 
 /**
  * Implements hook_mail().
  */
 function incoming_notifications_mail($key, &$message, $params) {
-  $site_name = \Drupal::config('system.site')->get('name');
-  switch ($key) {
-    case 'draft':
-      $message['subject'] = t('@site: Incoming "@title" needs attention', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-      $message['body'][] = t('Incoming "@title" (NO ID) "Εισερχόμενη". Please assign it.', [
-        '@title' => $params['incoming_title'],
-      ]);
-      break;
-
-    case 'to_be_assigned':
-      $message['subject'] = t('@site: Incoming "@title" needs assignment', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-      $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Προς χρέωση". Please assign it.', [
-        '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
-      ]);
-      break;
-
-    case 'fullness_check':
-      $message['subject'] = t('@site: Incoming "@title" in fullness check', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-      $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Έλεγχος πληρότητας". You are listed as the operator.', [
-        '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
-      ]);
-      break;
-
-    case 'pending_issues':
-      $message['subject'] = t('@site: Incoming "@title" has pending issues', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-      $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Με εκκρεμότητες". Please review the pending issues.', [
-        '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
-      ]);
-      break;
-
-    case 'published':
-      $message['subject'] = t('@site: Incoming "@title" published', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-      $message['body'][] = t('Incoming "@title" (ID: @id) moved to "Published".', [
-        '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
-      ]);
-      break;
+  $message['subject'] = incoming_notifications_build_subject_email($key, $params);
+  $message['body'][] = incoming_notifications_build_body($key, $params);
+  if (!empty($params['incoming_link'])) {
+    $message['body'][] = (string) t('Link: @link', ['@link' => $params['incoming_link']]);
   }
 }
