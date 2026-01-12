@@ -385,13 +385,15 @@ final class DocutracksClient {
   */
   public function getRequiredDocValues(bool $includeFile = TRUE, int $typeId = 1): array {
     $defaults = $this->defaults();
+    $resolvedTypeId = (int) ($defaults['type_id'] ?? $typeId);
+    $resolvedKindId = (int) ($defaults['kind_id'] ?? 1);
     $payload = [
       'Document' => [
         'Title' => 'Sample incoming document 2',
         'CreatedBy' => ['Id' => $defaults['created_by']],
         'CreatedByGroup' => ['Id' => $defaults['created_by_group']],
-        'Kind' => ['Id' => 1],
-        'Type' => ['Id' => $typeId],
+        'Kind' => ['Id' => $resolvedKindId],
+        'Type' => ['Id' => $resolvedTypeId],
         'Apostoleas' => [
           'Name' => $defaults['Apostoleas_Name'],
           'Email' => $defaults['Apostoleas_NameEmail'],
@@ -406,7 +408,7 @@ final class DocutracksClient {
       ],
     ];
 
-    if ($typeId === 3) {
+    if ($resolvedTypeId === 3) {
       $createdByGroupId = $defaults['created_by_group'] ?? NULL;
       $createdById = $defaults['created_by'] ?? NULL;
 
@@ -690,24 +692,34 @@ final class DocutracksClient {
   private function defaults(): array {
     $env = $this->detectEnvironment();
     $isDev = $env['base_url'] === self::DEV_BASE_URL;
+    $settings = Settings::get('side_api', []);
+    $overrides = is_array($settings) ? ($settings['defaults'] ?? []) : [];
 
     if ($isDev) {
-      return [
+      $defaults = [
         'created_by' => 2166,
         'created_by_group' => 1421,
         'owned_by_group' => 1421,
         'Apostoleas_Name' => 'lastname4321 firstname4321',
         'Apostoleas_NameEmail' => 'lastname4321 firstname4321'
       ];
+      if (is_array($overrides) && $overrides !== []) {
+        return array_replace($defaults, $overrides);
+      }
+      return $defaults;
     }
 
-    return [
+    $defaults = [
       'created_by' => 0,
       'created_by_group' => 0,
       'owned_by_group' => 0,
       'Apostoleas_Name' => '0',
       'Apostoleas_NameEmail' => '0'
     ];
+    if (is_array($overrides) && $overrides !== []) {
+      return array_replace($defaults, $overrides);
+    }
+    return $defaults;
   }
 
   /**
