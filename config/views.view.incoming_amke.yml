@@ -6,6 +6,8 @@ dependencies:
     - field.storage.node.field_amke_status
     - field.storage.node.field_documents
     - field.storage.node.field_entry_date
+    - field.storage.node.field_plan
+    - field.storage.node.field_plan_signed
     - field.storage.node.field_subject
     - node.type.incoming
     - user.role.amke_user
@@ -14,6 +16,7 @@ dependencies:
     - content_moderation
     - datetime
     - entity_reference_revisions
+    - file
     - node
     - options
     - text
@@ -416,6 +419,74 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
+        field_plan:
+          id: field_plan
+          table: node__field_plan
+          field: field_plan
+          plugin_id: field
+        field_plan_signed:
+          id: field_plan_signed
+          table: node__field_plan_signed
+          field: field_plan_signed
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Ακριβες Αντίγραφο'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: file_default
+          settings:
+            use_description_as_link_text: true
+          group_column: ''
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         operations:
           id: operations
           table: node
@@ -749,6 +820,8 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_plan'
+        - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
   page_1:
     id: page_1
@@ -1028,6 +1101,8 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_plan'
+        - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
   page_2:
@@ -1064,6 +1139,8 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_plan'
+        - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
   page_3:
     id: page_3
@@ -1285,4 +1362,6 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_plan'
+        - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
