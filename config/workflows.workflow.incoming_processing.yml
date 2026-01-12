@@ -50,7 +50,7 @@ type_settings:
       to: published
       weight: 10
     for_signature:
-      label: 'Εγκεκριμένο - Προς υπογραφές'
+      label: 'Εγκεκριμένο – Αποστολή στο ΣΗΔΕ προς υπογραφή'
       from:
         - under_processing
       to: for_signature
