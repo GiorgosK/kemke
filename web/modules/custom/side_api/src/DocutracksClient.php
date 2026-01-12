@@ -385,8 +385,8 @@ final class DocutracksClient {
   */
   public function getRequiredDocValues(bool $includeFile = TRUE, int $typeId = 1): array {
     $defaults = $this->defaults();
-    $resolvedTypeId = (int) ($defaults['type_id'] ?? $typeId);
-    $resolvedKindId = (int) ($defaults['kind_id'] ?? 1);
+    $resolvedTypeId = $this->resolveTypeId($typeId);
+    $resolvedKindId = $this->resolveKindId($resolvedTypeId) ?? 1;
     $payload = [
       'Document' => [
         'Title' => 'Sample incoming document 2',
@@ -700,8 +700,9 @@ final class DocutracksClient {
     $isDev = $env['base_url'] === self::DEV_BASE_URL;
     $settings = Settings::get('side_api', []);
     $overrides = is_array($settings) ? ($settings['defaults'] ?? []) : [];
-    $globalKindId = is_array($settings) && array_key_exists('kind_id', $settings) ? (int) $settings['kind_id'] : NULL;
-    $globalTypeId = is_array($settings) && array_key_exists('type_id', $settings) ? (int) $settings['type_id'] : NULL;
+    if (is_array($overrides) && $overrides !== []) {
+      unset($overrides['kind_id'], $overrides['type_id']);
+    }
 
     if ($isDev) {
       $defaults = [
@@ -711,12 +712,6 @@ final class DocutracksClient {
         'Apostoleas_Name' => 'lastname4321 firstname4321',
         'Apostoleas_NameEmail' => 'lastname4321 firstname4321'
       ];
-      if ($globalKindId !== NULL) {
-        $defaults['kind_id'] = $globalKindId;
-      }
-      if ($globalTypeId !== NULL) {
-        $defaults['type_id'] = $globalTypeId;
-      }
       if (is_array($overrides) && $overrides !== []) {
         return array_replace($defaults, $overrides);
       }
@@ -730,12 +725,6 @@ final class DocutracksClient {
       'Apostoleas_Name' => '0',
       'Apostoleas_NameEmail' => '0'
     ];
-    if ($globalKindId !== NULL) {
-      $defaults['kind_id'] = $globalKindId;
-    }
-    if ($globalTypeId !== NULL) {
-      $defaults['type_id'] = $globalTypeId;
-    }
     if (is_array($overrides) && $overrides !== []) {
       return array_replace($defaults, $overrides);
     }
