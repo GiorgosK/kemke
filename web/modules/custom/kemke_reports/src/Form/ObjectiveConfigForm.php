@@ -267,11 +267,25 @@ class ObjectiveConfigForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     parent::submitForm($form, $form_state);
     $is_admin = $this->currentUser()->hasRole('administrator');
+    $config = $this->config('kemke_reports.settings');
 
     $values = $form_state->getValue('objective_1') ?? [];
+    $objective_1_name = $values['name'] ?? '';
+    $objective_1_description = $values['description'] ?? '';
+    if ($objective_1_name !== '' && $objective_1_name === $objective_1_description) {
+      $existing_name = (string) ($config->get('objective_1.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_1_name) {
+        $objective_1_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 1 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1 = $this->configFactory()->getEditable('kemke_reports.settings')
-      ->set('objective_1.name', $values['name'] ?? '')
-      ->set('objective_1.description', $values['description'] ?? '')
+      ->set('objective_1.name', $objective_1_name)
+      ->set('objective_1.description', $objective_1_description)
       ->set('objective_1.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -280,9 +294,22 @@ class ObjectiveConfigForm extends ConfigFormBase {
     }
 
     $values = $form_state->getValue('objective_2') ?? [];
+    $objective_2_name = $values['name'] ?? '';
+    $objective_2_description = $values['description'] ?? '';
+    if ($objective_2_name !== '' && $objective_2_name === $objective_2_description) {
+      $existing_name = (string) ($config->get('objective_2.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_2_name) {
+        $objective_2_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 2 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1
-      ->set('objective_2.name', $values['name'] ?? '')
-      ->set('objective_2.description', $values['description'] ?? '')
+      ->set('objective_2.name', $objective_2_name)
+      ->set('objective_2.description', $objective_2_description)
       ->set('objective_2.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -291,9 +318,22 @@ class ObjectiveConfigForm extends ConfigFormBase {
     }
 
     $values = $form_state->getValue('objective_3') ?? [];
+    $objective_3_name = $values['name'] ?? '';
+    $objective_3_description = $values['description'] ?? '';
+    if ($objective_3_name !== '' && $objective_3_name === $objective_3_description) {
+      $existing_name = (string) ($config->get('objective_3.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_3_name) {
+        $objective_3_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 3 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1
-      ->set('objective_3.name', $values['name'] ?? '')
-      ->set('objective_3.description', $values['description'] ?? '')
+      ->set('objective_3.name', $objective_3_name)
+      ->set('objective_3.description', $objective_3_description)
       ->set('objective_3.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -302,21 +342,60 @@ class ObjectiveConfigForm extends ConfigFormBase {
     }
 
     $values = $form_state->getValue('objective_4') ?? [];
+    $objective_4_name = $values['name'] ?? '';
+    $objective_4_description = $values['description'] ?? '';
+    if ($objective_4_name !== '' && $objective_4_name === $objective_4_description) {
+      $existing_name = (string) ($config->get('objective_4.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_4_name) {
+        $objective_4_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 4 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1
-      ->set('objective_4.name', $values['name'] ?? '')
-      ->set('objective_4.description', $values['description'] ?? '')
+      ->set('objective_4.name', $objective_4_name)
+      ->set('objective_4.description', $objective_4_description)
       ->set('objective_4.percentage', (float) ($values['percentage'] ?? 90));
 
     $values = $form_state->getValue('objective_5') ?? [];
+    $objective_5_name = $values['name'] ?? '';
+    $objective_5_description = $values['description'] ?? '';
+    if ($objective_5_name !== '' && $objective_5_name === $objective_5_description) {
+      $existing_name = (string) ($config->get('objective_5.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_5_name) {
+        $objective_5_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 5 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1
-      ->set('objective_5.name', $values['name'] ?? '')
-      ->set('objective_5.description', $values['description'] ?? '')
+      ->set('objective_5.name', $objective_5_name)
+      ->set('objective_5.description', $objective_5_description)
       ->set('objective_5.percentage', (float) ($values['percentage'] ?? 90));
 
     $values = $form_state->getValue('objective_6') ?? [];
+    $objective_6_name = $values['name'] ?? '';
+    $objective_6_description = $values['description'] ?? '';
+    if ($objective_6_name !== '' && $objective_6_name === $objective_6_description) {
+      $existing_name = (string) ($config->get('objective_6.name') ?? '');
+      if ($existing_name !== '' && $existing_name !== $objective_6_name) {
+        $objective_6_name = $existing_name;
+      }
+      \Drupal::logger('kemke_reports')->notice('Objective 6 name submitted equals description; preserving stored name. Form: @form_id, user: @uid, roles: @roles.', [
+        '@form_id' => $this->getFormId(),
+        '@uid' => $this->currentUser()->id(),
+        '@roles' => implode(',', $this->currentUser()->getRoles()),
+      ]);
+    }
     $objective_1
-      ->set('objective_6.name', $values['name'] ?? '')
-      ->set('objective_6.description', $values['description'] ?? '')
+      ->set('objective_6.name', $objective_6_name)
+      ->set('objective_6.description', $objective_6_description)
       ->set('objective_6.percentage', (float) ($values['percentage'] ?? 30))
       ->save();
   }
