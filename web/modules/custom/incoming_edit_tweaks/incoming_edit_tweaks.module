@@ -121,6 +121,7 @@ function incoming_edit_tweaks_entity_access(EntityInterface $entity, $operation,
  */
 function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
   $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
+  $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
 }
 
 /**
@@ -128,6 +129,34 @@ function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, F
  */
 function incoming_edit_tweaks_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state): void {
   $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
+  $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
+}
+
+/**
+ * After-build callback to hide the remove button for the signed plan field.
+ */
+function incoming_edit_tweaks_hide_plan_signed_remove_button_after_build(array $form, FormStateInterface $form_state): array {
+  $target_name = 'field_plan_signed_0_remove_button';
+  $target_id = 'edit-field-plan-signed-0-remove-button';
+  incoming_edit_tweaks_hide_element_by_name_or_id($form, $target_name, $target_id);
+  return $form;
+}
+
+/**
+ * Recursively hide elements by matching name or id.
+ */
+function incoming_edit_tweaks_hide_element_by_name_or_id(array &$element, string $name, string $id): void {
+  if (isset($element['#name']) && $element['#name'] === $name) {
+    $element['#access'] = FALSE;
+  }
+
+  if (isset($element['#id']) && $element['#id'] === $id) {
+    $element['#access'] = FALSE;
+  }
+
+  foreach (\Drupal\Core\Render\Element::children($element) as $key) {
+    incoming_edit_tweaks_hide_element_by_name_or_id($element[$key], $name, $id);
+  }
 }
 
 /**
