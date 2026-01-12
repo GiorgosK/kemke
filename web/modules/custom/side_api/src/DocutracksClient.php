@@ -546,6 +546,7 @@ final class DocutracksClient {
    *
    * Example:
    *   $payload = $client->prepareRegisterPayload('min.json', 'main.pdf', ['attach1.pdf'], 1);
+   *   $payload = $client->prepareRegisterPayload('min.json', 'main.pdf', ['attach1.pdf'], 'plan');
    *   $response = $client->registerDocument($payload, $client->loginToDocutracks());
    *
    * @param int $typeId
@@ -553,10 +554,15 @@ final class DocutracksClient {
    *
    * @return array<string, mixed>
    */
-  public function prepareRegisterPayload(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = [], int $typeId = 1): array {
+  public function prepareRegisterPayload(array|string $docPayload, ?string $mainFilePath = NULL, array $attachmentPaths = [], int|string $typeId = 1): array {
     $decoded = is_array($docPayload) ? $docPayload : $this->loadJson($docPayload);
 
-    $payload = $this->mergeWithDefaults($decoded, $typeId);
+    $resolvedTypeId = $this->resolveTypeId($typeId);
+    $resolvedKindId = $this->resolveKindId($typeId);
+    $payload = $this->mergeWithDefaults($decoded, $resolvedTypeId);
+    if ($resolvedKindId !== NULL) {
+      $payload['Document']['Kind'] = ['Id' => $resolvedKindId];
+    }
 
     // Main file is optional.
     if ($mainFilePath !== NULL && $mainFilePath !== '') {
@@ -694,6 +700,8 @@ final class DocutracksClient {
     $isDev = $env['base_url'] === self::DEV_BASE_URL;
     $settings = Settings::get('side_api', []);
     $overrides = is_array($settings) ? ($settings['defaults'] ?? []) : [];
+    $globalKindId = is_array($settings) && array_key_exists('kind_id', $settings) ? (int) $settings['kind_id'] : NULL;
+    $globalTypeId = is_array($settings) && array_key_exists('type_id', $settings) ? (int) $settings['type_id'] : NULL;
 
     if ($isDev) {
       $defaults = [
@@ -703,6 +711,12 @@ final class DocutracksClient {
         'Apostoleas_Name' => 'lastname4321 firstname4321',
         'Apostoleas_NameEmail' => 'lastname4321 firstname4321'
       ];
+      if ($globalKindId !== NULL) {
+        $defaults['kind_id'] = $globalKindId;
+      }
+      if ($globalTypeId !== NULL) {
+        $defaults['type_id'] = $globalTypeId;
+      }
       if (is_array($overrides) && $overrides !== []) {
         return array_replace($defaults, $overrides);
       }
@@ -716,6 +730,12 @@ final class DocutracksClient {
       'Apostoleas_Name' => '0',
       'Apostoleas_NameEmail' => '0'
     ];
+    if ($globalKindId !== NULL) {
+      $defaults['kind_id'] = $globalKindId;
+    }
+    if ($globalTypeId !== NULL) {
+      $defaults['type_id'] = $globalTypeId;
+    }
     if (is_array($overrides) && $overrides !== []) {
       return array_replace($defaults, $overrides);
     }
@@ -746,6 +766,68 @@ final class DocutracksClient {
     }
 
     return $merged;
+  }
+
+  /**
+   * Resolve the Docutracks document type based on settings or explicit input.
+   */
+  private function resolveTypeId(int|string $typeId): int {
+    $settings = Settings::get('side_api', []);
+
+    if (is_string($typeId)) {
+      $docType = strtolower(trim($typeId));
+      if ($docType === 'plan') {
+        if (is_array($settings)) {
+          $plan_settings = $settings['plan'] ?? [];
+          if (is_array($plan_settings) && array_key_exists('type_id', $plan_settings)) {
+            return (int) $plan_settings['type_id'];
+          }
+          if (array_key_exists('type_id', $settings)) {
+            return (int) $settings['type_id'];
+          }
+        }
+        return 3;
+      }
+      if (is_array($settings) && array_key_exists('type_id', $settings)) {
+        return (int) $settings['type_id'];
+      }
+      return 1;
+    }
+
+    if (is_array($settings) && array_key_exists('type_id', $settings)) {
+      return (int) $settings['type_id'];
+    }
+
+    return $typeId;
+  }
+
+  /**
+   * Resolve the Docutracks document kind based on settings or explicit input.
+   */
+  private function resolveKindId(int|string $docType): ?int {
+    $settings = Settings::get('side_api', []);
+
+    if (is_string($docType)) {
+      $normalized = strtolower(trim($docType));
+      if ($normalized === 'plan') {
+        if (is_array($settings)) {
+          $plan_settings = $settings['plan'] ?? [];
+          if (is_array($plan_settings) && array_key_exists('kind_id', $plan_settings)) {
+            return (int) $plan_settings['kind_id'];
+          }
+          if (array_key_exists('kind_id', $settings)) {
+            return (int) $settings['kind_id'];
+          }
+        }
+        return NULL;
+      }
+    }
+
+    if (is_array($settings) && array_key_exists('kind_id', $settings)) {
+      return (int) $settings['kind_id'];
+    }
+
+    return NULL;
   }
 
   /**
