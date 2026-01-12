@@ -661,7 +661,6 @@ function field_non_empty_lock_get_node_field_map() {
       'field_plan_signed' => [
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
-        'is_empty_callback' => 'field_non_empty_lock_boolean_false_is_empty',
       ],
       'field_protocol_number_sender',
       'field_plan_dt_success' => [
