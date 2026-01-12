@@ -434,6 +434,17 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $payload = $client->prepareRegisterPayload($doc_payload, $main_file_path, $attachment_paths, 'plan');
+    $resolved_type = $client->extractValueByPath($payload, 'Document.Type.Id');
+    $resolved_kind = $client->extractValueByPath($payload, 'Document.Kind.Id');
+    $resolved_created_for = $client->extractValueByPath($payload, 'Document.CreatedForGroup.Id');
+    \Drupal::logger('incoming_tweaks')->info('Docutracks plan payload resolved ids: @details', [
+      '@details' => Json::encode([
+        'nid' => $node->id(),
+        'type_id' => $resolved_type,
+        'kind_id' => $resolved_kind,
+        'created_for_group' => $resolved_created_for,
+      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+    ]);
     $sanitized_payload = incoming_tweaks_sanitize_docutracks_payload($payload);
 
     $log_details = [
