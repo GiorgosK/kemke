@@ -1,0 +1,13 @@
+uuid: beef04a5-e18e-4924-8f4e-da84ab508881
+langcode: el
+status: true
+dependencies:
+  module:
+    - notify_widget
+_core:
+  default_config_hash: AvNl_i3hQyjRxnsuMpfkdu9xIAye-zJ7vctJFDDKyUo
+id: notify_widget_send_action
+label: 'Send notification to selected user(s)'
+type: user
+plugin: notify_widget_send_action
+configuration: {  }

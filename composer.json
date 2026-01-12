@@ -40,6 +40,7 @@
         "drupal/inline_entity_form": "^3.0@RC",
         "drupal/nocurrent_pass": "^2.0",
         "drupal/node_view_permissions": "^2.0",
+        "drupal/notify_widget": "^1.0",
         "drupal/paragraphs": "^1.19",
         "drupal/password_policy": "^4.0",
         "drupal/pdf_serialization": "^2.2",
@@ -155,6 +156,10 @@
             },
             "drupal/paragraphs": {
                 "Skip saving empty paragraphs for certain types dgo.re/2877695": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch"
+            },
+            "drupal/notify_widget": {
+                "dgo.re/3441147": "patches/notify_widget-3441147.patch",
+                "Fix unread_count translation error": "patches/notify_widget-unread-count.patch"
             },
             "drupal/pdf_serialization": {
                 "Drupal 11 compatibility (core_version_requirement) dgo.re/3447418": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/9.patch",

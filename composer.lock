@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7bbb3f28650ea999b6f693504cc26b23",
+    "content-hash": "802f949694119b31847b855359eac7e0",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -3156,6 +3156,56 @@
             "homepage": "http://drupal.org/project/node_view_permissions",
             "support": {
                 "source": "https://git.drupalcode.org/project/node_view_permissions"
+            }
+        },
+        {
+            "name": "drupal/notify_widget",
+            "version": "1.0.12",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/notify_widget.git",
+                "reference": "1.0.12"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/notify_widget-1.0.12.zip",
+                "reference": "1.0.12",
+                "shasum": "2d1152aff9c5a54abdb85909927ba009049656f8"
+            },
+            "require": {
+                "drupal/core": "^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "1.0.12",
+                    "datestamp": "1734451762",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Scot Hubbard",
+                    "homepage": "https://www.drupal.org/u/scothubbard",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Provides a notification system for sending messages to users and a widget for displaying them.",
+            "homepage": "http://drupal.org/project/notify_widget",
+            "keywords": [
+                "Drupal",
+                "notifications"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/notify_widget",
+                "issues": "https://www.drupal.org/project/issues/notify_widget"
             }
         },
         {

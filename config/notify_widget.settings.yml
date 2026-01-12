@@ -1,0 +1,4 @@
+max_notifications: '1000'
+use_module_css: 1
+include_read: 0
+read_cutoff: '0'

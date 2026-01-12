@@ -1,0 +1,20 @@
+uuid: 84186dba-8f97-43b4-84f4-7c2c431c4b80
+langcode: el
+status: true
+dependencies:
+  module:
+    - notify_widget
+  theme:
+    - kemke
+id: kemke_notifywidget
+theme: kemke
+region: header
+weight: -6
+provider: null
+plugin: notify_widget_block
+settings:
+  id: notify_widget_block
+  label: 'Notify Widget'
+  label_display: '0'
+  provider: notify_widget
+visibility: {  }
