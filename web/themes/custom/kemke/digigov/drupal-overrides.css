@@ -149,3 +149,7 @@ tr.visible-to-amke {
   background-repeat: no-repeat;
   filter: brightness(0) invert(1);
 }
+.region-header #notify_widget .unread {
+  left: 23px;
+  top: -2px;
+}
