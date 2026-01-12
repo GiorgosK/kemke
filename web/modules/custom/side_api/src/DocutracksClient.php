@@ -771,9 +771,6 @@ final class DocutracksClient {
           if (is_array($plan_settings) && array_key_exists('type_id', $plan_settings)) {
             return (int) $plan_settings['type_id'];
           }
-          if (array_key_exists('type_id', $settings)) {
-            return (int) $settings['type_id'];
-          }
         }
         return 3;
       }
