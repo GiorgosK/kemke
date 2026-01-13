@@ -161,6 +161,9 @@
                 "dgo.re/3441147": "patches/notify_widget-3441147.patch",
                 "Fix unread_count translation error": "patches/notify_widget-unread-count.patch"
             },
+            "drupal/workflow_buttons": {
+                "Skip buttons missing transition metadata": "patches/workflow_buttons-missing-transition-data.patch"
+            },
             "drupal/pdf_serialization": {
                 "Drupal 11 compatibility (core_version_requirement) dgo.re/3447418": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/9.patch",
                 "PHP Fatal error: Declaration of Drupal\\pdf_serialization dgo.re/3392153": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/6.patch"

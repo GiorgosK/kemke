@@ -1,0 +1,13 @@
+diff --git a/src/Plugin/Field/FieldWidget/WorkflowButtonsWidget.php b/src/Plugin/Field/FieldWidget/WorkflowButtonsWidget.php
+index 8bcfb82..a6ad6f5 100644
+--- a/src/Plugin/Field/FieldWidget/WorkflowButtonsWidget.php
++++ b/src/Plugin/Field/FieldWidget/WorkflowButtonsWidget.php
+@@ -276,6 +276,8 @@ class WorkflowButtonsWidget extends WidgetBase {
+       }
+       else {
+         \Drupal::logger('workflow_buttons')->alert('There is no transition data for @id', ['@id' => $id]);
++        // Skip rendering a button without transition metadata.
++        continue;
+       }
+ 
+       // Transition ID as a class.

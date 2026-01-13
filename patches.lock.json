@@ -1,5 +1,5 @@
 {
-    "_hash": "0b40a63b2ce240c4b4d60232b936f1cb6f14eb92e639129050733115c932de68",
+    "_hash": "17ae449c3a222e122df23f553b199fe084119b05222464acb29276536cc07c09",
     "patches": {
         "drupal/core": [
             {
@@ -51,6 +51,18 @@
                 "description": "Fix unread_count translation error",
                 "url": "patches/notify_widget-unread-count.patch",
                 "sha256": "7c959f0590d575f6f1a12dbd7752a8d16714876a0b7feb2115454fa168982ba1",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ],
+        "drupal/workflow_buttons": [
+            {
+                "package": "drupal/workflow_buttons",
+                "description": "Skip buttons missing transition metadata",
+                "url": "patches/workflow_buttons-missing-transition-data.patch",
+                "sha256": "3bf39b084bbcd5ef98912aa06d4515a1ae7af404b70f4eaa1149846e42ceaecf",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
