@@ -134,6 +134,7 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   }
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
+  $state_label = $state !== '' ? incoming_notifications_get_state_label($state, $langcode) : '';
   $link = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
 
   $notify_service_id = 'notify_widget.api';
@@ -146,14 +147,14 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     $params = [
       'incoming_title' => $title,
       'incoming_id' => $incoming_id,
-      'state' => $state,
+      'state_label' => $state_label,
       'incoming_link' => $link,
     ];
     $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
 
     if ($notify_api) {
       $subject = incoming_notifications_build_subject_notify($key, $params);
-      $body = incoming_notifications_build_body($key, $params);
+      $body = incoming_notifications_build_body_notify($key, $params);
       $notify_api->send(
         'incoming_notifications',
         'warning',
@@ -190,6 +191,38 @@ function _incoming_notifications_get_users_by_role(string $role_id): array {
   }
 
   return $users_list;
+}
+
+/**
+ * Returns the localized moderation state label.
+ */
+function incoming_notifications_get_state_label(string $state, string $langcode): string {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  if (!$entity_type_manager->hasDefinition('moderation_state')) {
+    $fallback_labels = [
+      'draft' => t('Εισερχόμενη', [], ['langcode' => $langcode]),
+      'to_be_assigned' => t('Προς χρέωση', [], ['langcode' => $langcode]),
+      'fullness_check' => t('Έλεγχος πληρότητας', [], ['langcode' => $langcode]),
+      'pending_issues' => t('Με εκκρεμότητες', [], ['langcode' => $langcode]),
+      'published' => t('Δημοσιευμένο', [], ['langcode' => $langcode]),
+    ];
+    return $fallback_labels[$state] ?? $state;
+  }
+
+  $labels = &drupal_static(__FUNCTION__, []);
+  if (!isset($labels[$langcode])) {
+    $storage = $entity_type_manager->getStorage('moderation_state');
+    $states = $storage->loadMultiple();
+    $labels[$langcode] = [];
+    foreach ($states as $state_entity) {
+      if ($state_entity->hasTranslation($langcode)) {
+        $state_entity = $state_entity->getTranslation($langcode);
+      }
+      $labels[$langcode][$state_entity->id()] = $state_entity->label();
+    }
+  }
+
+  return $labels[$langcode][$state] ?? $state;
 }
 
 /**
@@ -243,86 +276,96 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
  */
 function incoming_notifications_build_subject_email(string $key, array $params): string {
   $site_name = \Drupal::config('system.site')->get('name');
-  switch ($key) {
-    case 'draft':
-      return (string) t('@site: Document "@title" needs attention', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-
-    case 'to_be_assigned':
-      return (string) t('@site: Document "@title" needs assignment', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-
-    case 'fullness_check':
-      return (string) t('@site: Document "@title" in fullness check', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-
-    case 'pending_issues':
-      return (string) t('@site: Document "@title" has pending issues', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-
-    case 'published':
-      return (string) t('@site: Document "@title" published', ['@site' => $site_name, '@title' => $params['incoming_title']]);
-  }
-
-  return (string) t('@site: Document update', ['@site' => $site_name]);
+  return (string) t('@site: Εγγραφο "@title" σε κατάσταση @state', [
+    '@site' => $site_name,
+    '@title' => $params['incoming_title'],
+    '@state' => $params['state_label'],
+  ]);
 }
 
 /**
  * Builds the notify_widget subject for a notification.
  */
 function incoming_notifications_build_subject_notify(string $key, array $params): string {
-  switch ($key) {
-    case 'draft':
-      return (string) t('Document "@title" needs attention', ['@title' => $params['incoming_title']]);
-
-    case 'to_be_assigned':
-      return (string) t('Document "@title" needs assignment', ['@title' => $params['incoming_title']]);
-
-    case 'fullness_check':
-      return (string) t('Document "@title" in fullness check', ['@title' => $params['incoming_title']]);
-
-    case 'pending_issues':
-      return (string) t('Document "@title" has pending issues', ['@title' => $params['incoming_title']]);
-
-    case 'published':
-      return (string) t('Document "@title" published', ['@title' => $params['incoming_title']]);
-  }
-
-  return (string) t('Document update');
+  return (string) t('Εγγραφο "@title" σε κατάσταση @state', [
+    '@title' => $params['incoming_title'],
+    '@state' => $params['state_label'],
+  ]);
 }
 
 /**
  * Builds the email body for a notification.
  */
-function incoming_notifications_build_body(string $key, array $params): string {
+function incoming_notifications_build_body_email(string $key, array $params): string {
   switch ($key) {
     case 'draft':
-      return (string) t('Incoming "@title" (NO ID) "Εισερχόμενη". Please assign it.', [
+      return (string) t('Έγγραφο "@title" - Εισερχόμενο - πατήστε εδώ @link', [
+        '@title' => $params['incoming_title'],
+        '@link' => $params['incoming_link'],
+      ]);
+
+    case 'to_be_assigned':
+      return (string) t('Έγγραφο "@title" - Προς χρέωση - πατήστε εδώ @link', [
+        '@title' => $params['incoming_title'],
+        '@link' => $params['incoming_link'],
+      ]);
+
+    case 'fullness_check':
+      return (string) t('Έγγραφο "@title" - Έλεγχος πληρότητας - πατήστε εδώ @link', [
+        '@title' => $params['incoming_title'],
+        '@link' => $params['incoming_link'],
+      ]);
+
+    case 'pending_issues':
+      return (string) t('Έγγραφο "@title" - Με εκκρεμότητες - πατήστε εδώ @link', [
+        '@title' => $params['incoming_title'],
+        '@link' => $params['incoming_link'],
+      ]);
+
+    case 'published':
+      return (string) t('Έγγραφο "@title" - Ολοκληρωμένο - πατήστε εδώ @link', [
+        '@title' => $params['incoming_title'],
+        '@link' => $params['incoming_link'],
+      ]);
+  }
+
+  return (string) t('Έγγραφο ενημέρωση - πατήστε εδώ @link', [
+    '@link' => $params['incoming_link'],
+  ]);
+}
+
+/**
+ * Builds the notify_widget body for a notification.
+ */
+function incoming_notifications_build_body_notify(string $key, array $params): string {
+  switch ($key) {
+    case 'draft':
+      return (string) t('Έγγραφο "@title" - Εισερχόμενη', [
         '@title' => $params['incoming_title'],
       ]);
 
     case 'to_be_assigned':
-      return (string) t('Incoming "@title" (ID: @id) moved to "Προς χρέωση". Please assign it.', [
+      return (string) t('Έγγραφο "@title" - Προς χρέωση', [
         '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
       ]);
 
     case 'fullness_check':
-      return (string) t('Incoming "@title" (ID: @id) moved to "Έλεγχος πληρότητας". You are listed as the operator.', [
+      return (string) t('Έγγραφο "@title" - Έλεγχος πληρότητας', [
         '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
       ]);
 
     case 'pending_issues':
-      return (string) t('Incoming "@title" (ID: @id) moved to "Με εκκρεμότητες". Please review the pending issues.', [
+      return (string) t('Έγγραφο "@title" - Με εκκρεμότητες', [
         '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
       ]);
 
     case 'published':
-      return (string) t('Incoming "@title" (ID: @id) moved to "Published".', [
+      return (string) t('Έγγραφο "@title" - Δημοσιευμένο', [
         '@title' => $params['incoming_title'],
-        '@id' => $params['incoming_id'],
       ]);
   }
 
-  return (string) t('Incoming update.');
+  return (string) t('Έγγραφο ενημέρωση');
 }
 
 /**
@@ -330,8 +373,5 @@ function incoming_notifications_build_body(string $key, array $params): string {
  */
 function incoming_notifications_mail($key, &$message, $params) {
   $message['subject'] = incoming_notifications_build_subject_email($key, $params);
-  $message['body'][] = incoming_notifications_build_body($key, $params);
-  if (!empty($params['incoming_link'])) {
-    $message['body'][] = (string) t('Link: @link', ['@link' => $params['incoming_link']]);
-  }
+  $message['body'][] = incoming_notifications_build_body_email($key, $params);
 }
