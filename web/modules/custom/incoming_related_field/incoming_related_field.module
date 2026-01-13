@@ -1,7 +1,12 @@
 <?php
 
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\file\FileInterface;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
 
 /**
  * Limits inline forms for related incoming nodes.
@@ -55,6 +60,8 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
       }
     }
   }
+
+  incoming_related_field_add_send_to_side_buttons($entity_form);
 }
 
 /**
@@ -86,6 +93,8 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
   }
 
   incoming_related_field_update_button_label($form, $selector, $name, $label);
+
+  incoming_related_field_add_send_to_side_actions($form);
 }
 
 /**
@@ -131,4 +140,557 @@ function incoming_related_field_update_button_access(array &$element, string $se
     }
   }
   unset($child);
+}
+
+/**
+ * Adds "Send to SIDE" buttons to each related incoming row with a file.
+ */
+function incoming_related_field_add_send_to_side_actions(array &$form): void {
+  if (\Drupal::currentUser()->hasRole('amke_user')) {
+    return;
+  }
+
+  if (
+    empty($form['field_related_incoming']['widget']['entities'])
+    || !is_array($form['field_related_incoming']['widget']['entities'])
+  ) {
+    return;
+  }
+
+  foreach ($form['field_related_incoming']['widget']['entities'] as $delta => &$row) {
+    if (!is_array($row)) {
+      continue;
+    }
+
+    $node = incoming_related_field_extract_row_node($row);
+    if (!$node instanceof NodeInterface) {
+      continue;
+    }
+    if ($node->isNew() || !$node->id()) {
+      continue;
+    }
+
+    $file = incoming_related_field_extract_related_file($node);
+    if (!$file instanceof FileInterface) {
+      continue;
+    }
+
+    if (!incoming_related_field_should_show_send_button($node)) {
+      continue;
+    }
+
+    if (empty($row['actions']) || !is_array($row['actions'])) {
+      $row['actions'] = [];
+    }
+
+    $row['actions']['incoming_related_send_to_side'] = [
+      '#type' => 'submit',
+      '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
+      '#name' => 'incoming_related_field_send_to_side_entity_' . $delta,
+      '#submit' => ['incoming_related_field_send_to_side_entity_submit'],
+      '#limit_validation_errors' => [],
+      '#attributes' => [
+        'class' => ['incoming-related-field-send-to-side'],
+      ],
+      '#incoming_related_field_context' => [
+        'file_id' => (int) $file->id(),
+        'node_id' => (int) $node->id(),
+      ],
+    ];
+  }
+  unset($row);
+}
+
+/**
+ * Find the node entity for a related incoming row.
+ */
+function incoming_related_field_extract_row_node(array $row): ?NodeInterface {
+  if (!empty($row['#entity']) && $row['#entity'] instanceof NodeInterface) {
+    return $row['#entity'];
+  }
+
+  foreach ($row as $value) {
+    if (is_array($value) && isset($value['#entity']) && $value['#entity'] instanceof NodeInterface) {
+      return $value['#entity'];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Find the first related document file on the incoming node.
+ */
+function incoming_related_field_extract_related_file(NodeInterface $node): ?FileInterface {
+  if (!$node->hasField('field_documents') || $node->get('field_documents')->isEmpty()) {
+    return NULL;
+  }
+
+  $paragraphs = $node->get('field_documents')->referencedEntities();
+  foreach ($paragraphs as $paragraph) {
+    if (!$paragraph instanceof ParagraphInterface || !$paragraph->hasField('field_files')) {
+      continue;
+    }
+    if ($paragraph->get('field_files')->isEmpty()) {
+      continue;
+    }
+    $file = $paragraph->get('field_files')->entity;
+    if ($file instanceof FileInterface) {
+      return $file;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Determine whether the send-to-SIDE button should be shown.
+ */
+function incoming_related_field_should_show_send_button(NodeInterface $node): bool {
+  $fields = [
+    'field_protocol_number_doc',
+    'field_sender',
+    'field_protocol_number_sender',
+  ];
+
+  foreach ($fields as $field_name) {
+    if ($node->hasField($field_name) && !$node->get($field_name)->isEmpty()) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Submit handler for "Send to SIDE" in related incoming table.
+ */
+function incoming_related_field_send_to_side_entity_submit(array &$form, FormStateInterface $form_state): void {
+  $trigger = $form_state->getTriggeringElement();
+  $context = $trigger['#incoming_related_field_context'] ?? [];
+  $file_id = $context['file_id'] ?? NULL;
+  $node_id = $context['node_id'] ?? NULL;
+
+  if (!$file_id || !$node_id) {
+    \Drupal::messenger()->addError(t('Missing document reference for SIDE transfer.'));
+    return;
+  }
+
+  /** @var \Drupal\file\FileInterface|null $file */
+  $file = \Drupal::entityTypeManager()->getStorage('file')->load($file_id);
+  if (!$file instanceof FileInterface) {
+    \Drupal::messenger()->addError(t('The selected file could not be loaded.'));
+    return;
+  }
+
+  try {
+    $result = incoming_related_field_send_file_to_side($file, [
+      'title' => incoming_related_field_build_doc_title($file, ['parent_node_id' => $node_id]),
+    ]);
+    $stamped_file = $result['file'];
+    $doc = $result['document'];
+    incoming_related_field_write_debug_doc($doc, $node_id);
+
+    /** @var \Drupal\node\NodeInterface|null $node */
+    $node = \Drupal::entityTypeManager()->getStorage('node')->load($node_id);
+    if ($node instanceof NodeInterface && $node->hasField('field_documents')) {
+      $paragraphs = $node->get('field_documents')->referencedEntities();
+      foreach ($paragraphs as $paragraph) {
+        if (!$paragraph instanceof ParagraphInterface || !$paragraph->hasField('field_files')) {
+          continue;
+        }
+        if ($paragraph->get('field_files')->isEmpty()) {
+          continue;
+        }
+        $original_file = $paragraph->get('field_files')->entity;
+        $paragraph->set('field_files', [['target_id' => $stamped_file->id()]]);
+        $paragraph->save();
+        if ($original_file instanceof FileInterface && (int) $original_file->id() !== (int) $stamped_file->id()) {
+          $original_file->delete();
+        }
+        break;
+      }
+    }
+
+    incoming_related_field_apply_docutracks_fields($node, $doc);
+
+    \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
+    $form_state->setRebuild(TRUE);
+  }
+  catch (\Throwable $throwable) {
+    \Drupal::logger('incoming_related_field')->error('SIDE transfer failed for file @fid: @message', [
+      '@fid' => $file_id,
+      '@message' => $throwable->getMessage(),
+    ]);
+    \Drupal::messenger()->addError(t('SIDE transfer failed: @message', ['@message' => $throwable->getMessage()]));
+  }
+}
+
+/**
+ * Adds "Send to SIDE" buttons for document rows that contain a file.
+ */
+function incoming_related_field_add_send_to_side_buttons(array &$entity_form): void {
+  if (empty($entity_form['field_documents']['widget']) || !is_array($entity_form['field_documents']['widget'])) {
+    return;
+  }
+
+  $parent_node = $entity_form['#entity'] ?? NULL;
+  $parent_node_id = $parent_node instanceof NodeInterface ? (int) $parent_node->id() : NULL;
+
+  foreach (Element::children($entity_form['field_documents']['widget']) as $delta) {
+    if (empty($entity_form['field_documents']['widget'][$delta]['subform'])) {
+      continue;
+    }
+    $subform =& $entity_form['field_documents']['widget'][$delta]['subform'];
+    $paragraph = $subform['#entity'] ?? NULL;
+    if (!$paragraph instanceof ParagraphInterface || !$paragraph->hasField('field_files')) {
+      continue;
+    }
+    if ($paragraph->get('field_files')->isEmpty()) {
+      continue;
+    }
+
+    $file = $paragraph->get('field_files')->entity;
+    if (!$file instanceof FileInterface) {
+      continue;
+    }
+
+    $subform['docutracks_send'] = [
+      '#type' => 'submit',
+      '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
+      '#name' => 'incoming_related_field_send_to_side_' . $delta,
+      '#submit' => ['incoming_related_field_send_to_side_submit'],
+      '#limit_validation_errors' => [],
+      '#attributes' => [
+        'class' => ['incoming-related-field-send-to-side'],
+      ],
+      '#incoming_related_field_context' => [
+        'file_id' => (int) $file->id(),
+        'paragraph_id' => $paragraph->isNew() ? NULL : (int) $paragraph->id(),
+        'parent_node_id' => $parent_node_id,
+      ],
+      '#weight' => 100,
+    ];
+  }
+}
+
+/**
+ * Submit handler for sending a document to SIDE and attaching the stamped file.
+ */
+function incoming_related_field_send_to_side_submit(array &$form, FormStateInterface $form_state): void {
+  $trigger = $form_state->getTriggeringElement();
+  $context = $trigger['#incoming_related_field_context'] ?? [];
+  $file_id = $context['file_id'] ?? NULL;
+  if (!$file_id) {
+    \Drupal::messenger()->addError(t('Missing file reference for SIDE transfer.'));
+    return;
+  }
+
+  /** @var \Drupal\file\FileInterface|null $file */
+  $file = \Drupal::entityTypeManager()->getStorage('file')->load($file_id);
+  if (!$file instanceof FileInterface) {
+    \Drupal::messenger()->addError(t('The selected file could not be loaded.'));
+    return;
+  }
+
+  try {
+    $result = incoming_related_field_send_file_to_side($file, [
+      'title' => incoming_related_field_build_doc_title($file, $context),
+    ]);
+    $stamped_file = $result['file'];
+    $paragraph_id = $context['paragraph_id'] ?? NULL;
+    if ($paragraph_id) {
+      $paragraph = \Drupal::entityTypeManager()->getStorage('paragraph')->load($paragraph_id);
+      if ($paragraph instanceof ParagraphInterface && $paragraph->hasField('field_files')) {
+        $paragraph->get('field_files')->appendItem(['target_id' => $stamped_file->id()]);
+        $paragraph->save();
+      }
+    }
+
+    \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
+    $form_state->setRebuild(TRUE);
+  }
+  catch (\Throwable $throwable) {
+    \Drupal::logger('incoming_related_field')->error('SIDE transfer failed for file @fid: @message', [
+      '@fid' => $file_id,
+      '@message' => $throwable->getMessage(),
+    ]);
+    \Drupal::messenger()->addError(t('SIDE transfer failed: @message', ['@message' => $throwable->getMessage()]));
+  }
+}
+
+/**
+ * Send a file to Docutracks and return the stamped file.
+ *
+ * @return array{document_id:int, file:\Drupal\file\FileInterface, response:array}
+ */
+function incoming_related_field_send_file_to_side(FileInterface $file, array $options = []): array {
+  $file_system = \Drupal::service('file_system');
+  $real_path = $file_system->realpath($file->getFileUri());
+  if ($real_path === FALSE || !is_readable($real_path)) {
+    throw new RuntimeException('Unable to read the file from disk.');
+  }
+
+  $title = $options['title'] ?? pathinfo($file->getFilename(), PATHINFO_FILENAME);
+  $type_id = $options['type_id'] ?? 1;
+  $doc_payload = ['Document' => ['Title' => $title]];
+
+  /** @var \Drupal\side_api\DocutracksClient $client */
+  $client = \Drupal::service('side_api.docutracks_client');
+  $payload = $client->prepareRegisterPayload($doc_payload, $real_path, [], $type_id);
+  $jar = $client->loginToDocutracks();
+  $response = $client->registerDocument($payload, $jar);
+
+  if (empty($response['Success'])) {
+    throw new RuntimeException('Docutracks returned an unsuccessful response.');
+  }
+
+  $document_id = (int) ($response['DocumentReference'] ?? 0);
+  if (!$document_id) {
+    throw new RuntimeException('Docutracks did not return a document reference.');
+  }
+
+  $doc = $client->fetchDocument((string) $document_id, $jar);
+  $generated_file_id = (int) ($client->extractValueByPath($doc, 'Document.GeneratedFile.Id') ?? 0);
+  if (!$generated_file_id) {
+    throw new RuntimeException('Stamped file is not available yet.');
+  }
+
+  $stamped_file = incoming_related_field_download_docutracks_file(
+    $client,
+    $generated_file_id,
+    $document_id,
+    $jar,
+    incoming_related_field_build_stamped_filename($file)
+  );
+
+  return [
+    'document_id' => $document_id,
+    'file' => $stamped_file,
+    'document' => $doc,
+    'response' => $response,
+  ];
+}
+
+/**
+ * Apply Docutracks metadata to the incoming node.
+ */
+function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, array $doc): void {
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  /** @var \Drupal\side_api\DocutracksClient $client */
+  $client = \Drupal::service('side_api.docutracks_client');
+
+  $mappings = [
+    'field_protocol_number_doc' => [
+      'Document.DocumentCopies.ProtocolText',
+      'Document.DocumentCopies.Protokollo.ProtocolText',
+      'Document.ProtocolNumberDoc',
+      'Document.ProtocolNumber',
+      'Document.ProtocolNumberDocId',
+    ],
+    'field_sender' => [
+      'Document.Sender',
+      'Document.Sender.Name',
+      'Document.Apostoleas.Name',
+      'Document.Apostoleas_Name',
+    ],
+    'field_protocol_number_sender' => [
+      'Document.ProtocolNumberSender',
+      'Document.ProtocolNumberSenderDoc',
+      'Document.ProtocolNumberSenderId',
+    ],
+  ];
+
+  foreach ($mappings as $field_name => $paths) {
+    if (!$node->hasField($field_name) || !$node->get($field_name)->isEmpty()) {
+      continue;
+    }
+    $value = incoming_related_field_extract_doc_value($client, $doc, $paths);
+    if ($value !== NULL && $value !== '') {
+      if ($field_name === 'field_protocol_number_doc') {
+        $value = str_replace('\\/', '/', $value);
+      }
+      $node->set($field_name, $value);
+    }
+  }
+
+  $node->setNewRevision(FALSE);
+  $node->save();
+}
+
+/**
+ * Extract a value from the Docutracks document using multiple paths.
+ */
+function incoming_related_field_extract_doc_value(\Drupal\side_api\DocutracksClient $client, array $doc, array $paths): ?string {
+  foreach ($paths as $path) {
+    $value = incoming_related_field_extract_value_by_path($doc, $path);
+    if (is_array($value)) {
+      $value = incoming_related_field_extract_scalar_from_array($value);
+    }
+    if (is_string($value) && trim($value) !== '') {
+      return trim($value);
+    }
+    if (is_scalar($value) && $value !== NULL && $value !== '') {
+      return (string) $value;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Extract a value by dot path, supporting arrays at any level.
+ */
+function incoming_related_field_extract_value_by_path(array $data, string $path): mixed {
+  $parts = array_values(array_filter(explode('.', $path), static fn(string $part) => $part !== ''));
+  return incoming_related_field_extract_value_by_parts($data, $parts, 0);
+}
+
+/**
+ * Recursive helper for incoming_related_field_extract_value_by_path().
+ */
+function incoming_related_field_extract_value_by_parts(mixed $current, array $parts, int $index): mixed {
+  if ($index >= count($parts)) {
+    return $current;
+  }
+
+  $part = $parts[$index];
+
+  if (is_array($current) && array_key_exists($part, $current)) {
+    return incoming_related_field_extract_value_by_parts($current[$part], $parts, $index + 1);
+  }
+
+  if (is_array($current)) {
+    $results = [];
+    foreach ($current as $item) {
+      if (!is_array($item)) {
+        continue;
+      }
+      $value = incoming_related_field_extract_value_by_parts($item, $parts, $index);
+      if ($value !== NULL) {
+        $results[] = $value;
+      }
+    }
+    if ($results !== []) {
+      return $results;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Find the first scalar value within a nested array.
+ */
+function incoming_related_field_extract_scalar_from_array(array $value): ?string {
+  $queue = [$value];
+  while ($queue) {
+    $current = array_shift($queue);
+    foreach ($current as $item) {
+      if (is_scalar($item) && $item !== NULL && $item !== '') {
+        return (string) $item;
+      }
+      if (is_array($item)) {
+        $queue[] = $item;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Write the Docutracks response to a temporary JSON file for inspection.
+ */
+function incoming_related_field_write_debug_doc(array $doc, ?int $node_id = NULL): void {
+  $payload = json_encode($doc, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+  if ($payload === FALSE) {
+    return;
+  }
+
+  $file_system = \Drupal::service('file_system');
+  $target_dir = 'public://docutracks/debug';
+  if (!$file_system->prepareDirectory($target_dir, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+    return;
+  }
+  $filename = $node_id ? ('incoming_' . $node_id . '_docutracks.json') : 'incoming_docutracks.json';
+  $target_uri = $target_dir . '/' . $filename;
+
+  /** @var \Drupal\file\FileRepositoryInterface $file_repository */
+  $file_repository = \Drupal::service('file.repository');
+  $file = $file_repository->writeData($payload, $target_uri, FileSystemInterface::EXISTS_REPLACE);
+  if (!$file instanceof FileInterface) {
+    return;
+  }
+
+  \Drupal::logger('incoming_related_field')->notice('Docutracks response saved to @path', [
+    '@path' => $file->getFileUri(),
+  ]);
+  \Drupal::messenger()->addStatus(t('Docutracks response saved to @path', ['@path' => $file->getFileUri()]));
+}
+
+/**
+ * Downloads a Docutracks file and writes it to public storage.
+ */
+function incoming_related_field_download_docutracks_file(
+  \Drupal\side_api\DocutracksClient $client,
+  int $file_id,
+  int $document_id,
+  \GuzzleHttp\Cookie\CookieJar $jar,
+  string $filename
+): FileInterface {
+  $file_system = \Drupal::service('file_system');
+  $tmp_path = $file_system->tempnam('temporary://', 'docutracks_');
+  if ($tmp_path === FALSE) {
+    throw new RuntimeException('Unable to create a temporary file for Docutracks download.');
+  }
+
+  $client->downloadFile($file_id, $document_id, $tmp_path, $jar, NULL, TRUE);
+  $bytes = file_get_contents($tmp_path);
+  @unlink($tmp_path);
+  if ($bytes === FALSE) {
+    throw new RuntimeException('Unable to read the stamped file from the temporary path.');
+  }
+
+  $target_dir = 'public://docutracks';
+  if (!$file_system->prepareDirectory($target_dir, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+    throw new RuntimeException(sprintf('Unable to prepare directory %s for stamped file.', $target_dir));
+  }
+
+  /** @var \Drupal\file\FileRepositoryInterface $file_repository */
+  $file_repository = \Drupal::service('file.repository');
+  $stamped_file = $file_repository->writeData($bytes, $target_dir . '/' . $filename, FileSystemInterface::EXISTS_RENAME);
+  if (!$stamped_file instanceof FileInterface) {
+    throw new RuntimeException('Failed to create file entity for stamped Docutracks file.');
+  }
+
+  $stamped_file->setPermanent();
+  $stamped_file->save();
+
+  return $stamped_file;
+}
+
+/**
+ * Build a safe title for the Docutracks document.
+ */
+function incoming_related_field_build_doc_title(FileInterface $file, array $context): string {
+  $title = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+  if (!empty($context['parent_node_id'])) {
+    $title = sprintf('incoming-%d-%s', (int) $context['parent_node_id'], $title);
+  }
+  return $title;
+}
+
+/**
+ * Build a filename for the stamped file.
+ */
+function incoming_related_field_build_stamped_filename(FileInterface $file): string {
+  $base = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+  $extension = pathinfo($file->getFilename(), PATHINFO_EXTENSION);
+  $suffix = 'stamped';
+  $extension = $extension !== '' ? '.' . $extension : '.pdf';
+  return $base . '-' . $suffix . $extension;
 }
