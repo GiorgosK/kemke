@@ -1,0 +1,4 @@
+[data-drupal-selector^="edit-field-related-incoming-form-"][data-drupal-selector$="-actions"] input[name="ief-add-submit-field_related_incoming-form"],
+[data-drupal-selector^="edit-field-related-incoming-form-"][data-drupal-selector$="-actions"] input[name="ief-add-cancel-field_related_incoming-form"] {
+  display: none !important;
+}

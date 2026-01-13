@@ -1,0 +1,4 @@
+ief_hide_actions:
+  css:
+    theme:
+      css/ief-hide-actions.css: {}
