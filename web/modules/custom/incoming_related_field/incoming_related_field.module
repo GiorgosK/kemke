@@ -33,7 +33,6 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
 
   $keep_fields = [
     'field_documents',
-    'field_subject',
   ];
   $keep_always = ['actions'];
 
@@ -53,6 +52,9 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
   if (isset($entity_form['field_documents']['widget']) && is_array($entity_form['field_documents']['widget'])) {
     if (isset($entity_form['field_documents']['widget']['#header'])) {
       $entity_form['field_documents']['widget']['#header'] = [];
+    }
+    if (isset($entity_form['field_documents']['widget']['add_more'])) {
+      $entity_form['field_documents']['widget']['add_more']['#access'] = FALSE;
     }
     foreach ($entity_form['field_documents']['widget'] as $delta => $item) {
       if (is_array($item) && isset($entity_form['field_documents']['widget'][$delta]['top'])) {
