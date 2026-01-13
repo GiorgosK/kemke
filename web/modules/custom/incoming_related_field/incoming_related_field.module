@@ -190,6 +190,10 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
       '#name' => 'incoming_related_field_send_to_side_entity_' . $delta,
       '#submit' => ['incoming_related_field_send_to_side_entity_submit'],
+      '#ajax' => [
+        'callback' => 'incoming_related_field_send_to_side_ajax',
+        'wrapper' => 'edit-field-related-incoming-wrapper',
+      ],
       '#limit_validation_errors' => [],
       '#attributes' => [
         'class' => ['incoming-related-field-send-to-side'],
@@ -326,6 +330,17 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
     ]);
     \Drupal::messenger()->addError(t('SIDE transfer failed: @message', ['@message' => $throwable->getMessage()]));
   }
+}
+
+/**
+ * Ajax callback for the send-to-SIDE action.
+ */
+function incoming_related_field_send_to_side_ajax(array &$form, FormStateInterface $form_state): array {
+  if (isset($form['field_related_incoming'])) {
+    return $form['field_related_incoming'];
+  }
+
+  return $form;
 }
 
 /**
