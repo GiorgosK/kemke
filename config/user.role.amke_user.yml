@@ -26,6 +26,7 @@ permissions:
   - 'create incoming content'
   - 'edit own incoming content'
   - 'use incoming_processing transition issues_to_check'
+  - 'use incoming_processing transition stay_draft'
   - 'use incoming_processing transition stay_pending_issues'
   - 'use text format full_html'
   - 'view any incoming content'
