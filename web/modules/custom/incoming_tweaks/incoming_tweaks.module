@@ -50,6 +50,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
 
   incoming_tweaks_remove_primary_from_newly_related($entity);
   incoming_tweaks_restore_primary_for_removed_related($entity);
+  incoming_tweaks_sync_related_legal_entities($entity);
 
   if ($is_new) {
     incoming_tweaks_set_primary_flag($entity);
@@ -289,6 +290,59 @@ function incoming_tweaks_restore_primary_for_removed_related(NodeInterface $node
     $removed->setNewRevision(FALSE);
     $removed->save();
   }
+}
+
+/**
+ * Syncs related incoming legal entities with the current incoming.
+ */
+function incoming_tweaks_sync_related_legal_entities(NodeInterface $node): void {
+  static $in_progress = FALSE;
+  if ($in_progress) {
+    return;
+  }
+
+  if (
+    !$node->hasField('field_related_incoming') ||
+    !$node->hasField('field_legal_entity') ||
+    $node->get('field_legal_entity')->isEmpty()
+  ) {
+    return;
+  }
+
+  $related_ids = incoming_tweaks_collect_related_incoming_ids($node);
+  if (!$related_ids) {
+    return;
+  }
+
+  $legal_values = $node->get('field_legal_entity')->getValue();
+  if (!$legal_values) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $related_nodes = $storage->loadMultiple($related_ids);
+  $self_id = $node->id();
+
+  $in_progress = TRUE;
+  foreach ($related_nodes as $related) {
+    if (
+      !$related instanceof NodeInterface ||
+      (int) $related->id() === (int) $self_id ||
+      !$related->hasField('field_legal_entity')
+    ) {
+      continue;
+    }
+
+    if ($related->get('field_legal_entity')->getValue() == $legal_values) {
+      continue;
+    }
+
+    $related->set('field_legal_entity', $legal_values);
+    $related->setNewRevision(FALSE);
+    $related->save();
+  }
+  $in_progress = FALSE;
 }
 
 /**
