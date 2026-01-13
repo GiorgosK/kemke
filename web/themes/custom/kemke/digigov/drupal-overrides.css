@@ -153,3 +153,7 @@ tr.visible-to-amke {
   left: 23px;
   top: -2px;
 }
+
+.govgr-error-summary .govgr-list--bullet li {
+  color: black;
+}
