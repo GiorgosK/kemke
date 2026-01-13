@@ -74,7 +74,7 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
     return;
   }
 
-  $form['#attached']['library'][] = 'incoming_related_field/ief_hide_actions';
+//  $form['#attached']['library'][] = 'incoming_related_field/ief_hide_actions';
 
   if (\Drupal::currentUser()->hasRole('amke_user')) {
     $selector = 'edit-field-related-incoming-actions-ief-add-existing';
