@@ -560,6 +560,7 @@ final class DocutracksClient {
     $resolvedTypeId = $this->resolveTypeId($typeId);
     $resolvedKindId = $this->resolveKindId($typeId);
     $payload = $this->mergeWithDefaults($decoded, $resolvedTypeId);
+    $payload['Document']['Type'] = ['Id' => $resolvedTypeId];
     if ($resolvedKindId !== NULL) {
       $payload['Document']['Kind'] = ['Id' => $resolvedKindId];
     }
@@ -762,6 +763,10 @@ final class DocutracksClient {
    */
   private function resolveTypeId(int|string $typeId): int {
     $settings = Settings::get('side_api', []);
+
+    if (is_int($typeId)) {
+      return $typeId;
+    }
 
     if (is_string($typeId)) {
       $docType = strtolower(trim($typeId));
