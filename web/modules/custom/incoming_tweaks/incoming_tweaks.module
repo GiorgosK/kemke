@@ -5,6 +5,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Component\Utility\Unicode;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\file\Entity\File;
@@ -28,6 +29,10 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   }
   else {
     $form['#submit'][] = 'incoming_tweaks_clear_status_on_docutracks_failure';
+  }
+
+  if (isset($form['field_related_incoming']['widget']) && is_array($form['field_related_incoming']['widget'])) {
+    $form['field_related_incoming']['widget']['#after_build'][] = 'incoming_tweaks_mark_new_related_rows_after_build';
   }
 }
 
@@ -196,6 +201,10 @@ function incoming_tweaks_ensure_title(NodeInterface $node): void {
  * Adds custom classes to inline entity form tables.
  */
 function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$variables): void {
+  if (\Drupal::currentUser()->hasRole('administrator')) {
+    return;
+  }
+
   if (!isset($variables['table']['#attributes']['class'])) {
     $variables['table']['#attributes']['class'] = [];
   }
@@ -207,9 +216,7 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
     ]
   )));
 
-  // Strip the inline edit button from the operations column and the first
-  // "Remove" button from the first data row.
-  $removed_first_remove = FALSE;
+  // Strip the inline edit button and hide "Remove" except for unsaved rows.
   foreach ($variables['table'] as &$row) {
     if (!is_array($row) || !isset($row['actions']) || !is_array($row['actions'])) {
       continue;
@@ -219,17 +226,72 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
         unset($row['actions'][$key]);
       }
     }
-    if (!$removed_first_remove) {
-      foreach (array_keys($row['actions']) as $key) {
-        if (strpos($key, 'ief_entity_remove') === 0) {
-          unset($row['actions'][$key]);
-          $removed_first_remove = TRUE;
-          break;
-        }
+
+    $remove_key = NULL;
+    $delta = NULL;
+    foreach (array_keys($row['actions']) as $key) {
+      if (strpos($key, 'ief_entity_remove') === 0) {
+        $remove_key = $key;
+        $delta = $row['actions'][$key]['#ief_row_delta'] ?? NULL;
+        break;
+      }
+    }
+
+    if ($remove_key !== NULL) {
+      $entity = NULL;
+      $needs_save = NULL;
+      if ($delta !== NULL && isset($variables['form'][$delta])) {
+        $entity = $variables['form'][$delta]['#entity'] ?? NULL;
+        $needs_save = $variables['form'][$delta]['#needs_save'] ?? NULL;
+      }
+      $is_new_flag = $delta !== NULL && !empty($variables['form'][$delta]['#incoming_related_is_new']);
+      $is_new = $entity instanceof NodeInterface ? $entity->isNew() : FALSE;
+      $allow_remove = ($needs_save === TRUE) || $is_new || $is_new_flag;
+      if (!$allow_remove) {
+        unset($row['actions'][$remove_key]);
       }
     }
   }
   unset($row);
+}
+
+/**
+ * Marks newly attached related incoming rows in the IEF widget.
+ */
+function incoming_tweaks_mark_new_related_rows_after_build(array $element, FormStateInterface $form_state): array {
+  if (\Drupal::currentUser()->hasRole('administrator')) {
+    return $element;
+  }
+
+  if (empty($element['entities']) || !is_array($element['entities'])) {
+    return $element;
+  }
+
+  $entity = $form_state->getFormObject()->getEntity();
+  $original_ids = [];
+  if ($entity instanceof NodeInterface && !$entity->isNew()) {
+    $original = $entity->original instanceof NodeInterface ? $entity->original : $entity;
+    if ($original->hasField('field_related_incoming')) {
+      foreach ($original->get('field_related_incoming') as $item) {
+        if (!empty($item->target_id)) {
+          $original_ids[] = (int) $item->target_id;
+        }
+      }
+    }
+  }
+
+  foreach (Element::children($element['entities']) as $delta) {
+    if (empty($element['entities'][$delta]['#entity']) || !$element['entities'][$delta]['#entity'] instanceof NodeInterface) {
+      continue;
+    }
+    $row_entity = $element['entities'][$delta]['#entity'];
+    $row_id = $row_entity->id();
+    if ($row_entity->isNew() || ($row_id && !in_array((int) $row_id, $original_ids, TRUE))) {
+      $element['entities'][$delta]['#incoming_related_is_new'] = TRUE;
+    }
+  }
+
+  return $element;
 }
 
 /**
