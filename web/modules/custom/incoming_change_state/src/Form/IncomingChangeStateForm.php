@@ -89,12 +89,18 @@ final class IncomingChangeStateForm extends FormBase {
     $stateOptions = $this->buildStateOptions($typePlugin->getStates(), $stateConfigurations);
     $currentState = $activeNode->get('moderation_state')->value ?? '';
     $currentStateLabel = $stateOptions[$currentState] ?? $currentState;
+    $lastState = $stateOptions ? array_key_last($stateOptions) : '';
 
     $form['current_state'] = [
       '#type' => 'item',
       '#title' => $this->t('Current state'),
       '#markup' => $currentStateLabel ?: $this->t('Not set'),
     ];
+
+    if ($currentState !== '' && $currentState === $lastState && !$this->currentUser()->hasRole('administrator')) {
+      $form_state->set('incoming_change_state_node', $activeNode);
+      return $form;
+    }
 
     $form['new_state'] = [
       '#type' => 'select',
