@@ -1,5 +1,5 @@
 {
-    "_hash": "a5091ecd0359a20251e02fd0c83384502443375f24006e293ad0c5939e3a858e",
+    "_hash": "4439ef33dae49cb999ee707d41be42beedc48ab8d97c1e83748a073893d0891e",
     "patches": {
         "drupal/core": [
             {
@@ -41,6 +41,18 @@
                 "description": "Skip buttons missing transition metadata",
                 "url": "patches/workflow_buttons-missing-transition-data.patch",
                 "sha256": "3bf39b084bbcd5ef98912aa06d4515a1ae7af404b70f4eaa1149846e42ceaecf",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ],
+        "drupal/notify_widget": [
+            {
+                "package": "drupal/notify_widget",
+                "description": "Add mark all as read action",
+                "url": "patches/notify_widget-mark-all-read.patch",
+                "sha256": "97981604a44745a70512b2b30cff78c8dadf3b4b91a9d238d2718402d05fbd28",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"

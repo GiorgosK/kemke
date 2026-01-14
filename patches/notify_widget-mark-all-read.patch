@@ -1,0 +1,130 @@
+--- a/src/NotifyWidgetApi.php
++++ b/src/NotifyWidgetApi.php
+@@ -139,6 +139,27 @@
+   }
+ 
+   /**
++   * Mark all notifications as read for a user.
++   *
++   * @param int $uid
++   *   The user ID whose notifications should be marked as read.
++   */
++  public function markAllAsReadByUserId(int $uid = 0): void {
++    if ($uid === 0) {
++      $uid = $this->currentUser->id();
++    }
++
++    $this->database->update('notify_widget')
++      ->fields([
++        'read' => 1,
++      ])
++      ->condition('uid', $uid)
++      ->execute();
++
++    $this->clearNotifyWidgetCacheForUser($uid);
++  }
++
++  /**
+    * Set notification status.
+    *
+    * @param int $id
+
+--- a/src/Controller/NotificationsController.php
++++ b/src/Controller/NotificationsController.php
+@@ -161,4 +161,15 @@
+     return new RedirectResponse($this->getRedirectDestination()->get());
+   }
+ 
++  /**
++   * Mark all notifications as read.
++   *
++   * @param \Drupal\user\Entity\User $user
++   *   The user object.
++   */
++  public function markAllRead(User $user): RedirectResponse {
++    $this->notifyWidgetApi->markAllAsReadByUserId((int) $user->id());
++    return new RedirectResponse($this->getRedirectDestination()->get());
++  }
++
+ }
+
+--- a/notify_widget.routing.yml
++++ b/notify_widget.routing.yml
+@@ -63,6 +63,19 @@
+       user:
+         type: entity:user
+ 
++notify_widget.notifications.mark_all_read:
++  path: '/user/{user}/notifications/markallread'
++  defaults:
++    _title: 'Notifications'
++    _controller: '\Drupal\notify_widget\Controller\NotificationsController::markAllRead'
++  requirements:
++    _user_can_access_notifications: TRUE
++    user: \d+
++  options:
++    parameters:
++      user:
++        type: entity:user
++
+ notify_widget.delete_notification_confirm:
+   path: '/user/{user}/notifications/{notificationId}/delete'
+   defaults:
+@@ -87,4 +100,4 @@
+   options:
+     parameters:
+       user:
+-        type: entity:user
+\ No newline at end of file
++        type: entity:user
+
+--- a/templates/notify-widget-block.html.twig
++++ b/templates/notify-widget-block.html.twig
+@@ -73,6 +73,10 @@
+         </div>
+       {% endif %}
+     {% endif %}
+-    <a href="{{base_url}}/user/{{ uid }}/notifications" class="view-all-notifications">{{ 'View all notifications'|trans }}</a>
++    {% set current_path = path('<current>') %}
++    <div class="notify-widget-actions">
++      <a href="{{ path('notify_widget.notifications.mark_all_read', {'user': uid}, {'query': {'destination': current_path}}) }}" class="mark-all-notifications-read">{{ 'Mark all as read'|trans }}</a>
++      <a href="{{ path('notify_widget.notifications', {'user': uid}) }}" class="view-all-notifications">{{ 'View all notifications'|trans }}</a>
++    </div>
+   </div>
+ </div>
+
+--- a/sass/style.scss
++++ b/sass/style.scss
+@@ -165,13 +165,23 @@
+       }
+     }
+ 
++    .notify-widget-actions {
++      display: flex;
++      gap: 12px;
++      justify-content: space-between;
++      margin-top: 16px;
++    }
++
+     a {
++      &.mark-all-notifications-read,
+       &.view-all-notifications {
+         color: #333333;
+-        margin-top: 16px;
+-        text-align: right;
+         text-decoration: none;
+       }
++
++      &.view-all-notifications {
++        text-align: right;
++      }
+     }
+   }
+ }
+
+--- a/css/style.css
++++ b/css/style.css
+@@ -1 +1 @@
+-#notify_widget{float:left;height:39px;margin:35px 0 0 55px;position:relative;width:39px}#notify_widget::after{clear:both;content:"";display:table}#notify_widget>a{background-image:url(../images/bell.png);background-size:39px 39px;background-position:top left;color:#ffffff;display:block;font-size:0;height:39px;padding-left:39px;text-decoration:none;width:0}#notify_widget>a:active{outline:2px solid yellow}#notify_widget .unread{background-color:#ff0000;border-radius:20px;color:#ffffff;display:block;font-size:12px;font-weight:700;left:25px;line-height:18px;min-width:19px;padding:1px 6px 0 4px;position:absolute;text-align:center;top:-7px;z-index:200}#notify_widget #notify_widget_popup{background-color:#ffffff;border-radius:2px;border:1px solid #f4f4f4;box-shadow:0px 20px 25px -5px rgba(0,0,0,0.14),0px 10px 10px -5px rgba(0,0,0,0.08);color:#333333;display:flex;flex-direction:column;max-height:550px;opacity:0;padding:24px 20px 8px 20px;position:relative;top:5px;left:-541px;width:580px;transition:opacity 0.25s ease-in-out, visibility 0.25s ease-in-out;visibility:hidden;z-index:201}#notify_widget #notify_widget_popup.is-open{opacity:1;visibility:visible}#notify_widget #notify_widget_popup h2{color:#0a6fb4;font-size:30px;font-style:normal;font-weight:400;line-height:34px;margin:0 0 16px 0}#notify_widget #notify_widget_popup .inner{align-items:flex-start;align-self:stretch;border:0.5px solid #f4f4f4;border-radius:2px;display:flex;flex-direction:column;gap:16px;overflow:auto;padding:3px}#notify_widget #notify_widget_popup .inner a{align-self:stretch;color:#333333;display:flex;text-decoration:none}#notify_widget #notify_widget_popup .inner a .notification{border-radius:2px;border:0.5px solid #f4f4f4;background:#ffffff;padding:16px;position:relative;width:100%}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon{background-size:24px 24px;display:block;height:24px;position:absolute;left:16px;top:16px;width:24px}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.add-type{background-image:url(../images/add.svg)}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.alert-type{background-image:url(../images/warning.svg)}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.read-type{background-image:url(../images/check.svg)}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper{color:#333333;font-style:normal;margin-left:40px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper p{margin-bottom:2px;margin-top:0}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .title{display:block;font-size:20px;font-weight:400;line-height:24px;letter-spacing:0.282px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .text{display:block;font-size:18px;font-weight:325;line-height:28px;letter-spacing:0.2px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .time{color:#3371ff;display:block;font-size:16px;font-weight:400;line-height:20px}#notify_widget #notify_widget_popup a.view-all-notifications{color:#333333;margin-top:16px;text-align:right;text-decoration:none}
++#notify_widget{float:left;height:39px;margin:35px 0 0 55px;position:relative;width:39px}#notify_widget::after{clear:both;content:"";display:table}#notify_widget>a{background-image:url(../images/bell.png);background-size:39px 39px;background-position:top left;color:#ffffff;display:block;font-size:0;height:39px;padding-left:39px;text-decoration:none;width:0}#notify_widget>a:active{outline:2px solid yellow}#notify_widget .unread{background-color:#ff0000;border-radius:20px;color:#ffffff;display:block;font-size:12px;font-weight:700;left:25px;line-height:18px;min-width:19px;padding:1px 6px 0 4px;position:absolute;text-align:center;top:-7px;z-index:200}#notify_widget #notify_widget_popup{background-color:#ffffff;border-radius:2px;border:1px solid #f4f4f4;box-shadow:0px 20px 25px -5px rgba(0,0,0,0.14),0px 10px 10px -5px rgba(0,0,0,0.08);color:#333333;display:flex;flex-direction:column;max-height:550px;opacity:0;padding:24px 20px 8px 20px;position:relative;top:5px;left:-541px;width:580px;transition:opacity 0.25s ease-in-out, visibility 0.25s ease-in-out;visibility:hidden;z-index:201}#notify_widget #notify_widget_popup.is-open{opacity:1;visibility:visible}#notify_widget #notify_widget_popup h2{color:#0a6fb4;font-size:30px;font-style:normal;font-weight:400;line-height:34px;margin:0 0 16px 0}#notify_widget #notify_widget_popup .inner{align-items:flex-start;align-self:stretch;border:0.5px solid #f4f4f4;border-radius:2px;display:flex;flex-direction:column;gap:16px;overflow:auto;padding:3px}#notify_widget #notify_widget_popup .inner a{align-self:stretch;color:#333333;display:flex;text-decoration:none}#notify_widget #notify_widget_popup .inner a .notification{border-radius:2px;border:0.5px solid #f4f4f4;background:#ffffff;padding:16px;position:relative;width:100%}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon{background-size:24px 24px;display:block;height:24px;position:absolute;left:16px;top:16px;width:24px}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.add-type{background-image:url(../images/add.svg)}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.alert-type{background-image:url(../images/warning.svg)}#notify_widget #notify_widget_popup .inner a .notification .notification-type-icon.read-type{background-image:url(../images/check.svg)}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper{color:#333333;font-style:normal;margin-left:40px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper p{margin-bottom:2px;margin-top:0}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .title{display:block;font-size:20px;font-weight:400;line-height:24px;letter-spacing:0.282px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .text{display:block;font-size:18px;font-weight:325;line-height:28px;letter-spacing:0.2px}#notify_widget #notify_widget_popup .inner a .notification .text_wrapper .time{color:#3371ff;display:block;font-size:16px;font-weight:400;line-height:20px}#notify_widget #notify_widget_popup .notify-widget-actions{display:flex;gap:12px;justify-content:space-between;margin-top:16px}#notify_widget #notify_widget_popup a.mark-all-notifications-read,#notify_widget #notify_widget_popup a.view-all-notifications{color:#333333;text-decoration:none}#notify_widget #notify_widget_popup a.view-all-notifications{text-align:right}
+
