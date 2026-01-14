@@ -5,7 +5,6 @@ dependencies:
   config:
     - field.field.paragraph.remark.field_comment
     - field.field.paragraph.remark.field_datetime
-    - field.field.paragraph.remark.field_send_to
     - field.field.paragraph.remark.field_user
     - field.field.paragraph.remark.field_visible_to
     - paragraphs.paragraphs_type.remark
@@ -19,10 +18,10 @@ mode: default
 content:
   field_comment:
     type: text_default
-    label: above
+    label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 2
+    weight: 3
     region: content
   field_datetime:
     type: timestamp
@@ -42,7 +41,7 @@ content:
         refresh: 60
         description: ''
     third_party_settings: {  }
-    weight: 1
+    weight: 0
     region: content
   field_user:
     type: entity_reference_label
@@ -50,14 +49,13 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 0
+    weight: 1
     region: content
   field_visible_to:
     type: list_default
-    label: above
+    label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 3
+    weight: 2
     region: content
-hidden:
-  field_send_to: true
+hidden: {  }

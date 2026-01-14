@@ -191,7 +191,6 @@ third_party_settings:
     group_general:
       children:
         - field_ref_id
-        - field_responsible_entity
         - field_sender
         - field_subject
         - field_notes
