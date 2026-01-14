@@ -23,11 +23,38 @@ function case_tweaks_entity_presave(EntityInterface $entity): void {
 }
 
 /**
- * Populates field_ref_id when empty.
+ * Implements hook_entity_predelete().
+ */
+function case_tweaks_entity_predelete(EntityInterface $entity): void {
+  if (!$entity instanceof TermInterface) {
+    return;
+  }
+
+  if (!$entity->hasField('field_ref_id')) {
+    return;
+  }
+
+  $parent_id = case_tweaks_parent_id($entity);
+  if ($parent_id) {
+    return;
+  }
+
+  case_tweaks_maybe_decrement_root_counter_on_delete($entity);
+}
+
+/**
+ * Populates field_ref_id when empty or when parent changed.
  */
 function case_tweaks_populate_field_ref_id(TermInterface $term): bool {
-  if (!$term->get('field_ref_id')->isEmpty()) {
+  if (!$term->get('field_ref_id')->isEmpty() && !case_tweaks_parent_changed($term)) {
     return FALSE;
+  }
+
+  if (case_tweaks_parent_changed_to_child($term)) {
+    case_tweaks_maybe_decrement_root_counter($term);
+  }
+  elseif (case_tweaks_parent_changed_between_parents($term)) {
+    case_tweaks_maybe_decrement_child_counter($term);
   }
 
   $term->set('field_ref_id', case_tweaks_generate_reference_id($term));
@@ -88,6 +115,24 @@ function case_tweaks_refresh_name_from_fields(TermInterface $term): void {
  * Generates the CASE-#### identifier.
  */
 function case_tweaks_generate_reference_id(TermInterface $term): string {
+  $parent_id = case_tweaks_parent_id($term);
+  if ($parent_id) {
+    $parent = $term->get('parent')->entity;
+    if (!$parent instanceof TermInterface) {
+      $parent = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load($parent_id);
+    }
+
+    $parent_ref_id = '';
+    if ($parent instanceof TermInterface && $parent->hasField('field_ref_id')) {
+      $parent_ref_id = trim((string) $parent->get('field_ref_id')->value);
+    }
+
+    if ($parent_ref_id !== '') {
+      $sequence = case_tweaks_next_child_sequence($parent, $parent_ref_id);
+      return sprintf('%s-%d', $parent_ref_id, $sequence);
+    }
+  }
+
   $now = new DrupalDateTime('now');
   $year = (int) $now->format('Y');
   $sequence = case_tweaks_next_reference_sequence($year);
@@ -118,6 +163,226 @@ function case_tweaks_next_reference_sequence(int $year): int {
   }
 
   return $next;
+}
+
+/**
+ * Retrieves and increments the per-parent child reference counter.
+ */
+function case_tweaks_next_child_sequence(TermInterface $parent, string $parent_ref_id): int {
+  $state = \Drupal::state();
+  $lock = \Drupal::lock();
+  $parent_id = (int) $parent->id();
+  $lock_name = "case_tweaks.child_counter.$parent_id";
+  $counter_key = "case_tweaks.child_counter.$parent_id";
+
+  $acquired = $lock->acquire($lock_name, 5.0);
+  if (!$acquired) {
+    \Drupal::logger('case_tweaks')->warning('Unable to acquire child counter lock for parent @parent, falling back to non-locked increment.', ['@parent' => $parent_id]);
+  }
+
+  $max_existing = case_tweaks_max_child_sequence($parent, $parent_ref_id);
+  $next = max($max_existing + 1, 1);
+  $state->set($counter_key, $next);
+
+  if ($acquired) {
+    $lock->release($lock_name);
+  }
+
+  return $next;
+}
+
+/**
+ * Calculates the max child suffix currently in use for a parent ref id.
+ */
+function case_tweaks_max_child_sequence(TermInterface $parent, string $parent_ref_id): int {
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  $children = $storage->loadTree($parent->bundle(), $parent->id(), 1, TRUE);
+  if (empty($children)) {
+    return 0;
+  }
+
+  $pattern = '/^' . preg_quote($parent_ref_id, '/') . '-([0-9]+)$/';
+  $max = 0;
+  foreach ($children as $child) {
+    if (!$child->hasField('field_ref_id')) {
+      continue;
+    }
+    $ref_id = trim((string) $child->get('field_ref_id')->value);
+    if ($ref_id === '') {
+      continue;
+    }
+    if (preg_match($pattern, $ref_id, $matches)) {
+      $max = max($max, (int) $matches[1]);
+    }
+  }
+
+  return $max;
+}
+
+/**
+ * Returns the direct parent ID or NULL when the term is a root.
+ */
+function case_tweaks_parent_id(TermInterface $term): ?int {
+  $parents = $term->get('parent')->getValue();
+  $parent_id = $parents[0]['target_id'] ?? NULL;
+  if (!$parent_id) {
+    return NULL;
+  }
+
+  return (int) $parent_id;
+}
+
+/**
+ * Determines whether the parent changed between saves.
+ */
+function case_tweaks_parent_changed(TermInterface $term): bool {
+  if (!$term->get('field_ref_id')->isEmpty() && empty($term->original)) {
+    return FALSE;
+  }
+
+  if (!$term->original instanceof TermInterface) {
+    return FALSE;
+  }
+
+  $original_parent_id = case_tweaks_parent_id($term->original);
+  $current_parent_id = case_tweaks_parent_id($term);
+
+  return $original_parent_id !== $current_parent_id;
+}
+
+/**
+ * Determines whether the term moved from root to child.
+ */
+function case_tweaks_parent_changed_to_child(TermInterface $term): bool {
+  if (!$term->original instanceof TermInterface) {
+    return FALSE;
+  }
+
+  $original_parent_id = case_tweaks_parent_id($term->original);
+  $current_parent_id = case_tweaks_parent_id($term);
+
+  return !$original_parent_id && (bool) $current_parent_id;
+}
+
+/**
+ * Determines whether the term moved between two parents.
+ */
+function case_tweaks_parent_changed_between_parents(TermInterface $term): bool {
+  if (!$term->original instanceof TermInterface) {
+    return FALSE;
+  }
+
+  $original_parent_id = case_tweaks_parent_id($term->original);
+  $current_parent_id = case_tweaks_parent_id($term);
+
+  return $original_parent_id && $current_parent_id && $original_parent_id !== $current_parent_id;
+}
+
+/**
+ * Decrements the global counter if the moved root was the latest sequence.
+ */
+function case_tweaks_maybe_decrement_root_counter(TermInterface $term): void {
+  if (!$term->original instanceof TermInterface) {
+    return;
+  }
+
+  if (!$term->original->hasField('field_ref_id')) {
+    return;
+  }
+
+  $original_ref_id = trim((string) $term->original->get('field_ref_id')->value);
+  if ($original_ref_id === '') {
+    return;
+  }
+
+  if (!preg_match('/^CASE-(\d{4})-(\d+)$/', $original_ref_id, $matches)) {
+    return;
+  }
+
+  $year = (int) $matches[1];
+  $sequence = (int) $matches[2];
+
+  $state = \Drupal::state();
+  $counter_key = "case_tweaks.ref_counter.$year";
+  $current = (int) $state->get($counter_key, 0);
+  if ($current === $sequence && $current > 0) {
+    $state->set($counter_key, $current - 1);
+  }
+}
+
+/**
+ * Decrements the global counter if a deleted root was the latest sequence.
+ */
+function case_tweaks_maybe_decrement_root_counter_on_delete(TermInterface $term): void {
+  if (!$term->hasField('field_ref_id')) {
+    return;
+  }
+
+  $ref_id = trim((string) $term->get('field_ref_id')->value);
+  if ($ref_id === '') {
+    return;
+  }
+
+  if (!preg_match('/^CASE-(\d{4})-(\d+)$/', $ref_id, $matches)) {
+    return;
+  }
+
+  $year = (int) $matches[1];
+  $sequence = (int) $matches[2];
+
+  $state = \Drupal::state();
+  $counter_key = "case_tweaks.ref_counter.$year";
+  $current = (int) $state->get($counter_key, 0);
+  if ($current === $sequence && $current > 0) {
+    $state->set($counter_key, $current - 1);
+  }
+}
+
+/**
+ * Decrements the old parent counter if the moved child was the latest.
+ */
+function case_tweaks_maybe_decrement_child_counter(TermInterface $term): void {
+  if (!$term->original instanceof TermInterface) {
+    return;
+  }
+
+  $original_parent_id = case_tweaks_parent_id($term->original);
+  if (!$original_parent_id) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  $original_parent = $storage->load($original_parent_id);
+  if (!$original_parent instanceof TermInterface || !$original_parent->hasField('field_ref_id')) {
+    return;
+  }
+
+  $original_parent_ref = trim((string) $original_parent->get('field_ref_id')->value);
+  if ($original_parent_ref === '') {
+    return;
+  }
+
+  if (!$term->original->hasField('field_ref_id')) {
+    return;
+  }
+
+  $original_ref_id = trim((string) $term->original->get('field_ref_id')->value);
+  if ($original_ref_id === '') {
+    return;
+  }
+
+  $pattern = '/^' . preg_quote($original_parent_ref, '/') . '-([0-9]+)$/';
+  if (!preg_match($pattern, $original_ref_id, $matches)) {
+    return;
+  }
+
+  $sequence = (int) $matches[1];
+  $state = \Drupal::state();
+  $counter_key = 'case_tweaks.child_counter.' . (int) $original_parent_id;
+  $current = (int) $state->get($counter_key, 0);
+  if ($current === $sequence && $current > 0) {
+    $state->set($counter_key, $current - 1);
+  }
 }
 
 /**

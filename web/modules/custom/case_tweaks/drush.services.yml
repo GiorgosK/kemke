@@ -1,0 +1,5 @@
+services:
+  case_tweaks.commands:
+    class: Drupal\case_tweaks\Commands\CaseTweaksCommands
+    tags:
+      - { name: drush.command }
