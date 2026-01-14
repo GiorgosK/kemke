@@ -6,7 +6,6 @@ dependencies:
     - field.storage.node.field_amke_status
     - field.storage.node.field_documents
     - field.storage.node.field_entry_date
-    - field.storage.node.field_plan
     - field.storage.node.field_plan_signed
     - field.storage.node.field_subject
     - node.type.incoming
@@ -419,11 +418,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_plan:
-          id: field_plan
-          table: node__field_plan
-          field: field_plan
-          plugin_id: field
         field_plan_signed:
           id: field_plan_signed
           table: node__field_plan_signed
@@ -820,7 +814,6 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
-        - 'config:field.storage.node.field_plan'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
   page_1:
@@ -1101,7 +1094,6 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
-        - 'config:field.storage.node.field_plan'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
@@ -1139,7 +1131,6 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
-        - 'config:field.storage.node.field_plan'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
   page_3:
@@ -1362,6 +1353,5 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
-        - 'config:field.storage.node.field_plan'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
