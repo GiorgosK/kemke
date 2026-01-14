@@ -1,0 +1,156 @@
+--- a/src/NotifyWidgetApi.php
++++ b/src/NotifyWidgetApi.php
+@@ -239,6 +239,52 @@
+   }
+ 
+   /**
++   * Get paged notifications for a user.
++   *
++   * @param int $uid
++   *   The User ID to fetch notifications for. Defaults to the current user.
++   * @param int $limit
++   *   The number of notifications per page.
++   * @param bool $includeRead
++   *   Set TRUE to include read notifications.
++   * @param int $readCutoff
++   *   Timestamp for which read notifications will only be shown
++   *   if they are younger than the timestamp.
++   *
++   * @return array
++   *   An array of stdClass objects, where each object is
++   *   a DB row (notification).
++   */
++  public function getNotificationsForUserPaged(int $uid = 0, int $limit = 10, bool $includeRead = TRUE, int $readCutoff = 0): array {
++    if ($uid === 0) {
++      $uid = $this->currentUser->id();
++    }
++
++    $query = $this->database->select('notify_widget', 'n')
++      ->fields('n', [])
++      ->condition('uid', $uid)
++      ->orderBy('timestamp', 'desc');
++
++    if (!$includeRead) {
++      $query->condition('read', 0);
++    }
++    elseif ($includeRead && $readCutoff !== 0) {
++      $andGroup = $query->andConditionGroup()
++        ->condition('read', 1)
++        ->condition('timestamp', $readCutoff, '>');
++      $orGroup = $query->orConditionGroup()
++        ->condition('read', 0)
++        ->condition($andGroup);
++      $query->condition($orGroup);
++    }
++
++    $query = $query->extend('Drupal\\Core\\Database\\Query\\PagerSelectExtender')
++      ->limit($limit);
++
++    return $query->execute()->fetchAll();
++  }
++
++  /**
+    * Get the number of unread notifications for a user.
+    *
+    * @return int
+@@ -293,4 +339,20 @@
+     ->condition('uid', $uid)
+     ->execute();
+ }
++
++  /**
++   * Purge notifications older than the configured threshold.
++   */
++  public function purgeOldNotificationsIfNeeded(): void {
++    $days = (int) ($this->config->get('purge_days_old') ?? 0);
++    if ($days <= 0) {
++      return;
++    }
++
++    $cutoff = $this->time->getRequestTime() - ($days * 86400);
++    $this->database->delete('notify_widget')
++      ->condition('timestamp', $cutoff, '<')
++      ->execute();
++  }
++
+ }
+
+--- a/src/Controller/NotificationsController.php
++++ b/src/Controller/NotificationsController.php
+@@ -37,8 +37,9 @@
+    *   The user object.
+    */
+   public function __invoke(User $user = NULL): array {
++    $this->notifyWidgetApi->purgeOldNotificationsIfNeeded();
+     // Get the notifications for the user.
+-    $notifications = $this->notifyWidgetApi->getNotificationsForUser((int) $user->id());
++    $notifications = $this->notifyWidgetApi->getNotificationsForUserPaged((int) $user->id(), 20);
+ 
+     $header = [
+       ['data' => $this->t('Date/Time')],
+@@ -123,6 +124,9 @@
+     ];
+ 
+     $build['#attached']['library'][] = 'notify_widget/dropbutton';
++    $build['pager'] = [
++      '#type' => 'pager',
++    ];
+     $build['delete_all'] = [
+       '#type' => 'link',
+       '#title' => $this->t('Delete all my notifications'),
+
+--- a/src/Form/NotifyWidgetSettingsForm.php
++++ b/src/Form/NotifyWidgetSettingsForm.php
+@@ -62,6 +62,16 @@
+       '#default_value' => $this->config('notify_widget.settings')->get('read_cutoff') ?? 0,
+     ];
+ 
++    $form['purge_days_old'] = [
++      '#type' => 'number',
++      '#title' => $this->t('Purge days old'),
++      '#description' => $this->t('Purge notifications older than this many days. Set to 0 to disable.'),
++      '#default_value' => $this->config('notify_widget.settings')->get('purge_days_old') ?? 0,
++      '#min' => 0,
++      '#max' => 3650,
++      '#step' => 1,
++    ];
++
+     $form['use_module_css'] = [
+       '#type' => 'checkbox',
+       '#title' => $this->t('Use Module CSS'),
+@@ -81,6 +91,7 @@
+       ->set('use_module_css', $form_state->getValue('use_module_css'))
+       ->set('include_read', $form_state->getValue('include_read'))
+       ->set('read_cutoff', $form_state->getValue('read_cutoff'))
++      ->set('purge_days_old', $form_state->getValue('purge_days_old'))
+       ->save();
+     parent::submitForm($form, $form_state);
+   }
+
+--- a/config/schema/notify_widget.schema.yml
++++ b/config/schema/notify_widget.schema.yml
+@@ -1,3 +1,23 @@
+ action.configuration.notify_widget_send_action:
+   type: action_configuration_default
+   label: 'Send notification to selected user(s)'
++
++notify_widget.settings:
++  type: config_object
++  label: 'Notify widget settings'
++  mapping:
++    max_notifications:
++      type: integer
++      label: 'Maximum Notifications to Display'
++    include_read:
++      type: boolean
++      label: 'Include Read Notifications'
++    read_cutoff:
++      type: integer
++      label: 'Read Cut-Off'
++    purge_days_old:
++      type: integer
++      label: 'Purge days old'
++    use_module_css:
++      type: boolean
++      label: 'Use Module CSS'
+

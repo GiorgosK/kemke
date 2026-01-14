@@ -1,5 +1,5 @@
 {
-    "_hash": "4439ef33dae49cb999ee707d41be42beedc48ab8d97c1e83748a073893d0891e",
+    "_hash": "c3f00a017c9004a6e268a7b38251cf4f32b5e0ef85eabc9177642e1e87b7dd38",
     "patches": {
         "drupal/core": [
             {
@@ -53,6 +53,16 @@
                 "description": "Add mark all as read action",
                 "url": "patches/notify_widget-mark-all-read.patch",
                 "sha256": "97981604a44745a70512b2b30cff78c8dadf3b4b91a9d238d2718402d05fbd28",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            },
+            {
+                "package": "drupal/notify_widget",
+                "description": "Add paging and purge settings",
+                "url": "patches/notify_widget-paging-purge.patch",
+                "sha256": "02d14c1d52de1a89e918881efb73ca8222168011aa12b68c50c86920578c2825",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
