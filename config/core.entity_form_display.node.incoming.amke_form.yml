@@ -91,6 +91,14 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_protocol_number_sender:
+    type: string_textfield
+    weight: 6
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_ref_id:
     type: string_textfield
     weight: 0
@@ -163,7 +171,6 @@ hidden:
   field_priority: true
   field_protocol_date: true
   field_protocol_number_doc: true
-  field_protocol_number_sender: true
   field_related_incoming: true
   field_remarks: true
   field_requested_deadline: true

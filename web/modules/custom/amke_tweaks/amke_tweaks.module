@@ -26,6 +26,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       'field_ref_id',
       // 'field_documents',
       'field_entry_date',
+      'field_protocol_number_sender',
       'field_subject',
       'field_remarks',
       'field_related_incoming',
@@ -35,6 +36,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     $keep_fields_new_form = [
       'field_ref_id',
       'field_documents',
+      'field_protocol_number_sender',
       'field_subject',
     ];
     $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
@@ -50,6 +52,8 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
         }
       }
     }
+
+    amke_tweaks_limit_documents_widget($form);
 
     // Allow AMKE users to save new incoming nodes without transition errors.
     if ($form_object->getEntity()->isNew()) {
@@ -69,6 +73,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
   $is_new = $entity->isNew();
   if (isset($form['field_documents'])) {
     $form['field_documents']['#access'] = $is_new ? TRUE : FALSE;
+    amke_tweaks_limit_documents_widget($form);
   }
   if (isset($form['field_related_incoming'])) {
     $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
@@ -79,8 +84,14 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 }
 
 function amke_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form) {
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+
   $group_changes = [
     'field_entry_date' => 'group_general',
+    'field_protocol_number_sender' => 'group_files',
   ];
   foreach ($group_changes as $key => $group) {
     $element[$key]['#group'] = $group;
@@ -260,4 +271,25 @@ function amke_tweaks_autofill_legal_entity(array &$form, FormStateInterface $for
 
   $value = $user->get('field_legal_entity')->getValue();
   $node->set('field_legal_entity', $value);
+}
+
+/**
+ * Limit the documents field to a single item and hide "add more".
+ */
+function amke_tweaks_limit_documents_widget(array &$form): void {
+  if (empty($form['field_documents']) || !is_array($form['field_documents'])) {
+    return;
+  }
+
+  if (isset($form['field_documents']['widget']) && is_array($form['field_documents']['widget'])) {
+    $form['field_documents']['widget']['#cardinality'] = 1;
+    $form['field_documents']['widget']['#max_delta'] = 0;
+    if (isset($form['field_documents']['widget']['add_more'])) {
+      $form['field_documents']['widget']['add_more']['#access'] = FALSE;
+    }
+  }
+
+  if (isset($form['field_documents']['add_more'])) {
+    $form['field_documents']['add_more']['#access'] = FALSE;
+  }
 }
