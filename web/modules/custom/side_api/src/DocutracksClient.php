@@ -13,6 +13,7 @@ use Drupal\file\FileInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
 /**
@@ -146,6 +147,7 @@ final class DocutracksClient {
     $body = (string) $response->getBody();
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
+      $this->logNonJsonResponse('document fetch', $baseUrl, $response, $body);
       throw new RuntimeException((string) new TranslatableMarkup('Document response could not be decoded as JSON.'));
     }
     return $decoded;
@@ -288,6 +290,7 @@ final class DocutracksClient {
     $body = (string) $response->getBody();
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
+      $this->logNonJsonResponse('register document', $resolvedBaseUrl, $response, $body);
       throw new RuntimeException((string) new TranslatableMarkup('Register document response could not be decoded as JSON.'));
     }
     \Drupal::logger('side_api')->info('Docutracks register response: @details', [
@@ -464,6 +467,23 @@ final class DocutracksClient {
 
     // Non-JSON: assume raw binary.
     return $body;
+  }
+
+  /**
+   * Log a non-JSON response for debugging.
+   */
+  private function logNonJsonResponse(string $context, string $baseUrl, ResponseInterface $response, string $body): void {
+    $contentType = $response->getHeaderLine('Content-Type');
+    $preview = mb_substr($body, 0, 4000);
+    \Drupal::logger('side_api')->error('Docutracks @context response was not JSON: @details', [
+      '@context' => $context,
+      '@details' => Json::encode([
+        'base_url' => $baseUrl,
+        'status' => $response->getStatusCode(),
+        'content_type' => $contentType,
+        'body_preview' => $preview,
+      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+    ]);
   }
 
   /**
