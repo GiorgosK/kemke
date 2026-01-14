@@ -258,7 +258,6 @@ function incoming_related_field_should_show_send_button(NodeInterface $node): bo
   $fields = [
     'field_protocol_number_doc',
     'field_sender',
-    'field_protocol_number_sender',
   ];
 
   foreach ($fields as $field_name) {
