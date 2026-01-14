@@ -1,5 +1,5 @@
 {
-    "_hash": "17ae449c3a222e122df23f553b199fe084119b05222464acb29276536cc07c09",
+    "_hash": "a5091ecd0359a20251e02fd0c83384502443375f24006e293ad0c5939e3a858e",
     "patches": {
         "drupal/core": [
             {
@@ -29,28 +29,6 @@
                 "description": "Skip saving empty paragraphs for certain types dgo.re/2877695",
                 "url": "https://www.drupal.org/files/issues/2025-09-17/paragraphs-skip_saving_empty-2877695-67.patch",
                 "sha256": "8d3d437fe8ddc4dd1140c0dcdb0ff627ce56e3f614ed9958efe201ed8b603019",
-                "depth": 1,
-                "extra": {
-                    "provenance": "root"
-                }
-            }
-        ],
-        "drupal/notify_widget": [
-            {
-                "package": "drupal/notify_widget",
-                "description": "dgo.re/3441147",
-                "url": "patches/notify_widget-3441147.patch",
-                "sha256": "ebc78484b50a5fc1d3e69eb5e4af9e91845068c16e4cf311533fcc492b966f49",
-                "depth": 1,
-                "extra": {
-                    "provenance": "root"
-                }
-            },
-            {
-                "package": "drupal/notify_widget",
-                "description": "Fix unread_count translation error",
-                "url": "patches/notify_widget-unread-count.patch",
-                "sha256": "7c959f0590d575f6f1a12dbd7752a8d16714876a0b7feb2115454fa168982ba1",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
