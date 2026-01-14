@@ -263,6 +263,7 @@ final class DocutracksClient {
       return $this->buildSimulatedRegisterResponse($payload);
     }
 
+    $payload = $this->applyIncomingProtocolNumberSender($payload);
     $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
     $sanitized = $this->sanitizePayloadForLog($payload);
     $verify = $this->getTlsVerify();
@@ -907,6 +908,60 @@ final class DocutracksClient {
 
     $payload['Document'] = $document;
     return $payload;
+  }
+
+  /**
+   * Map incoming protocol number sender to Docutracks fields when available.
+   */
+  private function applyIncomingProtocolNumberSender(array $payload): array {
+    if (!isset($payload['Document']) || !is_array($payload['Document'])) {
+      return $payload;
+    }
+
+    $value = $payload['field_protocol_number_sender'] ?? NULL;
+    $protocol = $this->extractFieldScalar($value);
+    if ($protocol === NULL || $protocol === '') {
+      return $payload;
+    }
+
+    $document = $payload['Document'];
+    if (!isset($document['DocumentCopies']) || !is_array($document['DocumentCopies'])) {
+      $document['DocumentCopies'] = [];
+    }
+    if (!isset($document['DocumentCopies'][0]) || !is_array($document['DocumentCopies'][0])) {
+      $document['DocumentCopies'][0] = [];
+    }
+    if (empty($document['DocumentCopies'][0]['SenderProtocol'])) {
+      $document['DocumentCopies'][0]['SenderProtocol'] = $protocol;
+    }
+
+    $payload['Document'] = $document;
+    return $payload;
+  }
+
+  /**
+   * Extract a scalar string from common field payload shapes.
+   */
+  private function extractFieldScalar(mixed $value): ?string {
+    if (is_string($value)) {
+      $trimmed = trim($value);
+      return $trimmed === '' ? NULL : $trimmed;
+    }
+    if (is_int($value) || is_float($value)) {
+      return (string) $value;
+    }
+    if (!is_array($value)) {
+      return NULL;
+    }
+
+    if (array_key_exists('value', $value)) {
+      return $this->extractFieldScalar($value['value']);
+    }
+    if (array_key_exists(0, $value)) {
+      return $this->extractFieldScalar($value[0]);
+    }
+
+    return NULL;
   }
 
   /**
