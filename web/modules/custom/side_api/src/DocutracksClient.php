@@ -148,7 +148,7 @@ final class DocutracksClient {
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
       $this->logNonJsonResponse('document fetch', $baseUrl, $response, $body);
-      throw new RuntimeException((string) new TranslatableMarkup('Document response could not be decoded as JSON.'));
+      throw new RuntimeException((string) new TranslatableMarkup('Document response could not be decoded as JSON. This can happen when Docutracks returns the login page (credentials may be invalid or session expired).'));
     }
     return $decoded;
   }
@@ -291,7 +291,7 @@ final class DocutracksClient {
     $decoded = json_decode($body, TRUE);
     if (!is_array($decoded)) {
       $this->logNonJsonResponse('register document', $resolvedBaseUrl, $response, $body);
-      throw new RuntimeException((string) new TranslatableMarkup('Register document response could not be decoded as JSON.'));
+      throw new RuntimeException((string) new TranslatableMarkup('Register document response could not be decoded as JSON. This can happen when Docutracks returns the login page (credentials may be invalid or session expired).'));
     }
     \Drupal::logger('side_api')->info('Docutracks register response: @details', [
       '@details' => Json::encode([
