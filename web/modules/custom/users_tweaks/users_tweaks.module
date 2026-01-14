@@ -80,6 +80,28 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
   $account = $route_match->getParameter('user');
   if ($account instanceof UserInterface) {
     $form['#title'] = users_tweaks_build_user_title($account);
+
+    if (!$account->hasRole('amke_user')) {
+      if (isset($form['field_legal_entity'])) {
+        $form['field_legal_entity']['#access'] = FALSE;
+      }
+      if (isset($form['account']['field_legal_entity'])) {
+        $form['account']['field_legal_entity']['#access'] = FALSE;
+      }
+    }
+
+    if (
+      $account->hasRole('api_user') ||
+      $account->hasRole('administrator') ||
+      $account->hasRole('amke_user')
+    ) {
+      if (isset($form['field_absenses_ref'])) {
+        $form['field_absenses_ref']['#access'] = FALSE;
+      }
+      if (isset($form['account']['field_absenses_ref'])) {
+        $form['account']['field_absenses_ref']['#access'] = FALSE;
+      }
+    }
   }
 
   $current_user = \Drupal::currentUser();
