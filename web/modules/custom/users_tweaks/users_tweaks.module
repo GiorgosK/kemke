@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -74,6 +76,12 @@ function users_tweaks_get_docutracks_value(UserInterface $account, string $path)
  * Implements hook_form_FORM_ID_alter() for user_edit form.
  */
 function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $route_match = \Drupal::routeMatch();
+  $account = $route_match->getParameter('user');
+  if ($account instanceof UserInterface) {
+    $form['#title'] = users_tweaks_build_user_title($account);
+  }
+
   $current_user = \Drupal::currentUser();
   if ($current_user->hasRole('administrator')) {
     return;
@@ -86,4 +94,51 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
   if (isset($form['account']['roles']['#options']['administrator'])) {
     unset($form['account']['roles']['#options']['administrator']);
   }
+}
+
+/**
+ * Implements hook_page_title_alter().
+ */
+function users_tweaks_page_title_alter(&$title, RouteMatchInterface $route_match): void {
+  if ($route_match->getRouteName() !== 'entity.user.canonical') {
+    return;
+  }
+
+  $account = $route_match->getParameter('user');
+  if (!$account instanceof UserInterface) {
+    return;
+  }
+
+  $title = users_tweaks_build_user_title($account);
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function users_tweaks_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  if (!$entity instanceof UserInterface) {
+    return;
+  }
+
+  $route_match = \Drupal::routeMatch();
+  if ($route_match->getRouteName() !== 'entity.user.canonical') {
+    return;
+  }
+
+  $build['#title'] = users_tweaks_build_user_title($entity);
+}
+
+/**
+ * Build the user title based on name fields or username fallback.
+ */
+function users_tweaks_build_user_title(UserInterface $account): string {
+  $first_name = $account->hasField('field_first_name')
+    ? trim((string) $account->get('field_first_name')->value)
+    : '';
+  $last_name = $account->hasField('field_last_name')
+    ? trim((string) $account->get('field_last_name')->value)
+    : '';
+  $full_name = trim($first_name . ' ' . $last_name);
+
+  return $full_name !== '' ? $full_name : $account->getAccountName();
 }
