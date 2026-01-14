@@ -2,6 +2,8 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Template\Attribute;
+use Drupal\Component\Utility\Html;
 
 /**
  * @file
@@ -50,6 +52,42 @@ function kemke_preprocess_link(array &$variables): void {
   $id_attribute = $variables['attributes']->offsetGet('id');
   if ($id_attribute instanceof \Drupal\Core\Template\AttributeValueBase && $id_attribute->value() === 'edit-delete') {
     $variables['attributes']->addClass('govgr-btn govgr-btn-warning');
+  }
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function kemke_preprocess_field(array &$variables): void {
+  if (($variables['field_name'] ?? '') !== 'field_remarks') {
+    return;
+  }
+
+  $items = $variables['element']['#items'] ?? NULL;
+  if (!$items) {
+    return;
+  }
+
+  foreach ($items as $delta => $item) {
+    $classes = [];
+
+    // Match edit-mode row striping.
+    $classes[] = ($delta % 2 === 0) ? 'odd' : 'even';
+
+    $paragraph = $item->entity ?? NULL;
+    if ($paragraph && $paragraph->hasField('field_visible_to')) {
+      $visible_to = $paragraph->get('field_visible_to')->value;
+      if (!empty($visible_to)) {
+        $classes[] = 'visible-to-' . Html::getClass($visible_to);
+      }
+    }
+
+    if (!empty($classes)) {
+      if (empty($variables['items'][$delta]['attributes'])) {
+        $variables['items'][$delta]['attributes'] = new Attribute();
+      }
+      $variables['items'][$delta]['attributes']->addClass($classes);
+    }
   }
 }
 

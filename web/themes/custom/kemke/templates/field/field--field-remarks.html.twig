@@ -1,0 +1,34 @@
+{#
+/**
+ * @file
+ * Theme override for the remarks field to match edit-mode table layout.
+ */
+#}
+{%
+  set classes = [
+    'field',
+    'field--name-' ~ field_name|clean_class,
+    'field--type-' ~ field_type|clean_class,
+    'field--label-' ~ label_display,
+    label_display == 'inline' ? 'clearfix',
+  ]
+%}
+
+<table{{ attributes.addClass(classes, 'field__items', 'field-multiple-table', 'responsive-enabled', 'govgr-table-simple') }} id="field-remarks-values" data-striping="1" data-once="tableresponsive">
+  <thead>
+    <tr>
+      <th colspan="1" class="field-label">
+        <h4 class="label">{{ label }}</h4>
+      </th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+      <tr{{ item.attributes.addClass('field__item') }}>
+        <td>{{ item.content }}</td>
+        <td></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

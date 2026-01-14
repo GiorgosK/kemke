@@ -101,6 +101,15 @@
 .incoming-remarks-field.field-comment {
   width: 100%;
 }
+.paragraph--type--remark {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 6px;
+}
+.paragraph--type--remark .field--name-field-comment {
+  flex-basis: 100%;
+}
 div.incoming-remarks-field.visible-to-amke {
   font-weight: bold;
   font-size: 120%;
