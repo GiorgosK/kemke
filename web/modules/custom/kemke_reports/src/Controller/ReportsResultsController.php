@@ -154,7 +154,15 @@ class ReportsResultsController extends ControllerBase {
 
     $year = $result['year'] ?? NULL;
     $build = $this->build_pdf_render_array($result);
-    $pdf = $this->pdfManager->getPdf($build);
+    $pdf_options = [
+      'pdf_settings' => [
+        'format' => 'A4',
+        'show_page_number' => FALSE,
+        'show_header' => FALSE,
+        'show_footer' => FALSE,
+      ],
+    ];
+    $pdf = $this->pdfManager->getPdf($build, $pdf_options);
     $filename = $year ? sprintf('kemke-report-%s.pdf', $year) : 'kemke-report.pdf';
 
     return new Response($pdf, 200, [
@@ -214,13 +222,18 @@ class ReportsResultsController extends ControllerBase {
     $year = $result['year'] ?? NULL;
     $rows = $this->build_objective_rows($result);
 
-    return [
+    $content = [
       '#cache' => [
         'max-age' => 0,
       ],
       '#type' => 'container',
       '#attributes' => [
         'class' => ['kemke-report-pdf'],
+      ],
+      'style' => [
+        '#type' => 'html_tag',
+        '#tag' => 'style',
+        '#value' => 'table{border-collapse:collapse;border-spacing:0;width:100%;}table th,table td{border:1px solid #333;padding:6px 8px;text-align:left;vertical-align:top;}',
       ],
       'title' => [
         '#type' => 'html_tag',
@@ -244,6 +257,8 @@ class ReportsResultsController extends ControllerBase {
         '#markup' => $generated_text ? $this->t('Generated on @date.', ['@date' => $generated_text]) : '',
       ],
     ];
+
+    return $content;
   }
 
   /**
