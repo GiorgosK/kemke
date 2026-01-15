@@ -124,6 +124,10 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
     return;
   }
 
+  if (isset($form['actions']['delete'])) {
+    unset($form['actions']['delete']);
+  }
+
   if (isset($form['roles']['#options']['administrator'])) {
     unset($form['roles']['#options']['administrator']);
   }
@@ -134,15 +138,57 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for user cancel form.
+ */
+function users_tweaks_form_user_cancel_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $current_user = \Drupal::currentUser();
+  if ($current_user->hasRole('administrator')) {
+    return;
+  }
+
+  if (!isset($form['user_cancel_method'])) {
+    return;
+  }
+
+  $form['user_cancel_method']['#options'] = [
+    'user_cancel_block' => 'αποκλεισμός χρήστη',
+  ];
+  $form['user_cancel_method']['#default_value'] = 'user_cancel_block';
+
+  if (isset($form['user_cancel_method']['#title'])) {
+    $form['user_cancel_method']['#title'] = '';
+  }
+  if (isset($form['user_cancel_confirm'])) {
+    unset($form['user_cancel_confirm']);
+  }
+
+  $route_match = \Drupal::routeMatch();
+  $account = $route_match->getParameter('user');
+  if ($account instanceof UserInterface) {
+    $form['#title'] = users_tweaks_build_cancel_title($account);
+  }
+}
+
+/**
  * Implements hook_page_title_alter().
  */
 function users_tweaks_page_title_alter(&$title, RouteMatchInterface $route_match): void {
-  if ($route_match->getRouteName() !== 'entity.user.canonical') {
+  if ($route_match->getRouteName() !== 'entity.user.canonical' && $route_match->getRouteName() !== 'entity.user.cancel_form') {
+    return;
+  }
+
+  $current_user = \Drupal::currentUser();
+  if ($current_user->hasRole('administrator')) {
     return;
   }
 
   $account = $route_match->getParameter('user');
   if (!$account instanceof UserInterface) {
+    return;
+  }
+
+  if ($route_match->getRouteName() === 'entity.user.cancel_form') {
+    $title = users_tweaks_build_cancel_title($account);
     return;
   }
 
@@ -178,4 +224,20 @@ function users_tweaks_build_user_title(UserInterface $account): string {
   $full_name = trim($first_name . ' ' . $last_name);
 
   return $full_name !== '' ? $full_name : $account->getAccountName();
+}
+
+/**
+ * Build the cancel page title based on name fields or username fallback.
+ */
+function users_tweaks_build_cancel_title(UserInterface $account): string {
+  $last_name = $account->hasField('field_last_name')
+    ? trim((string) $account->get('field_last_name')->value)
+    : '';
+  $first_name = $account->hasField('field_first_name')
+    ? trim((string) $account->get('field_first_name')->value)
+    : '';
+  $full_name = trim($last_name . ' ' . $first_name);
+
+  $target = $full_name !== '' ? $full_name : $account->getAccountName();
+  return trim('αποκλεισμός χρήστη ' . $target);
 }
