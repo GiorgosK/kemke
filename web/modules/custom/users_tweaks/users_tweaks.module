@@ -17,6 +17,8 @@ function users_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
+  users_tweaks_track_access_change($entity);
+
   if (
     !$entity->hasField('field_docutracks_username') ||
     !$entity->hasField('field_docutracks_json') ||
@@ -52,6 +54,41 @@ function users_tweaks_entity_presave(EntityInterface $entity): void {
       '@message' => $throwable->getMessage(),
     ]);
   }
+}
+
+/**
+ * Track user block/unblock changes and store a log on the user entity.
+ */
+function users_tweaks_track_access_change(UserInterface $account): void {
+  if (
+    !$account->hasField('field_access_change_log') ||
+    !$account->hasField('field_last_access_change')
+  ) {
+    return;
+  }
+
+  $original = $account->original ?? NULL;
+  if (!$original instanceof UserInterface) {
+    return;
+  }
+
+  $was_blocked = $original->isBlocked();
+  $is_blocked = $account->isBlocked();
+  if ($was_blocked === $is_blocked) {
+    return;
+  }
+
+  $request_time = \Drupal::time()->getRequestTime();
+  $date = \Drupal::service('date.formatter')->format($request_time, 'custom', 'j/n/Y');
+  $storage_date = \Drupal::service('date.formatter')->format($request_time, 'custom', 'Y-m-d');
+  $status_label = $is_blocked ? 'Ανενεργός' : 'Ενεργός';
+  $entry = $date . ' ' . $status_label;
+
+  $current_log = trim((string) $account->get('field_access_change_log')->value);
+  $new_log = $current_log === '' ? $entry : $entry . "\n" . $current_log;
+
+  $account->set('field_last_access_change', $storage_date);
+  $account->set('field_access_change_log', $new_log);
 }
 
 /**
