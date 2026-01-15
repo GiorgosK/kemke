@@ -1,0 +1,20 @@
+uuid: f62322de-fffd-4c92-bf30-223b1b4ccf5d
+langcode: el
+status: true
+dependencies:
+  module:
+    - datetime
+    - user
+id: user.field_last_access_change
+field_name: field_last_access_change
+entity_type: user
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,20 @@
+uuid: 693c9dbe-ec23-4e54-867e-153cc14e7ddc
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_access_change_log
+  module:
+    - user
+id: user.user.field_access_change_log
+field_name: field_access_change_log
+entity_type: user
+bundle: user
+label: 'Αλλαγές καστάστασης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

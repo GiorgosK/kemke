@@ -1,0 +1,21 @@
+uuid: dde53b92-c9de-4e2c-ab06-fed06f597bdd
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_last_access_change
+  module:
+    - datetime
+    - user
+id: user.user.field_last_access_change
+field_name: field_last_access_change
+entity_type: user
+bundle: user
+label: 'Τελευταία αλλαγή'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -5,10 +5,12 @@ dependencies:
   config:
     - core.entity_view_mode.user.compact
     - field.field.user.user.field_absenses_ref
+    - field.field.user.user.field_access_change_log
     - field.field.user.user.field_docutracks_email
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
+    - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
     - field.field.user.user.field_legal_entity
@@ -43,9 +45,11 @@ content:
     region: content
 hidden:
   field_absenses_ref: true
+  field_access_change_log: true
   field_docutracks_email: true
   field_docutracks_json: true
   field_docutracks_username: true
+  field_last_access_change: true
   field_last_password_reset: true
   field_legal_entity: true
   field_password_expiration: true

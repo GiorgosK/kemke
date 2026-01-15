@@ -1,0 +1,19 @@
+uuid: 7dd369d6-e6fe-489c-9ee1-c282b26dd117
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_access_change_log
+field_name: field_access_change_log
+entity_type: user
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
