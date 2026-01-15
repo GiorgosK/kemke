@@ -9,10 +9,8 @@ use Drupal\user\Entity\Role;
 function permissions_filtering_form_user_admin_permissions_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $current_user = \Drupal::currentUser();
 
-  // Skip filtering for users allowed to see everything.
-  if ($current_user->hasPermission('see all permission sets')) {
-    return;
-  }
+  // Users with this permission see full sets, but still respect hidden columns/rows.
+  $skip_filtered_sets = $current_user->hasPermission('see all permission sets');
 
   $permission_handler = \Drupal::service('user.permissions');
   $module_handler = \Drupal::moduleHandler();
@@ -24,26 +22,33 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     'Block Content',
     'Configuration Manager',
     'Contextual Links',
+    'Custom permissions access',
     'Entity Browser',
     'Entity Reference Revisions',
     'Field Permissions',
     'Field UI',
     'File',
     'Filter',
+    'Greek Holidays',
     'Image',
     'Incoming API',
     'Interface Translation',
     'Language',
+    'Opinion Reference ID Tweaks',
     'Paragraphs',
+    'Password Policy',
     'Path',
     'Permissions filtering',
+    'RESTful Web Services',
     'Role Delegation',
     'Search',
+    'Serialization (Excel)',
     'Shortcut',
     'System',
     'Toolbar',
     'Views UI',
-    'Workflows',    
+    'Views Bulk Edit',
+    'Workflows',
   ];
   
   $filtered_permissions = [
@@ -51,6 +56,10 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     'activities' => [
       'purge activities',
       'administer users activity',
+    ],
+    'user' => [
+      'select account cancellation method',
+      'administer permissions',
     ],
   ];
 
@@ -73,15 +82,29 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     unset($permissions_by_provider['system']['access content']);
   }
 
-  // Remove entire permission sections provided by filtered modules.
-  foreach ($permissions_by_provider as $provider => $provider_permissions) {
-    $provider_label = $module_extension_list->getName($provider);
-    if (in_array($provider_label, $filtered_permission_sets, TRUE)) {
-      $module_key = 'module_' . $provider;
-      if (isset($form['permissions'][$module_key])) {
-        unset($form['permissions'][$module_key]);
+  if (!$skip_filtered_sets) {
+    // Remove entire permission sections provided by filtered modules.
+    foreach ($permissions_by_provider as $provider => $provider_permissions) {
+      $provider_label = $module_extension_list->getName($provider);
+      if (in_array($provider_label, $filtered_permission_sets, TRUE)) {
+        $module_key = 'module_' . $provider;
+        if (isset($form['permissions'][$module_key])) {
+          unset($form['permissions'][$module_key]);
+        }
+        foreach ($provider_permissions as $permission_name => $definition) {
+          if (isset($form['permissions'][$permission_name])) {
+            unset($form['permissions'][$permission_name]);
+          }
+        }
       }
-      foreach ($provider_permissions as $permission_name => $definition) {
+    }
+
+    // Remove individual permissions by provider and machine name.
+    foreach ($filtered_permissions as $provider_id => $permission_names) {
+      if (empty($permissions_by_provider[$provider_id])) {
+        continue;
+      }
+      foreach ($permission_names as $permission_name) {
         if (isset($form['permissions'][$permission_name])) {
           unset($form['permissions'][$permission_name]);
         }
@@ -89,12 +112,9 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     }
   }
 
-  // Remove individual permissions by provider and machine name.
-  foreach ($filtered_permissions as $provider_id => $permission_names) {
-    if (empty($permissions_by_provider[$provider_id])) {
-      continue;
-    }
-    foreach ($permission_names as $permission_name) {
+  // Always remove specific permission rows regardless of viewer.
+  if (!empty($filtered_permissions['user'])) {
+    foreach ($filtered_permissions['user'] as $permission_name) {
       if (isset($form['permissions'][$permission_name])) {
         unset($form['permissions'][$permission_name]);
       }
