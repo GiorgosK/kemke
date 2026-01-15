@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\Role;
 
 /**
  * Implements hook_form_FORM_ID_alter() for user_admin_permissions.
@@ -98,5 +99,48 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
         unset($form['permissions'][$permission_name]);
       }
     }
+  }
+
+  // Hide permission checkboxes for administrator role(s).
+  $roles_to_hide = ['administrator'];
+  $role_labels = [];
+  foreach ($roles_to_hide as $role_id) {
+    $role = Role::load($role_id);
+    if ($role) {
+      $role_labels[$role_id] = $role->label();
+    }
+  }
+
+  if (isset($form['permissions']) && is_array($form['permissions'])) {
+    if (isset($form['permissions']['#header']) && is_array($form['permissions']['#header'])) {
+      foreach ($roles_to_hide as $role_id) {
+        if (isset($form['permissions']['#header'][$role_id])) {
+          unset($form['permissions']['#header'][$role_id]);
+        }
+      }
+      foreach ($form['permissions']['#header'] as $header_key => $header_value) {
+        if (is_array($header_value) && isset($header_value['data']) && in_array($header_value['data'], $role_labels, TRUE)) {
+          unset($form['permissions']['#header'][$header_key]);
+        }
+      }
+    }
+
+    if (isset($form['permissions']['#roles']) && is_array($form['permissions']['#roles'])) {
+      foreach ($roles_to_hide as $role_id) {
+        unset($form['permissions']['#roles'][$role_id]);
+      }
+    }
+
+    foreach ($form['permissions'] as $permission_name => &$permission_row) {
+      if (!is_array($permission_row) || (is_string($permission_name) && str_starts_with($permission_name, '#'))) {
+        continue;
+      }
+      foreach ($roles_to_hide as $role_id) {
+        if (isset($permission_row[$role_id])) {
+          unset($permission_row[$role_id]);
+        }
+      }
+    }
+    unset($permission_row);
   }
 }
