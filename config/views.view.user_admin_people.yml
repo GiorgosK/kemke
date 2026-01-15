@@ -7,6 +7,14 @@ dependencies:
     - field.storage.user.field_last_name
     - field.storage.user.field_legal_entity
     - taxonomy.vocabulary.legal_entity
+    - user.role.administrator
+    - user.role.amke_user
+    - user.role.api
+    - user.role.department_supervisor
+    - user.role.director_supervisor
+    - user.role.kemke_admin
+    - user.role.operator
+    - user.role.secretariat
   module:
     - role_delegation
     - taxonomy
@@ -722,6 +730,49 @@ display:
           exposed: false
           granularity: second
       filters:
+        roles_target_id_1:
+          id: roles_target_id_1
+          table: user__roles
+          field: roles_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: user
+          entity_field: roles
+          plugin_id: user_roles
+          operator: not
+          value:
+            administrator: administrator
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: ''
+            description: ''
+            use_operator: false
+            operator: ''
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: ''
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
         combine:
           id: combine
           table: views
@@ -820,7 +871,14 @@ display:
           admin_label: ''
           plugin_id: user_roles
           operator: or
-          value: {  }
+          value:
+            director_supervisor: director_supervisor
+            department_supervisor: department_supervisor
+            secretariat: secretariat
+            amke_user: amke_user
+            operator: operator
+            api: api
+            kemke_admin: kemke_admin
           group: 1
           exposed: true
           expose:
@@ -837,7 +895,7 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            reduce: false
+            reduce: true
           is_grouped: false
           group_info:
             label: ''
