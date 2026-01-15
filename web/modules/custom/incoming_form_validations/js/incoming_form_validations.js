@@ -11,6 +11,12 @@
       type: 'select',
       value: ['41', '3'], // Άποψη, Γνωμοδότηση
     };
+  const ruleIncTypePlan = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['41', '3', '2', '5','6'], // Άποψη, Γνωμοδότηση, ΕΕ, Κοινοποιήση και Γνωστοποιήση
+    };
   const ruleIncTypeAllExceptOpinion = 
     {
       selector: '#edit-field-incoming-type',
@@ -129,10 +135,7 @@
           },
           {
             type: 'hideIf',
-            valueIsAND: [
-              ruleIncTypeAllExceptOpinion,
-              ruleButtonUndeprocessingStay
-            ],
+            valueNot: [ruleIncTypePlan],
           },
         ],
       },
@@ -153,7 +156,7 @@
         rules: [
           {
             type: 'hideIf',
-            valueNot: [ruleIncTypeOpinion],
+            valueNot: [ruleIncTypePlan],
           },
         ],
       },
@@ -164,7 +167,7 @@
         rules: [
           {
             type: 'hideIf',
-            valueIsAND: [ruleIncTypeOpinion,ruleButtonUndeprocessingStay],
+            valueIs: [ruleIncTypePlan],
           },
         ],
       },
