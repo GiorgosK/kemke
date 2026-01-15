@@ -91,15 +91,30 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
     }
 
     if (
-      $account->hasRole('api_user') ||
+      $account->hasRole('api') ||
       $account->hasRole('administrator') ||
-      $account->hasRole('amke_user')
+      $account->hasRole('amke_user') ||
+      $account->hasRole('kemke_admin')
     ) {
       if (isset($form['field_absenses_ref'])) {
         $form['field_absenses_ref']['#access'] = FALSE;
       }
       if (isset($form['account']['field_absenses_ref'])) {
         $form['account']['field_absenses_ref']['#access'] = FALSE;
+      }
+    }
+
+    if (
+      $account->hasRole('api') ||
+      $account->hasRole('administrator') ||
+      $account->hasRole('amke_user') ||
+      $account->hasRole('kemke_admin')
+    ) {
+      if (isset($form['field_serial_number'])) {
+        $form['field_serial_number']['#access'] = FALSE;
+      }
+      if (isset($form['account']['field_serial_number'])) {
+        $form['account']['field_serial_number']['#access'] = FALSE;
       }
     }
   }
