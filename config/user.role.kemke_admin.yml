@@ -14,6 +14,7 @@ dependencies:
   module:
     - activities_mods
     - content_moderation
+    - custom_permissions_access
     - field_permissions
     - filter
     - incoming_change_state
@@ -32,10 +33,10 @@ permissions:
   - 'access administration pages'
   - 'access content'
   - 'access node activity'
+  - 'access people permissions page'
   - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
-  - 'administer permissions'
   - 'administer users'
   - 'assign amke_user role'
   - 'assign department_supervisor role'

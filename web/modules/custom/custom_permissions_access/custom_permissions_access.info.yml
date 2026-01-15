@@ -1,0 +1,6 @@
+name: 'Custom permissions access'
+type: module
+description: 'Allows permissions for the permissions page'
+core_version_requirement: '^10 || ^11'
+package: Custom
+dependencies:

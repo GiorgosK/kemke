@@ -1,0 +1,3 @@
+access people permissions page:
+  title: 'Access People Permissions page only'
+  description: 'View and edit /admin/people/permissions without role administration.'
