@@ -16,6 +16,7 @@ dependencies:
     - field.field.user.user.field_password_expiration
     - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
+    - field.field.user.user.field_temporary_disabled
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
@@ -50,6 +51,7 @@ third_party_settings:
         - field_absenses_ref
         - field_legal_entity
         - field_serial_number
+        - field_temporary_disabled
       label: Γενικα
       parent_name: group_tabs
       region: content
@@ -190,10 +192,20 @@ content:
     third_party_settings: {  }
     weight: 6
     region: content
+  field_temporary_disabled:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 7
+    region: content
   member_for:
     settings: {  }
     third_party_settings: {  }
-    weight: 1
+    weight: 2
     region: content
   user_picture:
     type: image

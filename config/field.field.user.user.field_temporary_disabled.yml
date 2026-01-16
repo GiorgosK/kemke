@@ -1,0 +1,22 @@
+uuid: a6034d08-092b-4d77-8720-e5e2e0937bdb
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_temporary_disabled
+  module:
+    - user
+id: user.user.field_temporary_disabled
+field_name: field_temporary_disabled
+entity_type: user
+bundle: user
+label: 'Προσωρινά ανενεργός χρήστης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: Ανοικτό
+  off_label: Κλειστό
+field_type: boolean

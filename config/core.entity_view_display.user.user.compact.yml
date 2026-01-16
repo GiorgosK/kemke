@@ -17,6 +17,7 @@ dependencies:
     - field.field.user.user.field_password_expiration
     - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
+    - field.field.user.user.field_temporary_disabled
     - field.field.user.user.user_picture
   module:
     - user
@@ -55,6 +56,7 @@ hidden:
   field_password_expiration: true
   field_pending_expire_sent: true
   field_serial_number: true
+  field_temporary_disabled: true
   langcode: true
   member_for: true
   user_picture: true
