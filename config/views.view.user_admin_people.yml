@@ -7,8 +7,6 @@ dependencies:
     - field.storage.user.field_last_access_change
     - field.storage.user.field_last_name
     - field.storage.user.field_legal_entity
-    - field.storage.user.field_serial_number
-    - field.storage.user.field_temporary_disabled
     - taxonomy.vocabulary.legal_entity
     - user.role.administrator
     - user.role.amke_user
@@ -102,7 +100,7 @@ display:
           entity_field: name
           plugin_id: field
           label: 'Όνομα χρήστη'
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -142,7 +140,20 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
+          click_sort_column: value
           type: user_name
+          settings:
+            link_to_entity: true
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         field_first_name:
           id: field_first_name
           table: user__field_first_name
@@ -152,7 +163,7 @@ display:
           admin_label: ''
           plugin_id: field
           label: Όνομα
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -214,11 +225,11 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: Επώνυμο
+          label: 'Oνομα Επώνυμο'
           exclude: false
           alter:
-            alter_text: false
-            text: ''
+            alter_text: true
+            text: "{{ field_first_name }}\r\n{{ field_last_name }} "
             make_link: false
             path: ''
             absolute: false
@@ -551,8 +562,8 @@ display:
           type: boolean
           settings:
             format: custom
-            format_custom_false: Ανενεργός
-            format_custom_true: Ενεργός
+            format_custom_false: Αποκλεισμένος
+            format_custom_true: Ενεργό
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -681,135 +692,6 @@ display:
           settings:
             link: false
           group_column: target_id
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
-        field_temporary_disabled:
-          id: field_temporary_disabled
-          table: user__field_temporary_disabled
-          field: field_temporary_disabled
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: field
-          label: 'Προσωρινά ανενεργός χρήστης'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: boolean
-          settings:
-            format: yes-no
-            format_custom_false: ''
-            format_custom_true: ''
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
-        field_serial_number:
-          id: field_serial_number
-          table: user__field_serial_number
-          field: field_serial_number
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: field
-          label: 'Αύξων αριθμός'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: number_integer
-          settings:
-            thousand_separator: ''
-            prefix_suffix: true
-          group_column: value
           group_columns: {  }
           group_rows: true
           delta_limit: 0
@@ -981,6 +863,57 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+        combine_1:
+          id: combine_1
+          table: views
+          field: combine
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: combine
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: combine_1_op
+            label: 'Όνομα ή επώνυμο περιέχει'
+            description: ''
+            use_operator: false
+            operator: combine_1_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: combine_1
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          fields:
+            field_first_name: field_first_name
+            field_last_name: field_last_name
         combine:
           id: combine
           table: views
@@ -995,7 +928,7 @@ display:
           exposed: true
           expose:
             operator_id: combine_op
-            label: 'Το όνομα χρήστη ή email περιέχει'
+            label: 'Όνομα χρήστη ή email περιέχει'
             description: ''
             use_operator: false
             operator: combine_op
@@ -1007,6 +940,16 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
           is_grouped: false
           group_info:
             label: ''
@@ -1244,6 +1187,44 @@ display:
           hierarchy: false
           limit: true
           error_message: true
+        field_temporary_disabled_value:
+          id: field_temporary_disabled_value
+          table: user__field_temporary_disabled
+          field: field_temporary_disabled_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: boolean
+          operator: '='
+          value: All
+          group: 1
+          exposed: true
+          expose:
+            operator_id: ''
+            label: 'Προσωρινά ανενεργός χρήστης'
+            description: ''
+            use_operator: false
+            operator: field_temporary_disabled_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: disabled
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
       filter_groups:
         operator: AND
         groups:
@@ -1357,8 +1338,6 @@ display:
         - 'config:field.storage.user.field_last_access_change'
         - 'config:field.storage.user.field_last_name'
         - 'config:field.storage.user.field_legal_entity'
-        - 'config:field.storage.user.field_serial_number'
-        - 'config:field.storage.user.field_temporary_disabled'
   page_1:
     id: page_1
     display_title: Σελίδα
@@ -1396,5 +1375,3 @@ display:
         - 'config:field.storage.user.field_last_access_change'
         - 'config:field.storage.user.field_last_name'
         - 'config:field.storage.user.field_legal_entity'
-        - 'config:field.storage.user.field_serial_number'
-        - 'config:field.storage.user.field_temporary_disabled'
