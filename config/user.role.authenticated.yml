@@ -22,4 +22,5 @@ permissions:
   - 'search content'
   - 'use text format basic_html'
   - 'view field_legal_entity'
+  - 'view field_on_time'
   - 'view own field_legal_entity'

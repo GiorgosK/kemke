@@ -3,8 +3,12 @@ langcode: el
 status: true
 dependencies:
   module:
+    - field_permissions
     - node
     - options
+third_party_settings:
+  field_permissions:
+    permission_type: custom
 id: node.field_on_time
 field_name: field_on_time
 entity_type: node
