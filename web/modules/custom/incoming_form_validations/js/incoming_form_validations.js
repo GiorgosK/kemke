@@ -140,7 +140,7 @@
         ],
       },
     ],
-    baseTabsVis: [
+    TabEEVis: [
       {
         selector: '.horizontal-tab-button-7',
         rules: [
@@ -151,6 +151,8 @@
           },
         ],
       },
+    ],
+    TabPlanVis: [
       {
         selector: [
           '.horizontal-tab-button-5',
@@ -164,7 +166,7 @@
         ],
       },
     ],
-    basePublishedVis: [
+    PublishedVis: [
       {
         selector: '#edit-moderation-state-published',
         rules: [
@@ -175,7 +177,7 @@
         ],
       },
     ],
-    baseOpinionRefIdVis: [
+    OpinionRefIdVis: [
       {
         selector: '.field--name-field-opinion-ref-id',
         rules: [
@@ -186,7 +188,7 @@
         ],
       },
     ],
-    baseEditGroupSubtypeVis: [
+    EditGroupSubtypeVis: [
       {
         selector: '#edit-group-subtype',
         rules: [{
@@ -195,7 +197,7 @@
         },],
       },
     ],
-    baseSubtypeHierarchyVis: [
+    SubtypeHierarchyVis: [
       {
         selector: '.form-item-field-incoming-subtype-60',
         rules: [{
@@ -204,7 +206,7 @@
         },],
       },
     ],
-    baseSubtypeAnaktisiVis: [
+    SubtypeAnaktisiVis: [
       {
         selector: '.form-item-field-incoming-subtype-61',
         rules: [{
@@ -213,7 +215,7 @@
         },],
       },
     ],
-    baseSubtypeSariVis: [
+    SubtypeSariVis: [
       {
         selector: '.form-item-field-incoming-subtype-59',
         rules: [{
@@ -222,7 +224,7 @@
         },],
       },
     ],
-    baseGroupSignatureVis: [
+    GroupSignatureVis: [
       {
         selector: '#edit-group-signature-rejection',
         rules: [{
@@ -231,7 +233,7 @@
         },],
       },
     ],
-    baseGroupReportCasesVis: [
+    GroupReportCasesVis: [
       {
         selector: '#edit-group-report-cases',
         rules: [{
@@ -240,7 +242,7 @@
         },],
       },
     ],
-    baseGroupExtensionVis: [
+    GroupExtensionVis: [
       {
         selector: '#edit-group-extension',
         rules: [{
@@ -249,7 +251,7 @@
         },],
       },
     ],
-    baseSubtypeDateVis: [
+    SubtypeDateVis: [
       {
         selector: '.field--name-field-subtype-date',
         rules: [{
@@ -291,31 +293,32 @@
       ...ruleSets.baseAssignment,
       ...ruleSets.baseFullness,
       ...ruleSets.baseForSignature,
-      ...ruleSets.baseTabsVis,
-      ...ruleSets.basePublishedVis,
-      ...ruleSets.baseOpinionRefIdVis,
-      ...ruleSets.baseEditGroupSubtypeVis,
-      ...ruleSets.baseSubtypeHierarchyVis,
-      ...ruleSets.baseGroupSignatureVis,
-      ...ruleSets.baseGroupReportCasesVis,
-      ...ruleSets.baseGroupExtensionVis,
-      ...ruleSets.baseSubtypeDateVis,
-      ...ruleSets.baseSubtypeAnaktisiVis,
-      ...ruleSets.baseSubtypeSariVis, 
+      ...ruleSets.TabEEVis,
+      ...ruleSets.TabPlanVis,
+      ...ruleSets.PublishedVis,
+      ...ruleSets.OpinionRefIdVis,
+      ...ruleSets.EditGroupSubtypeVis,
+      ...ruleSets.SubtypeHierarchyVis,
+      ...ruleSets.GroupSignatureVis,
+      ...ruleSets.GroupReportCasesVis,
+      ...ruleSets.GroupExtensionVis,
+      ...ruleSets.SubtypeDateVis,
+      ...ruleSets.SubtypeAnaktisiVis,
+      ...ruleSets.SubtypeSariVis, 
     ],
     // amke_user: [
     //   ...ruleSets.baseAssignment,
     //   ...ruleSets.baseFullness,
     //   ...ruleSets.baseForSignature,
-    //   ...ruleSets.baseTabsVisibility,
-    //   ...ruleSets.basePublishedVisibility,
+    //   ...ruleSets.TabsVis,
+    //   ...ruleSets.PublishedVis,
     //   ...ruleSets.rulesetShowWhenFilled,
     // ],
     // manager: [
     //   ...ruleSets.baseAssignment,
     //   ...ruleSets.baseFullness,
     //   ...ruleSets.baseForSignature,
-    //   ...ruleSets.baseTabsVisibility,
+    //   ...ruleSets.TabsVis,
     //   ...ruleSets.rulesetExample,
     // ],
   };
