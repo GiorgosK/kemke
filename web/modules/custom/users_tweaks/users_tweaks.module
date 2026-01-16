@@ -115,6 +115,11 @@ function users_tweaks_get_docutracks_value(UserInterface $account, string $path)
 function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $route_match = \Drupal::routeMatch();
   $account = $route_match->getParameter('user');
+  $non_kemke_user =  $account->hasRole('api') ||
+      $account->hasRole('administrator') ||
+      $account->hasRole('amke_user') ||
+      $account->hasRole('kemke_admin');
+
   if ($account instanceof UserInterface) {
     $form['#title'] = users_tweaks_build_user_title($account);
 
@@ -127,26 +132,13 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
       }
     }
 
-    if (
-      $account->hasRole('api') ||
-      $account->hasRole('administrator') ||
-      $account->hasRole('amke_user') ||
-      $account->hasRole('kemke_admin')
-    ) {
+    if ($non_kemke_user) {
       if (isset($form['field_absenses_ref'])) {
         $form['field_absenses_ref']['#access'] = FALSE;
       }
       if (isset($form['account']['field_absenses_ref'])) {
         $form['account']['field_absenses_ref']['#access'] = FALSE;
       }
-    }
-
-    if (
-      $account->hasRole('api') ||
-      $account->hasRole('administrator') ||
-      $account->hasRole('amke_user') ||
-      $account->hasRole('kemke_admin')
-    ) {
       if (isset($form['field_serial_number'])) {
         $form['field_serial_number']['#access'] = FALSE;
       }
