@@ -29,6 +29,7 @@ permissions:
   - 'access node activity'
   - 'access toolbar'
   - 'access user profiles'
+  - 'administer users'
   - 'change own username'
   - 'change to arbitary state'
   - 'create field_legal_entity'
@@ -56,3 +57,4 @@ permissions:
   - 'view own unpublished content'
   - 'view reports'
   - 'view term revisions in case'
+  - 'view the administration theme'
