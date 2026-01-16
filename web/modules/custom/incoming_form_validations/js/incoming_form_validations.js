@@ -152,7 +152,10 @@
         ],
       },
       {
-        selector: '.horizontal-tab-button-5',
+        selector: [
+          '.horizontal-tab-button-5',
+          '.horizontal-tab-button-6'
+        ],
         rules: [
           {
             type: 'hideIf',
@@ -760,10 +763,26 @@
     handler();
   };
 
+  const normalizeSelectors = (selector) => {
+    if (Array.isArray(selector)) {
+      return selector.filter(Boolean);
+    }
+    if (typeof selector === 'string' && selector.trim() !== '') {
+      return [selector];
+    }
+    return [];
+  };
+
   const expandRequirements = (requirements) => {
     const pairs = [];
     requirements.forEach((req) => {
-      (req.rules || []).forEach((rule) => pairs.push([req.selector, rule]));
+      const selectors = normalizeSelectors(req.selector);
+      if (!selectors.length) {
+        return;
+      }
+      (req.rules || []).forEach((rule) => {
+        selectors.forEach((selector) => pairs.push([selector, rule]));
+      });
     });
     return pairs;
   };
