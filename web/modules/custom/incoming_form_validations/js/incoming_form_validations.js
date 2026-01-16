@@ -27,7 +27,7 @@
     {
       selector: '#edit-field-incoming-type',
       type: 'select',
-      value: '2',
+      value: ['2', '5','6'], //ΕΕ, Κοινοποιήση και Γνωστοποιήση
     };
   const ruleIncTypeNone = 
     {
@@ -62,6 +62,12 @@
   const ruleSubtypeAnaktisiChecked =
     {
       selector: '#edit-field-incoming-subtype-61',
+      type: 'checkbox',
+      value: 'checked',
+    };
+  const ruleExtensionChecked =
+    {
+      selector: '#edit-field-extension-value',
       type: 'checkbox',
       value: 'checked',
     };
@@ -247,7 +253,7 @@
         selector: '#edit-group-extension',
         rules: [{
             type: 'hideIf',
-            valueNot: [ruleSubtypeAnaktisiChecked],
+            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE],
         },],
       },
     ],
@@ -257,6 +263,15 @@
         rules: [{
             type: 'hideIf',
             valueNot: [ruleSubtypeAnaktisiChecked],
+        },],
+      },
+    ],
+    ExtensionDateVis: [
+      {
+        selector: '.field--name-field-extension-date',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleExtensionChecked],
         },],
       },
     ],
@@ -305,6 +320,7 @@
       ...ruleSets.SubtypeDateVis,
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
+      ...ruleSets.ExtensionDateVis,
     ],
     // amke_user: [
     //   ...ruleSets.baseAssignment,
