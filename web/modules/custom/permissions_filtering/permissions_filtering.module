@@ -8,6 +8,9 @@ use Drupal\user\Entity\Role;
  */
 function permissions_filtering_form_user_admin_permissions_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $current_user = \Drupal::currentUser();
+  if (in_array('administrator', $current_user->getRoles(), TRUE)) {
+    return;
+  }
 
   // Users with this permission see full sets, but still respect hidden columns/rows.
   $skip_filtered_sets = $current_user->hasPermission('see all permission sets');
