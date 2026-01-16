@@ -356,6 +356,13 @@ function kemke_reports_get_seminar_users_for_year(int $year, array $excluded_rol
       continue;
     }
 
+    if ($user->hasField('field_temporary_disabled') && !$user->get('field_temporary_disabled')->isEmpty()) {
+      $temporarily_disabled = (string) $user->get('field_temporary_disabled')->value;
+      if ($temporarily_disabled === '1') {
+        continue;
+      }
+    }
+
     $total++;
 
     if (!$user->hasField('field_absenses_ref') || $user->get('field_absenses_ref')->isEmpty()) {
