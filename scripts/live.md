@@ -10,6 +10,7 @@
 - check /greek_holidays 
 - check /settings/opinion_ref_id
 - check settings have proper connection to side
+- check the file upload max limit ?
 
 ## users and passwords
 - do we have all users in database ?
