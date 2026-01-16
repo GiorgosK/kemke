@@ -224,7 +224,7 @@
         },],
       },
     ],
-    GroupSignatureVis: [
+    GroupSignatureRejecionVis: [
       {
         selector: '#edit-group-signature-rejection',
         rules: [{
@@ -299,7 +299,7 @@
       ...ruleSets.OpinionRefIdVis,
       ...ruleSets.EditGroupSubtypeVis,
       ...ruleSets.SubtypeHierarchyVis,
-      ...ruleSets.GroupSignatureVis,
+      ...ruleSets.GroupSignatureRejecionVis,
       ...ruleSets.GroupReportCasesVis,
       ...ruleSets.GroupExtensionVis,
       ...ruleSets.SubtypeDateVis,
