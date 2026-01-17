@@ -628,6 +628,43 @@ final class DocutracksClient {
   }
 
   /**
+   * Build a correction payload related to an existing plan.
+   *
+   * @return array<string, mixed>
+   */
+  public function preparePlanCorrectionPayload(string $title, int $relatedDocId): array {
+    return [
+      'Document' => [
+        'Title' => $title,
+        'Related' => [
+          [
+            'Relation' => [
+              'Title' => 'Ορθή επανάληψη',
+              'TitleResources' => [
+                [
+                  'Id' => 1061,
+                  'Value' => 'Ορθή επανάληψη',
+                  'Culture' => 'el',
+                ],
+                [
+                  'Id' => 1062,
+                  'Value' => 'Correct Repetition',
+                  'Culture' => 'en',
+                ],
+              ],
+              'Id' => 2,
+              'IsActive' => TRUE,
+            ],
+            'Document' => [
+              'Id' => $relatedDocId,
+            ],
+          ],
+        ],
+      ],
+    ];
+  }
+
+  /**
    * Prepare a payload to append attachments to an existing document (experimental).
    *
    * @param array|string $docPayload

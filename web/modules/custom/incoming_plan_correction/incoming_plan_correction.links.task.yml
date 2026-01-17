@@ -1,0 +1,5 @@
+incoming_plan_correction.tab:
+  route_name: incoming_plan_correction.form
+  title: 'Ορθή Επανάληψη'
+  base_route: entity.node.canonical
+  weight: 21

@@ -50,6 +50,7 @@ module:
   incoming_edit_tweaks: 0
   incoming_form_validations: 0
   incoming_notifications: 0
+  incoming_plan_correction: 0
   incoming_related_field: 0
   incoming_remarks: 0
   incoming_state_validations: 0

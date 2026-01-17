@@ -1,0 +1,12 @@
+incoming_plan_correction.form:
+  path: '/node/{node}/correction'
+  defaults:
+    _title: 'Plan correction'
+    _form: '\Drupal\incoming_plan_correction\Form\IncomingPlanCorrectionForm'
+  requirements:
+    _entity_access: 'node.view'
+    _custom_access: '\Drupal\incoming_plan_correction\Access\IncomingPlanCorrectionAccessCheck::access'
+  options:
+    parameters:
+      node:
+        type: entity:node
