@@ -178,7 +178,7 @@
         rules: [
           {
             type: 'hideIf',
-            valueIs: [ruleIncTypePlan],
+            valueIsAND: [ruleIncTypePlan, ruleButtonUndeprocessingStay],
           },
         ],
       },
