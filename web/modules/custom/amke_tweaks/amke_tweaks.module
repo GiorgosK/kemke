@@ -20,6 +20,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
   }
 
   $account = \Drupal::currentUser();
+  $state = $entity->hasField('moderation_state') ? $entity->get('moderation_state')->value : NULL;
+  $is_draft = ($state === 'draft' || $state === NULL || $state === '');
+  $allow_protocol_number_sender = $entity->isNew() && $is_draft;
   if ($account->hasRole('amke_user')) {
     // AMKE users: keep the original field restrictions.
     $keep_fields_edit_form = [
@@ -40,6 +43,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       'field_subject',
     ];
     $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
+    if (!$allow_protocol_number_sender) {
+      $keep_fields = array_values(array_diff($keep_fields, ['field_protocol_number_sender']));
+    }
     $keep_always = ['actions'];
 
     foreach ($form as $key => $element) {
@@ -74,6 +80,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
   if (isset($form['field_documents'])) {
     $form['field_documents']['#access'] = $is_new ? TRUE : FALSE;
     amke_tweaks_limit_documents_widget($form);
+  }
+  if (isset($form['field_protocol_number_sender'])) {
+    $form['field_protocol_number_sender']['#access'] = $allow_protocol_number_sender;
   }
   if (isset($form['field_related_incoming'])) {
     $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
