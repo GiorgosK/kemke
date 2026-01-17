@@ -60,7 +60,9 @@ dependencies:
     - datetime
     - entity_reference_revisions
     - field_group
+    - file
     - options
+    - reference_table_formatter
     - text
     - user
 third_party_settings:
@@ -69,11 +71,13 @@ third_party_settings:
       children:
         - group_general
         - group_files
+        - group_plan
+        - group_ccopy
         - group_remarks
       label: tabs
       parent_name: ''
       region: content
-      weight: 3
+      weight: 0
       format_type: tabs
       format_settings:
         classes: ''
@@ -106,7 +110,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 22
+      weight: 24
       format_type: tab
       format_settings:
         classes: ''
@@ -117,11 +121,43 @@ third_party_settings:
         description: ''
     group_files:
       children:
+        - field_related_incoming
         - field_documents
       label: Αρχεία
       parent_name: group_tabs
       region: content
       weight: 21
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_plan:
+      children:
+        - field_plan
+        - field_attachments
+      label: Σχέδιο
+      parent_name: group_tabs
+      region: content
+      weight: 22
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_ccopy:
+      children:
+        - field_plan_signed
+      label: 'Ακριβες Αντίγραφο'
+      parent_name: group_tabs
+      region: content
+      weight: 23
       format_type: tab
       format_settings:
         classes: ''
@@ -142,6 +178,14 @@ content:
     third_party_settings: {  }
     weight: 5
     region: content
+  field_attachments:
+    type: file_default
+    label: hidden
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 5
+    region: content
   field_documents:
     type: entity_reference_revisions_entity_view
     label: above
@@ -149,7 +193,7 @@ content:
       view_mode: default
       link: '1'
     third_party_settings: {  }
-    weight: 4
+    weight: 1
     region: content
   field_entry_date:
     type: datetime_default
@@ -160,11 +204,38 @@ content:
     third_party_settings: {  }
     weight: 1
     region: content
+  field_plan:
+    type: file_default
+    label: hidden
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_plan_signed:
+    type: file_default
+    label: hidden
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 27
+    region: content
   field_ref_id:
     type: string
     label: above
     settings:
       link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_related_incoming:
+    type: entity_reference_table
+    label: hidden
+    settings:
+      view_mode: ief_table
+      show_entity_label: false
+      empty_cell_value: ''
+      hide_header: '0'
     third_party_settings: {  }
     weight: 0
     region: content
@@ -187,7 +258,6 @@ content:
 hidden:
   content_moderation_control: true
   field_assignees: true
-  field_attachments: true
   field_basic_operator: true
   field_case: true
   field_completion_date: true
@@ -206,18 +276,15 @@ hidden:
   field_on_time_cases: true
   field_operators: true
   field_opinion_ref_id: true
-  field_plan: true
   field_plan_dt_api_response: true
   field_plan_dt_docid: true
   field_plan_dt_success: true
   field_plan_dt_tries: true
-  field_plan_signed: true
   field_primary: true
   field_priority: true
   field_protocol_date: true
   field_protocol_number_doc: true
   field_protocol_number_sender: true
-  field_related_incoming: true
   field_requested_deadline: true
   field_sa_number: true
   field_sani_user: true
