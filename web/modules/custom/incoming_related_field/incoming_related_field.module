@@ -100,6 +100,13 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
   incoming_related_field_update_button_label($form, $selector, $name, $label);
 
   incoming_related_field_add_send_to_side_actions($form);
+
+  if (isset($form['field_related_incoming']) && is_array($form['field_related_incoming'])) {
+    $form['field_related_incoming']['incoming_related_field_messages'] = [
+      '#type' => 'status_messages',
+      '#weight' => -100,
+    ];
+  }
 }
 
 /**
@@ -180,31 +187,72 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       continue;
     }
 
-    if (!incoming_related_field_should_show_send_button($node)) {
-      continue;
-    }
-
     if (empty($row['actions']) || !is_array($row['actions'])) {
       $row['actions'] = [];
     }
 
-    $row['actions']['incoming_related_send_to_side'] = [
+    $dt_docid_name = 'incoming_related_field_dt_docid_' . $delta;
+    $existing_dt_docid = $node->hasField('field_dt_docid') ? ($node->get('field_dt_docid')->value ?? '') : '';
+
+    $row['actions']['incoming_related_dt_docid'] = [
+      '#type' => 'textfield',
+      '#title' => t('Α/Α ΣΗΔΕ'),
+      '#title_display' => 'invisible',
+      '#placeholder' => t('Α/Α ΣΗΔΕ'),
+      '#name' => $dt_docid_name,
+      '#default_value' => $existing_dt_docid,
+      '#size' => 10,
+      '#attributes' => [
+        'class' => ['incoming-related-field-dt-docid'],
+      ],
+      '#weight' => 5,
+    ];
+
+    if (incoming_related_field_should_show_send_button($node)) {
+      $row['actions']['incoming_related_send_to_side'] = [
+        '#type' => 'submit',
+        '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
+        '#name' => 'incoming_related_field_send_to_side_entity_' . $delta,
+        '#submit' => ['incoming_related_field_send_to_side_entity_submit'],
+        '#ajax' => [
+          'callback' => 'incoming_related_field_send_to_side_ajax',
+          'wrapper' => 'edit-field-related-incoming-wrapper',
+        ],
+        '#limit_validation_errors' => [],
+        '#attributes' => [
+          'class' => ['incoming-related-field-send-to-side'],
+        ],
+        '#incoming_related_field_context' => [
+          'file_id' => (int) $file->id(),
+          'node_id' => (int) $node->id(),
+        ],
+        '#weight' => 10,
+      ];
+    }
+
+    $row['actions']['incoming_related_get_corrected'] = [
       '#type' => 'submit',
-      '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
-      '#name' => 'incoming_related_field_send_to_side_entity_' . $delta,
-      '#submit' => ['incoming_related_field_send_to_side_entity_submit'],
+      '#value' => t('Ορθή Επανάληψη Εγγράφου'),
+      '#name' => 'incoming_related_field_get_corrected_' . $delta,
+      '#submit' => ['incoming_related_field_get_corrected_document_submit'],
       '#ajax' => [
         'callback' => 'incoming_related_field_send_to_side_ajax',
         'wrapper' => 'edit-field-related-incoming-wrapper',
       ],
       '#limit_validation_errors' => [],
       '#attributes' => [
-        'class' => ['incoming-related-field-send-to-side'],
+        'class' => ['incoming-related-field-get-corrected'],
+      ],
+      '#states' => [
+        'enabled' => [
+          ':input[name="' . $dt_docid_name . '"]' => ['filled' => TRUE],
+        ],
       ],
       '#incoming_related_field_context' => [
-        'file_id' => (int) $file->id(),
         'node_id' => (int) $node->id(),
+        'dt_docid_name' => $dt_docid_name,
       ],
+      '#weight' => 15,
     ];
   }
   unset($row);
@@ -331,6 +379,109 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
       '@message' => $throwable->getMessage(),
     ]);
     \Drupal::messenger()->addError(t('SIDE transfer failed: @message', ['@message' => $throwable->getMessage()]));
+  }
+}
+
+/**
+ * Submit handler for fetching corrected document from Docutracks.
+ */
+function incoming_related_field_get_corrected_document_submit(array &$form, FormStateInterface $form_state): void {
+  $trigger = $form_state->getTriggeringElement();
+  $context = $trigger['#incoming_related_field_context'] ?? [];
+  $node_id = $context['node_id'] ?? NULL;
+  $dt_docid_name = $context['dt_docid_name'] ?? NULL;
+
+  if (!$node_id || !$dt_docid_name) {
+    \Drupal::messenger()->addError(t('Missing incoming reference for Docutracks lookup.'));
+    $form_state->setRebuild(TRUE);
+    return;
+  }
+
+  $input = $form_state->getUserInput();
+  $doc_id = trim((string) ($input[$dt_docid_name] ?? ''));
+  if ($doc_id === '') {
+    \Drupal::messenger()->addError(t('Please provide an Α/Α ΣΗΔΕ value.'));
+    $form_state->setRebuild(TRUE);
+    return;
+  }
+
+  /** @var \Drupal\node\NodeInterface|null $node */
+  $node = \Drupal::entityTypeManager()->getStorage('node')->load($node_id);
+  if (!$node instanceof NodeInterface) {
+    \Drupal::messenger()->addError(t('The selected incoming document could not be loaded.'));
+    $form_state->setRebuild(TRUE);
+    return;
+  }
+
+  if (!$node->hasField('field_dt_docid')) {
+    \Drupal::messenger()->addError(t('Missing Docutracks id field on incoming.'));
+    $form_state->setRebuild(TRUE);
+    return;
+  }
+
+  try {
+    /** @var \Drupal\side_api\DocutracksClient $client */
+    $client = \Drupal::service('side_api.docutracks_client');
+    $jar = $client->loginToDocutracks();
+    $doc = $client->fetchDocument((string) $doc_id, $jar);
+    incoming_related_field_store_plan_docutracks_response($node, $doc);
+
+    if (
+      !incoming_related_field_validate_docutracks_metadata($node, $doc, [
+        'field_sender',
+        'field_protocol_number_doc',
+      ])
+    ) {
+      \Drupal::messenger()->addError(t('Α/Α ΣΗΔΕ δεν ειναι σωστός.'));
+      $form_state->setRebuild(TRUE);
+      return;
+    }
+
+    $file_id = (int) ($client->extractValueByPath($doc, 'Document.GeneratedFile.Id') ?? 0);
+    if (!$file_id) {
+      \Drupal::messenger()->addError(t('Docutracks did not return a generated file id.'));
+      $form_state->setRebuild(TRUE);
+      return;
+    }
+
+    $filename = $client->extractValueByPath($doc, 'Document.GeneratedFile.FileName');
+    $filename = incoming_related_field_prepare_docutracks_filename($filename, (int) $doc_id, $file_id);
+
+    $corrected_file = incoming_related_field_download_docutracks_file(
+      $client,
+      $file_id,
+      (int) $doc_id,
+      $jar,
+      $filename
+    );
+
+    if ($node->hasField('field_documents') && !$node->get('field_documents')->isEmpty()) {
+      $paragraphs = $node->get('field_documents')->referencedEntities();
+      foreach ($paragraphs as $paragraph) {
+        if (!$paragraph instanceof ParagraphInterface || !$paragraph->hasField('field_files')) {
+          continue;
+        }
+        $paragraph->set('field_files', [['target_id' => $corrected_file->id()]]);
+        $paragraph->save();
+        break;
+      }
+    }
+
+    $node->set('field_dt_docid', $doc_id);
+    $node->setNewRevision(FALSE);
+    $node->save();
+
+    \Drupal::messenger()->addStatus(t('Corrected document was downloaded from Docutracks.'));
+    $form_state->setRebuild(TRUE);
+  }
+  catch (\Throwable $throwable) {
+    \Drupal::logger('incoming_related_field')->error('Docutracks corrected fetch failed for node @nid: @message', [
+      '@nid' => $node_id,
+      '@message' => $throwable->getMessage(),
+    ]);
+    \Drupal::messenger()->addError(t('Docutracks fetch failed: @message', ['@message' => $throwable->getMessage()]));
+    incoming_related_field_store_plan_try_increment($node);
+    $form_state->setRebuild(TRUE);
   }
 }
 
@@ -712,4 +863,130 @@ function incoming_related_field_build_stamped_filename(FileInterface $file): str
   $suffix = 'stamped';
   $extension = $extension !== '' ? '.' . $extension : '.pdf';
   return $base . '-' . $suffix . $extension;
+}
+
+/**
+ * Build a safe filename for Docutracks-generated files.
+ */
+function incoming_related_field_prepare_docutracks_filename(mixed $filename, int $document_id, int $file_id): string {
+  $file_system = \Drupal::service('file_system');
+  $fallback = 'docutracks-correction-' . $document_id . '-' . $file_id . '.pdf';
+
+  if (!is_string($filename)) {
+    return $fallback;
+  }
+
+  $filename = trim($filename);
+  if ($filename === '') {
+    return $fallback;
+  }
+
+  $filename = $file_system->basename($filename);
+  if ($filename === '') {
+    return $fallback;
+  }
+
+  return $filename;
+}
+
+/**
+ * Validate Docutracks metadata matches existing incoming values.
+ */
+function incoming_related_field_validate_docutracks_metadata(NodeInterface $node, array $doc, array $fields): bool {
+  $mappings = [
+    'field_sender' => [
+      'Document.Sender',
+      'Document.Sender.Name',
+      'Document.Apostoleas.Name',
+      'Document.Apostoleas_Name',
+    ],
+    'field_protocol_number_doc' => [
+      'Document.DocumentCopies.ProtocolText',
+      'Document.DocumentCopies.Protokollo.ProtocolText',
+      'Document.ProtocolNumberDoc',
+      'Document.ProtocolNumber',
+      'Document.ProtocolNumberDocId',
+    ],
+  ];
+
+  /** @var \Drupal\side_api\DocutracksClient $client */
+  $client = \Drupal::service('side_api.docutracks_client');
+
+  foreach ($fields as $field_name) {
+    if (empty($mappings[$field_name])) {
+      continue;
+    }
+    if (!$node->hasField($field_name) || $node->get($field_name)->isEmpty()) {
+      continue;
+    }
+
+    $expected = trim((string) $node->get($field_name)->value);
+    if ($expected === '') {
+      continue;
+    }
+
+    $actual = incoming_related_field_extract_doc_value($client, $doc, $mappings[$field_name]);
+    $actual = $actual !== NULL ? trim((string) $actual) : '';
+
+    if ($field_name === 'field_protocol_number_doc') {
+      $expected = str_replace('\\/', '/', $expected);
+      $actual = str_replace('\\/', '/', $actual);
+    }
+
+    if ($actual === '' || $actual !== $expected) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Store Docutracks response and increment plan tries for corrected fetch.
+ */
+function incoming_related_field_store_plan_docutracks_response(NodeInterface $node, array $response): void {
+  $updated = FALSE;
+
+  if ($node->hasField('field_plan_dt_api_response')) {
+    $encoded = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    if ($encoded !== FALSE) {
+      $existing = $node->get('field_plan_dt_api_response')->value ?? '';
+      $entry = sprintf("[%s]\n%s", date('Y-m-d H:i:s'), $encoded);
+      $combined = trim($existing) !== '' ? $existing . "\n\n" . $entry : $entry;
+      $node->set('field_plan_dt_api_response', $combined);
+      $updated = TRUE;
+    }
+  }
+
+  if (incoming_related_field_increment_plan_tries($node)) {
+    $updated = TRUE;
+  }
+
+  if ($updated) {
+    $node->setNewRevision(FALSE);
+    $node->save();
+  }
+}
+
+/**
+ * Increment plan tries and return TRUE if updated.
+ */
+function incoming_related_field_increment_plan_tries(NodeInterface $node): bool {
+  if (!$node->hasField('field_plan_dt_tries')) {
+    return FALSE;
+  }
+
+  $current = $node->get('field_plan_dt_tries')->value ?? 0;
+  $node->set('field_plan_dt_tries', (int) $current + 1);
+  return TRUE;
+}
+
+/**
+ * Increment plan tries and persist if updated.
+ */
+function incoming_related_field_store_plan_try_increment(NodeInterface $node): void {
+  if (incoming_related_field_increment_plan_tries($node)) {
+    $node->setNewRevision(FALSE);
+    $node->save();
+  }
 }
