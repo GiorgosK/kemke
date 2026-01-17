@@ -156,8 +156,6 @@ third_party_settings:
         - field_protocol_number_sender
         - field_protocol_date
         - field_subject
-        - field_notes
-        - field_assignees
       label: Γενικά
       region: content
       parent_name: group_tabs
@@ -419,14 +417,6 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_assignees:
-    type: string_textarea
-    weight: 10
-    region: content
-    settings:
-      rows: 3
-      placeholder: ''
-    third_party_settings: {  }
   field_attachments:
     type: file_generic
     weight: 23
@@ -536,14 +526,6 @@ content:
       autocomplete: false
       match_operator: CONTAINS
       match_limit: 10
-    third_party_settings: {  }
-  field_notes:
-    type: string_textarea
-    weight: 9
-    region: content
-    settings:
-      rows: 3
-      placeholder: ''
     third_party_settings: {  }
   field_on_time:
     type: options_select
@@ -861,7 +843,9 @@ content:
     third_party_settings: {  }
 hidden:
   field_amke_status: true
+  field_assignees: true
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
+  field_notes: true
   field_primary: true
   title: true
