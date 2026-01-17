@@ -34,6 +34,47 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   if (isset($form['field_related_incoming']['widget']) && is_array($form['field_related_incoming']['widget'])) {
     $form['field_related_incoming']['widget']['#after_build'][] = 'incoming_tweaks_mark_new_related_rows_after_build';
   }
+
+  if (
+    $entity instanceof NodeInterface &&
+    $entity->bundle() === 'incoming' &&
+    isset($form['field_plan']['widget']) &&
+    is_array($form['field_plan']['widget'])
+  ) {
+    $form['field_plan']['widget']['#after_build'][] = 'incoming_tweaks_limit_plan_widget';
+  }
+}
+
+/**
+ * Limits the plan widget to a single attachment on incoming edit forms.
+ */
+function incoming_tweaks_limit_plan_widget(array $element, FormStateInterface $form_state): array {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return $element;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return $element;
+  }
+
+  $plan_count = $entity->get('field_plan')->count();
+  if (isset($element['add_more'])) {
+    $element['add_more']['#access'] = FALSE;
+  }
+
+  foreach (Element::children($element) as $delta) {
+    if (is_numeric($delta) && (int) $delta >= 1) {
+      $element[$delta]['#access'] = FALSE;
+    }
+  }
+
+  if (isset($element['#description'])) {
+    $element['#description'] = '';
+  }
+
+  return $element;
 }
 
 
