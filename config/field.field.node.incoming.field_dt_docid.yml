@@ -1,15 +1,15 @@
-uuid: c9a7c9e5-1405-444c-a8d4-9e42e97b080d
+uuid: 886aae58-4eb4-403d-88d3-d427d7815a21
 langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.node.field_plan_dt_docid
+    - field.storage.node.field_dt_docid
     - node.type.incoming
-id: node.incoming.field_plan_dt_docid
-field_name: field_plan_dt_docid
+id: node.incoming.field_dt_docid
+field_name: field_dt_docid
 entity_type: node
 bundle: incoming
-label: 'Docutracks Plan DocId'
+label: 'Docutracks DocId'
 description: ''
 required: false
 translatable: false

@@ -10,6 +10,7 @@ dependencies:
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
     - field.field.node.incoming.field_documents
+    - field.field.node.incoming.field_dt_docid
     - field.field.node.incoming.field_entry_date
     - field.field.node.incoming.field_extension
     - field.field.node.incoming.field_extension_date
@@ -244,6 +245,7 @@ third_party_settings:
         description: ''
     group_api:
       children:
+        - field_dt_docid
         - field_plan_dt_docid
         - field_plan_dt_tries
         - field_plan_dt_success
@@ -374,6 +376,14 @@ content:
       format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 29
+    region: content
+  field_dt_docid:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 31
     region: content
   field_entry_date:
     type: datetime_default
@@ -506,7 +516,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 12
+    weight: 35
     region: content
   field_plan_dt_docid:
     type: string
@@ -514,7 +524,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 9
+    weight: 32
     region: content
   field_plan_dt_success:
     type: boolean
@@ -524,7 +534,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 11
+    weight: 34
     region: content
   field_plan_dt_tries:
     type: number_integer
@@ -533,7 +543,7 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 10
+    weight: 33
     region: content
   field_plan_signed:
     type: file_default
