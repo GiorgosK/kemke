@@ -33,6 +33,7 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
 
   $keep_fields = [
     'field_documents',
+    'field_protocol_number_sender',
   ];
   $keep_always = ['actions'];
 
