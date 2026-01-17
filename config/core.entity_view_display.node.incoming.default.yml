@@ -350,10 +350,11 @@ content:
     weight: 5
     region: content
   field_basic_operator:
-    type: entity_reference_label
+    type: entity_reference_entity_view
     label: above
     settings:
-      link: true
+      view_mode: compact
+      link: false
     third_party_settings: {  }
     weight: 10
     region: content
@@ -476,10 +477,11 @@ content:
     weight: 18
     region: content
   field_operators:
-    type: entity_reference_label
+    type: entity_reference_entity_view
     label: above
     settings:
-      link: true
+      view_mode: compact
+      link: false
     third_party_settings: {  }
     weight: 12
     region: content
@@ -643,10 +645,11 @@ content:
     weight: 19
     region: content
   field_supervisor:
-    type: entity_reference_label
-    label: above
+    type: entity_reference_entity_view
+    label: inline
     settings:
-      link: true
+      view_mode: compact
+      link: false
     third_party_settings: {  }
     weight: 9
     region: content
