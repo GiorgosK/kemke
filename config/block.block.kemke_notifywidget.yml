@@ -4,6 +4,7 @@ status: true
 dependencies:
   module:
     - notify_widget
+    - user
   theme:
     - kemke
 id: kemke_notifywidget
@@ -17,4 +18,11 @@ settings:
   label: 'Notify Widget'
   label_display: '0'
   provider: notify_widget
-visibility: {  }
+visibility:
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      authenticated: authenticated
