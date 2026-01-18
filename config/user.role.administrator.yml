@@ -10,9 +10,3 @@ id: administrator
 label: Διαχειριστής
 weight: 3
 is_admin: true
-permissions:
-  - 'create field_on_time'
-  - 'edit field_on_time'
-  - 'edit own field_on_time'
-  - 'view field_on_time'
-  - 'view own field_on_time'
