@@ -154,6 +154,58 @@ final class DocutracksClient {
   }
 
   /**
+   * Fetch document metadata by protocol details.
+   *
+   * @return array<string, mixed>
+   */
+  public function fetchDocumentByProtocol(
+    string $protocolText,
+    int $protocolYear,
+    int $documentTypeId,
+    CookieJar $jar,
+    ?string $baseUrl = null
+  ): array {
+    if ($this->isSimulationEnabled()) {
+      if ($this->shouldSimulateFailure('fetchDocument_return')) {
+        throw new RuntimeException((string) new TranslatableMarkup('Document fetch failed: simulated failure.'));
+      }
+      return $this->buildSimulatedDocument('0');
+    }
+
+    $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
+    $verify = $this->getTlsVerify();
+
+    $payload = [
+      'Protocol' => [
+        'ProtocolText' => $protocolText,
+        'ProtocolYear' => $protocolYear,
+        'DocumentTypeId' => $documentTypeId,
+      ],
+    ];
+
+    try {
+      $response = $this->httpClient->request('POST', $baseUrl . '/services/document/get', [
+        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+        'json' => $payload,
+        'cookies' => $jar,
+        'verify' => $verify,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      throw new RuntimeException((string) new TranslatableMarkup('Document fetch failed: @message', ['@message' => $e->getMessage()]), 0, $e);
+    }
+
+    $body = (string) $response->getBody();
+    $decoded = json_decode($body, TRUE);
+    if (!is_array($decoded)) {
+      $this->logNonJsonResponse('document fetch', $baseUrl, $response, $body);
+      throw new RuntimeException((string) new TranslatableMarkup('Document response could not be decoded as JSON. This can happen when Docutracks returns the login page (credentials may be invalid or session expired).'));
+    }
+
+    return $decoded;
+  }
+
+  /**
    * Download a file (by file ID) to a target path, using the FileGet endpoint.
    */
   public function downloadFile(

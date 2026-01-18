@@ -22,10 +22,28 @@ final class SideApiCommands extends DrushCommands {
    *
    * @command side:fetch
    * @aliases sdf
+   * @option protocol Protocol text (e.g. "ΥΠΠΟΤ/Π.Η/1351/17").
+   * @option year Protocol year (e.g. 2017).
+   * @option document-type Document type id (default 1).
    */
-  public function fetch(int $docId): void {
+  public function fetch(?int $docId = NULL, array $options = ['protocol' => '', 'year' => 0, 'document-type' => 1]): void {
+    $protocolText = trim((string) ($options['protocol'] ?? ''));
+    $protocolYear = (int) ($options['year'] ?? 0);
+    $documentTypeId = (int) ($options['document-type'] ?? 1);
+
     $jar = $this->client->loginToDocutracks();
-    $doc = $this->client->fetchDocument((string) $docId, $jar);
+    if ($protocolText !== '') {
+      if ($protocolYear <= 0) {
+        throw new \InvalidArgumentException('Protocol year is required when using --protocol.');
+      }
+      $doc = $this->client->fetchDocumentByProtocol($protocolText, $protocolYear, $documentTypeId, $jar);
+    }
+    else {
+      if (!$docId) {
+        throw new \InvalidArgumentException('Document id is required when --protocol-text is not provided.');
+      }
+      $doc = $this->client->fetchDocument((string) $docId, $jar);
+    }
     $this->output()->writeln(json_encode($doc, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 
