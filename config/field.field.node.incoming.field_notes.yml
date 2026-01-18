@@ -9,7 +9,7 @@ id: node.incoming.field_notes
 field_name: field_notes
 entity_type: node
 bundle: incoming
-label: 'Λοιπές Σημειώσεις'
+label: 'Σχόλιο απο ΣΗΔΕ'
 description: ''
 required: false
 translatable: false
