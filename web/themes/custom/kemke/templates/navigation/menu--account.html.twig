@@ -29,6 +29,8 @@
         {% set icon_class = 'kemke-menu-icon--case' %}
       {% elseif item_path starts with '/incoming' or item_path starts with '/amke' %}
         {% set icon_class = 'kemke-menu-icon--incoming' %}
+      {% elseif item_path starts with '/user/login' %}
+        {% set icon_class = 'kemke-menu-icon--login' %}
       {% elseif item_path starts with '/user/logout' %}
         {% set icon_class = 'kemke-menu-icon--logout' %}
       {% endif %}

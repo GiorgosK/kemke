@@ -38,6 +38,11 @@
   -webkit-mask-image: url(../../images/icons/incoming.svg);
 }
 
+.kemke-account-menu .kemke-menu-icon--login {
+  mask-image: url(../../images/icons/login.svg);
+  -webkit-mask-image: url(../../images/icons/login.svg);
+}
+
 .kemke-account-menu .kemke-menu-icon--logout {
   mask-image: url(../../images/icons/logout.svg);
   -webkit-mask-image: url(../../images/icons/logout.svg);
