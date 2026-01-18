@@ -11,6 +11,10 @@
 - check /settings/opinion_ref_id
 - check settings have proper connection to side
 - check the file upload max limit ?
+- delete incoming ?
+  ```
+  ddev exec php scripts/deleteAllIncoming.php --limit=2 --yes
+  ```
 
 ## users and passwords
 - do we have all users in database ?
