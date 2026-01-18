@@ -193,6 +193,9 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
 
     $dt_docid_name = 'incoming_related_field_dt_docid_' . $delta;
     $existing_dt_docid = $node->hasField('field_dt_docid') ? ($node->get('field_dt_docid')->value ?? '') : '';
+    $protocol_text = $node->hasField('field_protocol_number_doc') ? trim((string) ($node->get('field_protocol_number_doc')->value ?? '')) : '';
+    $protocol_year = incoming_related_field_extract_entry_year($node);
+    $use_protocol = ($protocol_text !== '' && $protocol_year > 0);
 
     $row['actions']['incoming_related_dt_docid'] = [
       '#type' => 'textfield',
@@ -205,6 +208,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#attributes' => [
         'class' => ['incoming-related-field-dt-docid'],
       ],
+      '#access' => !$use_protocol,
       '#weight' => 5,
     ];
 
@@ -251,6 +255,10 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#incoming_related_field_context' => [
         'node_id' => (int) $node->id(),
         'dt_docid_name' => $dt_docid_name,
+        'use_protocol' => $use_protocol,
+        'protocol_text' => $protocol_text,
+        'protocol_year' => $protocol_year,
+        'document_type_id' => 1,
       ],
       '#weight' => 15,
     ];
@@ -398,11 +406,29 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   }
 
   $input = $form_state->getUserInput();
-  $doc_id = trim((string) ($input[$dt_docid_name] ?? ''));
-  if ($doc_id === '') {
-    \Drupal::messenger()->addError(t('Please provide an Α/Α ΣΗΔΕ value.'));
-    $form_state->setRebuild(TRUE);
-    return;
+  $use_protocol = !empty($context['use_protocol']);
+  $doc_id = '';
+  $protocol_text = '';
+  $protocol_year = 0;
+  $document_type_id = 1;
+
+  if ($use_protocol) {
+    $protocol_text = trim((string) ($context['protocol_text'] ?? ''));
+    $protocol_year = (int) ($context['protocol_year'] ?? 0);
+    $document_type_id = (int) ($context['document_type_id'] ?? 1);
+    if ($protocol_text === '' || $protocol_year <= 0) {
+      \Drupal::messenger()->addError(t('Missing protocol details for Docutracks lookup.'));
+      $form_state->setRebuild(TRUE);
+      return;
+    }
+  }
+  else {
+    $doc_id = trim((string) ($input[$dt_docid_name] ?? ''));
+    if ($doc_id === '') {
+      \Drupal::messenger()->addError(t('Please provide an Α/Α ΣΗΔΕ value.'));
+      $form_state->setRebuild(TRUE);
+      return;
+    }
   }
 
   /** @var \Drupal\node\NodeInterface|null $node */
@@ -423,7 +449,18 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $jar = $client->loginToDocutracks();
-    $doc = $client->fetchDocument((string) $doc_id, $jar);
+    if ($use_protocol) {
+      $doc = $client->fetchDocumentByProtocol($protocol_text, $protocol_year, $document_type_id, $jar);
+      $doc_id = (string) incoming_related_field_extract_document_id($client, $doc);
+      if ($doc_id === '' || $doc_id === '0') {
+        \Drupal::messenger()->addError(t('Docutracks did not return a document id.'));
+        $form_state->setRebuild(TRUE);
+        return;
+      }
+    }
+    else {
+      $doc = $client->fetchDocument((string) $doc_id, $jar);
+    }
     incoming_related_field_store_plan_docutracks_response($node, $doc);
 
     if (
@@ -887,6 +924,44 @@ function incoming_related_field_prepare_docutracks_filename(mixed $filename, int
   }
 
   return $filename;
+}
+
+/**
+ * Extract a document id from a Docutracks response.
+ */
+function incoming_related_field_extract_document_id(\Drupal\side_api\DocutracksClient $client, array $doc): int {
+  $paths = [
+    'Document.Id',
+    'DocumentReference',
+    'Document.DocumentId',
+  ];
+  foreach ($paths as $path) {
+    $value = $client->extractValueByPath($doc, $path);
+    if (is_numeric($value)) {
+      return (int) $value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Extract protocol year from entry date.
+ */
+function incoming_related_field_extract_entry_year(NodeInterface $node): int {
+  if (!$node->hasField('field_entry_date') || $node->get('field_entry_date')->isEmpty()) {
+    return 0;
+  }
+  $value = (string) ($node->get('field_entry_date')->value ?? '');
+  if ($value === '') {
+    return 0;
+  }
+  try {
+    $date = new \DateTime($value);
+    return (int) $date->format('Y');
+  }
+  catch (\Throwable) {
+    return 0;
+  }
 }
 
 /**
