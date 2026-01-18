@@ -4,6 +4,7 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Site\Settings;
 use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
@@ -101,11 +102,8 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
 
   incoming_related_field_add_send_to_side_actions($form);
 
-  if (isset($form['field_related_incoming']) && is_array($form['field_related_incoming'])) {
-    $form['field_related_incoming']['incoming_related_field_messages'] = [
-      '#type' => 'status_messages',
-      '#weight' => -100,
-    ];
+  if (isset($form['field_related_incoming']['incoming_related_field_messages'])) {
+    unset($form['field_related_incoming']['incoming_related_field_messages']);
   }
 }
 
@@ -196,6 +194,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     $protocol_text = $node->hasField('field_protocol_number_doc') ? trim((string) ($node->get('field_protocol_number_doc')->value ?? '')) : '';
     $protocol_year = incoming_related_field_extract_entry_year($node);
     $use_protocol = ($protocol_text !== '' && $protocol_year > 0);
+    $protocol_override_name = 'incoming_related_field_protocol_override_' . $delta;
 
     $row['actions']['incoming_related_dt_docid'] = [
       '#type' => 'textfield',
@@ -210,6 +209,21 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       ],
       '#access' => !$use_protocol,
       '#weight' => 5,
+    ];
+
+    $row['actions']['incoming_related_protocol_override'] = [
+      '#type' => 'textfield',
+      '#title' => t('Α.Π. Εισερχομένου'),
+      '#title_display' => 'invisible',
+      '#placeholder' => t('Α.Π. Εισερχομένου'),
+      '#name' => $protocol_override_name,
+      '#default_value' => $protocol_text,
+      '#size' => 20,
+      '#attributes' => [
+        'class' => ['incoming-related-field-protocol-override'],
+      ],
+      '#access' => \Drupal::currentUser()->hasRole('administrator'),
+      '#weight' => 6,
     ];
 
     if (incoming_related_field_should_show_send_button($node)) {
@@ -234,15 +248,17 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       ];
     }
 
-    $row['actions']['incoming_related_get_corrected'] = [
+    $current_node = $form['#entity'] ?? NULL;
+    $is_current_node = $delta === 0;
+    if ($current_node instanceof NodeInterface && (int) $current_node->id() === (int) $node->id()) {
+      $is_current_node = TRUE;
+    }
+
+    $corrected_action = [
       '#type' => 'submit',
       '#value' => t('Ορθή Επανάληψη Εγγράφου'),
       '#name' => 'incoming_related_field_get_corrected_' . $delta,
       '#submit' => ['incoming_related_field_get_corrected_document_submit'],
-      '#ajax' => [
-        'callback' => 'incoming_related_field_send_to_side_ajax',
-        'wrapper' => 'edit-field-related-incoming-wrapper',
-      ],
       '#limit_validation_errors' => [],
       '#attributes' => [
         'class' => ['incoming-related-field-get-corrected'],
@@ -255,6 +271,8 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#incoming_related_field_context' => [
         'node_id' => (int) $node->id(),
         'dt_docid_name' => $dt_docid_name,
+        'protocol_override_name' => $protocol_override_name,
+        'is_current_node' => $is_current_node,
         'use_protocol' => $use_protocol,
         'protocol_text' => $protocol_text,
         'protocol_year' => $protocol_year,
@@ -262,6 +280,13 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       ],
       '#weight' => 15,
     ];
+
+    $corrected_action['#ajax'] = [
+      'callback' => 'incoming_related_field_get_corrected_ajax',
+      'wrapper' => 'edit-field-related-incoming-wrapper',
+    ];
+
+    $row['actions']['incoming_related_get_corrected'] = $corrected_action;
   }
   unset($row);
 }
@@ -411,9 +436,14 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   $protocol_text = '';
   $protocol_year = 0;
   $document_type_id = 1;
+  $protocol_override_name = $context['protocol_override_name'] ?? NULL;
+  $protocol_override = $protocol_override_name ? trim((string) ($input[$protocol_override_name] ?? '')) : '';
 
   if ($use_protocol) {
     $protocol_text = trim((string) ($context['protocol_text'] ?? ''));
+    if ($protocol_override !== '') {
+      $protocol_text = $protocol_override;
+    }
     $protocol_year = (int) ($context['protocol_year'] ?? 0);
     $document_type_id = (int) ($context['document_type_id'] ?? 1);
     if ($protocol_text === '' || $protocol_year <= 0) {
@@ -463,15 +493,19 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     }
     incoming_related_field_store_plan_docutracks_response($node, $doc);
 
-    if (
-      !incoming_related_field_validate_docutracks_metadata($node, $doc, [
-        'field_sender',
-        'field_protocol_number_doc',
-      ])
-    ) {
-      \Drupal::messenger()->addError(t('Α/Α ΣΗΔΕ δεν ειναι σωστός.'));
-      $form_state->setRebuild(TRUE);
-      return;
+    $incoming_settings = Settings::get('incoming_related_field', []);
+    $skip_doc_check = is_array($incoming_settings) ? !empty($incoming_settings['skip_corrected_docid']) : FALSE;
+    if (!$skip_doc_check) {
+      if (
+        !incoming_related_field_validate_docutracks_metadata($node, $doc, [
+          'field_sender',
+          'field_protocol_number_doc',
+        ])
+      ) {
+        \Drupal::messenger()->addError(t('Α/Α ΣΗΔΕ δεν ειναι σωστός.'));
+        $form_state->setRebuild(TRUE);
+        return;
+      }
     }
 
     $file_id = (int) ($client->extractValueByPath($doc, 'Document.GeneratedFile.Id') ?? 0);
@@ -531,6 +565,72 @@ function incoming_related_field_send_to_side_ajax(array &$form, FormStateInterfa
   }
 
   return $form;
+}
+
+/**
+ * Ajax callback for corrected-document action.
+ */
+function incoming_related_field_get_corrected_ajax(array &$form, FormStateInterface $form_state) {
+  $trigger = $form_state->getTriggeringElement();
+  $context = $trigger['#incoming_related_field_context'] ?? [];
+  $is_current_node = !empty($context['is_current_node']);
+
+  if ($is_current_node && !empty($context['node_id'])) {
+    $redirect = \Drupal\Core\Url::fromRoute('entity.node.edit_form', [
+      'node' => (int) $context['node_id'],
+    ])->toString();
+    \Drupal::logger('incoming_related_field')->info('Corrected-document AJAX redirect for node @nid to @url', [
+      '@nid' => (string) $context['node_id'],
+      '@url' => $redirect,
+    ]);
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    incoming_related_field_add_message_commands($response);
+    $response->addCommand(new \Drupal\Core\Ajax\RedirectCommand($redirect));
+    return $response;
+  }
+
+  if (isset($form['field_related_incoming'])) {
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    incoming_related_field_add_message_commands($response);
+    \Drupal::messenger()->deleteAll();
+    return $response;
+  }
+
+  return $form;
+}
+
+/**
+ * Add queued messages to an AJAX response.
+ */
+function incoming_related_field_add_message_commands(\Drupal\Core\Ajax\AjaxResponse $response): void {
+  $messages = \Drupal::messenger()->all();
+  if ($messages === []) {
+    return;
+  }
+
+  foreach ($messages as $type => $items) {
+    foreach ($items as $message) {
+      $response->addCommand(new \Drupal\Core\Ajax\MessageCommand($message, NULL, [
+        'type' => $type,
+      ]));
+    }
+  }
+
+  $response->addCommand(new \Drupal\Core\Ajax\InvokeCommand(
+    '[data-drupal-messages] .messages--status',
+    'addClass',
+    ['govgr-panel govgr-panel--confirmation govgr-panel__title']
+  ));
+  $response->addCommand(new \Drupal\Core\Ajax\InvokeCommand(
+    '[data-drupal-messages] .messages--warning',
+    'addClass',
+    ['govgr-panel govgr-panel--warning govgr-panel__title']
+  ));
+  $response->addCommand(new \Drupal\Core\Ajax\InvokeCommand(
+    '[data-drupal-messages] .messages--error',
+    'addClass',
+    ['govgr-panel govgr-panel--error govgr-panel__title']
+  ));
 }
 
 /**
