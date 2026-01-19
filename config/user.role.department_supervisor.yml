@@ -10,7 +10,6 @@ dependencies:
   module:
     - activities_mods
     - content_moderation
-    - field_permissions
     - filter
     - kemke_reports
     - node
@@ -29,12 +28,9 @@ permissions:
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
-  - 'create field_legal_entity'
   - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'
-  - 'edit field_legal_entity'
-  - 'edit own field_legal_entity'
   - 'edit terms in case'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'

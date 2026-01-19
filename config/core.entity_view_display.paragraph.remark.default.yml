@@ -5,6 +5,7 @@ dependencies:
   config:
     - field.field.paragraph.remark.field_comment
     - field.field.paragraph.remark.field_datetime
+    - field.field.paragraph.remark.field_legal_entity
     - field.field.paragraph.remark.field_user
     - field.field.paragraph.remark.field_visible_to
     - paragraphs.paragraphs_type.remark
@@ -21,7 +22,7 @@ content:
     label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 3
+    weight: 4
     region: content
   field_datetime:
     type: timestamp
@@ -43,6 +44,14 @@ content:
     third_party_settings: {  }
     weight: 0
     region: content
+  field_legal_entity:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
   field_user:
     type: entity_reference_label
     label: hidden
@@ -56,6 +65,6 @@ content:
     label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 2
+    weight: 3
     region: content
 hidden: {  }

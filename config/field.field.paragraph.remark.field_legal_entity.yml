@@ -1,0 +1,29 @@
+uuid: 6d5a746f-6d5c-4d43-98c3-72796dbb3c55
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_legal_entity
+    - paragraphs.paragraphs_type.remark
+    - taxonomy.vocabulary.legal_entity
+id: paragraph.remark.field_legal_entity
+field_name: field_legal_entity
+entity_type: paragraph
+bundle: remark
+label: 'Προς Φορέα'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:filter_existing_terms'
+  handler_settings:
+    target_bundles:
+      legal_entity: legal_entity
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

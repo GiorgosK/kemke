@@ -10,3 +10,4 @@ id: administrator
 label: Διαχειριστής
 weight: 3
 is_admin: true
+permissions: {  }
