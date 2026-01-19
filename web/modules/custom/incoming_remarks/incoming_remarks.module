@@ -18,6 +18,8 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 
+const INCOMING_REMARKS_BLANKET_LABEL = 'ΑΜΚΕ';
+
 /**
  * Provides the default value for the remark user field.
  */
@@ -382,24 +384,31 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
     return TRUE;
   }
 
-  $sent_to = incoming_remarks_get_sent_to_value($paragraph);
-  if ($sent_to === 'kemke') {
+  $viewer_entities = incoming_remarks_get_account_legal_entity_ids($account);
+  $host_info = incoming_remarks_get_paragraph_host_legal_entity_info($paragraph);
+  if (empty($host_info['ids']) && empty($host_info['blanket'])) {
     return FALSE;
-  }
-
-  if ($sent_to === 'amke') {
-    if (!$paragraph->hasField('field_legal_entity') || $paragraph->get('field_legal_entity')->isEmpty()) {
-      return TRUE;
-    }
   }
 
   if ($paragraph->hasField('field_legal_entity') && !$paragraph->get('field_legal_entity')->isEmpty()) {
     $paragraph_entities = array_column($paragraph->get('field_legal_entity')->getValue(), 'target_id');
-    $viewer_entities = incoming_remarks_get_account_legal_entity_ids($account);
+    $paragraph_entities = array_values(array_filter(array_map('intval', $paragraph_entities)));
+    $paragraph_blanket = incoming_remarks_field_has_blanket_label($paragraph, 'field_legal_entity');
     if (empty($paragraph_entities) || empty($viewer_entities)) {
       return FALSE;
     }
+    if ($paragraph_blanket && !empty($viewer_entities)) {
+      return TRUE;
+    }
     return (bool) array_intersect($paragraph_entities, $viewer_entities);
+  }
+
+  if (!empty($host_info['blanket']) && !empty($viewer_entities)) {
+    return TRUE;
+  }
+
+  if (!empty($host_info['ids']) && !empty($viewer_entities)) {
+    return (bool) array_intersect($host_info['ids'], $viewer_entities);
   }
 
   return FALSE;
@@ -512,7 +521,62 @@ function incoming_remarks_get_user_legal_entity_ids(UserInterface $user): array 
     return [];
   }
 
-  return array_column($user->get('field_legal_entity')->getValue(), 'target_id');
+  $ids = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
+  return array_values(array_filter(array_map('intval', $ids)));
+}
+
+/**
+ * Returns incoming node legal entity ids and blanket match for a paragraph.
+ */
+function incoming_remarks_get_paragraph_host_legal_entity_info(ParagraphInterface $paragraph): array {
+  $info = [
+    'ids' => [],
+    'blanket' => FALSE,
+  ];
+
+  if (!method_exists($paragraph, 'getParentEntity')) {
+    return $info;
+  }
+
+  $parent = $paragraph->getParentEntity();
+  if (!$parent instanceof NodeInterface || $parent->bundle() !== 'incoming') {
+    return $info;
+  }
+
+  if (!$parent->hasField('field_legal_entity') || $parent->get('field_legal_entity')->isEmpty()) {
+    return $info;
+  }
+
+  $ids = array_column($parent->get('field_legal_entity')->getValue(), 'target_id');
+  $info['ids'] = array_values(array_filter(array_map('intval', $ids)));
+
+  foreach ($parent->get('field_legal_entity')->referencedEntities() as $term) {
+    $label = $term->label();
+    if ($label !== NULL && trim($label) === INCOMING_REMARKS_BLANKET_LABEL) {
+      $info['blanket'] = TRUE;
+      break;
+    }
+  }
+
+  return $info;
+}
+
+/**
+ * Checks whether an entity reference field includes the blanket label term.
+ */
+function incoming_remarks_field_has_blanket_label(EntityInterface $entity, string $field_name): bool {
+  if (!$entity->hasField($field_name) || $entity->get($field_name)->isEmpty()) {
+    return FALSE;
+  }
+
+  foreach ($entity->get($field_name)->referencedEntities() as $term) {
+    $label = $term->label();
+    if ($label !== NULL && trim($label) === INCOMING_REMARKS_BLANKET_LABEL) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 /**
  * Returns a CSS class that reflects the remark visibility value.

@@ -31,8 +31,21 @@ class IncomingAccessCheck {
     }
 
     $user = User::load($account->id());
-    $node_legal_entities = array_column($node->get('field_legal_entity')->getValue(), 'target_id');
-    $node_legal_entities = array_values(array_filter(array_map('intval', $node_legal_entities)));
+    $node_legal_entities = [];
+    if ($node->hasField('field_legal_entity') && !$node->get('field_legal_entity')->isEmpty()) {
+      $node_legal_entities = array_column($node->get('field_legal_entity')->getValue(), 'target_id');
+      $node_legal_entities = array_values(array_filter(array_map('intval', $node_legal_entities)));
+    }
+    $node_blanket = FALSE;
+    if ($node->hasField('field_legal_entity') && !$node->get('field_legal_entity')->isEmpty()) {
+      foreach ($node->get('field_legal_entity')->referencedEntities() as $term) {
+        $label = $term->label();
+        if ($label !== NULL && trim($label) === 'ΑΜΚΕ') {
+          $node_blanket = TRUE;
+          break;
+        }
+      }
+    }
     $user_legal_entities = [];
     if ($user) {
       $user_legal_entities = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
@@ -47,6 +60,18 @@ class IncomingAccessCheck {
     // Allow if same owner.
     if ((int) $node->getOwnerId() === (int) $account->id()) {
       return AccessResult::allowed()->cachePerUser()->addCacheableDependency($node);
+    }
+
+    if (!$node_legal_entities && !$node_blanket) {
+      $denied = AccessResult::forbidden()->cachePerUser()->addCacheableDependency($node);
+      if ($user) {
+        $denied->addCacheableDependency($user);
+      }
+      return $denied;
+    }
+
+    if ($node_blanket && $user_legal_entities) {
+      return $result;
     }
 
     // Allow if legal entity matches.
