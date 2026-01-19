@@ -78,6 +78,14 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
     if ($entity->hasField('field_visible_to')) {
     $entity->set('field_visible_to', ['value' => 'amke']);
     }
+    if ($entity->isNew() && $entity->hasField('field_legal_entity') && $entity->get('field_legal_entity')->isEmpty()) {
+      $user = $account instanceof UserInterface
+        ? $account
+        : \Drupal::entityTypeManager()->getStorage('user')->load($account->id());
+      if ($user instanceof UserInterface && $user->hasField('field_legal_entity') && !$user->get('field_legal_entity')->isEmpty()) {
+        $entity->set('field_legal_entity', $user->get('field_legal_entity')->getValue());
+      }
+    }
   }
 }
 
@@ -370,47 +378,31 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
   if (incoming_remarks_account_can_bypass_visibility($account)) {
     return TRUE;
   }
-  $restrict_by_legal_entity = $account->hasRole('amke_user') && !incoming_remarks_account_can_bypass_visibility($account);
-
-  if (!$paragraph->hasField('field_visible_to')) {
-    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
+  if (!$account->hasRole('amke_user')) {
+    return TRUE;
   }
 
-  $field = $paragraph->get('field_visible_to');
-  if ($field->isEmpty()) {
-    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
-  }
-
-  $values = [];
-  foreach ($field->getValue() as $value) {
-    if (isset($value['value'])) {
-      $values[] = (string) $value['value'];
-    }
-  }
-
-  if (in_array('amke', $values, TRUE)) {
-    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
-  }
-  if (in_array('only_kemke', $values, TRUE)) {
+  $sent_to = incoming_remarks_get_sent_to_value($paragraph);
+  if ($sent_to === 'kemke') {
     return FALSE;
   }
 
-  $item = $field->first();
-  if ($item instanceof OptionsProviderInterface) {
-    $options = OptGroup::flattenOptions($item->getPossibleOptions());
-    foreach ($values as $value) {
-      $label = $options[$value] ?? '';
-      $normalized_label = strtolower(trim($label));
-      if ($normalized_label === 'amke') {
-        return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
-      }
-      if ($normalized_label === 'only kemke' || $normalized_label === 'only_kemke') {
-        return FALSE;
-      }
+  if ($sent_to === 'amke') {
+    if (!$paragraph->hasField('field_legal_entity') || $paragraph->get('field_legal_entity')->isEmpty()) {
+      return TRUE;
     }
   }
 
-  return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
+  if ($paragraph->hasField('field_legal_entity') && !$paragraph->get('field_legal_entity')->isEmpty()) {
+    $paragraph_entities = array_column($paragraph->get('field_legal_entity')->getValue(), 'target_id');
+    $viewer_entities = incoming_remarks_get_account_legal_entity_ids($account);
+    if (empty($paragraph_entities) || empty($viewer_entities)) {
+      return FALSE;
+    }
+    return (bool) array_intersect($paragraph_entities, $viewer_entities);
+  }
+
+  return FALSE;
 }
 
 /**
@@ -470,6 +462,46 @@ function incoming_remarks_get_account_legal_entity_ids(AccountInterface $account
   }
 
   return incoming_remarks_get_user_legal_entity_ids($user);
+}
+
+/**
+ * Returns the normalized sent-to value for a remark paragraph.
+ */
+function incoming_remarks_get_sent_to_value(ParagraphInterface $paragraph): ?string {
+  if (!$paragraph->hasField('field_send_to')) {
+    return NULL;
+  }
+
+  $field = $paragraph->get('field_send_to');
+  if ($field->isEmpty()) {
+    return NULL;
+  }
+
+  $value = $field->first()->value ?? NULL;
+  if (!$value) {
+    return NULL;
+  }
+
+  if ($field->first() instanceof OptionsProviderInterface) {
+    $options = OptGroup::flattenOptions($field->first()->getPossibleOptions());
+    $label = strtolower(trim($options[$value] ?? ''));
+    if ($label === 'kemke') {
+      return 'kemke';
+    }
+    if ($label === 'amke') {
+      return 'amke';
+    }
+  }
+
+  $normalized = strtolower(trim((string) $value));
+  if ($normalized === 'kemke') {
+    return 'kemke';
+  }
+  if ($normalized === 'amke') {
+    return 'amke';
+  }
+
+  return NULL;
 }
 
 /**
@@ -630,6 +662,9 @@ function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInte
         if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
           if (isset($element['subform']['field_visible_to'])) {
             $element['subform']['field_visible_to']['#access'] = FALSE;
+          }
+          if (isset($element['subform']['field_legal_entity'])) {
+            $element['subform']['field_legal_entity']['#access'] = FALSE;
           }
         }
       }
@@ -920,6 +955,19 @@ function incoming_remarks_render_generic_preview_values(ParagraphInterface $para
               $label = $name . ' (' . $legal_entity . ')';
             }
           }
+          if ($field_name === 'field_legal_entity') {
+            $is_amke_author = FALSE;
+            if ($paragraph->hasField('field_user') && !$paragraph->get('field_user')->isEmpty()) {
+              $author = $paragraph->get('field_user')->entity;
+              if ($author instanceof UserInterface && $author->hasRole('amke_user')) {
+                $is_amke_author = TRUE;
+              }
+            }
+            if ($is_amke_author) {
+              continue;
+            }
+            $label = 'ΠΡΟΣ: ' . $label;
+          }
           $values[] = [
             '#markup' => $label,
           ];
@@ -980,6 +1028,7 @@ function incoming_remarks_get_paragraph_field_map() {
       'field_datetime',
       'field_send_to',
       'field_visible_to',
+      'field_legal_entity',
     ],
   ];
 }
@@ -996,6 +1045,7 @@ function incoming_remarks_get_node_paragraph_field_map() {
         'field_datetime',
         'field_send_to',
         'field_visible_to',
+        'field_legal_entity',
       ],
     ],
   ];
