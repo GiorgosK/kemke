@@ -767,15 +767,28 @@ function incoming_remarks_render_generic_preview_values(ParagraphInterface $para
           if ($field_name === 'field_user' && $item->entity instanceof UserInterface) {
             $first = '';
             $last = '';
+            $legal_entity = 'KEMKE';
             if ($item->entity->hasField('field_first_name') && !$item->entity->get('field_first_name')->isEmpty()) {
               $first = (string) $item->entity->get('field_first_name')->value;
             }
             if ($item->entity->hasField('field_last_name') && !$item->entity->get('field_last_name')->isEmpty()) {
               $last = (string) $item->entity->get('field_last_name')->value;
             }
+            if ($item->entity->hasField('field_legal_entity') && !$item->entity->get('field_legal_entity')->isEmpty()) {
+              $legal_labels = [];
+              foreach ($item->entity->get('field_legal_entity')->referencedEntities() as $legal_ref) {
+                $legal_labels[] = $legal_ref->label();
+              }
+              if (!empty($legal_labels)) {
+                $legal_entity = implode(', ', $legal_labels);
+              }
+              elseif ($item->entity->get('field_legal_entity')->value) {
+                $legal_entity = (string) $item->entity->get('field_legal_entity')->value;
+              }
+            }
             $name = trim($first . ' ' . $last);
             if ($name !== '') {
-              $label = $name;
+              $label = $name . ' (' . $legal_entity . ')';
             }
           }
           $values[] = [
