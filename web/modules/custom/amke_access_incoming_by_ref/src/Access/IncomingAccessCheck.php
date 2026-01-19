@@ -31,8 +31,13 @@ class IncomingAccessCheck {
     }
 
     $user = User::load($account->id());
-    $node_legal_entity = $node->get('field_legal_entity')->target_id ?? NULL;
-    $user_legal_entity = $user?->get('field_legal_entity')->target_id ?? NULL;
+    $node_legal_entities = array_column($node->get('field_legal_entity')->getValue(), 'target_id');
+    $node_legal_entities = array_values(array_filter(array_map('intval', $node_legal_entities)));
+    $user_legal_entities = [];
+    if ($user) {
+      $user_legal_entities = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
+      $user_legal_entities = array_values(array_filter(array_map('intval', $user_legal_entities)));
+    }
 
     $result = AccessResult::allowed()->cachePerUser()->addCacheableDependency($node);
     if ($user) {
@@ -45,7 +50,7 @@ class IncomingAccessCheck {
     }
 
     // Allow if legal entity matches.
-    if ($node_legal_entity && $user_legal_entity && ((int) $node_legal_entity === (int) $user_legal_entity)) {
+    if ($node_legal_entities && $user_legal_entities && array_intersect($node_legal_entities, $user_legal_entities)) {
       return $result;
     }
 

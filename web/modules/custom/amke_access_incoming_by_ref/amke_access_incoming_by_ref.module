@@ -23,8 +23,13 @@ function amke_access_incoming_by_ref_entity_access(EntityInterface $entity, $ope
 
   /** @var \Drupal\user\UserInterface|null $user */
   $user = User::load($account->id());
-  $node_legal_entity = $entity->get('field_legal_entity')->target_id ?? NULL;
-  $user_legal_entity = $user?->get('field_legal_entity')->target_id ?? NULL;
+  $node_legal_entities = array_column($entity->get('field_legal_entity')->getValue(), 'target_id');
+  $node_legal_entities = array_values(array_filter(array_map('intval', $node_legal_entities)));
+  $user_legal_entities = [];
+  if ($user) {
+    $user_legal_entities = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
+    $user_legal_entities = array_values(array_filter(array_map('intval', $user_legal_entities)));
+  }
 
   $base = AccessResult::neutral()->cachePerUser()->addCacheableDependency($entity);
   if ($user) {
@@ -37,7 +42,7 @@ function amke_access_incoming_by_ref_entity_access(EntityInterface $entity, $ope
   }
 
   // Require matching legal entities.
-  if ($node_legal_entity && $user_legal_entity && ((int) $node_legal_entity === (int) $user_legal_entity)) {
+  if ($node_legal_entities && $user_legal_entities && array_intersect($node_legal_entities, $user_legal_entities)) {
     return AccessResult::allowed()->cachePerUser()->addCacheableDependency($entity);
   }
 
@@ -72,16 +77,25 @@ function amke_access_incoming_by_ref_views_query_alter(ViewExecutable $view, Sql
   }
 
   $user = User::load($account->id());
-  $user_legal_entity = $user?->get('field_legal_entity')->target_id ?? NULL;
+  $user_legal_entities = [];
+  if ($user) {
+    $user_legal_entities = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
+    $user_legal_entities = array_values(array_filter(array_map('intval', $user_legal_entities)));
+  }
 
   $args = [
     ':amke_uid' => (int) $account->id(),
   ];
   $parts = ["node_field_data.uid = :amke_uid"];
 
-  if ($user_legal_entity) {
-    $args[':amke_legal'] = (int) $user_legal_entity;
-    $parts[] = "EXISTS (SELECT 1 FROM {node__field_legal_entity} fle WHERE fle.entity_id = node_field_data.nid AND fle.deleted = 0 AND fle.field_legal_entity_target_id = :amke_legal)";
+  if ($user_legal_entities) {
+    $placeholders = [];
+    foreach ($user_legal_entities as $index => $legal_entity_id) {
+      $placeholder = ":amke_legal_$index";
+      $placeholders[] = $placeholder;
+      $args[$placeholder] = $legal_entity_id;
+    }
+    $parts[] = "EXISTS (SELECT 1 FROM {node__field_legal_entity} fle WHERE fle.entity_id = node_field_data.nid AND fle.deleted = 0 AND fle.field_legal_entity_target_id IN (" . implode(', ', $placeholders) . "))";
   }
 
   $query->addWhereExpression(0, implode(' OR ', $parts), $args);
