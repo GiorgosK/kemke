@@ -19,7 +19,6 @@ weight: 10
 is_admin: false
 permissions:
   - 'access content'
-  - 'access content overview'
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
