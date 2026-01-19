@@ -68,13 +68,13 @@ type_settings:
       to: fullness_check
       weight: 2
     issues_to_check:
-      label: 'Πρός έλεγχο'
+      label: 'Αποστολή προς ΚΕΜΚΕ'
       from:
         - pending_issues
       to: fullness_check
       weight: 11
     pending_issues:
-      label: 'Έχει εκκρεμότητες'
+      label: 'Αποστολή προς ΑΜΚΕ'
       from:
         - fullness_check
       to: pending_issues
