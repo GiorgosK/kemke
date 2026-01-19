@@ -98,7 +98,7 @@ function incoming_remarks_entity_access(EntityInterface $entity, $operation, Acc
     return AccessResult::neutral();
   }
 
-  $is_allowed = incoming_remarks_paragraph_is_visible_to_amke($entity);
+  $is_allowed = incoming_remarks_paragraph_is_visible_to_amke($entity, $account);
   return AccessResult::forbiddenIf(!$is_allowed)
     ->addCacheableDependency($entity)
     ->cachePerPermissions();
@@ -118,7 +118,7 @@ function incoming_remarks_entity_view(array &$build, EntityInterface $entity, En
 
   if ($entity instanceof ParagraphInterface && $entity->bundle() === 'remark') {
     unset($build['field_visible_to']);
-    if (!incoming_remarks_paragraph_is_visible_to_amke($entity)) {
+    if (!incoming_remarks_paragraph_is_visible_to_amke($entity, $account)) {
       $build['#access'] = FALSE;
     }
     return;
@@ -143,7 +143,7 @@ function incoming_remarks_entity_view(array &$build, EntityInterface $entity, En
     if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'remark') {
       continue;
     }
-    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph)) {
+    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph, $account)) {
       unset($build['field_remarks'][$delta]);
     }
   }
@@ -352,31 +352,33 @@ function incoming_remarks_filter_visible_paragraph_widgets(array &$form, FormSta
         $form['field_remarks']['widget'][$delta]['subform']['#attributes']['class'][] = $visible_class;
       }
     }
-    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph)) {
+    if (!incoming_remarks_paragraph_is_visible_to_amke($paragraph, $account)) {
       $form['field_remarks']['widget'][$delta]['#access'] = FALSE;
       continue;
     }
   }
 
-  foreach (Element::children($form['field_remarks']['widget']) as $delta) {
-    if (isset($form['field_remarks']['widget'][$delta]['#access'])
-      && $form['field_remarks']['widget'][$delta]['#access'] === FALSE) {
-      unset($form['field_remarks']['widget'][$delta]);
-    }
-  }
+  // Keep hidden widgets in the form structure to avoid dropping stored items
+  // on submit; visibility is already controlled via #access.
 }
 
 /**
  * Determines whether a remark paragraph is visible to AMKE users.
  */
-function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $paragraph): bool {
-  if (!$paragraph->hasField('field_visible_to')) {
+function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $paragraph, AccountInterface $account = NULL): bool {
+  $account = $account ?: \Drupal::currentUser();
+  if (incoming_remarks_account_can_bypass_visibility($account)) {
     return TRUE;
+  }
+  $restrict_by_legal_entity = $account->hasRole('amke_user') && !incoming_remarks_account_can_bypass_visibility($account);
+
+  if (!$paragraph->hasField('field_visible_to')) {
+    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
   }
 
   $field = $paragraph->get('field_visible_to');
   if ($field->isEmpty()) {
-    return TRUE;
+    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
   }
 
   $values = [];
@@ -387,7 +389,7 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
   }
 
   if (in_array('amke', $values, TRUE)) {
-    return TRUE;
+    return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
   }
   if (in_array('only_kemke', $values, TRUE)) {
     return FALSE;
@@ -400,7 +402,7 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
       $label = $options[$value] ?? '';
       $normalized_label = strtolower(trim($label));
       if ($normalized_label === 'amke') {
-        return TRUE;
+        return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
       }
       if ($normalized_label === 'only kemke' || $normalized_label === 'only_kemke') {
         return FALSE;
@@ -408,7 +410,7 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
     }
   }
 
-  return TRUE;
+  return incoming_remarks_paragraph_matches_legal_entity($paragraph, $restrict_by_legal_entity, $account);
 }
 
 /**
@@ -419,6 +421,66 @@ function incoming_remarks_account_can_bypass_visibility(AccountInterface $accoun
     || $account->hasPermission('administer site configuration')
     || $account->hasRole('administrator')
     || $account->hasRole('kemke_admin');
+}
+
+/**
+ * Checks whether a paragraph is visible to an AMKE user by legal entity.
+ */
+function incoming_remarks_paragraph_matches_legal_entity(ParagraphInterface $paragraph, bool $restrict, AccountInterface $account): bool {
+  if (!$restrict) {
+    return TRUE;
+  }
+
+  if (!$paragraph->hasField('field_user') || $paragraph->get('field_user')->isEmpty()) {
+    return TRUE;
+  }
+
+  $author = $paragraph->get('field_user')->entity;
+  if (!$author instanceof UserInterface) {
+    return TRUE;
+  }
+
+  if ($author->id() && $account->id() && $author->id() === $account->id()) {
+    return TRUE;
+  }
+
+  if (!$author->hasRole('amke_user')) {
+    return TRUE;
+  }
+
+  $author_entities = incoming_remarks_get_user_legal_entity_ids($author);
+  $viewer_entities = incoming_remarks_get_account_legal_entity_ids($account);
+  if (empty($author_entities) || empty($viewer_entities)) {
+    return FALSE;
+  }
+
+  return (bool) array_intersect($author_entities, $viewer_entities);
+}
+
+/**
+ * Returns legal entity target ids for a user account.
+ */
+function incoming_remarks_get_account_legal_entity_ids(AccountInterface $account): array {
+  $user = $account instanceof UserInterface
+    ? $account
+    : \Drupal::entityTypeManager()->getStorage('user')->load($account->id());
+
+  if (!$user instanceof UserInterface) {
+    return [];
+  }
+
+  return incoming_remarks_get_user_legal_entity_ids($user);
+}
+
+/**
+ * Returns legal entity target ids for a user entity.
+ */
+function incoming_remarks_get_user_legal_entity_ids(UserInterface $user): array {
+  if (!$user->hasField('field_legal_entity') || $user->get('field_legal_entity')->isEmpty()) {
+    return [];
+  }
+
+  return array_column($user->get('field_legal_entity')->getValue(), 'target_id');
 }
 /**
  * Returns a CSS class that reflects the remark visibility value.
@@ -640,6 +702,73 @@ function incoming_remarks_preprocess_field_multiple_value_form(array &$variables
     }
   }
   unset($row);
+
+  $filtered_rows = [];
+  foreach ($variables['table']['#rows'] as $row) {
+    if (!incoming_remarks_row_has_content($row)) {
+      continue;
+    }
+    $filtered_rows[] = $row;
+  }
+  $variables['table']['#rows'] = $filtered_rows;
+}
+
+/**
+ * Returns TRUE when a table row contains visible render content.
+ */
+function incoming_remarks_row_has_content(array $row): bool {
+  if (empty($row['data']) || !is_array($row['data'])) {
+    return FALSE;
+  }
+
+  foreach ($row['data'] as $cell) {
+    if (incoming_remarks_has_render_content($cell)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Recursively checks for non-empty render content.
+ */
+function incoming_remarks_has_render_content($value): bool {
+  if (is_string($value)) {
+    return trim($value) !== '';
+  }
+  if (is_numeric($value)) {
+    return TRUE;
+  }
+  if (!is_array($value)) {
+    return !empty($value);
+  }
+  if (array_key_exists('#access', $value) && $value['#access'] === FALSE) {
+    return FALSE;
+  }
+  if (!empty($value['#markup'])) {
+    return trim((string) $value['#markup']) !== '';
+  }
+  if (!empty($value['#plain_text'])) {
+    return trim((string) $value['#plain_text']) !== '';
+  }
+  if (!empty($value['#children'])) {
+    return trim((string) $value['#children']) !== '';
+  }
+  if (!empty($value['#text'])) {
+    return trim((string) $value['#text']) !== '';
+  }
+  if (isset($value['data'])) {
+    return incoming_remarks_has_render_content($value['data']);
+  }
+
+  foreach ($value as $child) {
+    if (incoming_remarks_has_render_content($child)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 
