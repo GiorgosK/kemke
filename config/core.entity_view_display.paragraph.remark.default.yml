@@ -53,10 +53,11 @@ content:
     weight: 2
     region: content
   field_user:
-    type: entity_reference_label
+    type: entity_reference_entity_view
     label: hidden
     settings:
-      link: true
+      view_mode: compact
+      link: false
     third_party_settings: {  }
     weight: 1
     region: content

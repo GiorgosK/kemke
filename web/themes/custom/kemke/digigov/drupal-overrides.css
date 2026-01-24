@@ -166,3 +166,9 @@ tr.visible-to-amke {
 .govgr-error-summary .govgr-list--bullet li {
   color: black;
 }
+
+.field--name-field-user .profile {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
