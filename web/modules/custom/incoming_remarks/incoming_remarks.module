@@ -385,33 +385,26 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
   }
 
   $viewer_entities = incoming_remarks_get_account_legal_entity_ids($account);
-  $host_info = incoming_remarks_get_paragraph_host_legal_entity_info($paragraph);
-  if (empty($host_info['ids']) && empty($host_info['blanket'])) {
+  if (!$paragraph->hasField('field_legal_entity') || $paragraph->get('field_legal_entity')->isEmpty()) {
     return FALSE;
   }
 
-  if ($paragraph->hasField('field_legal_entity') && !$paragraph->get('field_legal_entity')->isEmpty()) {
-    $paragraph_entities = array_column($paragraph->get('field_legal_entity')->getValue(), 'target_id');
-    $paragraph_entities = array_values(array_filter(array_map('intval', $paragraph_entities)));
-    $paragraph_blanket = incoming_remarks_field_has_blanket_label($paragraph, 'field_legal_entity');
-    if (empty($paragraph_entities) || empty($viewer_entities)) {
-      return FALSE;
-    }
-    if ($paragraph_blanket && !empty($viewer_entities)) {
-      return TRUE;
-    }
-    return (bool) array_intersect($paragraph_entities, $viewer_entities);
+  $paragraph_entities = array_column($paragraph->get('field_legal_entity')->getValue(), 'target_id');
+  $paragraph_entities = array_values(array_filter(array_map('intval', $paragraph_entities)));
+  if (empty($paragraph_entities) || empty($viewer_entities)) {
+    return FALSE;
   }
 
-  if (!empty($host_info['blanket']) && !empty($viewer_entities)) {
+  if (array_intersect($paragraph_entities, $viewer_entities)) {
     return TRUE;
   }
 
-  if (!empty($host_info['ids']) && !empty($viewer_entities)) {
-    return (bool) array_intersect($host_info['ids'], $viewer_entities);
+  $parent_entities = incoming_remarks_get_parent_term_ids($viewer_entities);
+  if (empty($parent_entities)) {
+    return FALSE;
   }
 
-  return FALSE;
+  return (bool) array_intersect($paragraph_entities, $parent_entities);
 }
 
 /**
@@ -523,6 +516,41 @@ function incoming_remarks_get_user_legal_entity_ids(UserInterface $user): array 
 
   $ids = array_column($user->get('field_legal_entity')->getValue(), 'target_id');
   return array_values(array_filter(array_map('intval', $ids)));
+}
+
+/**
+ * Returns the parent term ids for the given taxonomy term ids.
+ */
+function incoming_remarks_get_parent_term_ids(array $term_ids): array {
+  $term_ids = array_values(array_filter(array_map('intval', $term_ids)));
+  if (empty($term_ids)) {
+    return [];
+  }
+
+  static $parent_cache = [];
+  $parents = [];
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+
+  foreach ($term_ids as $term_id) {
+    if (isset($parent_cache[$term_id])) {
+      $parents = array_merge($parents, $parent_cache[$term_id]);
+      continue;
+    }
+
+    $parent_ids = [];
+    if ($storage) {
+      $parent_terms = $storage->loadParents($term_id);
+      foreach ($parent_terms as $parent_term) {
+        $parent_ids[] = (int) $parent_term->id();
+      }
+    }
+
+    $parent_ids = array_values(array_filter($parent_ids));
+    $parent_cache[$term_id] = $parent_ids;
+    $parents = array_merge($parents, $parent_ids);
+  }
+
+  return array_values(array_unique($parents));
 }
 
 /**
