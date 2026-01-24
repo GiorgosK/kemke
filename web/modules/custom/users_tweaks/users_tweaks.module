@@ -237,6 +237,42 @@ function users_tweaks_entity_view_alter(array &$build, EntityInterface $entity, 
   }
 
   $build['#title'] = users_tweaks_build_user_title($entity);
+  users_tweaks_add_roles_to_user_view($build, $entity);
+}
+
+/**
+ * Add user role labels to the user view display.
+ */
+function users_tweaks_add_roles_to_user_view(array &$build, UserInterface $account): void {
+  $role_ids = array_values(array_diff($account->getRoles(), ['authenticated']));
+  if ($role_ids === []) {
+    return;
+  }
+
+  $roles = \Drupal::entityTypeManager()
+    ->getStorage('user_role')
+    ->loadMultiple($role_ids);
+
+  $labels = [];
+  foreach ($role_ids as $role_id) {
+    if (isset($roles[$role_id])) {
+      $labels[] = $roles[$role_id]->label();
+    }
+  }
+
+  if ($labels === []) {
+    return;
+  }
+
+  $build['users_tweaks_roles'] = [
+    '#type' => 'item',
+    '#title' => t('Role'),
+    '#plain_text' => implode(', ', $labels),
+    '#weight' => 4,
+  ];
+
+  $build['#group_children'] = $build['#group_children'] ?? [];
+  $build['#group_children']['users_tweaks_roles'] = 'group_general';
 }
 
 /**
