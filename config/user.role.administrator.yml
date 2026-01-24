@@ -1,11 +1,18 @@
 uuid: e2355e58-7a3e-4e67-ac2b-1879da53a85a
 langcode: el
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - field_permissions
 _core:
   default_config_hash: OeKGIkmZA_c-t6QLH81WNQx8gDCc1MRmxaTuQgxBByU
 id: administrator
 label: Διαχειριστής
 weight: 3
 is_admin: true
-permissions: {  }
+permissions:
+  - 'create field_legal_entity'
+  - 'edit field_legal_entity'
+  - 'edit own field_legal_entity'
+  - 'view field_legal_entity'
+  - 'view own field_legal_entity'

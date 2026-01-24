@@ -10,6 +10,7 @@ dependencies:
   module:
     - activities_mods
     - content_moderation
+    - field_permissions
     - filter
     - incoming_change_state
     - kemke_reports
@@ -34,6 +35,7 @@ permissions:
   - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'
+  - 'edit field_legal_entity'
   - 'edit terms in case'
   - 'setup reports'
   - 'use incoming_processing transition completed'
