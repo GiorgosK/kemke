@@ -240,6 +240,27 @@ function users_tweaks_entity_view_alter(array &$build, EntityInterface $entity, 
 }
 
 /**
+ * Implements hook_toolbar_alter().
+ */
+function users_tweaks_toolbar_alter(array &$items): void {
+  if (!isset($items['user']['tab'])) {
+    return;
+  }
+
+  $current_user = \Drupal::currentUser();
+  if (!$current_user->isAuthenticated()) {
+    return;
+  }
+
+  $account = \Drupal::entityTypeManager()->getStorage('user')->load($current_user->id());
+  if (!$account instanceof UserInterface) {
+    return;
+  }
+
+  $items['user']['tab']['#title'] = users_tweaks_build_user_title($account);
+}
+
+/**
  * Build the user title based on name fields or username fallback.
  */
 function users_tweaks_build_user_title(UserInterface $account): string {
