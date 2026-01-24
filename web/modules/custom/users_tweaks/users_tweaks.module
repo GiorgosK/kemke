@@ -293,7 +293,42 @@ function users_tweaks_toolbar_alter(array &$items): void {
     return;
   }
 
-  $items['user']['tab']['#title'] = users_tweaks_build_user_title($account);
+  $title = users_tweaks_build_user_title($account);
+  $role_label = users_tweaks_get_primary_role_label($account);
+  if ($role_label !== NULL) {
+    $title .= ' (' . $role_label . ')';
+  }
+
+  $items['user']['tab']['#title'] = $title;
+}
+
+/**
+ * Get the first non-authenticated role label for a user.
+ */
+function users_tweaks_get_primary_role_label(UserInterface $account): ?string {
+  if ($account->hasRole('amke_user') && $account->hasField('field_legal_entity')) {
+    $legal_entity = $account->get('field_legal_entity')->entity;
+    if ($legal_entity) {
+      return $legal_entity->label();
+    }
+  }
+
+  $role_ids = array_values(array_diff($account->getRoles(), ['authenticated']));
+  if ($role_ids === []) {
+    return NULL;
+  }
+
+  $roles = \Drupal::entityTypeManager()
+    ->getStorage('user_role')
+    ->loadMultiple($role_ids);
+
+  foreach ($role_ids as $role_id) {
+    if (isset($roles[$role_id])) {
+      return $roles[$role_id]->label();
+    }
+  }
+
+  return NULL;
 }
 
 /**
