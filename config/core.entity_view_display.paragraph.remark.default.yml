@@ -46,7 +46,7 @@ content:
     region: content
   field_legal_entity:
     type: entity_reference_label
-    label: hidden
+    label: inline
     settings:
       link: true
     third_party_settings: {  }
