@@ -51,7 +51,6 @@ third_party_settings:
         - field_absenses_ref
         - field_legal_entity
         - field_serial_number
-        - field_temporary_disabled
       label: Γενικα
       parent_name: group_tabs
       region: content
@@ -128,7 +127,7 @@ content:
       empty_cell_value: ''
       hide_header: '0'
     third_party_settings: {  }
-    weight: 4
+    weight: 5
     region: content
   field_access_change_log:
     type: basic_string
@@ -181,7 +180,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 5
+    weight: 6
     region: content
   field_serial_number:
     type: number_integer
@@ -190,22 +189,19 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 6
-    region: content
-  field_temporary_disabled:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
-    third_party_settings: {  }
     weight: 7
     region: content
   member_for:
     settings: {  }
     third_party_settings: {  }
     weight: 2
+    region: content
+  roles:
+    type: user_roles
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 4
     region: content
   user_picture:
     type: image
@@ -223,4 +219,5 @@ hidden:
   field_last_password_reset: true
   field_password_expiration: true
   field_pending_expire_sent: true
+  field_temporary_disabled: true
   langcode: true
