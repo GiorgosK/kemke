@@ -593,7 +593,6 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
       '@message' => $throwable->getMessage(),
     ]);
     \Drupal::messenger()->addError(t('Docutracks fetch failed: @message', ['@message' => $throwable->getMessage()]));
-    incoming_related_field_store_plan_try_increment($node);
     $form_state->setRebuild(TRUE);
   }
 }
@@ -1283,34 +1282,7 @@ function incoming_related_field_store_plan_docutracks_response(NodeInterface $no
     }
   }
 
-  if (incoming_related_field_increment_plan_tries($node)) {
-    $updated = TRUE;
-  }
-
   if ($updated) {
-    $node->setNewRevision(FALSE);
-    $node->save();
-  }
-}
-
-/**
- * Increment plan tries and return TRUE if updated.
- */
-function incoming_related_field_increment_plan_tries(NodeInterface $node): bool {
-  if (!$node->hasField('field_plan_dt_tries')) {
-    return FALSE;
-  }
-
-  $current = $node->get('field_plan_dt_tries')->value ?? 0;
-  $node->set('field_plan_dt_tries', (int) $current + 1);
-  return TRUE;
-}
-
-/**
- * Increment plan tries and persist if updated.
- */
-function incoming_related_field_store_plan_try_increment(NodeInterface $node): void {
-  if (incoming_related_field_increment_plan_tries($node)) {
     $node->setNewRevision(FALSE);
     $node->save();
   }
