@@ -401,7 +401,7 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
       }
     }
 
-    incoming_related_field_apply_docutracks_fields($node, $doc);
+    incoming_related_field_apply_docutracks_fields($node, $doc, TRUE);
 
     \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
     $form_state->setRebuild(TRUE);
@@ -438,6 +438,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   $document_type_id = 1;
   $protocol_override_name = $context['protocol_override_name'] ?? NULL;
   $protocol_override = $protocol_override_name ? trim((string) ($input[$protocol_override_name] ?? '')) : '';
+  $force_update_fields = TRUE;
 
   if ($use_protocol) {
     $protocol_text = trim((string) ($context['protocol_text'] ?? ''));
@@ -495,17 +496,21 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
 
     $incoming_settings = Settings::get('incoming_related_field', []);
     $skip_doc_check = is_array($incoming_settings) ? !empty($incoming_settings['skip_corrected_docid']) : FALSE;
-    if (!$skip_doc_check) {
-      if (
-        !incoming_related_field_validate_docutracks_metadata($node, $doc, [
-          'field_sender',
-          'field_protocol_number_doc',
-        ])
-      ) {
+    if (
+      !$skip_doc_check
+      && !incoming_related_field_validate_docutracks_metadata($node, $doc, [
+        'field_sender',
+        'field_protocol_number_doc',
+      ])
+    ) {
+      if (!$force_update_fields) {
         \Drupal::messenger()->addError(t('Α/Α ΣΗΔΕ δεν ειναι σωστός.'));
         $form_state->setRebuild(TRUE);
         return;
       }
+      \Drupal::logger('incoming_related_field')->warning('Docutracks metadata mismatch for node @nid but forcing field updates.', [
+        '@nid' => $node->id(),
+      ]);
     }
 
     $file_id = (int) ($client->extractValueByPath($doc, 'Document.GeneratedFile.Id') ?? 0);
@@ -539,7 +544,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     }
 
     $node->set('field_dt_docid', $doc_id);
-    incoming_related_field_apply_docutracks_fields($node, $doc);
+    incoming_related_field_apply_docutracks_fields($node, $doc, $force_update_fields);
 
     \Drupal::messenger()->addStatus(t('Corrected document was downloaded from Docutracks.'));
     $form_state->setRebuild(TRUE);
@@ -781,13 +786,15 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
 /**
  * Apply Docutracks metadata to the incoming node.
  */
-function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, array $doc): void {
+function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, array $doc, bool $force = FALSE): void {
   if (!$node instanceof NodeInterface) {
     return;
   }
 
   /** @var \Drupal\side_api\DocutracksClient $client */
   $client = \Drupal::service('side_api.docutracks_client');
+  $settings = Settings::get('incoming_related_field', []);
+  $log_mapping = is_array($settings) ? !empty($settings['log_docutracks_mapping']) : FALSE;
 
   $mappings = [
     'field_protocol_number_doc' => [
@@ -816,15 +823,31 @@ function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, ar
   ];
 
   foreach ($mappings as $field_name => $paths) {
-    if (!$node->hasField($field_name) || !$node->get($field_name)->isEmpty()) {
+    if (!$node->hasField($field_name) || (!$force && !$node->get($field_name)->isEmpty())) {
       continue;
     }
-    $value = incoming_related_field_extract_doc_value($client, $doc, $paths);
+    $found_path = NULL;
+    $value = incoming_related_field_extract_doc_value($client, $doc, $paths, $found_path);
     if ($value !== NULL && $value !== '') {
       if ($field_name === 'field_protocol_number_doc') {
         $value = str_replace('\\/', '/', $value);
       }
       $node->set($field_name, $value);
+      if ($log_mapping) {
+        \Drupal::logger('incoming_related_field')->notice('Docutracks mapping for node @nid field @field from @path => @value', [
+          '@nid' => $node->id(),
+          '@field' => $field_name,
+          '@path' => $found_path ?? 'n/a',
+          '@value' => (string) $value,
+        ]);
+      }
+    }
+    elseif ($log_mapping) {
+      \Drupal::logger('incoming_related_field')->warning('Docutracks mapping empty for node @nid field @field. Paths: @paths', [
+        '@nid' => $node->id(),
+        '@field' => $field_name,
+        '@paths' => implode(', ', $paths),
+      ]);
     }
   }
 
@@ -835,16 +858,21 @@ function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, ar
 /**
  * Extract a value from the Docutracks document using multiple paths.
  */
-function incoming_related_field_extract_doc_value(\Drupal\side_api\DocutracksClient $client, array $doc, array $paths): ?string {
+function incoming_related_field_extract_doc_value(\Drupal\side_api\DocutracksClient $client, array $doc, array $paths, ?string &$found_path = NULL): ?string {
   foreach ($paths as $path) {
     $value = incoming_related_field_extract_value_by_path($doc, $path);
+    if (is_object($value)) {
+      $value = (array) $value;
+    }
     if (is_array($value)) {
       $value = incoming_related_field_extract_scalar_from_array($value);
     }
     if (is_string($value) && trim($value) !== '') {
+      $found_path = $path;
       return trim($value);
     }
     if (is_scalar($value) && $value !== NULL && $value !== '') {
+      $found_path = $path;
       return (string) $value;
     }
   }
@@ -864,6 +892,9 @@ function incoming_related_field_extract_value_by_path(array $data, string $path)
  * Recursive helper for incoming_related_field_extract_value_by_path().
  */
 function incoming_related_field_extract_value_by_parts(mixed $current, array $parts, int $index): mixed {
+  if (is_object($current)) {
+    $current = (array) $current;
+  }
   if ($index >= count($parts)) {
     return $current;
   }
@@ -877,6 +908,9 @@ function incoming_related_field_extract_value_by_parts(mixed $current, array $pa
   if (is_array($current)) {
     $results = [];
     foreach ($current as $item) {
+      if (is_object($item)) {
+        $item = (array) $item;
+      }
       if (!is_array($item)) {
         continue;
       }
@@ -1074,12 +1108,15 @@ function incoming_related_field_extract_entry_year(NodeInterface $node): int {
 function incoming_related_field_validate_docutracks_metadata(NodeInterface $node, array $doc, array $fields): bool {
   $mappings = [
     'field_sender' => [
+      'Document.DocumentCopies.0.Sender',
+      'Document.DocumentCopies.Sender',
       'Document.Sender',
       'Document.Sender.Name',
       'Document.Apostoleas.Name',
       'Document.Apostoleas_Name',
     ],
     'field_protocol_number_doc' => [
+      'Document.DocumentCopies.0.ProtocolText',
       'Document.DocumentCopies.ProtocolText',
       'Document.DocumentCopies.Protokollo.ProtocolText',
       'Document.ProtocolNumberDoc',
