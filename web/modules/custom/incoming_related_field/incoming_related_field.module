@@ -192,9 +192,13 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     $dt_docid_name = 'incoming_related_field_dt_docid_' . $delta;
     $existing_dt_docid = $node->hasField('field_dt_docid') ? ($node->get('field_dt_docid')->value ?? '') : '';
     $protocol_text = $node->hasField('field_protocol_number_doc') ? trim((string) ($node->get('field_protocol_number_doc')->value ?? '')) : '';
+    $sender_protocol = $node->hasField('field_protocol_number_sender')
+      ? trim((string) ($node->get('field_protocol_number_sender')->value ?? ''))
+      : '';
     $protocol_year = incoming_related_field_extract_entry_year($node);
     $use_protocol = ($protocol_text !== '' && $protocol_year > 0);
     $protocol_override_name = 'incoming_related_field_protocol_override_' . $delta;
+    $sender_protocol_name = 'incoming_related_field_sender_protocol_' . $delta;
 
     $is_admin = \Drupal::currentUser()->hasRole('administrator');
 
@@ -228,7 +232,28 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#weight' => 6,
     ];
 
+    $current_node = $form['#entity'] ?? NULL;
+    $is_current_node = $delta === 0;
+    if ($current_node instanceof NodeInterface && (int) $current_node->id() === (int) $node->id()) {
+      $is_current_node = TRUE;
+    }
+
     if (incoming_related_field_should_show_send_button($node)) {
+      $row['actions']['incoming_related_sender_protocol'] = [
+        '#type' => 'textfield',
+        '#title' => t('Α.Π. Αποστολέα'),
+        '#title_display' => 'invisible',
+        '#placeholder' => t('Α.Π. Αποστολέα'),
+        '#name' => $sender_protocol_name,
+        '#default_value' => $sender_protocol,
+        '#size' => 20,
+        '#attributes' => [
+          'class' => ['incoming-related-field-sender-protocol'],
+        ],
+        '#access' => TRUE,
+        '#weight' => 19,
+      ];
+
       $row['actions']['incoming_related_send_to_side'] = [
         '#type' => 'submit',
         '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
@@ -245,15 +270,16 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
         '#incoming_related_field_context' => [
           'file_id' => (int) $file->id(),
           'node_id' => (int) $node->id(),
+          'is_current_node' => $is_current_node,
+          'sender_protocol_name' => $sender_protocol_name,
+        ],
+        '#states' => [
+          'enabled' => [
+            ':input[name="' . $sender_protocol_name . '"]' => ['filled' => TRUE],
+          ],
         ],
         '#weight' => 20,
       ];
-    }
-
-    $current_node = $form['#entity'] ?? NULL;
-    $is_current_node = $delta === 0;
-    if ($current_node instanceof NodeInterface && (int) $current_node->id() === (int) $node->id()) {
-      $is_current_node = TRUE;
     }
 
     $corrected_action = [
@@ -361,6 +387,7 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
   $context = $trigger['#incoming_related_field_context'] ?? [];
   $file_id = $context['file_id'] ?? NULL;
   $node_id = $context['node_id'] ?? NULL;
+  $sender_protocol_name = $context['sender_protocol_name'] ?? NULL;
 
   if (!$file_id || !$node_id) {
     \Drupal::messenger()->addError(t('Missing document reference for SIDE transfer.'));
@@ -375,8 +402,11 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
   }
 
   try {
+    $input = $form_state->getUserInput();
+    $sender_protocol = $sender_protocol_name ? trim((string) ($input[$sender_protocol_name] ?? '')) : '';
     $result = incoming_related_field_send_file_to_side($file, [
       'title' => incoming_related_field_build_doc_title($file, ['parent_node_id' => $node_id]),
+      'field_protocol_number_sender' => $sender_protocol,
     ]);
     $stamped_file = $result['file'];
     $doc = $result['document'];
@@ -403,7 +433,15 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
       }
     }
 
+    if ($node instanceof NodeInterface && $sender_protocol !== '' && $node->hasField('field_protocol_number_sender')) {
+      $node->set('field_protocol_number_sender', $sender_protocol);
+    }
+
     incoming_related_field_apply_docutracks_fields($node, $doc, TRUE);
+
+    if (!empty($context['is_current_node'])) {
+      $form_state->set('incoming_related_field_refresh_node_id', (int) $node_id);
+    }
 
     \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
     $form_state->setRebuild(TRUE);
@@ -565,7 +603,22 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
 /**
  * Ajax callback for the send-to-SIDE action.
  */
-function incoming_related_field_send_to_side_ajax(array &$form, FormStateInterface $form_state): array {
+function incoming_related_field_send_to_side_ajax(array &$form, FormStateInterface $form_state) {
+  $refresh_node_id = (int) ($form_state->get('incoming_related_field_refresh_node_id') ?? 0);
+  if ($refresh_node_id) {
+    $redirect = \Drupal\Core\Url::fromRoute('entity.node.edit_form', [
+      'node' => $refresh_node_id,
+    ])->toString();
+    \Drupal::logger('incoming_related_field')->info('Send-to-SIDE AJAX redirect for node @nid to @url', [
+      '@nid' => (string) $refresh_node_id,
+      '@url' => $redirect,
+    ]);
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    incoming_related_field_add_message_commands($response);
+    $response->addCommand(new \Drupal\Core\Ajax\RedirectCommand($redirect));
+    return $response;
+  }
+
   if (isset($form['field_related_incoming'])) {
     return $form['field_related_incoming'];
   }
@@ -668,6 +721,26 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
       continue;
     }
 
+    $sender_protocol = $parent_node instanceof NodeInterface && $parent_node->hasField('field_protocol_number_sender')
+      ? trim((string) ($parent_node->get('field_protocol_number_sender')->value ?? ''))
+      : '';
+    $sender_protocol_name = 'incoming_related_field_sender_protocol_paragraph_' . $delta;
+
+    $subform['docutracks_sender_protocol'] = [
+      '#type' => 'textfield',
+      '#title' => t('Α.Π. Αποστολέα'),
+      '#title_display' => 'invisible',
+      '#placeholder' => t('Α.Π. Αποστολέα'),
+      '#name' => $sender_protocol_name,
+      '#default_value' => $sender_protocol,
+      '#size' => 20,
+      '#attributes' => [
+        'class' => ['incoming-related-field-sender-protocol'],
+      ],
+      '#access' => TRUE,
+      '#weight' => 99,
+    ];
+
     $subform['docutracks_send'] = [
       '#type' => 'submit',
       '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
@@ -681,6 +754,12 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
         'file_id' => (int) $file->id(),
         'paragraph_id' => $paragraph->isNew() ? NULL : (int) $paragraph->id(),
         'parent_node_id' => $parent_node_id,
+        'sender_protocol_name' => $sender_protocol_name,
+      ],
+      '#states' => [
+        'enabled' => [
+          ':input[name="' . $sender_protocol_name . '"]' => ['filled' => TRUE],
+        ],
       ],
       '#weight' => 100,
     ];
@@ -694,6 +773,7 @@ function incoming_related_field_send_to_side_submit(array &$form, FormStateInter
   $trigger = $form_state->getTriggeringElement();
   $context = $trigger['#incoming_related_field_context'] ?? [];
   $file_id = $context['file_id'] ?? NULL;
+  $sender_protocol_name = $context['sender_protocol_name'] ?? NULL;
   if (!$file_id) {
     \Drupal::messenger()->addError(t('Missing file reference for SIDE transfer.'));
     return;
@@ -707,8 +787,11 @@ function incoming_related_field_send_to_side_submit(array &$form, FormStateInter
   }
 
   try {
+    $input = $form_state->getUserInput();
+    $sender_protocol = $sender_protocol_name ? trim((string) ($input[$sender_protocol_name] ?? '')) : '';
     $result = incoming_related_field_send_file_to_side($file, [
       'title' => incoming_related_field_build_doc_title($file, $context),
+      'field_protocol_number_sender' => $sender_protocol,
     ]);
     $stamped_file = $result['file'];
     $paragraph_id = $context['paragraph_id'] ?? NULL;
@@ -717,6 +800,16 @@ function incoming_related_field_send_to_side_submit(array &$form, FormStateInter
       if ($paragraph instanceof ParagraphInterface && $paragraph->hasField('field_files')) {
         $paragraph->get('field_files')->appendItem(['target_id' => $stamped_file->id()]);
         $paragraph->save();
+      }
+    }
+
+    $parent_node_id = $context['parent_node_id'] ?? NULL;
+    if ($parent_node_id && $sender_protocol !== '') {
+      $parent_node = \Drupal::entityTypeManager()->getStorage('node')->load($parent_node_id);
+      if ($parent_node instanceof NodeInterface && $parent_node->hasField('field_protocol_number_sender')) {
+        $parent_node->set('field_protocol_number_sender', $sender_protocol);
+        $parent_node->setNewRevision(FALSE);
+        $parent_node->save();
       }
     }
 
@@ -751,6 +844,9 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
   /** @var \Drupal\side_api\DocutracksClient $client */
   $client = \Drupal::service('side_api.docutracks_client');
   $payload = $client->prepareRegisterPayload($doc_payload, $real_path, [], $type_id);
+  if (!empty($options['field_protocol_number_sender'])) {
+    $payload['field_protocol_number_sender'] = $options['field_protocol_number_sender'];
+  }
   $jar = $client->loginToDocutracks();
   $response = $client->registerDocument($payload, $jar);
 
@@ -963,6 +1059,12 @@ function incoming_related_field_write_debug_doc(array $doc, ?int $node_id = NULL
   if (!$file_system->prepareDirectory($target_dir, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
     return;
   }
+  $real_dir = $file_system->realpath($target_dir);
+  if ($real_dir !== FALSE) {
+    foreach (glob($real_dir . '/*.json') as $path) {
+      @unlink($path);
+    }
+  }
   $filename = $node_id ? ('incoming_' . $node_id . '_docutracks.json') : 'incoming_docutracks.json';
   $target_uri = $target_dir . '/' . $filename;
 
@@ -976,7 +1078,6 @@ function incoming_related_field_write_debug_doc(array $doc, ?int $node_id = NULL
   \Drupal::logger('incoming_related_field')->notice('Docutracks response saved to @path', [
     '@path' => $file->getFileUri(),
   ]);
-  \Drupal::messenger()->addStatus(t('Docutracks response saved to @path', ['@path' => $file->getFileUri()]));
 }
 
 /**

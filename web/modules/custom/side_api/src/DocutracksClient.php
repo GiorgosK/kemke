@@ -1023,6 +1023,9 @@ final class DocutracksClient {
     if (empty($document['DocumentCopies'][0]['SenderProtocol'])) {
       $document['DocumentCopies'][0]['SenderProtocol'] = $protocol;
     }
+    if (empty($document['ArPrApostolea'])) {
+      $document['ArPrApostolea'] = $protocol;
+    }
 
     $payload['Document'] = $document;
     return $payload;
