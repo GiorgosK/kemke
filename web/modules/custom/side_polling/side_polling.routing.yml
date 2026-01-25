@@ -1,0 +1,21 @@
+side_polling.admin:
+  path: '/admin/config/side-polling'
+  defaults:
+    _title: 'SIDE polling'
+    _controller: '\Drupal\side_polling\Controller\SidePollingController::list'
+  requirements:
+    _permission: 'administer site configuration'
+side_polling.finished:
+  path: '/admin/config/side-polling/finished'
+  defaults:
+    _title: 'SIDE polling (finished)'
+    _controller: '\Drupal\side_polling\Controller\SidePollingController::finished'
+  requirements:
+    _permission: 'administer site configuration'
+side_polling.run_now:
+  path: '/admin/config/side-polling/run/{job}'
+  defaults:
+    _title: 'Run polling job'
+    _controller: '\Drupal\side_polling\Controller\SidePollingRunController::run'
+  requirements:
+    _permission: 'administer site configuration'

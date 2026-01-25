@@ -1,0 +1,17 @@
+services:
+  side_polling.manager:
+    class: Drupal\side_polling\SidePollingManager
+    arguments:
+      - '@database'
+      - '@logger.channel.side_polling'
+      - '@side_polling.plan_correction_handler'
+      - '@settings'
+  logger.channel.side_polling:
+    class: Drupal\Core\Logger\LoggerChannel
+    arguments: ['side_polling']
+  side_polling.plan_correction_handler:
+    class: Drupal\side_polling\Handler\PlanCorrectionHandler
+    arguments:
+      - '@entity_type.manager'
+      - '@incoming_plan_correction.manager'
+      - '@logger.channel.side_polling'

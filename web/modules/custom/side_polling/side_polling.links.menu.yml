@@ -1,0 +1,6 @@
+side_polling.admin:
+  title: 'SIDE polling'
+  description: 'View active and finished Docutracks polling jobs.'
+  parent: system.admin_config
+  route_name: side_polling.admin
+  weight: 100

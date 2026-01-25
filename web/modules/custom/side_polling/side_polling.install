@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function side_polling_schema(): array {
+  $schema['side_polling_job'] = [
+    'description' => 'Stores Docutracks polling jobs.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'type' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ],
+      'status' => [
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE,
+        'default' => 'active',
+      ],
+      'payload' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ],
+      'interval' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 300,
+      ],
+      'next_run' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'attempts' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'max_attempts' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'last_error' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'updated' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'status_next_run' => ['status', 'next_run'],
+      'type' => ['type'],
+    ],
+  ];
+
+  return $schema;
+}

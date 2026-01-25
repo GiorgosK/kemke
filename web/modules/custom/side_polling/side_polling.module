@@ -1,0 +1,12 @@
+<?php
+
+use Drupal\side_polling\SidePollingManager;
+
+/**
+ * Implements hook_cron().
+ */
+function side_polling_cron(): void {
+  /** @var \Drupal\side_polling\SidePollingManager $manager */
+  $manager = \Drupal::service('side_polling.manager');
+  $manager->runDueJobs();
+}

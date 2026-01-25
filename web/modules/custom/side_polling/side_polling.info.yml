@@ -1,0 +1,8 @@
+name: 'Side polling'
+type: module
+description: 'Registers and executes polling jobs against Docutracks.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - incoming_plan_correction
+  - side_api
