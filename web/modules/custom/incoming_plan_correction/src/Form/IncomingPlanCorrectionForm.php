@@ -44,7 +44,23 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     $latest_correction = $this->getLatestPlanCorrectionStatusAny($node);
-    $show_receive_button = $latest_correction && empty($latest_correction['received']);
+    $plan_count = $node->hasField('field_plan') ? count($node->get('field_plan')->getValue()) : 0;
+    $signed_count = $node->hasField('field_plan_signed') ? count($node->get('field_plan_signed')->getValue()) : 0;
+    $log_stats = $this->getPlanCorrectionLogStats($node);
+    $mismatch_reason = $this->getPlanCorrectionCountMismatchReason($plan_count, $signed_count, $log_stats);
+    if ($mismatch_reason !== NULL) {
+      $form['message'] = [
+        '#markup' => $this->t('Correction logs are out of sync with attached files: @reason', [
+          '@reason' => $mismatch_reason,
+        ]),
+      ];
+      $form_state->set('incoming_plan_correction_node', $node);
+      return $form;
+    }
+
+    $show_receive_button = $latest_correction
+      && ($latest_correction['Send']['type'] ?? '') === 'correction'
+      && empty($latest_correction['Receive']['success']);
 
     $form['actions'] = [
       '#type' => 'actions',
@@ -180,7 +196,17 @@ final class IncomingPlanCorrectionForm extends FormBase {
           $existing_ids = array_column($node->get('field_plan')->getValue(), 'target_id');
           if (!in_array($file->id(), $existing_ids, TRUE)) {
             $node->get('field_plan')->appendItem(['target_id' => $file->id()]);
+            $this->getLogger('incoming_plan_correction')->info('Attached correction file @fid to field_plan for incoming @nid.', [
+              '@fid' => $file->id(),
+              '@nid' => $node->id(),
+            ]);
           }
+        }
+        else {
+          $this->getLogger('incoming_plan_correction')->warning('Missing field_plan on incoming @nid while attaching correction file @fid.', [
+            '@fid' => $file->id(),
+            '@nid' => $node->id(),
+          ]);
         }
 
         $this->storeDocutracksResponse($node, $response);
@@ -225,7 +251,10 @@ final class IncomingPlanCorrectionForm extends FormBase {
       throw new AccessDeniedHttpException();
     }
 
-    $document_id = $this->getLatestDocutracksDocumentReference($node);
+    $latest_correction = $this->getLatestPlanCorrectionStatusAny($node);
+    $document_id = $latest_correction && ($latest_correction['Send']['type'] ?? '') === 'correction'
+      ? ($latest_correction['Send']['dt_doc_id'] ?? NULL)
+      : NULL;
     if (!$document_id) {
       $this->messenger()->addError($this->t('Missing Docutracks correction document id.'));
       $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
@@ -236,15 +265,23 @@ final class IncomingPlanCorrectionForm extends FormBase {
       /** @var \Drupal\side_api\DocutracksClient $client */
       $client = \Drupal::service('side_api.docutracks_client');
       $jar = $client->loginToDocutracks(timeout: 60.0);
-      $received = $this->downloadSignedPlan($node, $client, $jar, (int) $document_id);
-      $correction_id = $this->getPlanCorrectionId($node);
+      $result = $this->downloadSignedPlan($node, $client, $jar, (int) $document_id);
+      $received = $result['success'];
+      $error_reason = $result['error'];
+      $correction_id = $this->getLatestPlanCorrectionId($node);
       $received_tries = $this->getPlanCorrectionReceivedTries($node, $correction_id) + 1;
       $this->appendPlanCorrectionStatus($node, [
-        'id' => $correction_id,
-        'dt_doc_id' => (int) $document_id,
-        'send_tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
-        'received' => $received ? TRUE : FALSE,
-        'received_tries' => $received_tries,
+        'Send' => [
+          'type' => 'correction',
+          'id' => $correction_id,
+          'dt_doc_id' => (int) $document_id,
+          'tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
+        ],
+        'Receive' => [
+          'success' => $received ? TRUE : FALSE,
+          'error' => $error_reason ?? '',
+          'tries' => $received_tries,
+        ],
       ]);
       $node->setNewRevision(FALSE);
       $node->save();
@@ -262,14 +299,20 @@ final class IncomingPlanCorrectionForm extends FormBase {
       }
     }
     catch (\Throwable $throwable) {
-      $correction_id = $this->getPlanCorrectionId($node);
+      $correction_id = $this->getLatestPlanCorrectionId($node);
       $received_tries = $this->getPlanCorrectionReceivedTries($node, $correction_id) + 1;
       $this->appendPlanCorrectionStatus($node, [
-        'id' => $correction_id,
-        'dt_doc_id' => (int) $document_id,
-        'send_tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
-        'received' => FALSE,
-        'received_tries' => $received_tries,
+        'Send' => [
+          'type' => 'correction',
+          'id' => $correction_id,
+          'dt_doc_id' => (int) $document_id,
+          'tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
+        ],
+        'Receive' => [
+          'success' => FALSE,
+          'error' => $throwable->getMessage(),
+          'tries' => $received_tries,
+        ],
       ]);
       $this->messenger()->addError($this->t('Docutracks signed fetch failed: @message', [
         '@message' => $throwable->getMessage(),
@@ -353,19 +396,31 @@ final class IncomingPlanCorrectionForm extends FormBase {
   /**
    * Download and attach signed plan file for the given Docutracks document id.
    */
-  private function downloadSignedPlan(NodeInterface $node, $client, $jar, int $document_id): bool {
+  private function downloadSignedPlan(NodeInterface $node, $client, $jar, int $document_id): array {
     if (!$node->hasField('field_plan_signed')) {
-      return FALSE;
+      return ['success' => FALSE, 'error' => 'field_plan_signed missing'];
     }
 
     $doc = $client->fetchDocument((string) $document_id, $jar);
+    $signatures_status = $client->extractValueByPath($doc, 'Document.SignaturesStatus');
+    if (
+      !\Drupal\side_api\DocutracksClient::allowUnsignedPlanDownload() &&
+      !\Drupal\side_api\DocutracksClient::isSignaturesStatusComplete($signatures_status)
+    ) {
+      $status_label = $signatures_status ?: 'missing';
+      $this->getLogger('incoming_plan_correction')->warning('Unable to fetch signed correction for incoming @nid: signature process incomplete (@status).', [
+        '@nid' => $node->id(),
+        '@status' => $status_label,
+      ]);
+      return ['success' => FALSE, 'error' => 'Δεν ειναι υπογεγραμμένο'];
+    }
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
     if (!$file_id) {
       $this->getLogger('incoming_plan_correction')->warning('Docutracks correction missing GeneratedFile.Id for incoming @nid (doc @doc).', [
         '@nid' => $node->id(),
         '@doc' => $document_id,
       ]);
-      return FALSE;
+      return ['success' => FALSE, 'error' => 'missing GeneratedFile.Id'];
     }
 
     $file_system = \Drupal::service('file_system');
@@ -394,17 +449,21 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $client->downloadFile((int) $file_id, (int) $document_id, $target_path, $jar, NULL, TRUE);
     $bytes = file_get_contents($target_path);
     if ($bytes === FALSE) {
-      return FALSE;
+      return ['success' => FALSE, 'error' => 'failed to read downloaded file'];
     }
 
     $signed_file = $file_repository->writeData($bytes, $target_uri, FileSystemInterface::EXISTS_RENAME);
     if ($signed_file) {
       $node->get('field_plan_signed')->appendItem(['target_id' => $signed_file->id()]);
       $file_usage->add($signed_file, 'incoming_plan_correction', 'node', $node->id());
-      return TRUE;
+      $this->getLogger('incoming_plan_correction')->info('Attached signed correction file @fid to field_plan_signed for incoming @nid.', [
+        '@fid' => $signed_file->id(),
+        '@nid' => $node->id(),
+      ]);
+      return ['success' => TRUE, 'error' => NULL];
     }
 
-    return FALSE;
+    return ['success' => FALSE, 'error' => 'failed to save signed file'];
   }
 
   /**
@@ -416,8 +475,9 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-    $line = $this->formatPlanCorrectionStatusLine($data);
-    $combined = trim($value) !== '' ? $value . "\n" . $line : $line;
+    $timestamp = date('Y-m-d H:i:s');
+    $line = sprintf("[%s]\n%s", $timestamp, $this->formatPlanCorrectionStatusLine($data));
+    $combined = trim($value) !== '' ? $value . "\n\n" . $line : $line;
     $node->set('field_plan_dt_api_response', $combined);
   }
 
@@ -427,23 +487,25 @@ final class IncomingPlanCorrectionForm extends FormBase {
   private function formatPlanCorrectionStatusLine(array $data): string {
     $payload = Json::encode($data, JSON_UNESCAPED_UNICODE);
     $payload = str_replace(['true', 'false'], ['TRUE', 'FALSE'], $payload);
-    return 'PlanCorrection:' . $payload;
+    return 'Plan:' . $payload;
   }
 
   /**
-   * Determine the correction id based on the plan file count.
+   * Determine the latest correction id based on the log entries.
    */
-  private function getPlanCorrectionId(NodeInterface $node): int {
-    if (!$node->hasField('field_plan')) {
-      return 1;
-    }
+  private function getLatestPlanCorrectionId(NodeInterface $node): int {
+    $latest = $this->getLatestPlanCorrectionStatusAny($node);
+    $latest_id = (int) ($latest['Send']['id'] ?? 0);
+    return $latest_id > 0 ? $latest_id : 1;
+  }
 
-    $count = count($node->get('field_plan')->getValue());
-    if ($count <= 1) {
-      return 1;
-    }
-
-    return $count - 1;
+  /**
+   * Determine the next correction id to use when sending.
+   */
+  private function getNextPlanCorrectionId(NodeInterface $node): int {
+    $latest = $this->getLatestPlanCorrectionStatusAny($node);
+    $latest_id = (int) ($latest['Send']['id'] ?? 0);
+    return $latest_id > 0 ? $latest_id + 1 : 1;
   }
 
   /**
@@ -455,7 +517,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       return 0;
     }
 
-    return (int) ($status['send_tries'] ?? 0);
+    return (int) ($status['Send']['tries'] ?? 0);
   }
 
   /**
@@ -467,7 +529,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       return 0;
     }
 
-    return (int) ($status['received_tries'] ?? 0);
+    return (int) ($status['Receive']['tries'] ?? 0);
   }
 
   /**
@@ -487,18 +549,18 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $latest = NULL;
     foreach ($lines as $line) {
       $line = trim($line);
-      if ($line === '' || strpos($line, 'PlanCorrection:') !== 0) {
+      if ($line === '' || strpos($line, 'Plan:') !== 0) {
         continue;
       }
 
-      $payload = substr($line, strlen('PlanCorrection:'));
+      $payload = substr($line, strlen('Plan:'));
       $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
       $decoded = Json::decode($normalized);
       if (!is_array($decoded)) {
         continue;
       }
 
-      if ((int) ($decoded['id'] ?? 0) === $correction_id) {
+      if ((int) ($decoded['Send']['id'] ?? 0) === $correction_id) {
         $latest = $decoded;
       }
     }
@@ -523,11 +585,11 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $latest = NULL;
     foreach ($lines as $line) {
       $line = trim($line);
-      if ($line === '' || strpos($line, 'PlanCorrection:') !== 0) {
+      if ($line === '' || strpos($line, 'Plan:') !== 0) {
         continue;
       }
 
-      $payload = substr($line, strlen('PlanCorrection:'));
+      $payload = substr($line, strlen('Plan:'));
       $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
       $decoded = Json::decode($normalized);
       if (!is_array($decoded)) {
@@ -538,6 +600,81 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     return $latest;
+  }
+
+  /**
+   * Gather correction log stats for count comparisons.
+   *
+   * @return array{max_id:int, received_count:int}
+   */
+  private function getPlanCorrectionLogStats(NodeInterface $node): array {
+    $stats = [
+      'max_id' => 0,
+      'received_count' => 0,
+    ];
+
+    if (!$node->hasField('field_plan_dt_api_response')) {
+      return $stats;
+    }
+
+    $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    if (trim($value) === '') {
+      return $stats;
+    }
+
+    $lines = preg_split('/\r\n|\r|\n/', $value);
+    foreach ($lines as $line) {
+      $line = trim($line);
+      if ($line === '' || strpos($line, 'Plan:') !== 0) {
+        continue;
+      }
+
+      $payload = substr($line, strlen('Plan:'));
+      $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
+      $decoded = Json::decode($normalized);
+      if (!is_array($decoded)) {
+        continue;
+      }
+
+      if (($decoded['Send']['type'] ?? '') !== 'correction') {
+        continue;
+      }
+
+      $id = (int) ($decoded['Send']['id'] ?? 0);
+      if ($id > $stats['max_id']) {
+        $stats['max_id'] = $id;
+      }
+
+      if (!empty($decoded['Receive']['success'])) {
+        $stats['received_count']++;
+      }
+    }
+
+    return $stats;
+  }
+
+  /**
+   * Return a mismatch reason when file counts diverge from logs.
+   */
+  private function getPlanCorrectionCountMismatchReason(int $plan_count, int $signed_count, array $log_stats): ?string {
+    $max_id = (int) ($log_stats['max_id'] ?? 0);
+    $received_count = (int) ($log_stats['received_count'] ?? 0);
+    if ($max_id === 0 && $received_count === 0) {
+      return NULL;
+    }
+
+    $correction_plan_count = max(0, $plan_count - 1);
+    $correction_signed_count = max(0, $signed_count - 1);
+
+    if ($correction_plan_count !== $max_id) {
+      return sprintf('field_plan corrections %d, log max id %d.', $correction_plan_count, $max_id);
+    }
+
+    if ($correction_signed_count !== $received_count) {
+      return sprintf('field_plan_signed corrections %d, log received %d.', $correction_signed_count, $received_count);
+    }
+
+    return NULL;
   }
 
   /**
@@ -553,13 +690,19 @@ final class IncomingPlanCorrectionForm extends FormBase {
       $entry = sprintf("[%s]\n%s", $timestamp, $encoded);
       $document_id = $response['DocumentReference'] ?? NULL;
       if ($document_id) {
-        $correction_id = $this->getPlanCorrectionId($node);
+        $correction_id = $this->getNextPlanCorrectionId($node);
         $entry .= "\n" . $this->formatPlanCorrectionStatusLine([
-          'id' => $correction_id,
-          'dt_doc_id' => (int) $document_id,
-          'send_tries' => $this->getPlanCorrectionSendTries($node, $correction_id) + 1,
-          'received' => FALSE,
-          'received_tries' => 0,
+          'Send' => [
+            'type' => 'correction',
+            'id' => $correction_id,
+            'dt_doc_id' => (int) $document_id,
+            'tries' => $this->getPlanCorrectionSendTries($node, $correction_id) + 1,
+          ],
+          'Receive' => [
+            'success' => FALSE,
+            'error' => '',
+            'tries' => 0,
+          ],
         ]);
       }
       $combined = trim($existing) !== '' ? $existing . "\n\n" . $entry : $entry;

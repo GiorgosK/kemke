@@ -154,6 +154,37 @@ final class DocutracksClient {
   }
 
   /**
+   * Return TRUE when signed plan download should ignore signature status.
+   */
+  public static function allowUnsignedPlanDownload(): bool {
+    $settings = Settings::get('docutracks', []);
+    if (!is_array($settings)) {
+      $settings = [];
+    }
+
+    if (!empty($settings['get_plan_unsigned'])) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Determine whether the signature status shows completion.
+   */
+  public static function isSignaturesStatusComplete(?string $status): bool {
+    if ($status === NULL) {
+      return FALSE;
+    }
+
+    if (!preg_match('/^\\s*(\\d+)\\D+(\\d+)/', $status, $matches)) {
+      return FALSE;
+    }
+
+    return (int) $matches[1] === (int) $matches[2];
+  }
+
+  /**
    * Fetch document metadata by protocol details.
    *
    * @return array<string, mixed>

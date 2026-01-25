@@ -777,15 +777,7 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
  * Determines whether the signature status shows completion.
  */
 function incoming_tweaks_is_signatures_status_complete(?string $status): bool {
-  if ($status === NULL) {
-    return FALSE;
-  }
-
-  if (!preg_match('/^\s*(\d+)\D+(\d+)/', $status, $matches)) {
-    return FALSE;
-  }
-
-  return (int) $matches[1] === (int) $matches[2];
+  return \Drupal\side_api\DocutracksClient::isSignaturesStatusComplete($status);
 }
 
 /**
@@ -1054,18 +1046,11 @@ function incoming_tweaks_simulation_settings(): array {
   return is_array($settings) ? $settings : [];
 }
 
-// $settings['incoming_tweaks']['get_plan_unsigned'] = TRUE;
-
 /**
  * Return TRUE when signed plan download should ignore signature status.
  */
 function incoming_tweaks_get_plan_unsigned_enabled(): bool {
-  $settings = \Drupal\Core\Site\Settings::get('incoming_tweaks', []);
-  if (!is_array($settings)) {
-    return FALSE;
-  }
-
-  return !empty($settings['get_plan_unsigned']);
+  return \Drupal\side_api\DocutracksClient::allowUnsignedPlanDownload();
 }
 
 /**
