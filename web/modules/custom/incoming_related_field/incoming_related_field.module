@@ -196,6 +196,8 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     $use_protocol = ($protocol_text !== '' && $protocol_year > 0);
     $protocol_override_name = 'incoming_related_field_protocol_override_' . $delta;
 
+    $is_admin = \Drupal::currentUser()->hasRole('administrator');
+
     $row['actions']['incoming_related_dt_docid'] = [
       '#type' => 'textfield',
       '#title' => t('Α/Α ΣΗΔΕ'),
@@ -207,7 +209,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#attributes' => [
         'class' => ['incoming-related-field-dt-docid'],
       ],
-      '#access' => !$use_protocol,
+      '#access' => $is_admin,
       '#weight' => 5,
     ];
 
@@ -222,7 +224,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#attributes' => [
         'class' => ['incoming-related-field-protocol-override'],
       ],
-      '#access' => \Drupal::currentUser()->hasRole('administrator'),
+      '#access' => TRUE,
       '#weight' => 6,
     ];
 
