@@ -244,7 +244,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
           'file_id' => (int) $file->id(),
           'node_id' => (int) $node->id(),
         ],
-        '#weight' => 10,
+        '#weight' => 20,
       ];
     }
 
