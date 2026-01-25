@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
@@ -88,6 +89,11 @@ function field_non_empty_lock_form_paragraph_form_alter(array &$form, FormStateI
  * Locks selected node fields once they have been populated.
  */
 function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface $form_state, $bundle) {
+  $settings = Settings::get('field_non_empty_lock', []);
+  $skip_lock = is_array($settings) ? !empty($settings['disable_lock']) : FALSE;
+  if ($skip_lock) {
+    return;
+  }
   $form_object = $form_state->getFormObject();
   if (!$form_object) {
     return;
@@ -132,6 +138,11 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
  * Locks selected taxonomy term fields once they have been populated.
  */
 function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface $form_state, $vocabulary) {
+  $settings = Settings::get('field_non_empty_lock', []);
+  $skip_lock = is_array($settings) ? !empty($settings['disable_lock']) : FALSE;
+  if ($skip_lock) {
+    return;
+  }
   $form_object = $form_state->getFormObject();
   if (!$form_object) {
     return;
@@ -176,6 +187,11 @@ function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface 
  * Locks selected paragraph sub-fields embedded within node forms.
  */
 function field_non_empty_lock_lock_embedded_paragraph_fields(array &$form, FormStateInterface $form_state) {
+  $settings = Settings::get('field_non_empty_lock', []);
+  $skip_lock = is_array($settings) ? !empty($settings['disable_lock']) : FALSE;
+  if ($skip_lock) {
+    return;
+  }
   $form_object = $form_state->getFormObject();
   if (!$form_object) {
     return;
