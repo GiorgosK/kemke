@@ -40,6 +40,7 @@ final class DocutracksClient {
   private const DEFAULT_FORCE_SIGNED = FALSE;
   // Default timeout used by the client; callers can override per request.
   private const DEFAULT_TIMEOUT = 60.0;
+  private const STUB_PDF_BASE64 = 'JVBERi0xLjQKMSAwIG9iajw8Pj4KZW5kb2JqCnRyYWlsZXI8PD4+CiUlRU9GCg==';
 
   public function __construct(private readonly ClientInterface $httpClient) {
   }
@@ -374,6 +375,13 @@ final class DocutracksClient {
     bool $forceSigned = self::DEFAULT_FORCE_SIGNED,
     ?string $debugTargetPath = NULL
   ): string {
+    if ($this->isSimulationEnabled()) {
+      $simulated = $this->getSimulatedFileBytes();
+      if ($simulated !== NULL) {
+        return $simulated;
+      }
+    }
+
     $baseUrl = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
     $verify = $this->getTlsVerify();
 
@@ -411,7 +419,8 @@ final class DocutracksClient {
       if ($this->shouldSimulateFailure('registerDocument_return')) {
         throw new RuntimeException((string) new TranslatableMarkup('Register document failed: simulated failure.'));
       }
-      return $this->buildSimulatedRegisterResponse($payload);
+      $simulated = $this->getSimulatedRegisterResponse();
+      return $simulated ?? $this->buildSimulatedRegisterResponse($payload);
     }
 
     $payload = $this->applyIncomingProtocolNumberSender($payload);
@@ -459,7 +468,11 @@ final class DocutracksClient {
   // Side API simulation settings for local Docutracks testing.
   // $settings['side_api']['simulation'] = TRUE;
   // $settings['side_api']['registerDocument']['return'] = 'success'; // 'success' or 'fail'
+  // $settings['side_api']['registerDocument']['response'] = '{"Success":true,"DocumentReference":25338}';
   // $settings['side_api']['fetchDocument']['return'] = 'fail'; // 'success' or 'fail'
+  // $settings['side_api']['fetchDocument']['response'] = '{"Document":{"Id":25338,"GeneratedFile":{"Id":22884},"SignaturesStatus":"1 από 1 υπογραφές"}}';
+  // $settings['side_api']['fileGet']['bytes'] = 'PDF DATA...';
+  // $settings['side_api']['fileGet']['base64'] = 'JVBERi0xLjQK...';
   // $settings['side_api']['fetchDocument']['signatures_status'] = '1 από 3 υπογραφές';
   // $settings['side_api']['fetchDocument']['generated_file_id'] = 0;
   // $settings['side_api']['fetchDocument']['allow_missing_generated_file_id'] = TRUE;
@@ -496,6 +509,10 @@ final class DocutracksClient {
    * @return array<string, mixed>
    */
   private function buildSimulatedDocument(string $docId): array {
+    $custom = $this->getSimulatedFetchDocumentResponse();
+    if ($custom !== NULL) {
+      return $custom;
+    }
     $settings = Settings::get('side_api', []);
     $fetch_settings = is_array($settings) ? ($settings['fetchDocument'] ?? []) : [];
     $signatures_status = is_array($fetch_settings) ? ($fetch_settings['signatures_status'] ?? '1 από 1 υπογραφές') : '1 από 1 υπογραφές';
@@ -528,6 +545,59 @@ final class DocutracksClient {
         'Id' => $docId > 0 ? $docId : 1,
       ],
     ];
+  }
+
+  /**
+   * Return a simulated register response from settings when provided.
+   */
+  private function getSimulatedRegisterResponse(): ?array {
+    $settings = Settings::get('side_api', []);
+    $response = is_array($settings) ? ($settings['registerDocument']['response'] ?? NULL) : NULL;
+    if (is_string($response)) {
+      $decoded = Json::decode($response);
+      return is_array($decoded) ? $decoded : NULL;
+    }
+    return is_array($response) ? $response : NULL;
+  }
+
+  /**
+   * Return a simulated fetchDocument response from settings when provided.
+   */
+  private function getSimulatedFetchDocumentResponse(): ?array {
+    $settings = Settings::get('side_api', []);
+    $response = is_array($settings) ? ($settings['fetchDocument']['response'] ?? NULL) : NULL;
+    if (is_string($response)) {
+      $decoded = Json::decode($response);
+      return is_array($decoded) ? $decoded : NULL;
+    }
+    return is_array($response) ? $response : NULL;
+  }
+
+  /**
+   * Return simulated file bytes when provided.
+   */
+  private function getSimulatedFileBytes(): ?string {
+    $settings = Settings::get('side_api', []);
+    $file_settings = is_array($settings) ? ($settings['fileGet'] ?? []) : [];
+    if (!is_array($file_settings)) {
+      return NULL;
+    }
+
+    $bytes = $file_settings['bytes'] ?? NULL;
+    if (is_string($bytes)) {
+      return $bytes;
+    }
+
+    $base64 = $file_settings['base64'] ?? NULL;
+    if (is_string($base64)) {
+      $decoded = base64_decode($base64, TRUE);
+      if (is_string($decoded)) {
+        return $decoded;
+      }
+    }
+
+    $decoded = base64_decode(self::STUB_PDF_BASE64, TRUE);
+    return is_string($decoded) ? $decoded : NULL;
   }
 
   /**
