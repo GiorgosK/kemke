@@ -59,7 +59,8 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     $show_receive_button = $latest_correction
-      && ($latest_correction['Send']['type'] ?? '') === 'correction'
+      && ($latest_correction['type'] ?? '') === 'plan'
+      && ($latest_correction['Send']['purpose'] ?? '') === 'correction'
       && empty($latest_correction['Receive']['success']);
 
     $form['actions'] = [
@@ -252,9 +253,11 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     $latest_correction = $this->getLatestPlanCorrectionStatusAny($node);
-    $document_id = $latest_correction && ($latest_correction['Send']['type'] ?? '') === 'correction'
-      ? ($latest_correction['Send']['dt_doc_id'] ?? NULL)
-      : NULL;
+    $document_id = $latest_correction
+      && ($latest_correction['type'] ?? '') === 'plan'
+      && ($latest_correction['Send']['purpose'] ?? '') === 'correction'
+        ? ($latest_correction['Send']['dt_doc_id'] ?? NULL)
+        : NULL;
     if (!$document_id) {
       $this->messenger()->addError($this->t('Missing Docutracks correction document id.'));
       $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
@@ -271,8 +274,9 @@ final class IncomingPlanCorrectionForm extends FormBase {
       $correction_id = $this->getLatestPlanCorrectionId($node);
       $received_tries = $this->getPlanCorrectionReceivedTries($node, $correction_id) + 1;
       $this->appendPlanCorrectionStatus($node, [
+        'type' => 'plan',
         'Send' => [
-          'type' => 'correction',
+          'purpose' => 'correction',
           'id' => $correction_id,
           'dt_doc_id' => (int) $document_id,
           'tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
@@ -292,7 +296,11 @@ final class IncomingPlanCorrectionForm extends FormBase {
         ]);
       }
       else {
-        $this->messenger()->addError($this->t('Signed correction is not available yet.'));
+        $message = $error_reason !== '' ? $error_reason : 'Signed correction is not available yet.';
+        if ($message === 'Not signed.') {
+          $message = 'Δεν είναι υπογεγραμμένο';
+        }
+        $this->messenger()->addError($this->t('@message', ['@message' => $message]));
         $this->getLogger('incoming_plan_correction')->warning('Docutracks correction signed download unavailable for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
@@ -302,8 +310,9 @@ final class IncomingPlanCorrectionForm extends FormBase {
       $correction_id = $this->getLatestPlanCorrectionId($node);
       $received_tries = $this->getPlanCorrectionReceivedTries($node, $correction_id) + 1;
       $this->appendPlanCorrectionStatus($node, [
+        'type' => 'plan',
         'Send' => [
-          'type' => 'correction',
+          'purpose' => 'correction',
           'id' => $correction_id,
           'dt_doc_id' => (int) $document_id,
           'tries' => $this->getPlanCorrectionSendTries($node, $correction_id),
@@ -412,7 +421,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
         '@nid' => $node->id(),
         '@status' => $status_label,
       ]);
-      return ['success' => FALSE, 'error' => 'Δεν ειναι υπογεγραμμένο'];
+      return ['success' => FALSE, 'error' => 'Not signed.'];
     }
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
     if (!$file_id) {
@@ -475,9 +484,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-    $timestamp = date('Y-m-d H:i:s');
-    $line = sprintf("[%s]\n%s", $timestamp, $this->formatPlanCorrectionStatusLine($data));
-    $combined = trim($value) !== '' ? $value . "\n\n" . $line : $line;
+    $combined = \Drupal\side_api\DocutracksClient::appendDocumentLogEntry($value, $data);
     $node->set('field_plan_dt_api_response', $combined);
   }
 
@@ -485,9 +492,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
    * Format the plan correction status line.
    */
   private function formatPlanCorrectionStatusLine(array $data): string {
-    $payload = Json::encode($data, JSON_UNESCAPED_UNICODE);
-    $payload = str_replace(['true', 'false'], ['TRUE', 'FALSE'], $payload);
-    return 'Plan:' . $payload;
+    return \Drupal\side_api\DocutracksClient::formatDocumentLogLine($data);
   }
 
   /**
@@ -549,14 +554,12 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $latest = NULL;
     foreach ($lines as $line) {
       $line = trim($line);
-      if ($line === '' || strpos($line, 'Plan:') !== 0) {
+      $decoded = \Drupal\side_api\DocutracksClient::decodeDocumentLogLine($line);
+      if (!is_array($decoded)) {
         continue;
       }
 
-      $payload = substr($line, strlen('Plan:'));
-      $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
-      $decoded = Json::decode($normalized);
-      if (!is_array($decoded)) {
+      if (($decoded['type'] ?? '') !== 'plan') {
         continue;
       }
 
@@ -585,14 +588,12 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $latest = NULL;
     foreach ($lines as $line) {
       $line = trim($line);
-      if ($line === '' || strpos($line, 'Plan:') !== 0) {
+      $decoded = \Drupal\side_api\DocutracksClient::decodeDocumentLogLine($line);
+      if (!is_array($decoded)) {
         continue;
       }
 
-      $payload = substr($line, strlen('Plan:'));
-      $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
-      $decoded = Json::decode($normalized);
-      if (!is_array($decoded)) {
+      if (($decoded['type'] ?? '') !== 'plan') {
         continue;
       }
 
@@ -625,18 +626,16 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $lines = preg_split('/\r\n|\r|\n/', $value);
     foreach ($lines as $line) {
       $line = trim($line);
-      if ($line === '' || strpos($line, 'Plan:') !== 0) {
-        continue;
-      }
-
-      $payload = substr($line, strlen('Plan:'));
-      $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
-      $decoded = Json::decode($normalized);
+      $decoded = \Drupal\side_api\DocutracksClient::decodeDocumentLogLine($line);
       if (!is_array($decoded)) {
         continue;
       }
 
-      if (($decoded['Send']['type'] ?? '') !== 'correction') {
+      if (($decoded['type'] ?? '') !== 'plan') {
+        continue;
+      }
+
+      if (($decoded['Send']['purpose'] ?? '') !== 'correction') {
         continue;
       }
 
@@ -692,8 +691,9 @@ final class IncomingPlanCorrectionForm extends FormBase {
       if ($document_id) {
         $correction_id = $this->getNextPlanCorrectionId($node);
         $entry .= "\n" . $this->formatPlanCorrectionStatusLine([
+          'type' => 'plan',
           'Send' => [
-            'type' => 'correction',
+            'purpose' => 'correction',
             'id' => $correction_id,
             'dt_doc_id' => (int) $document_id,
             'tries' => $this->getPlanCorrectionSendTries($node, $correction_id) + 1,

@@ -154,6 +154,74 @@ final class DocutracksClient {
   }
 
   /**
+   * Format a document log line.
+   */
+  public static function formatDocumentLogLine(array $data): string {
+    $payload = Json::encode($data, JSON_UNESCAPED_UNICODE);
+    $payload = str_replace(['true', 'false'], ['TRUE', 'FALSE'], $payload);
+    return 'Document:' . $payload;
+  }
+
+  /**
+   * Append a document log entry with its own timestamp.
+   */
+  public static function appendDocumentLogEntry(string $existing, array $data, ?string $timestamp = null): string {
+    $timestamp = $timestamp ?? date('Y-m-d H:i:s');
+    $line = sprintf("[%s]\n%s", $timestamp, self::formatDocumentLogLine($data));
+    return trim($existing) !== '' ? $existing . "\n\n" . $line : $line;
+  }
+
+  /**
+   * Decode a Document log line into an array.
+   */
+  public static function decodeDocumentLogLine(string $line): ?array {
+    $line = trim($line);
+    if ($line === '' || strpos($line, 'Document:') !== 0) {
+      return NULL;
+    }
+
+    $payload = substr($line, strlen('Document:'));
+    $normalized = str_replace(['TRUE', 'FALSE'], ['true', 'false'], $payload);
+    $decoded = Json::decode($normalized);
+    return is_array($decoded) ? $decoded : NULL;
+  }
+
+  /**
+   * Parse a response field into timestamped document log entries.
+   *
+   * @return array<int, array{timestamp:?string, data:array<string, mixed>}>
+   */
+  public static function parseDocumentLogEntries(string $value): array {
+    $entries = [];
+    $lines = preg_split('/\r\n|\r|\n/', $value);
+    $current_timestamp = NULL;
+
+    foreach ($lines as $line) {
+      $line = trim($line);
+      if ($line === '') {
+        continue;
+      }
+
+      if (preg_match('/^\\[(.+)\\]$/', $line, $matches)) {
+        $current_timestamp = $matches[1];
+        continue;
+      }
+
+      $decoded = self::decodeDocumentLogLine($line);
+      if (!is_array($decoded)) {
+        continue;
+      }
+
+      $entries[] = [
+        'timestamp' => $current_timestamp,
+        'data' => $decoded,
+      ];
+    }
+
+    return $entries;
+  }
+
+  /**
    * Return TRUE when signed plan download should ignore signature status.
    */
   public static function allowUnsignedPlanDownload(): bool {
