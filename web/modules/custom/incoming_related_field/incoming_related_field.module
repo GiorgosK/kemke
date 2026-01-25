@@ -239,6 +239,8 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     }
 
     if (incoming_related_field_should_show_send_button($node)) {
+      $send_classes = ['incoming-related-field-send-to-side'];
+
       $row['actions']['incoming_related_sender_protocol'] = [
         '#type' => 'textfield',
         '#title' => t('Α.Π. Αποστολέα'),
@@ -265,7 +267,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
         ],
         '#limit_validation_errors' => [],
         '#attributes' => [
-          'class' => ['incoming-related-field-send-to-side'],
+          'class' => $send_classes,
         ],
         '#incoming_related_field_context' => [
           'file_id' => (int) $file->id(),
@@ -365,18 +367,11 @@ function incoming_related_field_extract_related_file(NodeInterface $node): ?File
  * Determine whether the send-to-SIDE button should be shown.
  */
 function incoming_related_field_should_show_send_button(NodeInterface $node): bool {
-  $fields = [
-    'field_protocol_number_doc',
-    'field_sender',
-  ];
-
-  foreach ($fields as $field_name) {
-    if ($node->hasField($field_name) && !$node->get($field_name)->isEmpty()) {
-      return FALSE;
-    }
+  if (!$node->hasField('field_protocol_number_doc')) {
+    return FALSE;
   }
 
-  return TRUE;
+  return $node->get('field_protocol_number_doc')->isEmpty();
 }
 
 /**
@@ -388,6 +383,9 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
   $file_id = $context['file_id'] ?? NULL;
   $node_id = $context['node_id'] ?? NULL;
   $sender_protocol_name = $context['sender_protocol_name'] ?? NULL;
+  $form_object = $form_state->getFormObject();
+  $form_entity = $form_object ? $form_object->getEntity() : NULL;
+  $current_node_id = $form_entity instanceof NodeInterface ? (int) $form_entity->id() : NULL;
 
   if (!$file_id || !$node_id) {
     \Drupal::messenger()->addError(t('Missing document reference for SIDE transfer.'));
@@ -620,7 +618,10 @@ function incoming_related_field_send_to_side_ajax(array &$form, FormStateInterfa
   }
 
   if (isset($form['field_related_incoming'])) {
-    return $form['field_related_incoming'];
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    incoming_related_field_add_message_commands($response);
+    \Drupal::messenger()->deleteAll();
+    return $response;
   }
 
   return $form;
@@ -700,6 +701,7 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
     return;
   }
 
+
   $parent_node = $entity_form['#entity'] ?? NULL;
   $parent_node_id = $parent_node instanceof NodeInterface ? (int) $parent_node->id() : NULL;
 
@@ -741,28 +743,32 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
       '#weight' => 99,
     ];
 
-    $subform['docutracks_send'] = [
-      '#type' => 'submit',
-      '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
-      '#name' => 'incoming_related_field_send_to_side_' . $delta,
-      '#submit' => ['incoming_related_field_send_to_side_submit'],
-      '#limit_validation_errors' => [],
-      '#attributes' => [
-        'class' => ['incoming-related-field-send-to-side'],
-      ],
-      '#incoming_related_field_context' => [
-        'file_id' => (int) $file->id(),
-        'paragraph_id' => $paragraph->isNew() ? NULL : (int) $paragraph->id(),
-        'parent_node_id' => $parent_node_id,
-        'sender_protocol_name' => $sender_protocol_name,
-      ],
-      '#states' => [
-        'enabled' => [
-          ':input[name="' . $sender_protocol_name . '"]' => ['filled' => TRUE],
+      if ($parent_node instanceof NodeInterface && incoming_related_field_should_show_send_button($parent_node)) {
+      $send_classes = ['incoming-related-field-send-to-side'];
+
+      $subform['docutracks_send'] = [
+        '#type' => 'submit',
+        '#value' => t('Πρωτοκόλληση στο ΣΗΔΕ'),
+        '#name' => 'incoming_related_field_send_to_side_' . $delta,
+        '#submit' => ['incoming_related_field_send_to_side_submit'],
+        '#limit_validation_errors' => [],
+        '#attributes' => [
+          'class' => $send_classes,
         ],
-      ],
-      '#weight' => 100,
-    ];
+        '#incoming_related_field_context' => [
+          'file_id' => (int) $file->id(),
+          'paragraph_id' => $paragraph->isNew() ? NULL : (int) $paragraph->id(),
+          'parent_node_id' => $parent_node_id,
+          'sender_protocol_name' => $sender_protocol_name,
+        ],
+        '#states' => [
+          'enabled' => [
+            ':input[name="' . $sender_protocol_name . '"]' => ['filled' => TRUE],
+          ],
+        ],
+        '#weight' => 100,
+      ];
+    }
   }
 }
 
