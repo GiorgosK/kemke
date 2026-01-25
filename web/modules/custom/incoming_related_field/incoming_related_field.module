@@ -539,8 +539,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     }
 
     $node->set('field_dt_docid', $doc_id);
-    $node->setNewRevision(FALSE);
-    $node->save();
+    incoming_related_field_apply_docutracks_fields($node, $doc);
 
     \Drupal::messenger()->addStatus(t('Corrected document was downloaded from Docutracks.'));
     $form_state->setRebuild(TRUE);
@@ -792,6 +791,7 @@ function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, ar
 
   $mappings = [
     'field_protocol_number_doc' => [
+      'Document.DocumentCopies.0.ProtocolText',
       'Document.DocumentCopies.ProtocolText',
       'Document.DocumentCopies.Protokollo.ProtocolText',
       'Document.ProtocolNumberDoc',
@@ -799,12 +799,16 @@ function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, ar
       'Document.ProtocolNumberDocId',
     ],
     'field_sender' => [
+      'Document.DocumentCopies.0.Sender',
+      'Document.DocumentCopies.Sender',
       'Document.Sender',
       'Document.Sender.Name',
       'Document.Apostoleas.Name',
       'Document.Apostoleas_Name',
     ],
     'field_protocol_number_sender' => [
+      'Document.DocumentCopies.0.SenderProtocol',
+      'Document.DocumentCopies.SenderProtocol',
       'Document.ProtocolNumberSender',
       'Document.ProtocolNumberSenderDoc',
       'Document.ProtocolNumberSenderId',
