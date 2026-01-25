@@ -100,6 +100,11 @@
   margin: 13px;
   display: inline-block;
 }
+
+.govgr-btn.form-disabled {
+  opacity: 0.5;
+} 
+
 pre {
   background: rgba(var(--color-base-300-rgb));
   padding: 0.5rem;
