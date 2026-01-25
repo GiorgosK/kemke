@@ -1,0 +1,12 @@
+services:
+  incoming_plan_correction.manager:
+    class: Drupal\incoming_plan_correction\Service\PlanCorrectionManager
+    arguments:
+      - '@side_api.docutracks_client'
+      - '@file_system'
+      - '@file.repository'
+      - '@file.usage'
+      - '@logger.channel.incoming_plan_correction'
+  logger.channel.incoming_plan_correction:
+    class: Drupal\Core\Logger\LoggerChannel
+    arguments: ['incoming_plan_correction']
