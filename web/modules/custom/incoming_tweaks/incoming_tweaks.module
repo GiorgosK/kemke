@@ -628,19 +628,28 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     // Persist the API response on the node without creating an extra revision.
     if ($node->hasField('field_plan_dt_api_response')) {
       $encoded = Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-      incoming_tweaks_append_dt_response($node, $encoded);
-    }
-    if ($node->hasField('field_plan_dt_success')) {
-      $node->set('field_plan_dt_success', $is_success ? 1 : 0);
-    }
-    if ($node->hasField('field_plan_dt_tries')) {
-      $node->set('field_plan_dt_tries', $attempt_number);
-    }
-    if ($node->hasField('field_plan_dt_docid')) {
       $document_id = $response['DocumentReference'] ?? NULL;
+      $document_log = NULL;
       if ($document_id !== NULL) {
-        $node->set('field_plan_dt_docid', $document_id);
+        if ($node->hasField('field_dt_docid')) {
+          $node->set('field_dt_docid', $document_id);
+        }
+        $document_log = [
+          'type' => 'plan',
+          'Send' => [
+            'purpose' => 'initial',
+            'id' => 1,
+            'dt_doc_id' => (int) $document_id,
+            'tries' => $attempt_number,
+          ],
+          'Receive' => [
+            'success' => FALSE,
+            'error' => '',
+            'tries' => 0,
+          ],
+        ];
       }
+      incoming_tweaks_append_dt_response($node, $encoded, $document_log);
     }
 
     if ($is_success) {
@@ -711,13 +720,14 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
   $processing_signed[$nid] = TRUE;
 
   try {
-    $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    $doc_id = incoming_tweaks_get_plan_doc_id_from_log($node);
     if (!$doc_id && incoming_tweaks_simulation_fetch_success()) {
       $doc_id = 1;
     }
     if (!$doc_id) {
       incoming_tweaks_log_signed_fetch_issue($nid, 'Missing Docutracks document id.');
       incoming_tweaks_revert_to_for_signature($node, t('Missing Docutracks document id.'));
+      incoming_tweaks_append_plan_receive_log($node, FALSE, 'Missing Docutracks document id.');
       return;
     }
 
@@ -736,6 +746,7 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
       incoming_tweaks_revert_to_for_signature($node, t('Signature process incomplete (@status).', [
         '@status' => $status_label,
       ]));
+      incoming_tweaks_append_plan_receive_log($node, FALSE, 'Not signed.');
       return;
     }
     $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
@@ -749,12 +760,14 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
       }
       incoming_tweaks_log_signed_fetch_issue($nid, 'GeneratedFile.Id not found.', ['@doc' => $doc_id]);
       incoming_tweaks_revert_to_for_signature($node, t('Signed file not available yet.'));
+      incoming_tweaks_append_plan_receive_log($node, FALSE, 'GeneratedFile.Id not found.');
       return;
     }
 
     $file = $client->downloadAndAttachFile((int) $file_id, (int) $doc_id, $node, 'field_plan_signed', $jar, NULL, TRUE);
     $node->setNewRevision(FALSE);
     $node->save();
+    incoming_tweaks_append_plan_receive_log($node, TRUE, '');
 
     \Drupal::logger('incoming_tweaks')->info('Downloaded signed plan for incoming @nid and attached file @fid.', [
       '@nid' => $nid,
@@ -767,6 +780,7 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
       '@message' => $throwable->getMessage(),
     ]);
     incoming_tweaks_revert_to_for_signature($node, $throwable->getMessage());
+    incoming_tweaks_append_plan_receive_log($node, FALSE, $throwable->getMessage());
   }
   finally {
     unset($processing_signed[$nid]);
@@ -926,25 +940,11 @@ function incoming_tweaks_sanitize_docutracks_payload(array $payload): array {
  * Get the persisted Docutracks attempt count for the node.
  */
 function incoming_tweaks_get_plan_dt_tries(NodeInterface $node): int {
-  if (!$node->hasField('field_plan_dt_tries')) {
+  $entry = incoming_tweaks_get_latest_plan_log_entry($node);
+  if (!$entry) {
     return 0;
   }
-
-  // Prefer the stored value to avoid counting based on mutated in-memory state.
-  if (!$node->isNew() && $node->id()) {
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
-    /** @var \Drupal\node\NodeInterface|null $unchanged */
-    $unchanged = $storage->loadUnchanged($node->id());
-    if ($unchanged instanceof NodeInterface && !$unchanged->get('field_plan_dt_tries')->isEmpty()) {
-      return (int) $unchanged->get('field_plan_dt_tries')->value;
-    }
-  }
-
-  if (!$node->get('field_plan_dt_tries')->isEmpty()) {
-    return (int) $node->get('field_plan_dt_tries')->value;
-  }
-
-  return 0;
+  return (int) ($entry['Send']['tries'] ?? 0);
 }
 
 /**
@@ -956,12 +956,6 @@ function incoming_tweaks_revert_to_under_processing(NodeInterface $node, array &
 
   if ($node->hasField('moderation_state')) {
     $node->set('moderation_state', 'under_processing');
-  }
-  if ($node->hasField('field_plan_dt_success')) {
-    $node->set('field_plan_dt_success', 0);
-  }
-  if ($node->hasField('field_plan_dt_tries') && $attempt_number !== NULL) {
-    $node->set('field_plan_dt_tries', $attempt_number);
   }
   if ($node->hasField('field_plan_dt_api_response') && $response !== NULL) {
     incoming_tweaks_append_dt_response($node, $response);
@@ -1099,7 +1093,7 @@ function incoming_tweaks_log_signed_fetch_issue(int $nid, string $message, array
 /**
  * Append a response string to the API response field, preserving history.
  */
-function incoming_tweaks_append_dt_response(NodeInterface $node, string $response): void {
+function incoming_tweaks_append_dt_response(NodeInterface $node, string $response, ?array $document_log = NULL): void {
   if (!$node->hasField('field_plan_dt_api_response')) {
     return;
   }
@@ -1111,8 +1105,90 @@ function incoming_tweaks_append_dt_response(NodeInterface $node, string $respons
 
   $timestamp = date('Y-m-d H:i:s');
   $entry = sprintf("[%s]\n%s", $timestamp, $response);
+  if ($document_log !== NULL) {
+    $entry .= "\n" . \Drupal\side_api\DocutracksClient::formatDocumentLogLine($document_log);
+  }
 
   $combined = $existing !== '' ? $existing . "\n\n" . $entry : $entry;
+  $node->set('field_plan_dt_api_response', $combined);
+}
+
+/**
+ * Extract the latest plan Document log entry.
+ */
+function incoming_tweaks_get_latest_plan_log_entry(NodeInterface $node): ?array {
+  if (!$node->hasField('field_plan_dt_api_response')) {
+    return NULL;
+  }
+
+  $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+  if (trim($value) === '') {
+    return NULL;
+  }
+
+  $entries = \Drupal\side_api\DocutracksClient::parseDocumentLogEntries($value);
+  $latest = NULL;
+  foreach ($entries as $entry) {
+    $data = $entry['data'];
+    if (($data['type'] ?? '') !== 'plan') {
+      continue;
+    }
+    if (($data['Send']['purpose'] ?? '') !== 'initial') {
+      continue;
+    }
+    if ((int) ($data['Send']['id'] ?? 0) !== 1) {
+      continue;
+    }
+    $latest = $data;
+  }
+
+  return $latest;
+}
+
+/**
+ * Return the Docutracks document id for the latest plan log entry.
+ */
+function incoming_tweaks_get_plan_doc_id_from_log(NodeInterface $node): ?int {
+  $entry = incoming_tweaks_get_latest_plan_log_entry($node);
+  if (!$entry) {
+    return NULL;
+  }
+
+  $doc_id = $entry['Send']['dt_doc_id'] ?? NULL;
+  return $doc_id !== NULL ? (int) $doc_id : NULL;
+}
+
+/**
+ * Append a plan Receive log entry with updated tries.
+ */
+function incoming_tweaks_append_plan_receive_log(NodeInterface $node, bool $success, string $error): void {
+  if (!$node->hasField('field_plan_dt_api_response')) {
+    return;
+  }
+
+  $entry = incoming_tweaks_get_latest_plan_log_entry($node);
+  if (!$entry) {
+    return;
+  }
+
+  $receive_tries = (int) ($entry['Receive']['tries'] ?? 0) + 1;
+  $document_log = [
+    'type' => 'plan',
+    'Send' => [
+      'purpose' => 'initial',
+      'id' => 1,
+      'dt_doc_id' => (int) ($entry['Send']['dt_doc_id'] ?? 0),
+      'tries' => (int) ($entry['Send']['tries'] ?? 0),
+    ],
+    'Receive' => [
+      'success' => $success,
+      'error' => $error,
+      'tries' => $receive_tries,
+    ],
+  ];
+
+  $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+  $combined = \Drupal\side_api\DocutracksClient::appendDocumentLogEntry($value, $document_log);
   $node->set('field_plan_dt_api_response', $combined);
 }
 
