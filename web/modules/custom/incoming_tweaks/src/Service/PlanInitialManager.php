@@ -66,13 +66,7 @@ final class PlanInitialManager {
    * Append a Document log entry.
    */
   public function appendDocumentLog(NodeInterface $node, array $document_log): void {
-    if (!$node->hasField('field_plan_dt_api_response')) {
-      return;
-    }
-
-    $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-    $combined = DocutracksClient::appendDocumentLogEntry($value, $document_log);
-    $node->set('field_plan_dt_api_response', $combined);
+    DocutracksClient::appendDocumentLog($node, $document_log);
   }
 
   /**
@@ -84,61 +78,43 @@ final class PlanInitialManager {
     }
 
     $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-    if (trim($value) === '') {
-      return NULL;
-    }
-
-    $entries = DocutracksClient::parseDocumentLogEntries($value);
-    $latest = NULL;
-    foreach ($entries as $entry) {
-      $data = $entry['data'];
-      if (($data['type'] ?? '') !== 'plan') {
-        continue;
-      }
-      if (($data['Send']['purpose'] ?? '') !== 'initial') {
-        continue;
-      }
-      if ((int) ($data['Send']['id'] ?? 0) !== 1) {
-        continue;
-      }
-      $latest = $data;
-    }
-
-    return $latest;
+    return DocutracksClient::getLatestDocumentLogEntry($value, 'plan', 'initial', 1);
   }
 
   /**
    * Get doc id from latest log.
    */
   public function getDocIdFromLog(NodeInterface $node): ?int {
-    $entry = $this->getLatestPlanLog($node);
-    if (!$entry) {
+    if (!$node->hasField('field_plan_dt_api_response')) {
       return NULL;
     }
-    $doc_id = $entry['Send']['dt_doc_id'] ?? NULL;
-    return $doc_id !== NULL ? (int) $doc_id : NULL;
+
+    $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    return DocutracksClient::getDocIdFromLog($value, 'plan', 'initial', 1);
   }
 
   /**
    * Get send tries from log.
    */
   public function getSendTries(NodeInterface $node): int {
-    $entry = $this->getLatestPlanLog($node);
-    if (!$entry) {
+    if (!$node->hasField('field_plan_dt_api_response')) {
       return 0;
     }
-    return (int) ($entry['Send']['tries'] ?? 0);
+
+    $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    return DocutracksClient::getSendTriesFromLog($value, 'plan', 'initial', 1);
   }
 
   /**
    * Get receive tries from log.
    */
   public function getReceiveTries(NodeInterface $node): int {
-    $entry = $this->getLatestPlanLog($node);
-    if (!$entry) {
+    if (!$node->hasField('field_plan_dt_api_response')) {
       return 0;
     }
-    return (int) ($entry['Receive']['tries'] ?? 0);
+
+    $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    return DocutracksClient::getReceiveTriesFromLog($value, 'plan', 'initial', 1);
   }
 
   /**

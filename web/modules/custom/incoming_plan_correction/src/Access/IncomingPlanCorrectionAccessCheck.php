@@ -21,12 +21,13 @@ final class IncomingPlanCorrectionAccessCheck {
       return AccessResult::neutral()->addCacheableDependency($node);
     }
 
-    if (!$node->hasField('moderation_state') || !$node->hasField('field_plan_dt_docid')) {
+    if (!$node->hasField('moderation_state') || !$node->hasField('field_plan_dt_api_response')) {
       return AccessResult::forbidden()->addCacheableDependency($node);
     }
 
     $state = $node->get('moderation_state')->value ?? '';
-    $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    $log_value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    $doc_id = \Drupal\side_api\DocutracksClient::getDocIdFromLog($log_value, 'plan', 'initial', 1);
 
     $allowed = $state === 'published' && !empty($doc_id);
 

@@ -52,12 +52,13 @@ final class IncomingPlanCorrectionForm extends FormBase {
       throw new AccessDeniedHttpException();
     }
 
-    if (!$node->hasField('moderation_state') || !$node->hasField('field_plan_dt_docid')) {
+    if (!$node->hasField('moderation_state') || !$node->hasField('field_plan_dt_api_response')) {
       throw new AccessDeniedHttpException();
     }
 
     $state = $node->get('moderation_state')->value ?? '';
-    $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    $log_value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    $doc_id = \Drupal\side_api\DocutracksClient::getDocIdFromLog($log_value, 'plan', 'initial', 1);
     if ($state !== 'published' || empty($doc_id)) {
       throw new AccessDeniedHttpException();
     }
@@ -134,12 +135,13 @@ final class IncomingPlanCorrectionForm extends FormBase {
       throw new AccessDeniedHttpException();
     }
 
-    if (!$node->hasField('field_plan_dt_docid')) {
+    if (!$node->hasField('field_plan_dt_api_response')) {
       $this->messenger()->addError($this->t('Missing Docutracks plan field.'));
       return;
     }
 
-    $doc_id = $node->get('field_plan_dt_docid')->value ?? NULL;
+    $log_value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
+    $doc_id = \Drupal\side_api\DocutracksClient::getDocIdFromLog($log_value, 'plan', 'initial', 1);
     if (empty($doc_id)) {
       $this->messenger()->addError($this->t('Missing Docutracks plan id.'));
       return;

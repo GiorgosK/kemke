@@ -135,10 +135,6 @@ final class PlanCorrectionManager {
     $correction_plan_count = max(0, $plan_count - 1);
     $correction_signed_count = max(0, $signed_count - 1);
 
-    if ($correction_plan_count < $max_id) {
-      return sprintf('field_plan corrections %d, log max id %d.', $correction_plan_count, $max_id);
-    }
-
     if ($correction_signed_count !== $received_count) {
       return sprintf('field_plan_signed corrections %d, log received %d.', $correction_signed_count, $received_count);
     }

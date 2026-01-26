@@ -223,6 +223,83 @@ final class DocutracksClient {
   }
 
   /**
+   * Append a Document log entry to the given node field.
+   */
+  public static function appendDocumentLog(NodeInterface $node, array $document_log, string $fieldName = 'field_plan_dt_api_response'): void {
+    if (!$node->hasField($fieldName)) {
+      return;
+    }
+
+    $value = (string) ($node->get($fieldName)->value ?? '');
+    $combined = self::appendDocumentLogEntry($value, $document_log);
+    $node->set($fieldName, $combined);
+  }
+
+  /**
+   * Return the latest Document log entry matching the criteria.
+   */
+  public static function getLatestDocumentLogEntry(string $value, string $type, string $purpose, int $id): ?array {
+    if (trim($value) === '') {
+      return NULL;
+    }
+
+    $entries = self::parseDocumentLogEntries($value);
+    $latest = NULL;
+    foreach ($entries as $entry) {
+      $data = $entry['data'];
+      if (($data['type'] ?? '') !== $type) {
+        continue;
+      }
+      if (($data['Send']['purpose'] ?? '') !== $purpose) {
+        continue;
+      }
+      if ((int) ($data['Send']['id'] ?? 0) !== $id) {
+        continue;
+      }
+      $latest = $data;
+    }
+
+    return $latest;
+  }
+
+  /**
+   * Return the Docutracks document id from the log entry.
+   */
+  public static function getDocIdFromLog(string $value, string $type, string $purpose, int $id): ?int {
+    $entry = self::getLatestDocumentLogEntry($value, $type, $purpose, $id);
+    if (!$entry) {
+      return NULL;
+    }
+
+    $doc_id = $entry['Send']['dt_doc_id'] ?? NULL;
+    return $doc_id !== NULL ? (int) $doc_id : NULL;
+  }
+
+  /**
+   * Return the send tries from the log entry.
+   */
+  public static function getSendTriesFromLog(string $value, string $type, string $purpose, int $id): int {
+    $entry = self::getLatestDocumentLogEntry($value, $type, $purpose, $id);
+    if (!$entry) {
+      return 0;
+    }
+
+    return (int) ($entry['Send']['tries'] ?? 0);
+  }
+
+  /**
+   * Return the receive tries from the log entry.
+   */
+  public static function getReceiveTriesFromLog(string $value, string $type, string $purpose, int $id): int {
+    $entry = self::getLatestDocumentLogEntry($value, $type, $purpose, $id);
+    if (!$entry) {
+      return 0;
+    }
+
+    return (int) ($entry['Receive']['tries'] ?? 0);
+  }
+
+  /**
    * Return TRUE when signed plan download should ignore signature status.
    */
   public static function allowUnsignedPlanDownload(): bool {
