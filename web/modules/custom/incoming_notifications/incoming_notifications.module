@@ -115,7 +115,8 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
         $target_id = $node->get('field_basic_operator')->target_id;
         $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
         if ($user instanceof UserInterface) {
-          _incoming_notifications_send_notifications('pending_issues', $node, [$user]);
+          $context = ['remark_comment' => _incoming_notifications_get_remark_comment($remark)];
+          _incoming_notifications_send_notifications('pending_issues', $node, [$user], $context);
         }
       }
       return;
@@ -125,13 +126,15 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     if (_incoming_notifications_node_has_any_remarks($node)) {
       // Empty remark legal entity means no notifications.
       $recipients = $remark ? _incoming_notifications_get_users_by_legal_entity($remark) : [];
+      $context = $remark ? ['remark_comment' => _incoming_notifications_get_remark_comment($remark)] : [];
     }
     else {
       // If no remarks exist at all, use the node legal entity selection.
       $recipients = _incoming_notifications_get_users_by_legal_entity($node);
+      $context = [];
     }
 
-    _incoming_notifications_send_notifications('pending_issues', $node, $recipients);
+    _incoming_notifications_send_notifications('pending_issues', $node, $recipients, $context);
   }
 
   if ($new_state === 'published') {
@@ -150,7 +153,7 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
  * @param array $recipients
  *   Array of user entities.
  */
-function _incoming_notifications_send_notifications(string $key, EntityInterface $entity, array $recipients): void {
+function _incoming_notifications_send_notifications(string $key, EntityInterface $entity, array $recipients, array $context = []): void {
   $recipients = array_filter($recipients);
   if (empty($recipients)) {
     return;
@@ -162,11 +165,20 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   if ($title === '') {
     $title = t('Untitled incoming');
   }
+  $subject_text = $title;
+  if ($entity->hasField('field_subject') && !$entity->get('field_subject')->isEmpty()) {
+    $raw_subject = trim(strip_tags((string) $entity->get('field_subject')->value));
+    if ($raw_subject !== '') {
+      $subject_text = $raw_subject;
+    }
+  }
+  $subject_text = incoming_notifications_trim_with_ellipsis($subject_text, 50);
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
   $state_label = $state !== '' ? incoming_notifications_get_state_label($state, $langcode) : '';
   $link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
   $link_relative = $entity->toUrl('edit-form')->toString();
+  $remark_comment = isset($context['remark_comment']) ? trim((string) $context['remark_comment']) : '';
 
   $notify_service_id = 'notify_widget.api';
   $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
@@ -177,9 +189,11 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     }
     $params = [
       'incoming_title' => $title,
+      'incoming_subject' => $subject_text,
       'incoming_id' => $incoming_id,
       'state_label' => $state_label,
       'incoming_link' => $link_absolute,
+      'remark_comment' => $remark_comment,
     ];
     $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
 
@@ -320,6 +334,18 @@ function _incoming_notifications_get_current_save_remark(NodeInterface $node, in
 }
 
 /**
+ * Returns a trimmed remark comment string (empty when missing).
+ */
+function _incoming_notifications_get_remark_comment(ParagraphInterface $remark): string {
+  if (!$remark->hasField('field_comment') || $remark->get('field_comment')->isEmpty()) {
+    return '';
+  }
+
+  $comment = trim(strip_tags((string) $remark->get('field_comment')->value));
+  return incoming_notifications_trim_with_ellipsis($comment, 50);
+}
+
+/**
  * Checks whether the incoming node has any remark paragraphs.
  */
 function _incoming_notifications_node_has_any_remarks(NodeInterface $node): bool {
@@ -334,6 +360,29 @@ function _incoming_notifications_node_has_any_remarks(NodeInterface $node): bool
   }
 
   return FALSE;
+}
+
+/**
+ * Trims a string to a max length and adds an ellipsis when needed.
+ */
+function incoming_notifications_trim_with_ellipsis(string $value, int $limit): string {
+  $value = trim($value);
+  if ($value === '' || $limit <= 0) {
+    return $value;
+  }
+
+  if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+    if (mb_strlen($value) <= $limit) {
+      return $value;
+    }
+    return rtrim(mb_substr($value, 0, $limit - 1)) . '…';
+  }
+
+  if (strlen($value) <= $limit) {
+    return $value;
+  }
+
+  return rtrim(substr($value, 0, $limit - 3)) . '...';
 }
 
 /**
@@ -403,97 +452,38 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
  * Builds the email subject for a notification.
  */
 function incoming_notifications_build_subject_email(string $key, array $params): string {
-  $site_name = \Drupal::config('system.site')->get('name');
-  return (string) t('@site: Εγγραφο "@title" σε κατάσταση @state', [
-    '@site' => $site_name,
-    '@title' => $params['incoming_title'],
-    '@state' => $params['state_label'],
-  ]);
+  return (string) ($params['incoming_subject'] ?? $params['incoming_title'] ?? '');
 }
 
 /**
  * Builds the notify_widget subject for a notification.
  */
 function incoming_notifications_build_subject_notify(string $key, array $params): string {
-  return (string) t('Εγγραφο "@title" σε κατάσταση @state', [
-    '@title' => $params['incoming_title'],
-    '@state' => $params['state_label'],
-  ]);
+  return (string) ($params['incoming_subject'] ?? $params['incoming_title'] ?? '');
 }
 
 /**
  * Builds the email body for a notification.
  */
 function incoming_notifications_build_body_email(string $key, array $params): string {
-  switch ($key) {
-    case 'draft':
-      return (string) t('Έγγραφο "@title" - Εισερχόμενο - πατήστε εδώ @link', [
-        '@title' => $params['incoming_title'],
-        '@link' => $params['incoming_link'],
-      ]);
-
-    case 'to_be_assigned':
-      return (string) t('Έγγραφο "@title" - Προς χρέωση - πατήστε εδώ @link', [
-        '@title' => $params['incoming_title'],
-        '@link' => $params['incoming_link'],
-      ]);
-
-    case 'fullness_check':
-      return (string) t('Έγγραφο "@title" - Έλεγχος πληρότητας - πατήστε εδώ @link', [
-        '@title' => $params['incoming_title'],
-        '@link' => $params['incoming_link'],
-      ]);
-
-    case 'pending_issues':
-      return (string) t('Έγγραφο "@title" - Με εκκρεμότητες - πατήστε εδώ @link', [
-        '@title' => $params['incoming_title'],
-        '@link' => $params['incoming_link'],
-      ]);
-
-    case 'published':
-      return (string) t('Έγγραφο "@title" - Ολοκληρωμένο - πατήστε εδώ @link', [
-        '@title' => $params['incoming_title'],
-        '@link' => $params['incoming_link'],
-      ]);
+  $comment = trim((string) ($params['remark_comment'] ?? ''));
+  if ($comment !== '') {
+    return $comment;
   }
 
-  return (string) t('Έγγραφο ενημέρωση - πατήστε εδώ @link', [
-    '@link' => $params['incoming_link'],
-  ]);
+  return (string) ($params['state_label'] ?? '');
 }
 
 /**
  * Builds the notify_widget body for a notification.
  */
 function incoming_notifications_build_body_notify(string $key, array $params): string {
-  switch ($key) {
-    case 'draft':
-      return (string) t('Έγγραφο "@title" - Εισερχόμενη', [
-        '@title' => $params['incoming_title'],
-      ]);
-
-    case 'to_be_assigned':
-      return (string) t('Έγγραφο "@title" - Προς χρέωση', [
-        '@title' => $params['incoming_title'],
-      ]);
-
-    case 'fullness_check':
-      return (string) t('Έγγραφο "@title" - Έλεγχος πληρότητας', [
-        '@title' => $params['incoming_title'],
-      ]);
-
-    case 'pending_issues':
-      return (string) t('Έγγραφο "@title" - Με εκκρεμότητες', [
-        '@title' => $params['incoming_title'],
-      ]);
-
-    case 'published':
-      return (string) t('Έγγραφο "@title" - Δημοσιευμένο', [
-        '@title' => $params['incoming_title'],
-      ]);
+  $comment = trim((string) ($params['remark_comment'] ?? ''));
+  if ($comment !== '') {
+    return $comment;
   }
 
-  return (string) t('Έγγραφο ενημέρωση');
+  return (string) ($params['state_label'] ?? '');
 }
 
 /**
