@@ -135,7 +135,8 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
   $state_label = $state !== '' ? incoming_notifications_get_state_label($state, $langcode) : '';
-  $link = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
+  $link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
+  $link_relative = $entity->toUrl('edit-form')->toString();
 
   $notify_service_id = 'notify_widget.api';
   $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
@@ -148,7 +149,7 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
       'incoming_title' => $title,
       'incoming_id' => $incoming_id,
       'state_label' => $state_label,
-      'incoming_link' => $link,
+      'incoming_link' => $link_absolute,
     ];
     $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
 
@@ -161,7 +162,7 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
         $subject,
         $body,
         (int) $user->id(),
-        $link
+        $link_relative
       );
     }
   }
