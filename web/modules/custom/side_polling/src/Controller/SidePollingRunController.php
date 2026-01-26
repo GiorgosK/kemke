@@ -38,4 +38,19 @@ final class SidePollingRunController extends ControllerBase {
     return $this->redirect('side_polling.admin');
   }
 
+  /**
+   * Cancel a polling job.
+   */
+  public function cancel(int $job): RedirectResponse {
+    $success = $this->manager->cancelJob($job, 'Cancelled manually.');
+    if ($success) {
+      $this->messenger()->addStatus($this->t('Polling job cancelled.'));
+    }
+    else {
+      $this->messenger()->addError($this->t('Polling job not found.'));
+    }
+
+    return $this->redirect('side_polling.admin');
+  }
+
 }

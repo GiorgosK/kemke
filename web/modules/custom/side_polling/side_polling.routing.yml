@@ -19,3 +19,10 @@ side_polling.run_now:
     _controller: '\Drupal\side_polling\Controller\SidePollingRunController::run'
   requirements:
     _permission: 'administer site configuration'
+side_polling.cancel:
+  path: '/admin/config/side-polling/cancel/{job}'
+  defaults:
+    _title: 'Cancel polling job'
+    _controller: '\Drupal\side_polling\Controller\SidePollingRunController::cancel'
+  requirements:
+    _permission: 'administer site configuration'

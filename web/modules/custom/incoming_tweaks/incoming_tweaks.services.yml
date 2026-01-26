@@ -1,0 +1,9 @@
+services:
+  incoming_tweaks.plan_initial_manager:
+    class: Drupal\incoming_tweaks\Service\PlanInitialManager
+    arguments:
+      - '@side_api.docutracks_client'
+      - '@logger.channel.incoming_tweaks'
+  logger.channel.incoming_tweaks:
+    class: Drupal\Core\Logger\LoggerChannel
+    arguments: ['incoming_tweaks']

@@ -5,6 +5,7 @@ services:
       - '@database'
       - '@logger.channel.side_polling'
       - '@side_polling.plan_correction_handler'
+      - '@side_polling.plan_initial_handler'
       - '@settings'
   logger.channel.side_polling:
     class: Drupal\Core\Logger\LoggerChannel
@@ -14,4 +15,10 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@incoming_plan_correction.manager'
+      - '@logger.channel.side_polling'
+  side_polling.plan_initial_handler:
+    class: Drupal\side_polling\Handler\PlanInitialHandler
+    arguments:
+      - '@entity_type.manager'
+      - '@incoming_tweaks.plan_initial_manager'
       - '@logger.channel.side_polling'

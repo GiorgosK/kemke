@@ -18,6 +18,7 @@ final class SidePollingManager {
     private readonly Connection $database,
     private readonly LoggerInterface $logger,
     private readonly PlanCorrectionHandler $planCorrectionHandler,
+    private readonly \Drupal\side_polling\Handler\PlanInitialHandler $planInitialHandler,
     private readonly Settings $settings,
   ) {}
 
@@ -87,6 +88,50 @@ final class SidePollingManager {
   }
 
   /**
+   * Pause active jobs matching a payload subset.
+   */
+  public function pauseJobs(string $type, array $match): int {
+    return $this->updateJobsByPayload($type, $match, 'paused');
+  }
+
+  /**
+   * Resume paused jobs matching a payload subset.
+   */
+  public function resumeJobs(string $type, array $match): int {
+    return $this->updateJobsByPayload($type, $match, 'active');
+  }
+
+  /**
+   * Check whether there is an active or paused job for a payload subset.
+   */
+  public function hasJob(string $type, array $match): bool {
+    $query = $this->database->select('side_polling_job', 'j')
+      ->fields('j', ['id', 'payload', 'status'])
+      ->condition('type', $type)
+      ->condition('status', ['active', 'paused'], 'IN');
+    $jobs = $query->execute()->fetchAll();
+
+    foreach ($jobs as $job) {
+      $payload = json_decode($job->payload ?? '', TRUE);
+      if (!is_array($payload)) {
+        continue;
+      }
+      $is_match = TRUE;
+      foreach ($match as $key => $value) {
+        if (!array_key_exists($key, $payload) || $payload[$key] !== $value) {
+          $is_match = FALSE;
+          break;
+        }
+      }
+      if ($is_match) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
    * Run due jobs.
    */
   public function runDueJobs(int $limit = 10): void {
@@ -123,10 +168,13 @@ final class SidePollingManager {
     $job = $this->database->select('side_polling_job', 'j')
       ->fields('j')
       ->condition('id', $id)
-      ->condition('status', 'active')
+      ->condition('status', ['active', 'paused'], 'IN')
       ->execute()
       ->fetchObject();
     if (!$job) {
+      $this->logger->warning('Polling job @id not found or not runnable.', [
+        '@id' => $id,
+      ]);
       return FALSE;
     }
 
@@ -146,9 +194,35 @@ final class SidePollingManager {
     return FALSE;
   }
 
+  /**
+   * Cancel a job with a manual error note.
+   */
+  public function cancelJob(int $id, string $error = 'Cancelled manually.'): bool {
+    $job = $this->database->select('side_polling_job', 'j')
+      ->fields('j', ['id'])
+      ->condition('id', $id)
+      ->execute()
+      ->fetchObject();
+    if (!$job) {
+      return FALSE;
+    }
+
+    $this->database->update('side_polling_job')
+      ->fields([
+        'status' => 'disabled',
+        'updated' => time(),
+        'last_error' => $error,
+      ])
+      ->condition('id', $id)
+      ->execute();
+
+    return TRUE;
+  }
+
   private function dispatch(string $type, array $payload): array {
     return match ($type) {
       'plan_correction' => $this->planCorrectionHandler->process($payload),
+      'plan_initial' => $this->planInitialHandler->process($payload),
       default => [
         'success' => FALSE,
         'error' => 'Unknown job type.',
@@ -194,6 +268,44 @@ final class SidePollingManager {
       '@id' => $id,
       '@error' => $error,
     ]);
+  }
+
+  private function updateJobsByPayload(string $type, array $match, string $status): int {
+    $query = $this->database->select('side_polling_job', 'j')
+      ->fields('j', ['id', 'payload', 'status'])
+      ->condition('type', $type)
+      ->condition('status', ['active', 'paused'], 'IN');
+    $jobs = $query->execute()->fetchAll();
+    $ids = [];
+
+    foreach ($jobs as $job) {
+      $payload = json_decode($job->payload ?? '', TRUE);
+      if (!is_array($payload)) {
+        continue;
+      }
+      $is_match = TRUE;
+      foreach ($match as $key => $value) {
+        if (!array_key_exists($key, $payload) || $payload[$key] !== $value) {
+          $is_match = FALSE;
+          break;
+        }
+      }
+      if ($is_match) {
+        $ids[] = (int) $job->id;
+      }
+    }
+
+    if (!$ids) {
+      return 0;
+    }
+
+    return $this->database->update('side_polling_job')
+      ->fields([
+        'status' => $status,
+        'updated' => time(),
+      ])
+      ->condition('id', $ids, 'IN')
+      ->execute();
   }
 
   private function getDefaultInterval(): int {

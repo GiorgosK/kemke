@@ -655,6 +655,18 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     if ($is_success) {
       $node->setNewRevision(FALSE);
       $node->save();
+      $document_id = $response['DocumentReference'] ?? NULL;
+      if ($document_id) {
+        /** @var \Drupal\side_polling\SidePollingManager $polling */
+        $polling = \Drupal::service('side_polling.manager');
+        $caller_info = $document_log ? \Drupal\side_api\DocutracksClient::formatDocumentLogLine($document_log) : '';
+        $polling->registerJob('plan_initial', [
+          'node_id' => $nid,
+          'node_title' => (string) $node->label(),
+          'document_id' => (int) $document_id,
+          'caller_info' => $caller_info,
+        ]);
+      }
 
       \Drupal::logger('incoming_tweaks')->info('Docutracks push succeeded', [
         'nid' => $nid,
@@ -695,6 +707,8 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
  * Downloads the signed plan from Docutracks when the node is published.
  */
 function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing_signed): void {
+  // The signed download (and publish transition) is owned by PlanInitialManager.
+  $polling_job = incoming_tweaks_polling_job_exists($node);
   if (
     $node->bundle() !== 'incoming' ||
     !$node->hasField('moderation_state') ||
@@ -719,10 +733,22 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
   }
   $processing_signed[$nid] = TRUE;
 
+  $doc_id = NULL;
+  $polling_should_resume = $polling_job;
+
   try {
     $doc_id = incoming_tweaks_get_plan_doc_id_from_log($node);
     if (!$doc_id && incoming_tweaks_simulation_fetch_success()) {
       $doc_id = 1;
+    }
+    if ($polling_job && $doc_id) {
+      /** @var \Drupal\side_polling\SidePollingManager $polling */
+      $polling = \Drupal::service('side_polling.manager');
+      $match = [
+        'node_id' => $node->id(),
+        'document_id' => (int) $doc_id,
+      ];
+      $polling->pauseJobs('plan_initial', $match);
     }
     if (!$doc_id) {
       incoming_tweaks_log_signed_fetch_issue($nid, 'Missing Docutracks document id.');
@@ -731,48 +757,33 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
       return;
     }
 
-    /** @var \Drupal\side_api\DocutracksClient $client */
-    $client = \Drupal::service('side_api.docutracks_client');
-    $jar = $client->loginToDocutracks(timeout: 60.0);
-  $doc = $client->fetchDocument((string) $doc_id, $jar);
-  $signatures_status = $client->extractValueByPath($doc, 'Document.SignaturesStatus');
-
-  if (!incoming_tweaks_get_plan_unsigned_enabled() && !incoming_tweaks_is_signatures_status_complete($signatures_status)) {
-    $status_label = $signatures_status ?: 'missing';
-    \Drupal::logger('incoming_tweaks')->warning('Unable to fetch signed plan for incoming @nid: signature process incomplete (@status).', [
-      '@nid' => $nid,
-      '@status' => $status_label,
-    ]);
-      incoming_tweaks_revert_to_for_signature($node, t('Signature process incomplete (@status).', [
-        '@status' => $status_label,
-      ]));
-      incoming_tweaks_append_plan_receive_log($node, FALSE, 'Not signed.');
-      return;
-    }
-    $file_id = $client->extractValueByPath($doc, 'Document.GeneratedFile.Id');
-
-    if (!$file_id) {
-      if (incoming_tweaks_simulation_allow_missing_generated_file()) {
-        \Drupal::logger('incoming_tweaks')->info('Skipping signed file fetch for incoming @nid: simulation enabled with missing GeneratedFile.Id.', [
-          '@nid' => $nid,
-        ]);
-        return;
+    /** @var \Drupal\incoming_tweaks\Service\PlanInitialManager $manager */
+    $manager = \Drupal::service('incoming_tweaks.plan_initial_manager');
+    $result = $manager->receiveSignedPlan($node, (int) $doc_id, TRUE);
+    if (!empty($result['success']) && !empty($result['file'])) {
+      \Drupal::logger('incoming_tweaks')->info('Downloaded signed plan for incoming @nid and attached file @fid.', [
+        '@nid' => $nid,
+        '@fid' => $result['file']->id(),
+      ]);
+      if ($polling_job) {
+        $match = ['node_id' => $node->id()];
+        if ($doc_id) {
+          $match['document_id'] = (int) $doc_id;
+        }
+        $polling->disableJobs('plan_initial', $match);
+        $polling_should_resume = FALSE;
       }
-      incoming_tweaks_log_signed_fetch_issue($nid, 'GeneratedFile.Id not found.', ['@doc' => $doc_id]);
-      incoming_tweaks_revert_to_for_signature($node, t('Signed file not available yet.'));
-      incoming_tweaks_append_plan_receive_log($node, FALSE, 'GeneratedFile.Id not found.');
-      return;
     }
-
-    $file = $client->downloadAndAttachFile((int) $file_id, (int) $doc_id, $node, 'field_plan_signed', $jar, NULL, TRUE);
-    $node->setNewRevision(FALSE);
-    $node->save();
-    incoming_tweaks_append_plan_receive_log($node, TRUE, '');
-
-    \Drupal::logger('incoming_tweaks')->info('Downloaded signed plan for incoming @nid and attached file @fid.', [
-      '@nid' => $nid,
-      '@fid' => $file->id(),
-    ]);
+    elseif (!empty($result['error'])) {
+      incoming_tweaks_revert_to_for_signature($node, $result['error']);
+      if ($polling_job) {
+        $match = ['node_id' => $node->id()];
+        if ($doc_id) {
+          $match['document_id'] = (int) $doc_id;
+        }
+        $polling->resumeJobs('plan_initial', $match);
+      }
+    }
   }
   catch (\Throwable $throwable) {
     \Drupal::logger('incoming_tweaks')->error('Failed to download signed plan for incoming @nid: @message', [
@@ -783,6 +794,13 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     incoming_tweaks_append_plan_receive_log($node, FALSE, $throwable->getMessage());
   }
   finally {
+    if ($polling_job && $polling_should_resume) {
+      $match = ['node_id' => $node->id()];
+      if (!empty($doc_id)) {
+        $match['document_id'] = (int) $doc_id;
+      }
+      $polling->resumeJobs('plan_initial', $match);
+    }
     unset($processing_signed[$nid]);
   }
 }
@@ -1117,56 +1135,27 @@ function incoming_tweaks_append_dt_response(NodeInterface $node, string $respons
  * Extract the latest plan Document log entry.
  */
 function incoming_tweaks_get_latest_plan_log_entry(NodeInterface $node): ?array {
-  if (!$node->hasField('field_plan_dt_api_response')) {
-    return NULL;
-  }
-
-  $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-  if (trim($value) === '') {
-    return NULL;
-  }
-
-  $entries = \Drupal\side_api\DocutracksClient::parseDocumentLogEntries($value);
-  $latest = NULL;
-  foreach ($entries as $entry) {
-    $data = $entry['data'];
-    if (($data['type'] ?? '') !== 'plan') {
-      continue;
-    }
-    if (($data['Send']['purpose'] ?? '') !== 'initial') {
-      continue;
-    }
-    if ((int) ($data['Send']['id'] ?? 0) !== 1) {
-      continue;
-    }
-    $latest = $data;
-  }
-
-  return $latest;
+  /** @var \Drupal\incoming_tweaks\Service\PlanInitialManager $manager */
+  $manager = \Drupal::service('incoming_tweaks.plan_initial_manager');
+  return $manager->getLatestPlanLog($node);
 }
 
 /**
  * Return the Docutracks document id for the latest plan log entry.
  */
 function incoming_tweaks_get_plan_doc_id_from_log(NodeInterface $node): ?int {
-  $entry = incoming_tweaks_get_latest_plan_log_entry($node);
-  if (!$entry) {
-    return NULL;
-  }
-
-  $doc_id = $entry['Send']['dt_doc_id'] ?? NULL;
-  return $doc_id !== NULL ? (int) $doc_id : NULL;
+  /** @var \Drupal\incoming_tweaks\Service\PlanInitialManager $manager */
+  $manager = \Drupal::service('incoming_tweaks.plan_initial_manager');
+  return $manager->getDocIdFromLog($node);
 }
 
 /**
  * Append a plan Receive log entry with updated tries.
  */
 function incoming_tweaks_append_plan_receive_log(NodeInterface $node, bool $success, string $error): void {
-  if (!$node->hasField('field_plan_dt_api_response')) {
-    return;
-  }
-
-  $entry = incoming_tweaks_get_latest_plan_log_entry($node);
+  /** @var \Drupal\incoming_tweaks\Service\PlanInitialManager $manager */
+  $manager = \Drupal::service('incoming_tweaks.plan_initial_manager');
+  $entry = $manager->getLatestPlanLog($node);
   if (!$entry) {
     return;
   }
@@ -1187,9 +1176,35 @@ function incoming_tweaks_append_plan_receive_log(NodeInterface $node, bool $succ
     ],
   ];
 
-  $value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
-  $combined = \Drupal\side_api\DocutracksClient::appendDocumentLogEntry($value, $document_log);
-  $node->set('field_plan_dt_api_response', $combined);
+  $manager->appendDocumentLog($node, $document_log);
+}
+
+/**
+ * Return TRUE when polling should handle signed plan receipt.
+ */
+function incoming_tweaks_is_polling_enabled(): bool {
+  $settings = \Drupal\Core\Site\Settings::get('side_polling', []);
+  if (!is_array($settings)) {
+    return TRUE;
+  }
+
+  return array_key_exists('enabled', $settings) ? !empty($settings['enabled']) : TRUE;
+}
+
+/**
+ * Return TRUE when a polling job exists for the node plan receive.
+ */
+function incoming_tweaks_polling_job_exists(NodeInterface $node): bool {
+  $doc_id = incoming_tweaks_get_plan_doc_id_from_log($node);
+  /** @var \Drupal\side_polling\SidePollingManager $polling */
+  $polling = \Drupal::service('side_polling.manager');
+  $match = [
+    'node_id' => $node->id(),
+  ];
+  if ($doc_id) {
+    $match['document_id'] = (int) $doc_id;
+  }
+  return $polling->hasJob('plan_initial', $match);
 }
 
 /**
