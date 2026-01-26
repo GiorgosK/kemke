@@ -61,6 +61,10 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 
     amke_tweaks_limit_documents_widget($form);
 
+    if (amke_tweaks_should_hide_fullness_check($entity)) {
+      $form['#after_build'][] = 'amke_tweaks_hide_fullness_check_button_after_build';
+    }
+
     // Allow AMKE users to save new incoming nodes without transition errors.
     if ($form_object->getEntity()->isNew()) {
       $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
@@ -90,6 +94,65 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 
   // Auto-fill legal entity from the user's profile on submit.
   $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
+}
+
+/**
+ * After-build callback to hide the "Αποστολή προς ΚΕΜΚΕ" button.
+ */
+function amke_tweaks_hide_fullness_check_button_after_build(array $form, FormStateInterface $form_state): array {
+  $form_object = $form_state->getFormObject();
+  $entity = $form_object?->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return $form;
+  }
+
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return $form;
+  }
+
+  $state = $entity->hasField('moderation_state') ? $entity->get('moderation_state')->value : NULL;
+  if ($state !== 'pending_issues') {
+    return $form;
+  }
+
+  amke_tweaks_hide_element_by_id($form, 'edit-moderation-state-fullness-check');
+  return $form;
+}
+
+/**
+ * Check whether the "Αποστολή προς ΚΕΜΚΕ" transition should be hidden.
+ */
+function amke_tweaks_should_hide_fullness_check(NodeInterface $entity): bool {
+  if (!$entity->hasField('field_legal_entity')) {
+    return TRUE;
+  }
+
+  $items = $entity->get('field_legal_entity')->referencedEntities();
+  if (count($items) !== 1) {
+    return TRUE;
+  }
+
+  $term = reset($items);
+  if (!$term || $term->getEntityTypeId() !== 'taxonomy_term') {
+    return TRUE;
+  }
+
+  $children = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadChildren($term->id());
+  return !empty($children);
+}
+
+/**
+ * Recursively hide elements by matching id.
+ */
+function amke_tweaks_hide_element_by_id(array &$element, string $id): void {
+  if (isset($element['#id']) && $element['#id'] === $id) {
+    $element['#access'] = FALSE;
+  }
+
+  foreach (\Drupal\Core\Render\Element::children($element) as $key) {
+    amke_tweaks_hide_element_by_id($element[$key], $id);
+  }
 }
 
 function amke_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form) {
