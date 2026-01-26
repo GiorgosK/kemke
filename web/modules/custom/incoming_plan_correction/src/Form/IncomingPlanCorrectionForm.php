@@ -239,12 +239,8 @@ final class IncomingPlanCorrectionForm extends FormBase {
           $caller_line = $caller_info ? \Drupal\side_api\DocutracksClient::formatDocumentLogLine($caller_info) : '';
           /** @var \Drupal\side_polling\SidePollingManager $polling */
           $polling = \Drupal::service('side_polling.manager');
-          $polling->registerJob('plan_correction', [
-            'node_id' => $node->id(),
-            'node_title' => (string) $node->label(),
-            'document_id' => (int) $document_id,
-            'caller_info' => $caller_line,
-          ]);
+          $payload = $polling->buildJobPayload($node, (int) $document_id, $caller_line);
+          $polling->registerJob('plan_correction', $payload);
         }
 
         $node->setNewRevision(FALSE);
@@ -271,7 +267,6 @@ final class IncomingPlanCorrectionForm extends FormBase {
         '@nid' => $node->id(),
         '@message' => $throwable->getMessage(),
       ]);
-      $this->storePlanTryIncrement($node);
     }
 
     $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
@@ -300,21 +295,12 @@ final class IncomingPlanCorrectionForm extends FormBase {
       return;
     }
 
-    $polling_job = FALSE;
-    $polling_should_resume = FALSE;
-    $polling_match = [
-      'node_id' => $node->id(),
-      'document_id' => (int) $document_id,
-    ];
+    /** @var \Drupal\side_polling\SidePollingManager $polling */
+    $polling = \Drupal::service('side_polling.manager');
+    $polling_match = $polling->buildJobMatch($node, (int) $document_id);
 
     try {
-      /** @var \Drupal\side_polling\SidePollingManager $polling */
-      $polling = \Drupal::service('side_polling.manager');
-      $polling_job = $polling->hasJob('plan_correction', $polling_match);
-      $polling_should_resume = $polling_job;
-      if ($polling_job) {
-        $polling->pauseJobs('plan_correction', $polling_match);
-      }
+      $manual = $polling->pauseForManual('plan_correction', $polling_match);
 
       $result = $manager->receiveSignedCorrection($node, (int) $document_id, TRUE);
       $received = !empty($result['success']);
@@ -324,28 +310,23 @@ final class IncomingPlanCorrectionForm extends FormBase {
         $this->getLogger('incoming_plan_correction')->info('Docutracks correction signed download succeeded for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
-        if ($polling_job) {
-          $polling->disableJobs('plan_correction', $polling_match);
-          $polling_should_resume = FALSE;
-        }
+        $polling->finishManual('plan_correction', $polling_match, TRUE, $manual['job_exists'], $manual['should_resume']);
       }
       else {
         $message = $error_reason !== '' ? $error_reason : 'Signed correction is not available yet.';
         if ($message === 'Not signed.') {
-          $message = 'Δεν είναι υπογεγραμμένο';
+          $message = 'Δεν είναι υπογεγραμμένο.';
         }
         $this->messenger()->addError($this->t('@message', ['@message' => $message]));
         $this->getLogger('incoming_plan_correction')->warning('Docutracks correction signed download unavailable for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
-        if ($polling_job) {
-          $polling->resumeJobs('plan_correction', $polling_match);
-        }
+        $polling->finishManual('plan_correction', $polling_match, FALSE, $manual['job_exists'], $manual['should_resume']);
       }
     }
     catch (\Throwable $throwable) {
-      if ($polling_job) {
-        $polling->resumeJobs('plan_correction', $polling_match);
+      if (!empty($manual['job_exists'])) {
+        $polling->resumeJobs('plan_correction', $polling_match, TRUE);
       }
       $this->messenger()->addError($this->t('Docutracks signed fetch failed: @message', [
         '@message' => $throwable->getMessage(),
@@ -354,10 +335,6 @@ final class IncomingPlanCorrectionForm extends FormBase {
         '@nid' => $node->id(),
         '@message' => $throwable->getMessage(),
       ]);
-    }
-
-    if ($polling_job && $polling_should_resume) {
-      $polling->resumeJobs('plan_correction', $polling_match);
     }
 
     $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
@@ -432,34 +409,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       $updated = TRUE;
     }
 
-    if ($this->incrementPlanTries($node)) {
-      $updated = TRUE;
-    }
-
     if ($updated) {
-      $node->setNewRevision(FALSE);
-      $node->save();
-    }
-  }
-
-  /**
-   * Increment plan tries and return TRUE if updated.
-   */
-  private function incrementPlanTries(NodeInterface $node): bool {
-    if (!$node->hasField('field_plan_dt_tries')) {
-      return FALSE;
-    }
-
-    $current = $node->get('field_plan_dt_tries')->value ?? 0;
-    $node->set('field_plan_dt_tries', (int) $current + 1);
-    return TRUE;
-  }
-
-  /**
-   * Increment plan tries and persist if updated.
-   */
-  private function storePlanTryIncrement(NodeInterface $node): void {
-    if ($this->incrementPlanTries($node)) {
       $node->setNewRevision(FALSE);
       $node->save();
     }

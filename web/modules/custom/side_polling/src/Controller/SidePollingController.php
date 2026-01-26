@@ -43,7 +43,7 @@ final class SidePollingController extends ControllerBase {
       'active' => [
         '#type' => 'table',
         '#caption' => $this->t('Active polling jobs'),
-        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Next run', 'Attempts', 'Last error', 'Last status', 'Actions'],
+        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Created', 'Updated', 'Next run', 'Attempts', 'Last error', 'Last status', 'Actions'],
         '#rows' => $this->formatRows($active, FALSE),
         '#empty' => $this->t('No active polling jobs.'),
       ],
@@ -101,7 +101,9 @@ final class SidePollingController extends ControllerBase {
           $node_label,
           $caller_info,
           (string) $job->status,
+          $this->formatTimestamp((int) ($job->created ?? 0)),
           $this->formatTimestamp((int) ($job->updated ?? 0)),
+          (string) ($job->attempts ?? 0),
           (string) ($job->last_error ?? ''),
           (string) ($job->last_status_note ?? ''),
         ];
@@ -117,6 +119,8 @@ final class SidePollingController extends ControllerBase {
           (string) $job->type,
           $node_label,
           $caller_info,
+          $this->formatTimestamp((int) ($job->created ?? 0)),
+          $this->formatTimestamp((int) ($job->updated ?? 0)),
           $this->formatTimestamp((int) ($job->next_run ?? 0)),
           (string) ($job->attempts ?? 0),
           (string) ($job->last_error ?? ''),
@@ -152,7 +156,7 @@ final class SidePollingController extends ControllerBase {
       'finished' => [
         '#type' => 'table',
         '#caption' => $this->t('Finished polling jobs'),
-        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Status', 'Updated', 'Last error', 'Last status'],
+        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Status', 'Created', 'Updated', 'Attempts', 'Last error', 'Last status'],
         '#rows' => $this->formatRows($finished, TRUE),
         '#empty' => $this->t('No finished polling jobs.'),
       ],

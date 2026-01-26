@@ -8,6 +8,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Site\Settings;
 use Psr\Log\LoggerInterface;
 use Drupal\side_polling\Handler\PlanCorrectionHandler;
+use Drupal\node\NodeInterface;
 
 /**
  * Manages polling jobs for Docutracks.
@@ -45,6 +46,31 @@ final class SidePollingManager {
       ->execute();
 
     return $id;
+  }
+
+  /**
+   * Build a standard payload for node-based jobs.
+   */
+  public function buildJobPayload(NodeInterface $node, int $document_id, string $caller_info = ''): array {
+    return [
+      'node_id' => $node->id(),
+      'node_title' => (string) $node->label(),
+      'document_id' => $document_id,
+      'caller_info' => $caller_info,
+    ];
+  }
+
+  /**
+   * Build a match array for node/document scoped jobs.
+   */
+  public function buildJobMatch(NodeInterface $node, ?int $document_id = NULL): array {
+    $match = [
+      'node_id' => $node->id(),
+    ];
+    if ($document_id !== NULL) {
+      $match['document_id'] = $document_id;
+    }
+    return $match;
   }
 
   /**
@@ -86,6 +112,40 @@ final class SidePollingManager {
       ])
       ->condition('id', $ids, 'IN')
       ->execute();
+  }
+
+  /**
+   * Pause a matching job for a manual receive operation.
+   *
+   * @return array{job_exists:bool, should_resume:bool}
+   */
+  public function pauseForManual(string $type, array $match): array {
+    $job_exists = $this->hasJob($type, $match);
+    if ($job_exists) {
+      $this->pauseJobs($type, $match, TRUE);
+    }
+
+    return [
+      'job_exists' => $job_exists,
+      'should_resume' => $job_exists,
+    ];
+  }
+
+  /**
+   * Resume or disable a paused job after manual receive.
+   */
+  public function finishManual(string $type, array $match, bool $success, bool $job_exists, bool &$should_resume): void {
+    if (!$job_exists) {
+      return;
+    }
+
+    if ($success) {
+      $this->disableJobs($type, $match);
+      $should_resume = FALSE;
+      return;
+    }
+
+    $this->resumeJobs($type, $match, TRUE);
   }
 
   /**
@@ -150,16 +210,16 @@ final class SidePollingManager {
     foreach ($jobs as $job) {
       $payload = json_decode($job->payload ?? '', TRUE);
       if (!is_array($payload)) {
-        $this->markJobFailed((int) $job->id, $job, 'Invalid payload JSON.');
+        $this->markJobFailed((int) $job->id, $job, 'Invalid payload JSON.', 'Automatically failed.');
         continue;
       }
 
       $result = $this->dispatch((string) $job->type, $payload);
       if (!empty($result['success'])) {
-        $this->markJobCompleted((int) $job->id);
+        $this->markJobCompleted((int) $job->id, 'Automatically completed.');
       }
       else {
-        $this->markJobFailed((int) $job->id, $job, (string) ($result['error'] ?? 'Unknown error'));
+        $this->markJobFailed((int) $job->id, $job, (string) ($result['error'] ?? 'Unknown error'), 'Automatically failed.');
       }
     }
   }
@@ -183,17 +243,17 @@ final class SidePollingManager {
 
     $payload = json_decode($job->payload ?? '', TRUE);
     if (!is_array($payload)) {
-      $this->markJobFailed((int) $job->id, $job, 'Invalid payload JSON.');
+      $this->markJobFailed((int) $job->id, $job, 'Invalid payload JSON.', 'Manually failed (Run now).');
       return FALSE;
     }
 
     $result = $this->dispatch((string) $job->type, $payload);
     if (!empty($result['success'])) {
-      $this->markJobCompleted((int) $job->id);
+      $this->markJobCompleted((int) $job->id, 'Manually completed (Run now).');
       return TRUE;
     }
 
-    $this->markJobFailed((int) $job->id, $job, (string) ($result['error'] ?? 'Unknown error'));
+    $this->markJobFailed((int) $job->id, $job, (string) ($result['error'] ?? 'Unknown error'), 'Manually failed (Run now).');
     return FALSE;
   }
 
@@ -215,6 +275,7 @@ final class SidePollingManager {
         'status' => 'disabled',
         'updated' => time(),
         'last_error' => $error,
+        'last_status_note' => $this->stampStatusNote('Manually cancelled.'),
       ])
       ->condition('id', $id)
       ->execute();
@@ -233,19 +294,19 @@ final class SidePollingManager {
     };
   }
 
-  private function markJobCompleted(int $id): void {
+  private function markJobCompleted(int $id, string $status_note = 'Automatically completed.'): void {
     $this->database->update('side_polling_job')
       ->fields([
         'status' => 'completed',
         'updated' => time(),
         'last_error' => NULL,
-        'last_status_note' => NULL,
+        'last_status_note' => $this->stampStatusNote($status_note),
       ])
       ->condition('id', $id)
       ->execute();
   }
 
-  private function markJobFailed(int $id, object $job, string $error): void {
+  private function markJobFailed(int $id, object $job, string $error, string $status_note = 'Automatically failed.'): void {
     $attempts = (int) ($job->attempts ?? 0) + 1;
     $maxAttempts = (int) ($job->max_attempts ?? 0);
     $status = 'active';
@@ -264,7 +325,7 @@ final class SidePollingManager {
         'interval' => $interval,
         'updated' => time(),
         'last_error' => $error,
-        'last_status_note' => NULL,
+        'last_status_note' => $this->stampStatusNote($status_note),
       ])
       ->condition('id', $id)
       ->execute();
@@ -315,10 +376,18 @@ final class SidePollingManager {
       ->fields([
         'status' => $status,
         'updated' => time(),
-        'last_status_note' => $note,
+        'last_status_note' => $note ? $this->stampStatusNote($note) : NULL,
       ])
       ->condition('id', $ids, 'IN')
       ->execute();
+  }
+
+  private function stampStatusNote(string $note): string {
+    if (preg_match('/^\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\]\\s+/', $note)) {
+      return $note;
+    }
+
+    return sprintf('[%s] %s', date('Y-m-d H:i:s'), $note);
   }
 
   private function getDefaultInterval(): int {

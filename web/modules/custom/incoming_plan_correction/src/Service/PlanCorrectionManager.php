@@ -221,7 +221,7 @@ final class PlanCorrectionManager {
         '@nid' => $node->id(),
         '@status' => $status_label,
       ]);
-      return ['success' => FALSE, 'error' => 'Not signed.'];
+      return ['success' => FALSE, 'error' => 'Δεν είναι υπογεγραμμένο.'];
     }
 
     $file_id = $this->client->extractValueByPath($doc, 'Document.GeneratedFile.Id');

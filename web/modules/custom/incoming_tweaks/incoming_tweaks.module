@@ -660,12 +660,8 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
         /** @var \Drupal\side_polling\SidePollingManager $polling */
         $polling = \Drupal::service('side_polling.manager');
         $caller_info = $document_log ? \Drupal\side_api\DocutracksClient::formatDocumentLogLine($document_log) : '';
-        $polling->registerJob('plan_initial', [
-          'node_id' => $nid,
-          'node_title' => (string) $node->label(),
-          'document_id' => (int) $document_id,
-          'caller_info' => $caller_info,
-        ]);
+        $payload = $polling->buildJobPayload($node, (int) $document_id, $caller_info);
+        $polling->registerJob('plan_initial', $payload);
       }
 
       \Drupal::logger('incoming_tweaks')->info('Docutracks push succeeded', [
@@ -734,7 +730,11 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
   $processing_signed[$nid] = TRUE;
 
   $doc_id = NULL;
-  $polling_should_resume = $polling_job;
+  $match = [];
+  $manual = [
+    'job_exists' => FALSE,
+    'should_resume' => FALSE,
+  ];
 
   try {
     $doc_id = incoming_tweaks_get_plan_doc_id_from_log($node);
@@ -744,11 +744,8 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     if ($polling_job && $doc_id) {
       /** @var \Drupal\side_polling\SidePollingManager $polling */
       $polling = \Drupal::service('side_polling.manager');
-      $match = [
-        'node_id' => $node->id(),
-        'document_id' => (int) $doc_id,
-      ];
-      $polling->pauseJobs('plan_initial', $match);
+      $match = $polling->buildJobMatch($node, (int) $doc_id);
+      $manual = $polling->pauseForManual('plan_initial', $match);
     }
     if (!$doc_id) {
       incoming_tweaks_log_signed_fetch_issue($nid, 'Missing Docutracks document id.');
@@ -765,23 +762,14 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
         '@nid' => $nid,
         '@fid' => $result['file']->id(),
       ]);
-      if ($polling_job) {
-        $match = ['node_id' => $node->id()];
-        if ($doc_id) {
-          $match['document_id'] = (int) $doc_id;
-        }
-        $polling->disableJobs('plan_initial', $match);
-        $polling_should_resume = FALSE;
+      if ($polling_job && $doc_id) {
+        $polling->finishManual('plan_initial', $match, TRUE, $manual['job_exists'], $manual['should_resume']);
       }
     }
     elseif (!empty($result['error'])) {
       incoming_tweaks_revert_to_for_signature($node, $result['error']);
-      if ($polling_job) {
-        $match = ['node_id' => $node->id()];
-        if ($doc_id) {
-          $match['document_id'] = (int) $doc_id;
-        }
-        $polling->resumeJobs('plan_initial', $match);
+      if ($polling_job && $doc_id) {
+        $polling->finishManual('plan_initial', $match, FALSE, $manual['job_exists'], $manual['should_resume']);
       }
     }
   }
@@ -794,12 +782,8 @@ function incoming_tweaks_get_plan_signed(NodeInterface $node, array &$processing
     incoming_tweaks_append_plan_receive_log($node, FALSE, $throwable->getMessage());
   }
   finally {
-    if ($polling_job && $polling_should_resume) {
-      $match = ['node_id' => $node->id()];
-      if (!empty($doc_id)) {
-        $match['document_id'] = (int) $doc_id;
-      }
-      $polling->resumeJobs('plan_initial', $match);
+    if ($polling_job && $doc_id && !empty($manual['job_exists']) && !empty($manual['should_resume'])) {
+      $polling->resumeJobs('plan_initial', $match, TRUE);
     }
     unset($processing_signed[$nid]);
   }
