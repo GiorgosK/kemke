@@ -7,10 +7,8 @@ dependencies:
     - field.field.paragraph.remark.field_datetime
     - field.field.paragraph.remark.field_legal_entity
     - field.field.paragraph.remark.field_user
-    - field.field.paragraph.remark.field_visible_to
     - paragraphs.paragraphs_type.remark
   module:
-    - options
     - text
 id: paragraph.remark.default
 targetEntityType: paragraph
@@ -60,12 +58,5 @@ content:
       link: false
     third_party_settings: {  }
     weight: 1
-    region: content
-  field_visible_to:
-    type: list_default
-    label: hidden
-    settings: {  }
-    third_party_settings: {  }
-    weight: 3
     region: content
 hidden: {  }

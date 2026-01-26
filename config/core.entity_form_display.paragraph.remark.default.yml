@@ -7,7 +7,6 @@ dependencies:
     - field.field.paragraph.remark.field_datetime
     - field.field.paragraph.remark.field_legal_entity
     - field.field.paragraph.remark.field_user
-    - field.field.paragraph.remark.field_visible_to
     - paragraphs.paragraphs_type.remark
   module:
     - select2
@@ -50,12 +49,6 @@ content:
       match_limit: 10
       size: 60
       placeholder: ''
-    third_party_settings: {  }
-  field_visible_to:
-    type: options_select
-    weight: 2
-    region: content
-    settings: {  }
     third_party_settings: {  }
 hidden:
   created: true
