@@ -36,6 +36,7 @@ permissions:
   - 'use incoming_processing transition for_signature'
   - 'use incoming_processing transition fullness_approved'
   - 'use incoming_processing transition fullness_check'
+  - 'use incoming_processing transition issues_to_check'
   - 'use incoming_processing transition pending_issues'
   - 'use incoming_processing transition stay_draft'
   - 'use incoming_processing transition stay_for_signature'
