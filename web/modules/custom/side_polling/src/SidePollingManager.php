@@ -38,6 +38,7 @@ final class SidePollingManager {
         'attempts' => 0,
         'max_attempts' => $maxAttempts,
         'last_error' => NULL,
+        'last_status_note' => NULL,
         'created' => $now,
         'updated' => $now,
       ])
@@ -53,7 +54,7 @@ final class SidePollingManager {
     $query = $this->database->select('side_polling_job', 'j')
       ->fields('j', ['id', 'payload'])
       ->condition('type', $type)
-      ->condition('status', 'active');
+      ->condition('status', ['active', 'paused'], 'IN');
     $jobs = $query->execute()->fetchAll();
     $ids = [];
 
@@ -90,15 +91,17 @@ final class SidePollingManager {
   /**
    * Pause active jobs matching a payload subset.
    */
-  public function pauseJobs(string $type, array $match): int {
-    return $this->updateJobsByPayload($type, $match, 'paused');
+  public function pauseJobs(string $type, array $match, bool $manual = FALSE): int {
+    $note = $manual ? 'Manually paused.' : 'Automatically paused.';
+    return $this->updateJobsByPayload($type, $match, 'paused', $note);
   }
 
   /**
    * Resume paused jobs matching a payload subset.
    */
-  public function resumeJobs(string $type, array $match): int {
-    return $this->updateJobsByPayload($type, $match, 'active');
+  public function resumeJobs(string $type, array $match, bool $manual = FALSE): int {
+    $note = $manual ? 'Manually unpaused.' : 'Automatically unpaused.';
+    return $this->updateJobsByPayload($type, $match, 'active', $note);
   }
 
   /**
@@ -236,6 +239,7 @@ final class SidePollingManager {
         'status' => 'completed',
         'updated' => time(),
         'last_error' => NULL,
+        'last_status_note' => NULL,
       ])
       ->condition('id', $id)
       ->execute();
@@ -260,6 +264,7 @@ final class SidePollingManager {
         'interval' => $interval,
         'updated' => time(),
         'last_error' => $error,
+        'last_status_note' => NULL,
       ])
       ->condition('id', $id)
       ->execute();
@@ -270,7 +275,7 @@ final class SidePollingManager {
     ]);
   }
 
-  private function updateJobsByPayload(string $type, array $match, string $status): int {
+  private function updateJobsByPayload(string $type, array $match, string $status, ?string $note = NULL): int {
     $query = $this->database->select('side_polling_job', 'j')
       ->fields('j', ['id', 'payload', 'status'])
       ->condition('type', $type)
@@ -285,6 +290,13 @@ final class SidePollingManager {
       }
       $is_match = TRUE;
       foreach ($match as $key => $value) {
+        if ($key === 'id') {
+          if ((int) $job->id !== (int) $value) {
+            $is_match = FALSE;
+            break;
+          }
+          continue;
+        }
         if (!array_key_exists($key, $payload) || $payload[$key] !== $value) {
           $is_match = FALSE;
           break;
@@ -303,6 +315,7 @@ final class SidePollingManager {
       ->fields([
         'status' => $status,
         'updated' => time(),
+        'last_status_note' => $note,
       ])
       ->condition('id', $ids, 'IN')
       ->execute();

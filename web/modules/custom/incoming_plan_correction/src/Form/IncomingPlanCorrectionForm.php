@@ -300,7 +300,22 @@ final class IncomingPlanCorrectionForm extends FormBase {
       return;
     }
 
+    $polling_job = FALSE;
+    $polling_should_resume = FALSE;
+    $polling_match = [
+      'node_id' => $node->id(),
+      'document_id' => (int) $document_id,
+    ];
+
     try {
+      /** @var \Drupal\side_polling\SidePollingManager $polling */
+      $polling = \Drupal::service('side_polling.manager');
+      $polling_job = $polling->hasJob('plan_correction', $polling_match);
+      $polling_should_resume = $polling_job;
+      if ($polling_job) {
+        $polling->pauseJobs('plan_correction', $polling_match);
+      }
+
       $result = $manager->receiveSignedCorrection($node, (int) $document_id, TRUE);
       $received = !empty($result['success']);
       $error_reason = (string) ($result['error'] ?? '');
@@ -309,12 +324,10 @@ final class IncomingPlanCorrectionForm extends FormBase {
         $this->getLogger('incoming_plan_correction')->info('Docutracks correction signed download succeeded for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
-        /** @var \Drupal\side_polling\SidePollingManager $polling */
-        $polling = \Drupal::service('side_polling.manager');
-        $polling->disableJobs('plan_correction', [
-          'node_id' => $node->id(),
-          'document_id' => (int) $document_id,
-        ]);
+        if ($polling_job) {
+          $polling->disableJobs('plan_correction', $polling_match);
+          $polling_should_resume = FALSE;
+        }
       }
       else {
         $message = $error_reason !== '' ? $error_reason : 'Signed correction is not available yet.';
@@ -325,9 +338,15 @@ final class IncomingPlanCorrectionForm extends FormBase {
         $this->getLogger('incoming_plan_correction')->warning('Docutracks correction signed download unavailable for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
+        if ($polling_job) {
+          $polling->resumeJobs('plan_correction', $polling_match);
+        }
       }
     }
     catch (\Throwable $throwable) {
+      if ($polling_job) {
+        $polling->resumeJobs('plan_correction', $polling_match);
+      }
       $this->messenger()->addError($this->t('Docutracks signed fetch failed: @message', [
         '@message' => $throwable->getMessage(),
       ]));
@@ -335,6 +354,10 @@ final class IncomingPlanCorrectionForm extends FormBase {
         '@nid' => $node->id(),
         '@message' => $throwable->getMessage(),
       ]);
+    }
+
+    if ($polling_job && $polling_should_resume) {
+      $polling->resumeJobs('plan_correction', $polling_match);
     }
 
     $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);

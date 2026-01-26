@@ -43,7 +43,7 @@ final class SidePollingController extends ControllerBase {
       'active' => [
         '#type' => 'table',
         '#caption' => $this->t('Active polling jobs'),
-        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Next run', 'Attempts', 'Last error', 'Actions'],
+        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Next run', 'Attempts', 'Last error', 'Last status', 'Actions'],
         '#rows' => $this->formatRows($active, FALSE),
         '#empty' => $this->t('No active polling jobs.'),
       ],
@@ -103,11 +103,15 @@ final class SidePollingController extends ControllerBase {
           (string) $job->status,
           $this->formatTimestamp((int) ($job->updated ?? 0)),
           (string) ($job->last_error ?? ''),
+          (string) ($job->last_status_note ?? ''),
         ];
       }
       else {
         $run_now = Url::fromRoute('side_polling.run_now', ['job' => (int) $job->id])->toString();
         $cancel = Url::fromRoute('side_polling.cancel', ['job' => (int) $job->id])->toString();
+        $pause = Url::fromRoute('side_polling.pause', ['job' => (int) $job->id])->toString();
+        $unpause = Url::fromRoute('side_polling.unpause', ['job' => (int) $job->id])->toString();
+        $status = (string) ($job->status ?? '');
         $rows[] = [
           (string) $job->id,
           (string) $job->type,
@@ -116,7 +120,12 @@ final class SidePollingController extends ControllerBase {
           $this->formatTimestamp((int) ($job->next_run ?? 0)),
           (string) ($job->attempts ?? 0),
           (string) ($job->last_error ?? ''),
-          ['data' => ['#markup' => '<a href="' . $run_now . '">' . $this->t('Run now') . '</a> | <a href="' . $cancel . '">' . $this->t('Cancel') . '</a>']],
+          (string) ($job->last_status_note ?? ''),
+          ['data' => ['#markup' => ($status === 'paused'
+            ? '<a href="' . $unpause . '">' . $this->t('Unpause') . '</a>'
+            : '<a href="' . $pause . '">' . $this->t('Pause') . '</a>')
+            . ' | <a href="' . $run_now . '">' . $this->t('Run now') . '</a>'
+            . ' | <a href="' . $cancel . '">' . $this->t('Cancel') . '</a>']],
         ];
       }
     }
@@ -143,7 +152,7 @@ final class SidePollingController extends ControllerBase {
       'finished' => [
         '#type' => 'table',
         '#caption' => $this->t('Finished polling jobs'),
-        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Status', 'Updated', 'Last error'],
+        '#header' => ['ID', 'Type', 'Node', 'Caller info', 'Status', 'Updated', 'Last error', 'Last status'],
         '#rows' => $this->formatRows($finished, TRUE),
         '#empty' => $this->t('No finished polling jobs.'),
       ],

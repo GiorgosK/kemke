@@ -26,3 +26,17 @@ side_polling.cancel:
     _controller: '\Drupal\side_polling\Controller\SidePollingRunController::cancel'
   requirements:
     _permission: 'administer site configuration'
+side_polling.pause:
+  path: '/admin/config/side-polling/pause/{job}'
+  defaults:
+    _title: 'Pause polling job'
+    _controller: '\Drupal\side_polling\Controller\SidePollingRunController::pause'
+  requirements:
+    _permission: 'administer site configuration'
+side_polling.unpause:
+  path: '/admin/config/side-polling/unpause/{job}'
+  defaults:
+    _title: 'Unpause polling job'
+    _controller: '\Drupal\side_polling\Controller\SidePollingRunController::unpause'
+  requirements:
+    _permission: 'administer site configuration'

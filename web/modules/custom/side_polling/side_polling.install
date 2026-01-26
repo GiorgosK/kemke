@@ -53,6 +53,11 @@ function side_polling_schema(): array {
         'size' => 'big',
         'not null' => FALSE,
       ],
+      'last_status_note' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ],
       'created' => [
         'type' => 'int',
         'not null' => TRUE,
