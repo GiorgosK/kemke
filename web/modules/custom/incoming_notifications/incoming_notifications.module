@@ -2,6 +2,8 @@
 
 use Drupal\node\NodeInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\paragraphs\ParagraphInterface;
+use Drupal\taxonomy\TermInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -68,7 +70,7 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
 
   $new_state = $node->get('moderation_state')->value;
 
-  if ($new_state === $original_state || !$new_state) {
+  if ((!$new_state) || ($new_state === $original_state && $new_state !== 'pending_issues')) {
     return;
   }
 
@@ -100,7 +102,35 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
   }
 
   if ($new_state === 'pending_issues') {
-    $recipients = _incoming_notifications_get_users_by_legal_entity($node);
+    // Pending issues rules are role-sensitive and only use remarks from this save.
+    $account = \Drupal::currentUser();
+    $current_uid = (int) $account->id();
+    // Only consider a remark created in the current save by the current user.
+    $remark = _incoming_notifications_get_current_save_remark($node, $current_uid);
+    $is_amke_user = $account->hasRole('amke_user');
+
+    if ($is_amke_user) {
+      // AMKE users only notify the basic operator when they add a remark.
+      if ($remark && $node->hasField('field_basic_operator')) {
+        $target_id = $node->get('field_basic_operator')->target_id;
+        $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
+        if ($user instanceof UserInterface) {
+          _incoming_notifications_send_notifications('pending_issues', $node, [$user]);
+        }
+      }
+      return;
+    }
+
+    // Non-AMKE users: if any remarks exist, notifications are driven by the new remark.
+    if (_incoming_notifications_node_has_any_remarks($node)) {
+      // Empty remark legal entity means no notifications.
+      $recipients = $remark ? _incoming_notifications_get_users_by_legal_entity($remark) : [];
+    }
+    else {
+      // If no remarks exist at all, use the node legal entity selection.
+      $recipients = _incoming_notifications_get_users_by_legal_entity($node);
+    }
+
     _incoming_notifications_send_notifications('pending_issues', $node, $recipients);
   }
 
@@ -227,6 +257,86 @@ function incoming_notifications_get_state_label(string $state, string $langcode)
 }
 
 /**
+ * Returns the remark created in the current save by the current user.
+ */
+function _incoming_notifications_get_current_save_remark(NodeInterface $node, int $current_uid): ?ParagraphInterface {
+  if (!$node->hasField('field_remarks') || $node->get('field_remarks')->isEmpty()) {
+    return NULL;
+  }
+
+  // Capture existing remark IDs to detect only new additions on this save.
+  $previous_ids = [];
+  if (isset($node->original) && $node->original instanceof NodeInterface && $node->original->hasField('field_remarks')) {
+    foreach ($node->original->get('field_remarks')->referencedEntities() as $previous) {
+      if ($previous instanceof ParagraphInterface && $previous->id()) {
+        $previous_ids[(int) $previous->id()] = TRUE;
+      }
+    }
+  }
+
+  // Among new remarks by the current user, choose the latest by timestamp.
+  $latest = NULL;
+  $latest_ts = NULL;
+  $latest_index = -1;
+  foreach ($node->get('field_remarks')->referencedEntities() as $index => $remark) {
+    if (!$remark instanceof ParagraphInterface || $remark->bundle() !== 'remark') {
+      continue;
+    }
+    $remark_id = $remark->id() ? (int) $remark->id() : NULL;
+    if ($remark_id && isset($previous_ids[$remark_id])) {
+      continue;
+    }
+    if (!$remark->hasField('field_user') || $remark->get('field_user')->isEmpty()) {
+      continue;
+    }
+    $author_id = (int) $remark->get('field_user')->target_id;
+    if ($author_id !== $current_uid) {
+      continue;
+    }
+
+    $timestamp = NULL;
+    if ($remark->hasField('field_datetime') && !$remark->get('field_datetime')->isEmpty()) {
+      $timestamp = (int) $remark->get('field_datetime')->value;
+    }
+    elseif (method_exists($remark, 'getCreatedTime')) {
+      $timestamp = (int) $remark->getCreatedTime();
+    }
+
+    if ($timestamp !== NULL) {
+      if ($latest_ts === NULL || $timestamp > $latest_ts) {
+        $latest = $remark;
+        $latest_ts = $timestamp;
+      }
+      continue;
+    }
+
+    if ($index > $latest_index) {
+      $latest = $remark;
+      $latest_index = $index;
+    }
+  }
+
+  return $latest;
+}
+
+/**
+ * Checks whether the incoming node has any remark paragraphs.
+ */
+function _incoming_notifications_node_has_any_remarks(NodeInterface $node): bool {
+  if (!$node->hasField('field_remarks') || $node->get('field_remarks')->isEmpty()) {
+    return FALSE;
+  }
+
+  foreach ($node->get('field_remarks')->referencedEntities() as $remark) {
+    if ($remark instanceof ParagraphInterface && $remark->bundle() === 'remark') {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
  * Finds active users matching the incoming node legal entity.
  *
  * @param \Drupal\Core\Entity\EntityInterface $entity
@@ -250,6 +360,23 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
   if (empty($target_ids)) {
     return [];
   }
+
+  $term_storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  $terms = $term_storage->loadMultiple($target_ids);
+  foreach ($terms as $term) {
+    if (!$term instanceof TermInterface) {
+      continue;
+    }
+    // If a parent term is selected, include all descendant terms so all child
+    // AMKE users receive notifications.
+    $children = $term_storage->loadTree($term->bundle(), $term->id(), NULL, FALSE);
+    foreach ($children as $child) {
+      if (!empty($child->tid)) {
+        $target_ids[] = (int) $child->tid;
+      }
+    }
+  }
+  $target_ids = array_values(array_unique($target_ids));
 
   $storage = \Drupal::entityTypeManager()->getStorage('user');
   $query = $storage->getQuery()
