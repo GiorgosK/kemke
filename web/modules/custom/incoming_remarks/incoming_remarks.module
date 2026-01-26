@@ -231,6 +231,7 @@ function incoming_remarks_form_node_incoming_edit_form_alter(array &$form, FormS
   incoming_remarks_lock_embedded_paragraph_fields($form, $form_state);
   incoming_remarks_customize_paragraph_widgets($form, $form_state);
   incoming_remarks_filter_visible_paragraph_widgets($form, $form_state);
+  incoming_remarks_hide_add_more_when_pending($form, $form_state);
 }
 
 /**
@@ -305,6 +306,63 @@ function incoming_remarks_lock_embedded_paragraph_fields(array &$form, FormState
         $bundle_fields[$bundle]
       );
     }
+  }
+}
+
+/**
+ * Hides the add-more button when a new remark subform is already present.
+ */
+function incoming_remarks_hide_add_more_when_pending(array &$form, FormStateInterface $form_state): void {
+  if (empty($form['field_remarks']['widget'])) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  $node = $form_object ? $form_object->getEntity() : NULL;
+  if (!$node instanceof NodeInterface || !$node->hasField('field_remarks')) {
+    return;
+  }
+
+  $has_pending_remark = FALSE;
+  foreach (Element::children($form['field_remarks']['widget']) as $delta) {
+    if (empty($form['field_remarks']['widget'][$delta]['subform'])) {
+      continue;
+    }
+    $subform = $form['field_remarks']['widget'][$delta]['subform'];
+    $paragraph = $subform['#entity'] ?? NULL;
+    if ($paragraph instanceof ParagraphInterface && $paragraph->bundle() === 'remark' && $paragraph->isNew()) {
+      $has_pending_remark = TRUE;
+      break;
+    }
+    if (!$paragraph instanceof ParagraphInterface) {
+      $item = $node->get('field_remarks')->get($delta);
+      if ($item && $item->isEmpty() && (isset($subform['field_comment']) || isset($subform['field_legal_entity']))) {
+        $has_pending_remark = TRUE;
+        break;
+      }
+    }
+  }
+
+  if (!$has_pending_remark) {
+    return;
+  }
+
+  if (isset($form['field_remarks']['widget']['add_more'])) {
+    $form['field_remarks']['widget']['add_more']['#access'] = FALSE;
+  }
+
+  foreach (Element::children($form['field_remarks']['widget']) as $child) {
+    if (empty($form['field_remarks']['widget'][$child]['#type'])) {
+      continue;
+    }
+    $element =& $form['field_remarks']['widget'][$child];
+    if (($element['#type'] ?? NULL) !== 'submit') {
+      continue;
+    }
+    if (($element['#name'] ?? NULL) !== 'field_remarks_remark_add_more') {
+      continue;
+    }
+    $element['#access'] = FALSE;
   }
 }
 
