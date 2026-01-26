@@ -275,6 +275,27 @@
         },],
       },
     ],
+    PendingIssuesRequiresLegalEntity: [
+      {
+        selector: '#edit-moderation-state-pending-issues',
+        rules: [
+          {
+            type: 'button',
+            disabled: true,
+            toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+            emptyFields: [
+              {
+                selector: '#edit-field-legal-entity',
+                type: 'select2',
+                tab_button_class: 'horizontal-tab-button-2',
+                tab_button_active_class: 'selected',
+                indicator: '.select2-selection',
+              },
+            ],
+          },
+        ],
+      },
+    ],
    
     // Example reusable ruleset (shared across multiple roles).
     // rulesetExample: [
@@ -321,6 +342,7 @@
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
       ...ruleSets.ExtensionDateVis,
+      ...ruleSets.PendingIssuesRequiresLegalEntity,
     ],
     // amke_user: [
     //   ...ruleSets.baseAssignment,
