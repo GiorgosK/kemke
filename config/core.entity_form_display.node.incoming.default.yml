@@ -29,9 +29,6 @@ dependencies:
     - field.field.node.incoming.field_opinion_ref_id
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
-    - field.field.node.incoming.field_plan_dt_docid
-    - field.field.node.incoming.field_plan_dt_success
-    - field.field.node.incoming.field_plan_dt_tries
     - field.field.node.incoming.field_plan_signed
     - field.field.node.incoming.field_primary
     - field.field.node.incoming.field_priority
@@ -591,28 +588,6 @@ content:
     region: content
     settings:
       rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_plan_dt_docid:
-    type: string_textfield
-    weight: 31
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_plan_dt_success:
-    type: boolean_checkbox
-    weight: 33
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  field_plan_dt_tries:
-    type: number
-    weight: 32
-    region: content
-    settings:
       placeholder: ''
     third_party_settings: {  }
   field_plan_signed:
