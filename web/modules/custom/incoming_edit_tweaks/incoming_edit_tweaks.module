@@ -122,6 +122,7 @@ function incoming_edit_tweaks_entity_access(EntityInterface $entity, $operation,
 function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
   $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
   $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
+  incoming_edit_tweaks_add_status_display($form, $form_state);
 }
 
 /**
@@ -130,6 +131,7 @@ function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, F
 function incoming_edit_tweaks_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state): void {
   $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
   $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
+  incoming_edit_tweaks_add_status_display($form, $form_state);
 }
 
 /**
@@ -159,6 +161,49 @@ function incoming_edit_tweaks_hide_element_by_name_or_id(array &$element, string
   foreach (\Drupal\Core\Render\Element::children($element) as $key) {
     incoming_edit_tweaks_hide_element_by_name_or_id($element[$key], $name, $id);
   }
+}
+
+/**
+ * Add moderation status display above the save buttons.
+ */
+function incoming_edit_tweaks_add_status_display(array &$form, FormStateInterface $form_state): void {
+  $account = \Drupal::currentUser();
+  if ($account->hasRole('amke_user')) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof EntityInterface || $entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $config = \Drupal::config('workflows.workflow.incoming_processing');
+  $states = $config->get('type_settings.states') ?? [];
+  $default_state = $config->get('type_settings.default_moderation_state');
+
+  $state_id = $default_state;
+  if ($entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()) {
+    $state_id = $entity->get('moderation_state')->value;
+  }
+
+  if (!$state_id) {
+    return;
+  }
+
+  $label = $states[$state_id]['label'] ?? $state_id;
+
+  $actions_weight = $form['actions']['#weight'] ?? 100;
+  $form['incoming_moderation_status'] = [
+    '#type' => 'item',
+    '#markup' => t('Εγγραφο σε Κατάσταση') . ': ' . $label,
+    '#weight' => $actions_weight - 1,
+    '#attributes' => ['class' => ['incoming-moderation-status']],
+  ];
 }
 
 /**
