@@ -9,9 +9,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
@@ -28,9 +30,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
@@ -47,9 +51,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
@@ -66,9 +72,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
@@ -79,9 +87,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
@@ -92,9 +102,11 @@ kemke_reports.settings:
         name:
           type: text
           label: 'Name'
+          translatable: false
         description:
           type: text
           label: 'Description'
+          translatable: false
         percentage:
           type: float
           label: 'Target percentage'
