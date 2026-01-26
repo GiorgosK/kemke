@@ -77,9 +77,6 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
 
   $account = \Drupal::currentUser();
   if ($account->hasRole('amke_user') && !incoming_remarks_account_can_bypass_visibility($account)) {
-    if ($entity->hasField('field_visible_to')) {
-    $entity->set('field_visible_to', ['value' => 'amke']);
-    }
     if ($entity->isNew() && $entity->hasField('field_legal_entity') && $entity->get('field_legal_entity')->isEmpty()) {
       $user = $account instanceof UserInterface
         ? $account
@@ -127,7 +124,6 @@ function incoming_remarks_entity_view(array &$build, EntityInterface $entity, En
   }
 
   if ($entity instanceof ParagraphInterface && $entity->bundle() === 'remark') {
-    unset($build['field_visible_to']);
     if (!incoming_remarks_paragraph_is_visible_to_amke($entity, $account)) {
       $build['#access'] = FALSE;
     }
@@ -260,11 +256,6 @@ function incoming_remarks_form_paragraph_form_alter(array &$form, FormStateInter
 
   incoming_remarks_apply_paragraph_field_locks($form, $paragraph, $bundle_map[$bundle]);
 
-  if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
-    if (isset($form['field_visible_to'])) {
-      $form['field_visible_to']['#access'] = FALSE;
-    }
-  }
 }
 
 /**
@@ -395,10 +386,12 @@ function incoming_remarks_paragraph_is_visible_to_amke(ParagraphInterface $parag
     return FALSE;
   }
 
+  // Direct match: remark targets child terms explicitly.
   if (array_intersect($paragraph_entities, $viewer_entities)) {
     return TRUE;
   }
 
+  // Parent match: remark targets a parent, user has a child term.
   $parent_entities = incoming_remarks_get_parent_term_ids($viewer_entities);
   if (empty($parent_entities)) {
     return FALSE;
@@ -610,44 +603,15 @@ function incoming_remarks_field_has_blanket_label(EntityInterface $entity, strin
  * Returns a CSS class that reflects the remark visibility value.
  */
 function incoming_remarks_get_visible_to_class(ParagraphInterface $paragraph): ?string {
-  if (!$paragraph->hasField('field_visible_to')) {
+  if (!$paragraph->hasField('field_legal_entity')) {
     return NULL;
   }
 
-  $field = $paragraph->get('field_visible_to');
-  if ($field->isEmpty()) {
-    return NULL;
-  }
-
-  $values = [];
-  foreach ($field->getValue() as $value) {
-    if (isset($value['value'])) {
-      $values[] = (string) $value['value'];
-    }
-  }
-
-  if (in_array('amke', $values, TRUE)) {
-    return 'visible-to-amke';
-  }
-  if (in_array('only_kemke', $values, TRUE)) {
+  if ($paragraph->get('field_legal_entity')->isEmpty()) {
     return 'visible-to-only-kemke';
   }
 
-  $item = $field->first();
-  if ($item instanceof OptionsProviderInterface) {
-    $options = OptGroup::flattenOptions($item->getPossibleOptions());
-    foreach ($values as $value) {
-      $label = strtolower(trim($options[$value] ?? ''));
-      if ($label === 'amke') {
-        return 'visible-to-amke';
-      }
-      if ($label === 'only kemke' || $label === 'only_kemke') {
-        return 'visible-to-only-kemke';
-      }
-    }
-  }
-
-  return NULL;
+  return 'visible-to-amke';
 }
 
 /**
@@ -752,9 +716,6 @@ function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInte
       if ($bundle) {
         incoming_remarks_hide_paragraph_fields($element['subform'], $bundle);
         if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
-          if (isset($element['subform']['field_visible_to'])) {
-            $element['subform']['field_visible_to']['#access'] = FALSE;
-          }
           if (isset($element['subform']['field_legal_entity'])) {
             $element['subform']['field_legal_entity']['#access'] = FALSE;
           }
@@ -924,12 +885,9 @@ function incoming_remarks_apply_paragraph_field_locks(array &$subform, Paragraph
       $subform[$field_name]['#access'] = FALSE;
     }
 
-    if ($field_name === 'field_visible_to' && \Drupal::currentUser()->hasRole('amke_user')) {
-      continue;
-    }
     if (!$field_is_empty && isset($subform[$field_name])) {
       $display_classes = ['incoming-remarks-field', str_replace('_', '-', $field_name)];
-      if ($paragraph->bundle() === 'remark' && $field_name === 'field_visible_to') {
+      if ($paragraph->bundle() === 'remark' && $field_name === 'field_legal_entity') {
         $visible_class = incoming_remarks_get_visible_to_class($paragraph);
         if ($visible_class) {
           $display_classes[] = $visible_class;
@@ -1119,7 +1077,6 @@ function incoming_remarks_get_paragraph_field_map() {
       'field_user',
       'field_datetime',
       'field_send_to',
-      'field_visible_to',
       'field_legal_entity',
     ],
   ];
@@ -1136,7 +1093,6 @@ function incoming_remarks_get_node_paragraph_field_map() {
         'field_user',
         'field_datetime',
         'field_send_to',
-        'field_visible_to',
         'field_legal_entity',
       ],
     ],
