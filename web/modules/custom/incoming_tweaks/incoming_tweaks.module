@@ -3,6 +3,9 @@
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+use Drupal\Core\Render\Markup;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Render\Element;
@@ -43,6 +46,39 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   ) {
     $form['field_plan']['widget']['#after_build'][] = 'incoming_tweaks_limit_plan_widget';
   }
+
+  if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
+    $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
+
+    if (isset($form['actions']['submit'])) {
+      $submit_handlers = $form['actions']['submit']['#submit'] ?? [];
+      if (!is_array($submit_handlers)) {
+        $submit_handlers = [$submit_handlers];
+      }
+      $form['actions']['#prefix'] = '<div id="incoming-tweaks-actions-wrapper">';
+      $form['actions']['#suffix'] = '</div>';
+      $conflict_visible = (bool) $form_state->get('incoming_tweaks_protocol_conflict_visible');
+      $form['actions']['override_submit'] = [
+        '#type' => 'submit',
+        '#value' => t('@label (παράκαψμη ελέγχου Α.Π. Αποστολέα)', [
+          '@label' => (string) ($form['actions']['submit']['#value'] ?? t('Αποθήκευση')),
+        ]),
+        '#weight' => 5,
+        '#button_type' => 'secondary',
+        '#name' => 'override_submit',
+        '#access' => $conflict_visible,
+        '#submit' => array_merge(['incoming_tweaks_override_protocol_conflict_submit'], $submit_handlers),
+      ];
+    }
+
+    if (isset($form['field_protocol_number_sender']['widget'][0]['value'])) {
+      $form['field_protocol_number_sender']['widget'][0]['value']['#ajax'] = [
+        'callback' => 'incoming_tweaks_protocol_sender_ajax_refresh_actions',
+        'event' => 'change',
+        'wrapper' => 'incoming-tweaks-actions-wrapper',
+      ];
+    }
+  }
 }
 
 /**
@@ -75,6 +111,126 @@ function incoming_tweaks_limit_plan_widget(array $element, FormStateInterface $f
   }
 
   return $element;
+}
+
+/**
+ * Form-level validation for unique sender protocol per year.
+ */
+function incoming_tweaks_validate_sender_protocol_unique_current_year(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $protocol_value = trim((string) $form_state->getValue(['field_protocol_number_sender', 0, 'value'], ''));
+  if ($protocol_value === '') {
+    return;
+  }
+
+  $trigger = $form_state->getTriggeringElement();
+  if (($trigger['#name'] ?? '') === 'override_submit') {
+    return;
+  }
+
+  $current_year = (int) (new \DateTimeImmutable('now'))->format('Y');
+
+  $current_nid = (int) ($entity->id() ?? 0);
+  $match = incoming_tweaks_find_protocol_conflict($protocol_value, $current_nid, $current_year);
+  if (!$match instanceof NodeInterface) {
+    $form_state->set('incoming_tweaks_protocol_conflict_visible', FALSE);
+    return;
+  }
+  $form_state->set('incoming_tweaks_protocol_conflict_visible', TRUE);
+  $form_state->setRebuild(TRUE);
+
+  $match_entry_date = '';
+  if ($match->hasField('field_entry_date') && !$match->get('field_entry_date')->isEmpty()) {
+    $match_entry_date = (string) ($match->get('field_entry_date')->value ?? '');
+  }
+
+  $match_subject = '';
+  if ($match->hasField('field_subject') && !$match->get('field_subject')->isEmpty()) {
+    $match_subject = trim((string) ($match->get('field_subject')->value ?? ''));
+  }
+  if ($match_subject === '') {
+    $match_subject = $match->label();
+  }
+
+  $match_label = $match->hasField('field_ref_id') && !$match->get('field_ref_id')->isEmpty()
+    ? (string) ($match->get('field_ref_id')->value ?? $match->label())
+    : $match->label();
+  $date_label = $match_entry_date !== '' ? $match_entry_date : '-';
+  $message = t('Το πρωτόκολλο αποστολέα "@protocol" υπάρχει ήδη για το έτος @year με το εγγραφο @ref - @date.<br>Αν θέλετε να το αποστείλετε ξανά, πατήστε το κουμπι παράκαμψης.', [
+    '@protocol' => $protocol_value,
+    '@year' => $current_year,
+    '@ref' => $match_label,
+    '@date' => $date_label,
+  ]);
+  $form_state->setErrorByName('field_protocol_number_sender', Markup::create($message));
+}
+
+/**
+ * Finds a conflicting incoming by protocol number and year.
+ */
+function incoming_tweaks_find_protocol_conflict(string $protocol_value, int $current_nid, int $year): ?NodeInterface {
+  if ($protocol_value === '') {
+    return NULL;
+  }
+
+  $year_start = sprintf('%d-01-01', $year);
+  $year_end = sprintf('%d-12-31', $year);
+
+  $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'incoming')
+    ->condition('field_protocol_number_sender', $protocol_value)
+    ->condition('field_entry_date', $year_start, '>=')
+    ->condition('field_entry_date', $year_end, '<=')
+    ->range(0, 1);
+
+  if ($current_nid > 0) {
+    $query->condition('nid', $current_nid, '<>');
+  }
+
+  $match_ids = $query->execute();
+  if (empty($match_ids)) {
+    return NULL;
+  }
+
+  $match_id = (int) reset($match_ids);
+  $match = \Drupal::entityTypeManager()->getStorage('node')->load($match_id);
+  return $match instanceof NodeInterface ? $match : NULL;
+}
+
+/**
+ * Submit handler for the override save button.
+ */
+function incoming_tweaks_override_protocol_conflict_submit(array &$form, FormStateInterface $form_state): void {
+  $form_state->set('incoming_tweaks_protocol_conflict_visible', TRUE);
+}
+
+/**
+ * AJAX callback to refresh the actions area.
+ */
+function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, FormStateInterface $form_state): array {
+  $form_object = $form_state->getFormObject();
+  if ($form_object && method_exists($form_object, 'getEntity')) {
+    $entity = $form_object->getEntity();
+    if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
+      $protocol_value = trim((string) $form_state->getValue(['field_protocol_number_sender', 0, 'value'], ''));
+      $current_year = (int) (new \DateTimeImmutable('now'))->format('Y');
+      $current_nid = (int) ($entity->id() ?? 0);
+      $match = incoming_tweaks_find_protocol_conflict($protocol_value, $current_nid, $current_year);
+      $form_state->set('incoming_tweaks_protocol_conflict_visible', $match instanceof NodeInterface);
+    }
+  }
+
+  return $form['actions'];
 }
 
 
