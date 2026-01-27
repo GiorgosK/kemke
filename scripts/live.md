@@ -32,5 +32,5 @@
   ddev exec php scripts/passwords.php expire:bulk off
   ddev exec php scripts/passwords.php expire:bulk on  
   ```
-- alsdjf
+- add docutracks username for syncing
 - 
