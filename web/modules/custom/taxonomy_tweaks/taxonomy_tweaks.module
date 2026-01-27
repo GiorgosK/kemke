@@ -4,7 +4,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use Drupal\Component\Utility\NestedArray;
 use Drupal\taxonomy\TermInterface;
 
 /**
@@ -58,12 +57,21 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
   $existing_style = $form['#attributes']['style'] ?? '';
   $form['#attributes']['style'] = trim($existing_style . ' max-width: 600px; margin: 0 auto;');
 
-  if (\Drupal::currentUser()->hasRole('administrator')) {
+  $term = $form_state->getFormObject()->getEntity();
+  if (!$term instanceof TermInterface) {
     return;
   }
 
-  $term = $form_state->getFormObject()->getEntity();
-  if (!$term instanceof TermInterface) {
+  if ($term->bundle() === 'case') {
+    if (isset($form['parent']['#title'])) {
+      $form['parent']['#title'] = t('Υφιστάμενες Υποθέσεις');
+    }
+    if (isset($form['parent']['widget']['#title'])) {
+      $form['parent']['widget']['#title'] = t('Υφιστάμενες Υποθέσεις');
+    }
+  }
+
+  if (\Drupal::currentUser()->hasRole('administrator')) {
     return;
   }
 
