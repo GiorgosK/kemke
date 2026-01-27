@@ -1131,9 +1131,18 @@ function incoming_related_field_download_docutracks_file(
  */
 function incoming_related_field_build_doc_title(FileInterface $file, array $context): string {
   $title = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-  if (!empty($context['parent_node_id'])) {
-    $title = sprintf('incoming-%d-%s', (int) $context['parent_node_id'], $title);
+
+  $parent_nid = (int) ($context['parent_node_id'] ?? 0);
+  if ($parent_nid > 0) {
+    $node = \Drupal::entityTypeManager()->getStorage('node')->load($parent_nid);
+    if ($node instanceof NodeInterface) {
+      $subject = $node->hasField('field_subject') && !$node->get('field_subject')->isEmpty()
+        ? trim(strip_tags((string) ($node->get('field_subject')->value ?? '')))
+        : '';
+      $title = $subject !== '' ? $subject : $node->label();
+    }
   }
+
   return $title;
 }
 
