@@ -145,4 +145,16 @@ final class SideApiCommands extends DrushCommands {
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 
+  /**
+   * Fetch the full users tree (organization structure with users).
+   *
+   * @command side:users-tree
+   * @aliases sdut
+   */
+  public function getFullUsersTree(): void {
+    $jar = $this->client->loginToDocutracks();
+    $response = $this->client->fetchFullUsersTree($jar);
+    $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
 }

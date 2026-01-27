@@ -1048,6 +1048,37 @@ final class DocutracksClient {
   }
 
   /**
+   * Fetch the full users tree (organization structure with users).
+   *
+   * @return array<string, mixed>
+   */
+  public function fetchFullUsersTree(?\GuzzleHttp\Cookie\CookieJarInterface $jar = NULL, ?string $baseUrl = NULL, float $timeout = 30.0): array {
+    $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+    $jar = $jar ?? $this->loginToDocutracks(baseUrl: $resolvedBaseUrl, timeout: $timeout);
+    $verify = $this->getTlsVerify();
+
+    try {
+      $response = $this->httpClient->request('GET', $resolvedBaseUrl . '/services/organization/fullUsersTree', [
+        'headers' => ['Accept' => 'application/json'],
+        'cookies' => $jar,
+        'timeout' => $timeout,
+        'verify' => $verify,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      throw new RuntimeException(sprintf('Full users tree request failed: %s', $e->getMessage()), 0, $e);
+    }
+
+    $body = (string) $response->getBody();
+    $decoded = json_decode($body, TRUE);
+    if (!is_array($decoded)) {
+      throw new RuntimeException('Full users tree response could not be decoded as JSON.');
+    }
+
+    return $decoded;
+  }
+
+  /**
    * Defaults for CreatedBy / CreatedByGroup depending on environment.
    *
    * @return array{created_by:int, created_by_group:int}
