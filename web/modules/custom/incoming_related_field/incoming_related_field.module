@@ -295,7 +295,13 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       ],
       '#states' => [
         'enabled' => [
-          ':input[name="' . $dt_docid_name . '"]' => ['filled' => TRUE],
+          [
+            ':input[name="' . $dt_docid_name . '"]' => ['filled' => TRUE],
+          ],
+          'or',
+          [
+            ':input[name="' . $protocol_override_name . '"]' => ['filled' => TRUE],
+          ],
         ],
       ],
       '#incoming_related_field_context' => [
