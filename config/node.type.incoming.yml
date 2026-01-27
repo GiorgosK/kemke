@@ -13,7 +13,7 @@ third_party_settings:
   content_moderation:
     enabled: true
     workflow: incoming_processing
-name: Εισερχόμενο
+name: Έγγραφο
 type: incoming
 description: null
 help: null
