@@ -437,8 +437,9 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
 
     incoming_related_field_apply_docutracks_fields($node, $doc, TRUE);
 
-    if (!empty($context['is_current_node'])) {
-      $form_state->set('incoming_related_field_refresh_node_id', (int) $node_id);
+    // Always refresh the edit form so updated fields are visible.
+    if ($current_node_id) {
+      $form_state->set('incoming_related_field_refresh_node_id', $current_node_id);
     }
 
     \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
