@@ -12,6 +12,7 @@ dependencies:
     - taxonomy.vocabulary.priority
     - workflows.workflow.incoming_processing
   module:
+    - activities
     - activities_mods
     - content_moderation
     - custom_permissions_access
@@ -44,6 +45,7 @@ permissions:
   - 'assign kemke_admin role'
   - 'assign operator role'
   - 'assign secretariat role'
+  - 'can view users activity'
   - 'change own username'
   - 'change to arbitary state'
   - 'create incoming content'

@@ -16,7 +16,7 @@ activities_mods.user_activity:
     _controller: '\Drupal\activities_mods\Controller\ActivitiesModsController::userActivity'
     _title: 'Activity'
   requirements:
-    _permission: 'access user profiles'
+    _permission: 'can view users activity'
   options:
     parameters:
       user:
