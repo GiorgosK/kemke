@@ -14,6 +14,7 @@ dependencies:
     - user.role.department_supervisor
     - user.role.director_supervisor
     - user.role.kemke_admin
+    - user.role.kemke_admin_readonly
     - user.role.operator
     - user.role.secretariat
   module:
@@ -1030,6 +1031,7 @@ display:
             operator: operator
             api: api
             kemke_admin: kemke_admin
+            kemke_admin_readonly: kemke_admin_readonly
           group: 1
           exposed: true
           expose:
