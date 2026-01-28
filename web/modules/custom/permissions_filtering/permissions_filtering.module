@@ -135,6 +135,10 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
   }
 
   if (isset($form['permissions']) && is_array($form['permissions'])) {
+    // Always hide the compact toggle link; we keep descriptions hidden by default.
+    if (isset($form['system_compact_link'])) {
+      $form['system_compact_link']['#access'] = FALSE;
+    }
     if (isset($form['permissions']['#header']) && is_array($form['permissions']['#header'])) {
       foreach ($roles_to_hide as $role_id) {
         if (isset($form['permissions']['#header'][$role_id])) {
