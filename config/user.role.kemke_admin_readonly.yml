@@ -1,0 +1,9 @@
+uuid: 22084f9f-0c03-4013-8613-e21203094f55
+langcode: el
+status: true
+dependencies: {  }
+id: kemke_admin_readonly
+label: Παρατηρητής
+weight: 14
+is_admin: false
+permissions: {  }

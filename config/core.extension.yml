@@ -81,6 +81,7 @@ module:
   path_alias: 0
   pdf_serialization: 0
   permissions_filtering: 0
+  readonly_admin_simulator: 0
   reference_table_formatter: 0
   rest: 0
   role_delegation: 0

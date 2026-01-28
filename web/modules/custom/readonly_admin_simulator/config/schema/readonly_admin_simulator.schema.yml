@@ -1,0 +1,13 @@
+readonly_admin_simulator.settings:
+  type: config_object
+  label: 'Read-only Admin Simulator settings'
+  mapping:
+    simulated_role:
+      type: string
+      label: 'Role to simulate (permissions source)'
+    readonly_role:
+      type: string
+      label: 'Role that gets simulated permissions and is enforced read-only'
+    disable_admin_submits:
+      type: boolean
+      label: 'Disable admin form submit buttons'

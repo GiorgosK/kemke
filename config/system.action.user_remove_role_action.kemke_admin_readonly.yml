@@ -1,0 +1,14 @@
+uuid: ce7de7da-f6d3-4d02-8c6f-7ecd01392f68
+langcode: el
+status: true
+dependencies:
+  config:
+    - user.role.kemke_admin_readonly
+  module:
+    - user
+id: user_remove_role_action.kemke_admin_readonly
+label: 'Remove the kemke admin readonly role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: kemke_admin_readonly

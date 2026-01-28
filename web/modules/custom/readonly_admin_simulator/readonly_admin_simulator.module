@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+
+/**
+ * Helper: get module config quickly.
+ */
+function _readonly_admin_simulator_config(): \Drupal\Core\Config\ImmutableConfig {
+  return \Drupal::config('readonly_admin_simulator.settings');
+}
+
+/**
+ * Enforce read-only at entity access level.
+ */
+function readonly_admin_simulator_entity_access(EntityInterface $entity, string $operation, AccountInterface $account): AccessResult {
+  $config = _readonly_admin_simulator_config();
+  $readonly = (string) $config->get('readonly_role');
+
+  if ($readonly && $account->hasRole($readonly)) {
+    // Allow "update" so edit forms are accessible, but block persistence via
+    // admin-route POST validation in readonly_admin_simulator_form_alter().
+    if (in_array($operation, ['delete', 'create'], TRUE)) {
+      return AccessResult::forbidden()
+        ->addCacheContexts(['user.roles']);
+    }
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Enforce read-only at the form level for admin routes (config + entity forms).
+ *
+ * This blocks POST submissions on admin routes for the read-only role.
+ * It's intentionally broad to avoid edge-case write leaks in contrib UIs.
+ */
+function readonly_admin_simulator_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $config = _readonly_admin_simulator_config();
+  $readonly = (string) $config->get('readonly_role');
+
+  if (!$readonly || !\Drupal::currentUser()->hasRole($readonly)) {
+    return;
+  }
+
+  // Only affect admin routes.
+  $route = \Drupal::routeMatch()->getRouteObject();
+  if (!$route || !$route->getOption('_admin_route')) {
+    return;
+  }
+
+  // Allow forms that are explicitly whitelisted.
+  // You can add form IDs here if something genuinely needs POST without mutating state.
+  $whitelist_form_ids = [
+    // Exposed filters are GET-based and safe.
+    'views_exposed_form',
+  ];
+  if (in_array($form_id, $whitelist_form_ids, TRUE)) {
+    return;
+  }
+
+  // Add an always-on validate handler to block submissions.
+  // Validation runs before submit handlers, so this prevents writes.
+  $form['#validate'][] = 'readonly_admin_simulator_validate_block_admin_post';
+
+  // Cosmetic: disable submit buttons if enabled in settings.
+  if ((bool) $config->get('disable_admin_submits') && isset($form['actions']) && is_array($form['actions'])) {
+    foreach ($form['actions'] as $key => &$action) {
+      if (!is_array($action)) {
+        continue;
+      }
+      if (($action['#type'] ?? NULL) === 'submit') {
+        $action['#disabled'] = TRUE;
+        if (isset($action['#value']) && is_string($action['#value'])) {
+          $action['#value'] .= ' (read-only)';
+        }
+      }
+    }
+    unset($action);
+  }
+
+  // Intentionally no UI warning banner.
+}
+
+/**
+ * Validation handler that blocks POST submissions on admin routes.
+ */
+function readonly_admin_simulator_validate_block_admin_post(array &$form, FormStateInterface $form_state): void {
+  // Only block on POST-like submissions with an actual triggering element.
+  // This reduces false positives for admin pages that build forms but don't submit.
+  $request = \Drupal::request();
+  $method = strtoupper((string) $request->getMethod());
+
+  if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], TRUE)) {
+    return;
+  }
+
+  // If there is no triggering element, don't block (e.g., some AJAX rebuilds).
+  $trigger = $form_state->getTriggeringElement();
+  if (!$trigger) {
+    return;
+  }
+
+  // If the triggering element isn't a submit button, don't block.
+  $type = $trigger['#type'] ?? NULL;
+  if ($type !== 'submit' && $type !== 'button') {
+    return;
+  }
+
+  // Block.
+  $form_state->setErrorByName('', t('This account has read-only administrative access. No changes were saved.'));
+}

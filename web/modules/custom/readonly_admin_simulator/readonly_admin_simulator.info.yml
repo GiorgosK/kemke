@@ -1,0 +1,8 @@
+name: Read-only Admin Simulator
+type: module
+description: Simulate an existing admin role's permissions while enforcing read-only behavior (blocks writes + disables admin submits).
+package: Custom
+core_version_requirement: ^11
+configure: readonly_admin_simulator.settings
+dependencies:
+  - drupal:user

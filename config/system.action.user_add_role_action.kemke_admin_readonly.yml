@@ -1,0 +1,14 @@
+uuid: 0dbbb808-1d43-4d10-9722-feb58c5cd962
+langcode: el
+status: true
+dependencies:
+  config:
+    - user.role.kemke_admin_readonly
+  module:
+    - user
+id: user_add_role_action.kemke_admin_readonly
+label: 'Add the kemke admin readonly role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: kemke_admin_readonly

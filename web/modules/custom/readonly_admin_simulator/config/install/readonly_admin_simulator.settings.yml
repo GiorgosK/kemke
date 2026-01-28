@@ -1,0 +1,3 @@
+simulated_role: 'kemke_admin'
+readonly_role: 'kemke_admin_readonly'
+disable_admin_submits: true

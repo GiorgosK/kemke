@@ -1,0 +1,5 @@
+_core:
+  default_config_hash: DTVpqAfJxKF3ZWphuHd06298VIjTh4PG22mx_ypCd0o
+simulated_role: kemke_admin
+readonly_role: kemke_admin_readonly
+disable_admin_submits: true

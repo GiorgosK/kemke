@@ -1,0 +1,8 @@
+services:
+  readonly_admin_simulator.access_policy:
+    class: Drupal\readonly_admin_simulator\Access\ReadonlyAdminAccessPolicy
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+    tags:
+      - { name: access_policy, priority: 10 }

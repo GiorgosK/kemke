@@ -1,0 +1,7 @@
+readonly_admin_simulator.settings:
+  path: '/admin/config/people/readonly-admin-simulator'
+  defaults:
+    _form: '\Drupal\readonly_admin_simulator\Form\SettingsForm'
+    _title: 'Read-only Admin Simulator'
+  requirements:
+    _permission: 'administer readonly admin simulator'

@@ -1,0 +1,4 @@
+administer readonly admin simulator:
+  title: 'Administer Read-only Admin Simulator'
+  description: 'Configure which role is simulated and which role is treated as read-only.'
+  restrict access: true
