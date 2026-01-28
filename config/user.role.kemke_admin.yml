@@ -27,7 +27,7 @@ dependencies:
     - taxonomy
     - toolbar
 id: kemke_admin
-label: 'kemke admin'
+label: 'Διαχείριστής ΚΕΜΚΕ'
 weight: 13
 is_admin: false
 permissions:
