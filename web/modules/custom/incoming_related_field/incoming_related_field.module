@@ -159,6 +159,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
   if (\Drupal::currentUser()->hasRole('amke_user')) {
     return;
   }
+  $is_admin = \Drupal::currentUser()->hasRole('administrator');
 
   if (
     empty($form['field_related_incoming']['widget']['entities'])
@@ -200,8 +201,6 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     $protocol_override_name = 'incoming_related_field_protocol_override_' . $delta;
     $sender_protocol_name = 'incoming_related_field_sender_protocol_' . $delta;
 
-    $is_admin = \Drupal::currentUser()->hasRole('administrator');
-
     $row['actions']['incoming_related_dt_docid'] = [
       '#type' => 'textfield',
       '#title' => t('Α/Α ΣΗΔΕ'),
@@ -228,7 +227,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       '#attributes' => [
         'class' => ['incoming-related-field-protocol-override'],
       ],
-      '#access' => TRUE,
+      '#access' => $is_admin,
       '#weight' => 6,
     ];
 
@@ -286,10 +285,11 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
 
     $corrected_action = [
       '#type' => 'submit',
-      '#value' => t('Ορθή Επανάληψη Εγγράφου'),
+      '#value' => t('Λήψη Ορθής Επανάληψης'),
       '#name' => 'incoming_related_field_get_corrected_' . $delta,
       '#submit' => ['incoming_related_field_get_corrected_document_submit'],
       '#limit_validation_errors' => [],
+      '#access' => ($is_admin || $protocol_text !== ''),
       '#attributes' => [
         'class' => ['incoming-related-field-get-corrected'],
       ],
@@ -316,6 +316,10 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
       ],
       '#weight' => 15,
     ];
+
+    if ($use_protocol && $protocol_text !== '') {
+      unset($corrected_action['#states']);
+    }
 
     $corrected_action['#ajax'] = [
       'callback' => 'incoming_related_field_get_corrected_ajax',
@@ -377,7 +381,21 @@ function incoming_related_field_should_show_send_button(NodeInterface $node): bo
     return FALSE;
   }
 
-  return $node->get('field_protocol_number_doc')->isEmpty();
+  if (\Drupal::currentUser()->hasRole('administrator')) {
+    return TRUE;
+  }
+
+  $items = $node->get('field_protocol_number_doc')->getValue();
+  foreach ($items as $item) {
+    $value = (string) ($item['value'] ?? '');
+    // Strip whitespace and non-printing chars to avoid false positives.
+    $value = preg_replace('/[\p{Z}\p{C}\s]+/u', '', $value);
+    if ($value !== '' && $value !== '0') {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 /**
@@ -406,7 +424,6 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
   }
 
   try {
-    $input = $form_state->getUserInput();
     $sender_protocol = $sender_protocol_name ? trim((string) ($input[$sender_protocol_name] ?? '')) : '';
     $result = incoming_related_field_send_file_to_side($file, [
       'title' => incoming_related_field_build_doc_title($file, ['parent_node_id' => $node_id]),
