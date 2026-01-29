@@ -21,6 +21,11 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   $current_user = \Drupal::currentUser();
   $entity = $form_state->getFormObject()->getEntity();
 
+  // Skip tweaks during paragraphs add-more AJAX rebuilds to avoid breaking subforms.
+  if (incoming_tweaks_is_remarks_add_more($form_state)) {
+    return;
+  }
+
   if (!$current_user->hasPermission('administer nodes') && isset($form['revision_information'])) {
     // Remove revision tab entirely for non-admin users.
     $form['revision_information']['#access'] = FALSE;
@@ -117,6 +122,9 @@ function incoming_tweaks_limit_plan_widget(array $element, FormStateInterface $f
  * Form-level validation for unique sender protocol per year.
  */
 function incoming_tweaks_validate_sender_protocol_unique_current_year(array &$form, FormStateInterface $form_state): void {
+  if (incoming_tweaks_is_remarks_add_more($form_state)) {
+    return;
+  }
   $form_object = $form_state->getFormObject();
   if (!$form_object || !method_exists($form_object, 'getEntity')) {
     return;
@@ -218,6 +226,9 @@ function incoming_tweaks_override_protocol_conflict_submit(array &$form, FormSta
  * AJAX callback to refresh the actions area.
  */
 function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, FormStateInterface $form_state): array {
+  if (incoming_tweaks_is_remarks_add_more($form_state)) {
+    return $form['actions'];
+  }
   $form_object = $form_state->getFormObject();
   if ($form_object && method_exists($form_object, 'getEntity')) {
     $entity = $form_object->getEntity();
@@ -231,6 +242,25 @@ function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, Form
   }
 
   return $form['actions'];
+}
+
+/**
+ * Returns TRUE when the current request is a remarks add-more trigger.
+ */
+function incoming_tweaks_is_remarks_add_more(FormStateInterface $form_state): bool {
+  $trigger = $form_state->getTriggeringElement();
+  $trigger_name = $trigger['#name'] ?? '';
+  if ($trigger_name === 'field_remarks_remark_add_more') {
+    return TRUE;
+  }
+
+  $request = \Drupal::request();
+  $request_trigger = (string) $request->request->get('_triggering_element_name', '');
+  if ($request_trigger === 'field_remarks_remark_add_more') {
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 

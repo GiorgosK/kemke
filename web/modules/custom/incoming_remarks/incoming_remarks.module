@@ -778,6 +778,14 @@ function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInte
             $element['subform']['field_legal_entity']['#access'] = FALSE;
           }
         }
+        if ($bundle === 'remark' && isset($element['subform']['field_legal_entity'])) {
+          $paragraph_entity = $element['subform']['#entity'] ?? NULL;
+          if ($paragraph_entity instanceof ParagraphInterface && !$paragraph_entity->isNew()) {
+            if ($paragraph_entity->hasField('field_legal_entity') && $paragraph_entity->get('field_legal_entity')->isEmpty()) {
+              $element['subform']['field_legal_entity']['#access'] = FALSE;
+            }
+          }
+        }
       }
     }
   }
@@ -937,6 +945,15 @@ function incoming_remarks_apply_paragraph_field_locks(array &$subform, Paragraph
     $field_is_empty = $paragraph_field->isEmpty();
 
     if (in_array($field_name, $hidden_fields, TRUE)) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+    elseif (
+      $paragraph->bundle() === 'remark'
+      && $field_name === 'field_legal_entity'
+      && !$paragraph->isNew()
+      && $field_is_empty
+    ) {
+      // Hide empty legal entity on existing remarks; keep visible for new remarks.
       $subform[$field_name]['#access'] = FALSE;
     }
     elseif (!$field_is_empty) {
