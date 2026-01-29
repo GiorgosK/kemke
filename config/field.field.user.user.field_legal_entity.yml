@@ -18,13 +18,13 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  handler: 'default:filter_existing_terms'
+  handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
       legal_entity: legal_entity
     sort:
       field: name
       direction: asc
-    auto_create: true
+    auto_create: false
     auto_create_bundle: ''
 field_type: entity_reference
