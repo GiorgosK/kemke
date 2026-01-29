@@ -160,6 +160,10 @@ pre {
   width: 700px;
 }
 
+[class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference {
+  width: 400px !important;
+}
+
 [class*="node-incoming-"] .details-wrapper .field--type-datetime .form-type-date {
   display: block;
 }
