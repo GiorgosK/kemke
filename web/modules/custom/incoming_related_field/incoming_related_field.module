@@ -240,6 +240,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     if (incoming_related_field_should_show_send_button($node)) {
       $send_classes = ['incoming-related-field-send-to-side'];
 
+      $sender_protocol_access = $is_admin || trim((string) $sender_protocol) === '';
       $row['actions']['incoming_related_sender_protocol'] = [
         '#type' => 'textfield',
         '#title' => t('Α.Π. Αποστολέα'),
@@ -251,7 +252,7 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
         '#attributes' => [
           'class' => ['incoming-related-field-sender-protocol'],
         ],
-        '#access' => TRUE,
+        '#access' => $sender_protocol_access,
         '#weight' => 19,
       ];
 
@@ -391,11 +392,11 @@ function incoming_related_field_should_show_send_button(NodeInterface $node): bo
     // Strip whitespace and non-printing chars to avoid false positives.
     $value = preg_replace('/[\p{Z}\p{C}\s]+/u', '', $value);
     if ($value !== '' && $value !== '0') {
-      return TRUE;
+      return FALSE;
     }
   }
 
-  return FALSE;
+  return TRUE;
 }
 
 /**
@@ -751,6 +752,7 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
       : '';
     $sender_protocol_name = 'incoming_related_field_sender_protocol_paragraph_' . $delta;
 
+    $sender_protocol_access = \Drupal::currentUser()->hasRole('administrator') || trim((string) $sender_protocol) === '';
     $subform['docutracks_sender_protocol'] = [
       '#type' => 'textfield',
       '#title' => t('Α.Π. Αποστολέα'),
@@ -762,7 +764,7 @@ function incoming_related_field_add_send_to_side_buttons(array &$entity_form): v
       '#attributes' => [
         'class' => ['incoming-related-field-sender-protocol'],
       ],
-      '#access' => TRUE,
+      '#access' => $sender_protocol_access,
       '#weight' => 99,
     ];
 
