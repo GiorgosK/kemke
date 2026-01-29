@@ -36,6 +36,7 @@ permissions:
   - 'create terms in case'
   - 'edit any incoming content'
   - 'edit field_legal_entity'
+  - 'edit field_temporary_disabled'
   - 'edit terms in case'
   - 'setup reports'
   - 'use incoming_processing transition completed'

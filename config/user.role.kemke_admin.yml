@@ -57,6 +57,7 @@ permissions:
   - 'delete terms in case'
   - 'edit any incoming content'
   - 'edit field_legal_entity'
+  - 'edit field_temporary_disabled'
   - 'edit terms in case'
   - 'edit terms in incoming_subtype'
   - 'edit terms in incoming_type'
