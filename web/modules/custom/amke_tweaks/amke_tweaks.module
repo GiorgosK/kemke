@@ -86,7 +86,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     amke_tweaks_limit_documents_widget($form);
   }
   if (isset($form['field_protocol_number_sender'])) {
-    $form['field_protocol_number_sender']['#access'] = $allow_protocol_number_sender;
+    $form['field_protocol_number_sender']['#access'] = $allow_protocol_number_sender || $account->hasRole('administrator');
   }
   if (isset($form['field_related_incoming'])) {
     $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
