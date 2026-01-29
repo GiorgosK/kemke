@@ -53,7 +53,10 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   }
 
   if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
-    $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
+    $is_new_incoming = $entity->isNew();
+    if ($is_new_incoming) {
+      $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
+    }
 
     if (isset($form['actions']['submit'])) {
       $submit_handlers = $form['actions']['submit']['#submit'] ?? [];
@@ -71,12 +74,12 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
         '#weight' => 5,
         '#button_type' => 'secondary',
         '#name' => 'override_submit',
-        '#access' => $conflict_visible,
+        '#access' => $is_new_incoming && $conflict_visible,
         '#submit' => array_merge(['incoming_tweaks_override_protocol_conflict_submit'], $submit_handlers),
       ];
     }
 
-    if (isset($form['field_protocol_number_sender']['widget'][0]['value'])) {
+    if ($is_new_incoming && isset($form['field_protocol_number_sender']['widget'][0]['value'])) {
       $form['field_protocol_number_sender']['widget'][0]['value']['#ajax'] = [
         'callback' => 'incoming_tweaks_protocol_sender_ajax_refresh_actions',
         'event' => 'change',
@@ -132,6 +135,13 @@ function incoming_tweaks_validate_sender_protocol_unique_current_year(array &$fo
 
   $entity = $form_object->getEntity();
   if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+  if (!$entity->isNew()) {
+    return;
+  }
+  if (!$entity->isNew()) {
+    $form_state->set('incoming_tweaks_protocol_conflict_visible', FALSE);
     return;
   }
 
@@ -233,6 +243,10 @@ function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, Form
   if ($form_object && method_exists($form_object, 'getEntity')) {
     $entity = $form_object->getEntity();
     if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
+      if (!$entity->isNew()) {
+        $form_state->set('incoming_tweaks_protocol_conflict_visible', FALSE);
+        return $form['actions'];
+      }
       $protocol_value = trim((string) $form_state->getValue(['field_protocol_number_sender', 0, 'value'], ''));
       $current_year = (int) (new \DateTimeImmutable('now'))->format('Y');
       $current_nid = (int) ($entity->id() ?? 0);
