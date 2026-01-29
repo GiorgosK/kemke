@@ -300,6 +300,18 @@ function users_tweaks_toolbar_alter(array &$items): void {
   }
 
   $items['user']['tab']['#title'] = $title;
+  $cacheable_metadata = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($items['user']['tab'])
+    ->addCacheableDependency($account)
+    ->addCacheContexts(['user', 'user.roles']);
+
+  if ($account->hasRole('amke_user') && $account->hasField('field_legal_entity')) {
+    $legal_entity = $account->get('field_legal_entity')->entity;
+    if ($legal_entity) {
+      $cacheable_metadata->addCacheableDependency($legal_entity);
+    }
+  }
+
+  $cacheable_metadata->applyTo($items['user']['tab']);
 }
 
 /**
