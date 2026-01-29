@@ -76,6 +76,12 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
     return;
   }
 
+  if (isset($form['field_related_incoming'])) {
+    // Hide only the fieldset legend while keeping the widget visible.
+    $form['field_related_incoming']['#attributes']['class'][] = 'incoming-related-field-hide-legend';
+    $form['#attached']['library'][] = 'incoming_related_field/field_related_incoming_legend';
+  }
+
 //  $form['#attached']['library'][] = 'incoming_related_field/ief_hide_actions';
 
   if (\Drupal::currentUser()->hasRole('amke_user')) {

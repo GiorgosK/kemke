@@ -2,3 +2,7 @@ ief_hide_actions:
   css:
     theme:
       css/ief-hide-actions.css: {}
+field_related_incoming_legend:
+  css:
+    theme:
+      css/field-related-incoming-legend.css: {}

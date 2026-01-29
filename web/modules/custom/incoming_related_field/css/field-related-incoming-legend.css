@@ -1,0 +1,6 @@
+.incoming-related-field-hide-legend > legend,
+.incoming-related-field-hide-legend legend,
+.incoming-related-field-hide-legend .govgr-fieldset__legend,
+.incoming-related-field-hide-legend legend .govgr-fieldset__legend {
+  display: none !important;
+}
