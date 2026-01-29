@@ -58,6 +58,8 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
       $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
     }
 
+    incoming_tweaks_apply_legal_entity_hierarchy($form);
+
     if (isset($form['actions']['submit'])) {
       $submit_handlers = $form['actions']['submit']['#submit'] ?? [];
       if (!is_array($submit_handlers)) {
@@ -87,6 +89,67 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
       ];
     }
   }
+}
+
+/**
+ * Ensure legal entity options preserve hierarchy in incoming forms.
+ */
+function incoming_tweaks_apply_legal_entity_hierarchy(array &$form): void {
+  if (empty($form['field_legal_entity']) || !is_array($form['field_legal_entity'])) {
+    return;
+  }
+
+  $options = incoming_tweaks_build_legal_entity_hierarchy_options();
+  if ($options === []) {
+    return;
+  }
+
+  if (
+    isset($form['field_legal_entity']['widget'])
+    && is_array($form['field_legal_entity']['widget'])
+    && isset($form['field_legal_entity']['widget']['#options'])
+    && is_array($form['field_legal_entity']['widget']['#options'])
+  ) {
+    $empty = $form['field_legal_entity']['widget']['#empty_option'] ?? ($form['field_legal_entity']['widget']['#options'][''] ?? NULL);
+    $form['field_legal_entity']['widget']['#options'] = $options;
+    if ($empty !== NULL) {
+      $form['field_legal_entity']['widget']['#options'] = ['' => $empty] + $options;
+    }
+    return;
+  }
+
+  if (
+    isset($form['field_legal_entity']['widget'][0]['target_id'])
+    && is_array($form['field_legal_entity']['widget'][0]['target_id'])
+    && isset($form['field_legal_entity']['widget'][0]['target_id']['#options'])
+    && is_array($form['field_legal_entity']['widget'][0]['target_id']['#options'])
+  ) {
+    $empty = $form['field_legal_entity']['widget'][0]['target_id']['#empty_option'] ?? ($form['field_legal_entity']['widget'][0]['target_id']['#options'][''] ?? NULL);
+    $form['field_legal_entity']['widget'][0]['target_id']['#options'] = $options;
+    if ($empty !== NULL) {
+      $form['field_legal_entity']['widget'][0]['target_id']['#options'] = ['' => $empty] + $options;
+    }
+  }
+}
+
+/**
+ * Build legal entity option labels with depth prefixes for Select2.
+ */
+function incoming_tweaks_build_legal_entity_hierarchy_options(): array {
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  $tree = $storage->loadTree('legal_entity', 0, NULL, FALSE);
+  if (!$tree) {
+    return [];
+  }
+
+  $options = [];
+  foreach ($tree as $term) {
+    $depth = isset($term->depth) ? (int) $term->depth : 0;
+    $prefix = $depth > 0 ? str_repeat('-', $depth) . ' ' : '';
+    $options[(string) $term->tid] = $prefix . $term->name;
+  }
+
+  return $options;
 }
 
 /**
