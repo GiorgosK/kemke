@@ -91,6 +91,13 @@ progress:
       css/components/progress.css:
         weight: -10
 
+tabledrag:
+  version: VERSION
+  css:
+    component:
+      css/components/tabledrag.css:
+        weight: -10
+
 account-menu-icons:
   version: VERSION
   css:
