@@ -958,7 +958,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     }
 
     if ($is_success) {
-      $node->setNewRevision(FALSE);
+      $node->setNewRevision(TRUE);
       $node->save();
       $document_id = $response['DocumentReference'] ?? NULL;
       if ($document_id) {
