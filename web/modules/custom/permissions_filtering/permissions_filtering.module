@@ -303,7 +303,9 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
   }
 
   if (isset($form['permissions']) && is_array($form['permissions'])) {
-    // Always hide the compact toggle link; we keep descriptions hidden by default.
+    // Force compact mode on so descriptions stay hidden.
+    user_cookie_save(['admin_compact_mode' => TRUE]);
+    // Hide the compact toggle link.
     if (isset($form['system_compact_link'])) {
       $form['system_compact_link']['#access'] = FALSE;
     }
@@ -329,6 +331,12 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     foreach ($form['permissions'] as $permission_name => &$permission_row) {
       if (!is_array($permission_row) || (is_string($permission_name) && str_starts_with($permission_name, '#'))) {
         continue;
+      }
+      if (isset($permission_row['description']['#context']['description'])) {
+        unset($permission_row['description']['#context']['description']);
+      }
+      if (isset($permission_row['description']['#context']['warning'])) {
+        unset($permission_row['description']['#context']['warning']);
       }
       foreach ($roles_to_hide as $role_id) {
         if (isset($permission_row[$role_id])) {
