@@ -101,11 +101,16 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
   else {
     $allow_keys = [
       'name',
+      'parent',
       'actions',
       'form_build_id',
       'form_token',
       'form_id',
     ];
+
+    if ($term->bundle() !== 'legal_entity') {
+      $allow_keys = array_values(array_diff($allow_keys, ['parent']));
+    }
   }
 
   foreach ($form as $key => &$element) {
