@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -152,6 +153,49 @@ function taxonomy_tweaks_form_taxonomy_term_form_alter(array &$form, FormStateIn
     '@prefix' => $prefix,
     '@vocabulary' => $vocabulary->label(),
   ]);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_tweaks_form_taxonomy_overview_terms_alter(array &$form, FormStateInterface $form_state): void {
+  if (empty($form['terms']) || !is_array($form['terms'])) {
+    return;
+  }
+
+  if (isset($form['terms']['#header']) && is_array($form['terms']['#header'])) {
+    unset($form['terms']['#header']['status'], $form['terms']['#header']['weight']);
+    $form['terms']['#header'] = array_filter(
+      $form['terms']['#header'],
+      static fn($value) => $value !== NULL
+    );
+  }
+
+  foreach (array_keys($form['terms']) as $key) {
+    if (!is_array($form['terms'][$key]) || !isset($form['terms'][$key]['term']) || !is_array($form['terms'][$key]['term'])) {
+      continue;
+    }
+
+    if (isset($form['terms'][$key]['status'])) {
+      $form['terms'][$key]['status'] = NULL;
+    }
+    if (isset($form['terms'][$key]['weight'])) {
+      $form['terms'][$key]['weight'] = NULL;
+    }
+
+    $term_element = &$form['terms'][$key]['term'];
+    if (isset($term_element['#type']) && $term_element['#type'] === 'link') {
+      $title = $term_element['#title'] ?? '';
+      $term_element['#type'] = 'item';
+      $term_element['#plain_text'] = Html::decodeEntities((string) $title);
+      unset($term_element['#title'], $term_element['#url']);
+      continue;
+    }
+
+    if (isset($term_element['#markup'])) {
+      $term_element['#markup'] = Html::escape(Html::decodeEntities((string) $term_element['#markup']));
+    }
+  }
 }
 
 /**
