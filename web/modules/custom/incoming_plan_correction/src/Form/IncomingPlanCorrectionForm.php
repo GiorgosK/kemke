@@ -302,7 +302,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
     try {
       $manual = $polling->pauseForManual('plan_correction', $polling_match);
 
-      $result = $manager->receiveSignedCorrection($node, (int) $document_id, TRUE);
+      $result = $manager->receiveSignedCorrection($node, (int) $document_id, TRUE, FALSE);
       $received = !empty($result['success']);
       $error_reason = (string) ($result['error'] ?? '');
       if ($received) {

@@ -36,7 +36,7 @@ final class PlanInitialHandler {
     }
 
     try {
-      return $this->planInitialManager->receiveSignedPlan($node, $document_id, TRUE);
+      return $this->planInitialManager->receiveSignedPlan($node, $document_id, TRUE, FALSE);
     }
     catch (\Throwable $throwable) {
       $this->logger->error('Polling receive failed for incoming @nid: @message', [

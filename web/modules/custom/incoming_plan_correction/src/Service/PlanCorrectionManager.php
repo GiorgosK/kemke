@@ -28,7 +28,7 @@ final class PlanCorrectionManager {
   /**
    * Receive the signed correction document and append status logs.
    */
-  public function receiveSignedCorrection(NodeInterface $node, int $document_id, bool $save = TRUE): array {
+  public function receiveSignedCorrection(NodeInterface $node, int $document_id, bool $save = TRUE, bool $save_on_failure = TRUE): array {
     $jar = $this->client->loginToDocutracks(timeout: 60.0);
     $result = $this->downloadSignedPlan($node, $jar, $document_id);
     $correction_id = $this->getLatestPlanCorrectionId($node);
@@ -49,8 +49,8 @@ final class PlanCorrectionManager {
       ],
     ]);
 
-    if ($save) {
-      $node->setNewRevision(FALSE);
+    if ($save && (!empty($result['success']) || $save_on_failure)) {
+      $node->setNewRevision(!empty($result['success']));
       $node->save();
     }
 

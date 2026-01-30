@@ -36,7 +36,7 @@ final class PlanCorrectionHandler {
     }
 
     try {
-      return $this->planCorrectionManager->receiveSignedCorrection($node, $document_id, TRUE);
+      return $this->planCorrectionManager->receiveSignedCorrection($node, $document_id, TRUE, FALSE);
     }
     catch (\Throwable $throwable) {
       $this->logger->error('Polling receive failed for incoming @nid: @message', [

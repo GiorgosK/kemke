@@ -22,7 +22,7 @@ final class PlanInitialManager {
   /**
    * Receive the signed plan document and append status logs.
    */
-  public function receiveSignedPlan(NodeInterface $node, int $document_id, bool $save = TRUE): array {
+  public function receiveSignedPlan(NodeInterface $node, int $document_id, bool $save = TRUE, bool $save_on_failure = TRUE): array {
     // This service owns the final publish transition after a successful signed fetch.
     $current_state = $node->hasField('moderation_state') ? ($node->get('moderation_state')->value ?? NULL) : NULL;
     $jar = $this->client->loginToDocutracks(timeout: 60.0);
@@ -46,7 +46,7 @@ final class PlanInitialManager {
 
     $this->appendDocumentLog($node, $document_log);
 
-    if ($save) {
+    if ($save && (!empty($result['success']) || $save_on_failure)) {
       if ($node->hasField('moderation_state')) {
         if (!empty($result['success'])) {
           $node->set('moderation_state', 'published');
@@ -55,7 +55,7 @@ final class PlanInitialManager {
           $node->set('moderation_state', $current_state);
         }
       }
-      $node->setNewRevision(FALSE);
+      $node->setNewRevision(!empty($result['success']));
       $node->save();
     }
 
