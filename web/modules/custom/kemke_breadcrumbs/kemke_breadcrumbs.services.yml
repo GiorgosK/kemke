@@ -19,3 +19,16 @@ services:
     class: Drupal\kemke_breadcrumbs\Breadcrumb\IncomingListingBreadcrumbBuilder
     tags:
       - { name: breadcrumb_builder, priority: 260 }
+
+  kemke_breadcrumbs.taxonomy_breadcrumb_builder:
+    class: Drupal\kemke_breadcrumbs\Breadcrumb\TaxonomyBreadcrumbBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+    tags:
+      - { name: breadcrumb_builder, priority: 255 }
+
+  kemke_breadcrumbs.user_breadcrumb_builder:
+    class: Drupal\kemke_breadcrumbs\Breadcrumb\UserBreadcrumbBuilder
+    tags:
+      - { name: breadcrumb_builder, priority: 254 }
