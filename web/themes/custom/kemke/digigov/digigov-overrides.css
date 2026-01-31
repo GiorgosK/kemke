@@ -248,3 +248,7 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 .toolbar-horizontal.toolbar-fixed.toolbar-tray-open .sticky-section {
   top: 79px;
 }
+
+.govgr-layout-wrapper__full-height {
+  padding-top: 50px;
+}
