@@ -43,22 +43,20 @@
  */
 #}
 <div class="layout-container">
-
-  <header class="govgr-header" role="banner">
-    <div class="govgr-header__container">
-      <div class="govgr-header__content">
-        <a href="{{ front_page }}" class="govgr-header__title">{{ site_name }}</a>
-        {{ page.header }}
+  <div class="sticky-section">
+    <header class="govgr-header" role="banner">
+      <div class="govgr-header__container">
+        <div class="govgr-header__content">
+          <a href="{{ front_page }}" class="govgr-header__title">{{ site_name }}</a>
+          {{ page.header }}
+        </div>
+      </div>
+    </header>
+    <div class="govgr-layout-wrapper govgr-layout-grey">
+      <div class="govgr-width-container">
+        {{ page.breadcrumb }}
       </div>
     </div>
-  </header>
-  <div class="govgr-layout-wrapper govgr-layout-grey">
-    <div class="govgr-width-container">
-      {{ page.breadcrumb }}
-    </div>
-  </div>
-  
-  <div class="govgr-layout-wrapper govgr-layout-wrapper__full-height">
     <div class="govgr-width-container">
 
       {{ page.primary_menu }}
@@ -67,7 +65,11 @@
       {{ page.highlighted }}
 
       {{ page.help }}
-  
+    </div>
+  </div>  
+  <div class="govgr-layout-wrapper govgr-layout-wrapper__full-height">
+    <div class="govgr-width-container">
+
       <div class="govgr-main-wrapper" role="main">
         <main class="govgr-grid-column-three-thirds">
 

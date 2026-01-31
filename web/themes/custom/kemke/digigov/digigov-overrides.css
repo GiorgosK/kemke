@@ -237,3 +237,14 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 .govgr-hint {
   font-size: 14px;
 }
+
+.toolbar-vertical.toolbar-fixed .sticky-section,
+.toolbar-horizontal.toolbar-fixed .sticky-section {
+  position: sticky;
+  top: 39px;
+  z-index: 100;
+  background: white;
+}
+.toolbar-horizontal.toolbar-fixed.toolbar-tray-open .sticky-section {
+  top: 79px;
+}
