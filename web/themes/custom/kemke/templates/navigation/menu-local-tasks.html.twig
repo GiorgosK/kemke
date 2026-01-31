@@ -18,6 +18,8 @@
   </div>
 {% endif %}
 {% if secondary %}
-  <h2 class="visually-hidden">{{ 'Secondary tabs'|t }}</h2>
-  <ul class="tabs secondary">{{ secondary }}</ul>
+  <div class="govgr-tabs govgr-tabs__no-panel">
+    <h6 class="visually-hidden govgr-tabs__title">{{ 'Secondary tabs'|t }}</h6>
+    <ul class="govgr-tabs__list" role="tablist">{{ secondary }}</ul>
+  </div>
 {% endif %}
