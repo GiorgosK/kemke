@@ -172,3 +172,7 @@ tr.visible-to-amke {
   flex-direction: row;
   gap: 10px;
 }
+
+.home-toolbar-tab {
+  display: none !important;
+}
