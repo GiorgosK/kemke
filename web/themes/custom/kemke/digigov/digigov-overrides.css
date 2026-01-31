@@ -238,8 +238,8 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
   font-size: 14px;
 }
 
-.toolbar-vertical.toolbar-fixed .sticky-section,
-.toolbar-horizontal.toolbar-fixed .sticky-section {
+.toolbar-vertical.toolbar-fixed:not(.path-incoming) .sticky-section,
+.toolbar-horizontal.toolbar-fixed:not(.path-incoming) .sticky-section {
   position: sticky;
   top: 39px;
   z-index: 100;
