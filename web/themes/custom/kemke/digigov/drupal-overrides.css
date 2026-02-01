@@ -176,3 +176,10 @@ tr.visible-to-amke {
 .home-toolbar-tab {
   display: none !important;
 }
+
+.action-links {
+  display: flex;
+}
+.action-links .govgr-btn-small {
+  margin: 15px 10px 5px 0px;
+}
