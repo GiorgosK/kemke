@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for Save Draft.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function save_draft_schema(): array {
+  $schema['save_draft'] = [
+    'description' => 'Stores per-user draft snapshots for node forms.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'entity_type' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ],
+      'bundle' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ],
+      'entity_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'langcode' => [
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => 'und',
+      ],
+      'data' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'changed' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'save_draft_unique' => ['entity_type', 'bundle', 'entity_id', 'uid', 'langcode'],
+    ],
+    'indexes' => [
+      'save_draft_entity' => ['entity_type', 'bundle', 'entity_id'],
+      'save_draft_user' => ['uid'],
+    ],
+  ];
+
+  return $schema;
+}

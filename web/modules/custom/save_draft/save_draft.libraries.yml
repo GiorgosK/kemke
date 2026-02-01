@@ -1,0 +1,10 @@
+save_draft:
+  css:
+    theme:
+      css/save_draft.css: {}
+  js:
+    js/save_draft.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings

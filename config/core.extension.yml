@@ -86,6 +86,7 @@ module:
   reference_table_formatter: 0
   rest: 0
   role_delegation: 0
+  save_draft: 0
   search: 0
   select2: 0
   select2_level_class: 0

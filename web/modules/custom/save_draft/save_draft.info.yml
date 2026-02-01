@@ -1,0 +1,5 @@
+name: Save Draft
+type: module
+description: Adds client-side draft save/load for incoming nodes.
+core_version_requirement: ^10 || ^11
+package: Custom

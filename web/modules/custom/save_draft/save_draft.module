@@ -1,0 +1,170 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+
+/**
+ * @file
+ * Save Draft module.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming edit form.
+ */
+function save_draft_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
+  save_draft_attach_buttons($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming add form.
+ */
+function save_draft_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state): void {
+  save_draft_attach_buttons($form, $form_state);
+}
+
+/**
+ * Attach draft buttons and JS to the incoming node form.
+ */
+function save_draft_attach_buttons(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  if (!\Drupal::currentUser()->hasRole('administrator')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof EntityInterface || $entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $entity_id = (int) ($entity->id() ?? 0);
+  $bundle = $entity->bundle();
+  $langcode = $entity->language()->getId();
+  $uid = (int) \Drupal::currentUser()->id();
+
+  $draft = save_draft_load_latest('node', $bundle, $entity_id, $uid, $langcode);
+  $draft_label = NULL;
+  if ($draft) {
+    $draft_label = \Drupal::service('date.formatter')->format((int) $draft['changed'], 'short');
+  }
+
+  $save_url = Url::fromRoute('save_draft.save', [
+    'entity_type' => 'node',
+    'bundle' => $bundle,
+    'entity_id' => $entity_id,
+    'langcode' => $langcode,
+  ])->toString();
+
+  $load_url = Url::fromRoute('save_draft.load', [
+    'entity_type' => 'node',
+    'bundle' => $bundle,
+    'entity_id' => $entity_id,
+    'langcode' => $langcode,
+  ])->toString();
+
+  $actions_weight = $form['actions']['#weight'] ?? 100;
+  $form['save_draft_controls'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Draft'),
+    '#attributes' => [
+      'class' => ['save-draft-controls'],
+    ],
+    '#weight' => $actions_weight - 5,
+  ];
+
+  $status_text = $draft_label
+    ? t('Draft available (@date).', ['@date' => $draft_label])
+    : t('No draft available.');
+
+  $form['save_draft_controls']['save_draft_status'] = [
+    '#type' => 'html_tag',
+    '#tag' => 'div',
+    '#value' => $status_text,
+    '#attributes' => [
+      'class' => ['save-draft-status'],
+      'aria-live' => 'polite',
+    ],
+  ];
+
+  $form['save_draft_controls']['buttons'] = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['save-draft-buttons'],
+    ],
+  ];
+
+  $form['save_draft_controls']['buttons']['save_draft'] = [
+    '#type' => 'button',
+    '#value' => t('Save'),
+    '#attributes' => [
+      'class' => ['save-draft-button'],
+      'data-save-draft-save-url' => $save_url,
+    ],
+  ];
+
+  $form['save_draft_controls']['buttons']['load_draft'] = [
+    '#type' => 'button',
+    '#value' => t('Load'),
+    '#attributes' => [
+      'class' => ['load-draft-button'],
+      'data-save-draft-load-url' => $load_url,
+      'hidden' => $draft_label ? FALSE : TRUE,
+    ],
+  ];
+
+  $form['save_draft_controls']['buttons']['clear_draft'] = [
+    '#type' => 'button',
+    '#value' => t('Clear'),
+    '#attributes' => [
+      'class' => ['clear-draft-button'],
+      'data-save-draft-clear-url' => Url::fromRoute('save_draft.clear', [
+        'entity_type' => 'node',
+        'bundle' => $bundle,
+        'entity_id' => $entity_id,
+        'langcode' => $langcode,
+      ])->toString(),
+      'hidden' => $draft_label ? FALSE : TRUE,
+    ],
+  ];
+
+  $form['#attached']['library'][] = 'save_draft/save_draft';
+  $form['#attached']['drupalSettings']['saveDraft'] = [
+    'saveUrl' => $save_url,
+    'loadUrl' => $load_url,
+    'clearUrl' => Url::fromRoute('save_draft.clear', [
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'entity_id' => $entity_id,
+      'langcode' => $langcode,
+    ])->toString(),
+    'hasDraft' => (bool) $draft_label,
+    'draftLabel' => $draft_label,
+    'csrfToken' => \Drupal::service('csrf_token')->get('save_draft'),
+  ];
+}
+
+/**
+ * Load the latest draft for a user/entity.
+ */
+function save_draft_load_latest(string $entity_type, string $bundle, int $entity_id, int $uid, string $langcode): ?array {
+  $connection = \Drupal::database();
+  $query = $connection->select('save_draft', 'sd')
+    ->fields('sd', ['data', 'changed'])
+    ->condition('entity_type', $entity_type)
+    ->condition('bundle', $bundle)
+    ->condition('entity_id', $entity_id)
+    ->condition('uid', $uid)
+    ->condition('langcode', $langcode)
+    ->range(0, 1);
+
+  $record = $query->execute()->fetchAssoc();
+  if (!$record) {
+    return NULL;
+  }
+
+  return $record;
+}

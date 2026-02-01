@@ -1,0 +1,31 @@
+save_draft.save:
+  path: '/save-draft/save/{entity_type}/{bundle}/{entity_id}/{langcode}'
+  defaults:
+    _controller: '\Drupal\save_draft\Controller\SaveDraftController::save'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+
+save_draft.load:
+  path: '/save-draft/load/{entity_type}/{bundle}/{entity_id}/{langcode}'
+  defaults:
+    _controller: '\Drupal\save_draft\Controller\SaveDraftController::load'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]
+
+save_draft.clear:
+  path: '/save-draft/clear/{entity_type}/{bundle}/{entity_id}/{langcode}'
+  defaults:
+    _controller: '\Drupal\save_draft\Controller\SaveDraftController::clear'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+
+save_draft.file_info:
+  path: '/save-draft/file-info/{fid}'
+  defaults:
+    _controller: '\Drupal\save_draft\Controller\SaveDraftController::fileInfo'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]
