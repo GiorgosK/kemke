@@ -363,6 +363,12 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_sync_related_legal_entities($entity);
 
   if ($is_new) {
+    if (incoming_tweaks_populate_field_ref_id($entity)) {
+      $reference = (string) $entity->get('field_ref_id')->value;
+      if ($reference !== '') {
+        $entity->setTitle($reference);
+      }
+    }
     incoming_tweaks_set_primary_flag($entity);
     incoming_tweaks_add_self_related_incoming($entity);
   }
