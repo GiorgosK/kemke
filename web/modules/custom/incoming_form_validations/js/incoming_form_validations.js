@@ -98,21 +98,21 @@
               {
                 selector: '#edit-field-basic-operator',
                 type: 'select2',
-                tab_button_class: 'horizontal-tab-button-4',
+                tab_button_links: ['#edit-group-responsible'],
                 tab_button_active_class: 'selected',
                 indicator: 'span',
               },
               {
                 selector: '#edit-field-supervisor',
                 type: 'select2',
-                tab_button_class: 'horizontal-tab-button-4',
+                tab_button_links: ['#edit-group-responsible'],
                 tab_button_active_class: 'selected',
                 indicator: 'span',
               },
               {
                 selector: '#edit-field-incoming-type',
                 type: 'select',
-                tab_button_class: 'horizontal-tab-button-2',
+                tab_button_links: ['#edit-group-status'],
                 tab_button_active_class: 'selected',
                 indicator: 'select',
               },
@@ -287,7 +287,7 @@
               {
                 selector: '#edit-field-legal-entity',
                 type: 'select2',
-                tab_button_class: 'horizontal-tab-button-2',
+                tab_button_links: ['#edit-group-status'],                
                 tab_button_active_class: 'selected',
                 indicator: '.select2-selection',
               },
