@@ -4,6 +4,8 @@ status: true
 dependencies:
   config:
     - field.field.node.incoming.field_amke_status
+    - field.field.node.incoming.field_answer
+    - field.field.node.incoming.field_answer_files
     - field.field.node.incoming.field_assignees
     - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
@@ -89,7 +91,7 @@ third_party_settings:
       label: Υπεύθυνοι
       parent_name: group_tabs
       region: content
-      weight: 16
+      weight: 15
       format_type: tab
       format_settings:
         classes: ''
@@ -120,7 +122,7 @@ third_party_settings:
       label: Κατάσταση
       parent_name: group_tabs
       region: content
-      weight: 15
+      weight: 14
       format_type: tab
       format_settings:
         classes: ''
@@ -154,7 +156,7 @@ third_party_settings:
         - group_case
         - group_status
         - group_responsible
-        - group_plan
+        - group_anwer
         - group_ccopy
         - group_remarks
         - group_ee
@@ -177,7 +179,7 @@ third_party_settings:
       label: Υπόθεση
       parent_name: group_tabs
       region: content
-      weight: 14
+      weight: 13
       format_type: tab
       format_settings:
         classes: ''
@@ -229,7 +231,7 @@ third_party_settings:
         - field_plan
         - field_attachments
       label: Σχέδιο
-      parent_name: group_tabs
+      parent_name: group_answer_tabs
       region: content
       weight: 17
       format_type: tab
@@ -243,9 +245,6 @@ third_party_settings:
     group_api:
       children:
         - field_dt_docid
-        - field_plan_dt_docid
-        - field_plan_dt_tries
-        - field_plan_dt_success
         - field_plan_dt_api_response
       label: API
       parent_name: group_tabs
@@ -335,11 +334,73 @@ third_party_settings:
         id: ''
         label_as_html: false
         description: ''
+    group_answer_tabs:
+      children:
+        - group_plan
+        - group_no_plan
+      label: Απάντηση
+      parent_name: group_anwer
+      region: content
+      weight: 17
+      format_type: tabs
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        direction: horizontal
+        width_breakpoint: 640
+    group_anwer:
+      children:
+        - group_answer_tabs
+      label: Απάντηση
+      parent_name: group_tabs
+      region: content
+      weight: 16
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_no_plan:
+      children:
+        - field_answer
+        - field_answer_files
+      label: 'Χωρίς σχέδιο'
+      parent_name: group_answer_tabs
+      region: content
+      weight: 18
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
 id: node.incoming.default
 targetEntityType: node
 bundle: incoming
 mode: default
 content:
+  field_answer:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_answer_files:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
   field_attachments:
     type: file_default
     label: above

@@ -1,0 +1,24 @@
+uuid: 43e76e3b-f0e0-4396-a262-26cf2a8f5278
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_answer
+    - filter.format.full_html
+    - node.type.incoming
+  module:
+    - text
+id: node.incoming.field_answer
+field_name: field_answer
+entity_type: node
+bundle: incoming
+label: απάντηση
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - full_html
+field_type: text_long

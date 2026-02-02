@@ -5,6 +5,8 @@ dependencies:
   config:
     - core.entity_view_mode.node.amke_view
     - field.field.node.incoming.field_amke_status
+    - field.field.node.incoming.field_answer
+    - field.field.node.incoming.field_answer_files
     - field.field.node.incoming.field_assignees
     - field.field.node.incoming.field_attachments
     - field.field.node.incoming.field_basic_operator
@@ -255,6 +257,8 @@ content:
     region: content
 hidden:
   content_moderation_control: true
+  field_answer: true
+  field_answer_files: true
   field_assignees: true
   field_basic_operator: true
   field_case: true

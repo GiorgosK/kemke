@@ -1,0 +1,23 @@
+uuid: 06801b56-c91f-42aa-a932-887f9d785c57
+langcode: el
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_answer_files
+field_name: field_answer_files
+entity_type: node
+type: file
+settings:
+  target_type: file
+  display_field: false
+  display_default: false
+  uri_scheme: public
+module: file
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
