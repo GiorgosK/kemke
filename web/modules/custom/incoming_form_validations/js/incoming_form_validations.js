@@ -146,6 +146,31 @@
         ],
       },
     ],
+    baseForCompleted: [
+      {
+        selector: '#edit-moderation-state-published',
+        rules: [
+          {
+            type: 'button',
+            disabled: true,
+            toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
+            emptyFields: [
+              {
+                selector: '#edit-field-answer-files-0-upload',
+                type: 'file',
+                tab_button_links: ['#edit-group-answer', '#edit-group-no-plan'],
+                tab_button_active_class: 'selected',
+                indicator: 'div',
+              },
+            ],
+          },
+          {
+            type: 'hideIf',
+            valueNot: [ruleIncTypePlan],
+          },
+        ],
+      },
+    ],    
     TabEEVis: [
       {
         selector: '.horizontal-tab-button-7',
@@ -168,17 +193,6 @@
           {
             type: 'hideIf',
             valueNot: [ruleIncTypePlan],
-          },
-        ],
-      },
-    ],
-    PublishedVis: [
-      {
-        selector: '#edit-moderation-state-published',
-        rules: [
-          {
-            type: 'hideIf',
-            valueIsAND: [ruleIncTypePlan, ruleButtonUndeprocessingStay],
           },
         ],
       },
@@ -331,7 +345,7 @@
       ...ruleSets.baseForSignature,
       ...ruleSets.TabEEVis,
       ...ruleSets.TabPlanVis,
-      ...ruleSets.PublishedVis,
+      ...ruleSets.baseForCompleted,
       ...ruleSets.OpinionRefIdVis,
       ...ruleSets.EditGroupSubtypeVis,
       ...ruleSets.SubtypeHierarchyVis,
