@@ -133,7 +133,7 @@
               {
                 selector: '#edit-field-plan-0-upload',
                 type: 'file',
-                tab_button_class: 'horizontal-tab-button-5',
+                tab_button_links: ['#edit-group-answer', '#edit-group-plan'],
                 tab_button_active_class: 'selected',
                 indicator: 'div',
               },
@@ -507,10 +507,50 @@
   };
 
   const getTabButton = (config) => {
-    if (!config || !config.tab_button_class) {
-      return null;
+    const targets = getTabButtonsToOpen(config);
+    return targets.length ? targets[0] : null;
+  };
+
+  const getTabButtonsToOpen = (config) => {
+    if (!config) {
+      return [];
     }
-    return document.querySelector(`.${config.tab_button_class}`);
+    const buttons = [];
+    const seen = new Set();
+    const addButton = (el) => {
+      if (!el || seen.has(el)) {
+        return;
+      }
+      seen.add(el);
+      buttons.push(el);
+    };
+
+    if (Array.isArray(config.tab_button_links)) {
+      config.tab_button_links.forEach((href) => {
+        if (typeof href !== 'string' || href.trim() === '') {
+          return;
+        }
+        const link = document.querySelector(`.horizontal-tab-button a[href="${href.trim()}"]`);
+        if (link) {
+          addButton(link.closest('.horizontal-tab-button'));
+        }
+      });
+    }
+
+    if (Array.isArray(config.tab_button_classes)) {
+      config.tab_button_classes.forEach((cls) => {
+        if (typeof cls === 'string' && cls.trim() !== '') {
+          addButton(document.querySelector(`.${cls.trim()}`));
+        }
+      });
+    }
+    if (config.tab_button_parent_class) {
+      addButton(document.querySelector(`.${config.tab_button_parent_class}`));
+    }
+    if (config.tab_button_class) {
+      addButton(document.querySelector(`.${config.tab_button_class}`));
+    }
+    return buttons;
   };
 
   const getFieldValue = (field, type) => {
@@ -577,28 +617,30 @@
   };
 
   const ensureTabOpen = (config) => {
-    if (!config.tab_button_class) {
+    const tabButtons = getTabButtonsToOpen(config);
+    if (!tabButtons.length) {
       return;
     }
-    const tabButton = document.querySelector(`.${config.tab_button_class}`);
-    if (!tabButton) {
-      return;
-    }
-    const isActive = config.tab_button_active_class && tabButton.classList.contains(config.tab_button_active_class);
-    if (!isActive) {
-      const link = tabButton.querySelector('a, button');
-      if (link && typeof link.click === 'function') {
-        link.click();
+    tabButtons.forEach((tabButton) => {
+      const isActive = config.tab_button_active_class && tabButton.classList.contains(config.tab_button_active_class);
+      if (!isActive) {
+        const link = tabButton.querySelector('a, button');
+        if (link && typeof link.click === 'function') {
+          link.click();
+        }
+        const details = tabButton.closest('details');
+        if (details) {
+          details.open = true;
+        }
       }
-      const details = tabButton.closest('details');
-      if (details) {
-        details.open = true;
-      }
-    }
+    });
   };
 
-  const tabFieldsFilled = (tabClass, rule) => {
-    const related = (rule.emptyFields || []).filter((cfg) => cfg.tab_button_class === tabClass);
+  const tabFieldsFilled = (tabButton, rule) => {
+    if (!tabButton) {
+      return true;
+    }
+    const related = (rule.emptyFields || []).filter((cfg) => getTabButtonsToOpen(cfg).includes(tabButton));
     if (!related.length) {
       return true;
     }
@@ -621,7 +663,7 @@
   };
 
   const updateButtonState = (button, rule) => {
-    const tabStatus = {};
+    const tabStatus = new Map();
     let hasEmpty = false;
 
     (rule.emptyFields || []).forEach((config) => {
@@ -636,19 +678,19 @@
         clearHighlight(indicator);
       }
 
-      if (config.tab_button_class) {
-        if (!(config.tab_button_class in tabStatus)) {
-          tabStatus[config.tab_button_class] = true;
+      getTabButtonsToOpen(config).forEach((tabButton) => {
+        if (!tabStatus.has(tabButton)) {
+          tabStatus.set(tabButton, true);
         }
         if (empty) {
-          tabStatus[config.tab_button_class] = false;
+          tabStatus.set(tabButton, false);
         }
-      }
+      });
     });
 
-    Object.entries(tabStatus).forEach(([tabClass, filled]) => {
+    tabStatus.forEach((filled, tabButton) => {
       if (filled) {
-        clearHighlight(getTabButton({ tab_button_class: tabClass }));
+        clearHighlight(tabButton);
       }
     });
 
@@ -674,9 +716,11 @@
         const handler = () => {
           if (!isEmpty(field, config)) {
             clearHighlight(resolveIndicator(field, config.indicator));
-            if (config.tab_button_class && tabFieldsFilled(config.tab_button_class, rule)) {
-              clearHighlight(getTabButton(config));
-            }
+            getTabButtonsToOpen(config).forEach((tabButton) => {
+              if (tabFieldsFilled(tabButton, rule)) {
+                clearHighlight(tabButton);
+              }
+            });
           }
           refresh();
         };
@@ -705,10 +749,10 @@
       (rule.emptyFields || []).forEach((config) => {
         const field = document.querySelector(config.selector);
         const indicator = resolveIndicator(field, config.indicator);
-        const tabButton = getTabButton(config);
+        const tabButtons = getTabButtonsToOpen(config);
         if (isEmpty(field, config)) {
           addHighlight(indicator || field);
-          addHighlight(tabButton);
+          tabButtons.forEach((tabButton) => addHighlight(tabButton));
           ensureTabOpen(config);
           scrollToField(indicator || field || button);
         }
