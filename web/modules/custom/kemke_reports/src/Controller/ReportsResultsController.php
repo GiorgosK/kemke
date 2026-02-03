@@ -78,13 +78,12 @@ class ReportsResultsController extends ControllerBase {
       'report_table' => [
         '#type' => 'table',
         '#header' => [
-          $this->t('Objective'),
-          $this->t('Description'),
-          $this->t('Deadline (days)'),
-          $this->t('On target'),
-          $this->t('From'),
-          $this->t('Target'),
-          '',
+          $this->t('Μονάδα'),
+          $this->t('Αναλυτική Περιγραφή Στόχου'),
+          $this->t('Τίτλος'),
+          $this->t('Επιθυμητή Τιμή'),
+          $this->t('Επίτευξη Στόχου (σε απόλυτο αριθμό)'),
+          $this->t('Ποσοστό Επίτευξης στόχου(%)'),
         ],
         '#rows' => $rows,
         '#attributes' => [
@@ -185,13 +184,12 @@ class ReportsResultsController extends ControllerBase {
     $sheet->setTitle('Report');
 
     $header = [
-      $this->t('Objective'),
-      $this->t('Description'),
-      $this->t('Deadline (days)'),
-      $this->t('On target'),
-      $this->t('From'),
-      $this->t('Target'),
-      $this->t('Result'),
+      $this->t('Μονάδα'),
+      $this->t('Αναλυτική Περιγραφή Στόχου'),
+      $this->t('Τίτλος'),
+      $this->t('Επιθυμητή Τιμή'),
+      $this->t('Επίτευξη Στόχου (σε απόλυτο αριθμό)'),
+      $this->t('Ποσοστό Επίτευξης στόχου(%)'),
     ];
     $rows = $this->build_objective_rows_data($result);
     $sheet->fromArray($header, NULL, 'A1');
@@ -243,13 +241,12 @@ class ReportsResultsController extends ControllerBase {
       'report_table' => [
         '#type' => 'table',
         '#header' => [
-          $this->t('Objective'),
-          $this->t('Description'),
-          $this->t('Deadline (days)'),
-          $this->t('On target'),
-          $this->t('From'),
-          $this->t('Target'),
-          '',
+          $this->t('Μονάδα'),
+          $this->t('Αναλυτική Περιγραφή Στόχου'),
+          $this->t('Τίτλος'),
+          $this->t('Επιθυμητή Τιμή'),
+          $this->t('Επίτευξη Στόχου (σε απόλυτο αριθμό)'),
+          $this->t('Ποσοστό Επίτευξης στόχου(%)'),
         ],
         '#rows' => $rows,
       ],
@@ -296,16 +293,13 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_1'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 1');
     $description = $objective['description'] ?: $this->t('Objective 1');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_1_percentage'] ?? 0);
     $total = (int) ($result['objective_1_total'] ?? 0);
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_1_on_time_ids'] ?? [], $result['objective_1_ids'] ?? []);
+    return $this->format_row($name, $description, $days_for_report, $on_time, $total, $target, $calculated, $result['objective_1_on_time_ids'] ?? [], $result['objective_1_ids'] ?? []);
   }
 
   /**
@@ -315,16 +309,13 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_1'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 1');
     $description = $objective['description'] ?: $this->t('Objective 1');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_1_percentage'] ?? 0);
     $total = (int) ($result['objective_1_total'] ?? 0);
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
-    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row_data($name, $description, $days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -334,16 +325,13 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_2'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 2');
     $description = $objective['description'] ?: $this->t('Objective 2');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_2_percentage'] ?? 0);
     $total = (int) ($result['objective_2_total'] ?? 0);
     $on_time = (int) ($result['objective_2_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_2_on_time_ids'] ?? [], $result['objective_2_ids'] ?? []);
+    return $this->format_row($name, $description, $days_for_report, $on_time, $total, $target, $calculated, $result['objective_2_on_time_ids'] ?? [], $result['objective_2_ids'] ?? []);
   }
 
   /**
@@ -353,16 +341,13 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_2'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 2');
     $description = $objective['description'] ?: $this->t('Objective 2');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_2_percentage'] ?? 0);
     $total = (int) ($result['objective_2_total'] ?? 0);
     $on_time = (int) ($result['objective_2_on_time'] ?? 0);
 
-    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row_data($name, $description, $days_for_report, $on_time, $total, $target, $calculated);
   }
 
   /**
@@ -372,16 +357,13 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_3'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 3');
     $description = $objective['description'] ?: $this->t('Objective 3');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_3_percentage'] ?? 0);
     $total = (int) ($result['objective_3_total'] ?? 0);
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_3_on_time_ids'] ?? [], $result['objective_3_ids'] ?? []);
+    return $this->format_row($name, $description, $days_for_report, $on_time, $total, $target, $calculated, $result['objective_3_on_time_ids'] ?? [], $result['objective_3_ids'] ?? []);
   }
 
   /**
@@ -391,16 +373,26 @@ class ReportsResultsController extends ControllerBase {
     $objective = $result['objective_3'] ?? [];
     $name = $objective['name'] ?: $this->t('Objective 3');
     $description = $objective['description'] ?: $this->t('Objective 3');
+    $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
-    $deadline_days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
-    if ($deadline_days_for_report <= 0) {
-      $deadline_days_for_report = (int) ($objective['deadline_days_default'] ?? 0);
-    }
     $calculated = (float) ($result['objective_3_percentage'] ?? 0);
     $total = (int) ($result['objective_3_total'] ?? 0);
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
-    return $this->format_row_data($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row_data($name, $description, $days_for_report, $on_time, $total, $target, $calculated);
+  }
+
+  /**
+   * Resolves the effective days_for_report value used by objective logic.
+   */
+  private function resolve_effective_days_for_report(array $objective): ?int {
+    $days_for_report = (int) ($objective['deadline_days_for_report'] ?? 0);
+    if ($days_for_report > 0) {
+      return $days_for_report;
+    }
+
+    $days_default = (int) ($objective['deadline_days_default'] ?? 0);
+    return $days_default > 0 ? $days_default : NULL;
   }
 
   /**
@@ -515,25 +507,26 @@ class ReportsResultsController extends ControllerBase {
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
     $show_ids = $this->currentUser()->hasRole('administrator');
-    $on_target_label = (string) $on_time;
-    $from_label = (string) $total;
+    $absolute_achievement_label = sprintf('%s εκ των %s', $on_time, $total);
 
     if ($show_ids) {
+      if ($deadline !== NULL) {
+        $absolute_achievement_label .= sprintf(' [days_for_report:%s]', $deadline);
+      }
       if (!empty($on_time_ids)) {
-        $on_target_label .= sprintf(' (%s)', implode(',', array_map('strval', $on_time_ids)));
+        $absolute_achievement_label .= sprintf(' [on_time:%s]', implode(',', array_map('strval', $on_time_ids)));
       }
       if (!empty($total_ids)) {
-        $from_label .= sprintf(' (%s)', implode(',', array_map('strval', $total_ids)));
+        $absolute_achievement_label .= sprintf(' [total:%s]', implode(',', array_map('strval', $total_ids)));
       }
     }
 
     return [
-      Html::escape($name),
+      Html::escape('Κεντρική Μονάδα Κρατικών Ενισχύσεων'),
       Html::escape($description),
-      $deadline !== NULL ? (string) $deadline : '',
-      $on_target_label,
-      $from_label,
+      Html::escape($name),
       Html::escape(sprintf('%s%%', $target)),
+      $absolute_achievement_label,
       Markup::create(sprintf('<span style="color:%s">%s%%</span>', Html::escape($color), Html::escape($calculated_formatted))),
     ];
   }
@@ -543,14 +536,17 @@ class ReportsResultsController extends ControllerBase {
    */
   private function format_row_data($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
     $calculated_formatted = number_format($calculated, 2);
+    $absolute_achievement_label = sprintf('%s εκ των %s', $on_time, $total);
+    if ($this->currentUser()->hasRole('administrator') && $deadline !== NULL) {
+      $absolute_achievement_label .= sprintf(' [days_for_report:%s]', $deadline);
+    }
 
     return [
-      (string) $name,
+      'Κεντρική Μονάδα Κρατικών Ενισχύσεων',
       (string) $description,
-      $deadline !== NULL ? (string) $deadline : '',
-      (string) $on_time,
-      (string) $total,
+      (string) $name,
       sprintf('%s%%', $target),
+      $absolute_achievement_label,
       sprintf('%s%%', $calculated_formatted),
     ];
   }
