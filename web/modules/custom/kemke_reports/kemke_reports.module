@@ -169,6 +169,10 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     }
   }
 
+  if (!empty($conditions['field_completion_date_not_empty'])) {
+    $query->exists('field_completion_date');
+  }
+
   if ($state !== '') {
     $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
     if (isset($definitions['moderation_state'])) {
@@ -201,6 +205,7 @@ function kemke_reports_get_objective_filters(string $objective_key): array {
   return match ($objective_key) {
     'objective_1' => [
       'field_incoming_type' => 'Γνωμοδότηση',
+      'field_completion_date_not_empty' => TRUE,
       'field_incoming_subtype' => [
         'operator' => '<>',
         'value' => 60, // Αίτημα από ιεραρχία
@@ -209,6 +214,7 @@ function kemke_reports_get_objective_filters(string $objective_key): array {
     ],
     'objective_2' => [
       'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
+      'field_completion_date_not_empty' => TRUE,
       'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
     ],
     'objective_3' => [
@@ -221,6 +227,7 @@ function kemke_reports_get_objective_filters(string $objective_key): array {
     ],
     'objective_5' => [
       'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+      'field_completion_date_not_empty' => TRUE,
       'field_incoming_subtype' => 61, // Ανάκτηση
     ],
     default => [],
