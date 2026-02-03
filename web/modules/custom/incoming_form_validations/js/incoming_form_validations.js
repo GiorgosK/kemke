@@ -156,7 +156,7 @@
             toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
             emptyFields: [
               {
-                selector: '#edit-field-answer-files-0-upload',
+                selector: '[data-drupal-selector="edit-field-answer-files"]',
                 type: 'file',
                 tab_button_links: ['#edit-group-answer', '#edit-group-no-plan'],
                 tab_button_active_class: 'selected',
@@ -422,7 +422,19 @@
     }
     if (typeof indicator === 'string') {
       const scoped = field?.closest('.js-form-item, .form-item')?.querySelector(indicator);
-      return scoped || document.querySelector(indicator);
+      if (scoped) {
+        return scoped;
+      }
+      // File fields may use wrapper selectors (e.g. details), so search within field first.
+      if (field?.querySelector) {
+        const nested = field.querySelector(indicator);
+        if (nested) {
+          return nested;
+        }
+      }
+      // Avoid highlighting a random global element for generic selectors like "div"/"span".
+      const isGlobalSafe = /^([#.[])/.test(indicator.trim());
+      return isGlobalSafe ? document.querySelector(indicator) : null;
     }
     return null;
   };
@@ -453,7 +465,28 @@
   }
 
   const isEmpty = (el, config = {}) => {
+    const hasNonEmptyFids = (root) => {
+      if (!root || typeof root.querySelectorAll !== 'function') {
+        return false;
+      }
+      const hiddenFids = root.querySelectorAll('input[type="hidden"][name*="[fids]"]');
+      return Array.from(hiddenFids).some((input) => String(input.value || '').trim() !== '');
+    };
+
     if (!el && config.type === 'file') {
+      if (config.selector) {
+        const selectorId = config.selector
+          .replace(/^#/, '')
+          .replace('[data-drupal-selector="', '')
+          .replace('"]', '')
+          .replace('-upload', '');
+        const byDataSelector = document.querySelector(
+          `input[type="hidden"][name*="[fids]"][data-drupal-selector^="${selectorId}"]`
+        );
+        if (byDataSelector) {
+          return String(byDataSelector.value || '').trim() === '';
+        }
+      }
       const fallbackFidsSelector = config.selector?.replace('-upload', '-fids');
       const hiddenFids =
         (fallbackFidsSelector && document.querySelector(fallbackFidsSelector)) ||
@@ -468,6 +501,9 @@
       return true;
     }
     if (config.type === 'file' || el.type === 'file') {
+      if (hasNonEmptyFids(el) || hasNonEmptyFids(el.closest('.js-form-managed-file, .js-form-item, details'))) {
+        return false;
+      }
       if (el.files && el.files.length !== undefined) {
         return el.files.length === 0;
       }
