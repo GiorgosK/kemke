@@ -202,7 +202,12 @@ function incoming_edit_tweaks_add_status_display(array &$form, FormStateInterfac
     '#type' => 'item',
     '#markup' => t('Εγγραφο σε Κατάσταση') . ': ' . $label,
     '#weight' => $actions_weight - 1,
-    '#attributes' => ['class' => ['incoming-moderation-status']],
+    '#attributes' => [
+      'class' => ['incoming-moderation-status'],
+    ],
+    '#wrapper_attributes' => [
+      'doc-status' => $state_id,
+    ],
   ];
 }
 
