@@ -31,6 +31,21 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
     $form['revision_information']['#access'] = FALSE;
   }
 
+  if (!in_array('administrator', $current_user->getRoles(), TRUE)) {
+    // Hide "Εμπρόθεσμο" fieldset/tab and its fields for non-admin users.
+    foreach (['group_on_time', 'edit_group_on_time'] as $group_key) {
+      if (isset($form[$group_key]) && is_array($form[$group_key])) {
+        $form[$group_key]['#access'] = FALSE;
+      }
+    }
+
+    foreach (['field_on_time_obj1', 'field_on_time_obj2', 'field_on_time_obj3', 'field_on_time_obj5'] as $field_key) {
+      if (isset($form[$field_key]) && is_array($form[$field_key])) {
+        $form[$field_key]['#access'] = FALSE;
+      }
+    }
+  }
+
   // Post-submit cleanup: if Docutracks failed, remove core status messages.
   if (isset($form['actions']['submit']['#submit']) && is_array($form['actions']['submit']['#submit'])) {
     $form['actions']['submit']['#submit'][] = 'incoming_tweaks_clear_status_on_docutracks_failure';
