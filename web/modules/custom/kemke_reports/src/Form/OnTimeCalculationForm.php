@@ -164,10 +164,10 @@ class OnTimeCalculationForm extends FormBase {
     ];
     if (!$recalculate_all) {
       // Only update items not calculated yet.
-      $objective_1_filters['field_on_time.value'] = 'not_calculated';
-      $objective_2_filters['field_on_time.value'] = 'not_calculated';
-      $objective_3_filters['field_on_time.value'] = 'not_calculated';
-      $objective_5_filters['field_on_time.value'] = 'not_calculated';
+      $objective_1_filters['field_on_time_obj1.value'] = 'not_calculated';
+      $objective_2_filters['field_on_time_obj2.value'] = 'not_calculated';
+      $objective_3_filters['field_on_time_obj3.value'] = 'not_calculated';
+      $objective_5_filters['field_on_time_obj5.value'] = 'not_calculated';
     }
 
     $updated_objective_1 = 0;

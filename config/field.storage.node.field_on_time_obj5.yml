@@ -1,0 +1,30 @@
+uuid: c02d2941-b829-481a-98ae-680f9448b825
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_on_time_obj5
+field_name: field_on_time_obj5
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: not_calculated
+      label: 'Δεν έχει υπολογιστεί'
+    -
+      value: 'yes'
+      label: Ναι
+    -
+      value: 'no'
+      label: Όχι
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

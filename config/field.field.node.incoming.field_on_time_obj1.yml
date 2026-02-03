@@ -1,23 +1,21 @@
-uuid: 61cc9ff2-6dbf-4e1d-86c9-403904e21c11
+uuid: 87277492-d1ec-468e-8cb2-074c3226e2b7
 langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.node.field_on_time
+    - field.storage.node.field_on_time_obj1
     - node.type.incoming
   module:
     - options
-id: node.incoming.field_on_time
-field_name: field_on_time
+id: node.incoming.field_on_time_obj1
+field_name: field_on_time_obj1
 entity_type: node
 bundle: incoming
-label: Εμπρόθεσμο
+label: 'Εμπρόθεσμο Στόχος 1'
 description: ''
 required: false
 translatable: false
-default_value:
-  -
-    value: not_calculated
+default_value: {  }
 default_value_callback: ''
 settings: {  }
 field_type: list_string

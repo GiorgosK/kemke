@@ -305,7 +305,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_1_total'] ?? 0);
     $on_time = (int) ($result['objective_1_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_1_on_time_ids'] ?? [], $result['objective_1_ids'] ?? []);
   }
 
   /**
@@ -343,7 +343,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_2_total'] ?? 0);
     $on_time = (int) ($result['objective_2_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_2_on_time_ids'] ?? [], $result['objective_2_ids'] ?? []);
   }
 
   /**
@@ -381,7 +381,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_3_total'] ?? 0);
     $on_time = (int) ($result['objective_3_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, $deadline_days_for_report, $on_time, $total, $target, $calculated, $result['objective_3_on_time_ids'] ?? [], $result['objective_3_ids'] ?? []);
   }
 
   /**
@@ -459,7 +459,7 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_5_total'] ?? 0);
     $on_time = (int) ($result['objective_5_on_time'] ?? 0);
 
-    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated, $result['objective_5_on_time_ids'] ?? [], $result['objective_5_ids'] ?? []);
   }
 
   /**
@@ -510,17 +510,29 @@ class ReportsResultsController extends ControllerBase {
   /**
    * Formats a report table row.
    */
-  private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated): array {
+  private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated, array $on_time_ids = [], array $total_ids = []): array {
     $meets_target = $calculated >= $target;
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
+    $show_ids = $this->currentUser()->hasRole('administrator');
+    $on_target_label = (string) $on_time;
+    $from_label = (string) $total;
+
+    if ($show_ids) {
+      if (!empty($on_time_ids)) {
+        $on_target_label .= sprintf(' (%s)', implode(',', array_map('strval', $on_time_ids)));
+      }
+      if (!empty($total_ids)) {
+        $from_label .= sprintf(' (%s)', implode(',', array_map('strval', $total_ids)));
+      }
+    }
 
     return [
       Html::escape($name),
       Html::escape($description),
       $deadline !== NULL ? (string) $deadline : '',
-      (string) $on_time,
-      (string) $total,
+      $on_target_label,
+      $from_label,
       Html::escape(sprintf('%s%%', $target)),
       Markup::create(sprintf('<span style="color:%s">%s%%</span>', Html::escape($color), Html::escape($calculated_formatted))),
     ];

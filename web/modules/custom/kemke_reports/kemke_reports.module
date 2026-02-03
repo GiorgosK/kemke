@@ -45,7 +45,7 @@ function kemke_reports_incoming_get_ids_for(int $year, array $conditions = ['fie
 }
 
 /**
- * Sets field_on_time based on completion date and legal deadlines.
+ * Sets objective-specific on-time field based on completion date and deadlines.
  *
  * @return int
  *   The number of updated nodes.
@@ -81,10 +81,11 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
 
     $is_on_time = kemke_reports_is_on_time($node, $objective_key, $completion_field);
     $target_value = $is_on_time ? 'yes' : 'no';
-    $current_value = $node->get('field_on_time')->value ?? NULL;
+    $on_time_field = kemke_reports_get_on_time_field_for_objective($objective_key);
+    $current_value = $node->get($on_time_field)->value ?? NULL;
 
     if ($force_recalculate || $current_value !== $target_value) {
-      $node->set('field_on_time', $target_value);
+      $node->set($on_time_field, $target_value);
       $node->save();
       $updated++;
     }
@@ -97,17 +98,18 @@ function kemke_reports_incoming_set_on_time_for(array $conditions = ['field_inco
 }
 
 /**
- * Counts incoming nodes marked on time for a given year and filters.
+ * Counts incoming nodes marked on time for a given year and objective.
  */
-function kemke_reports_incoming_get_on_time_for(int $year, array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published'): int {
+function kemke_reports_incoming_get_on_time_for(int $year, array $conditions = ['field_incoming_type' => 'Γνωμοδότηση'], string $state = 'published', string $objective_key = 'objective_1'): int {
   $conditions += ['field_incoming_type' => 'Γνωμοδότηση'];
+  $on_time_field = kemke_reports_get_on_time_field_for_objective($objective_key);
 
   $query = \Drupal::entityTypeManager()
     ->getStorage('node')
     ->getQuery()
     ->accessCheck(FALSE)
     ->condition('type', 'incoming')
-    ->condition('field_on_time.value', 'yes');
+    ->condition($on_time_field . '.value', 'yes');
 
   kemke_reports_apply_year_condition($query, $year);
   kemke_reports_apply_incoming_filters($query, $conditions, $state);
@@ -149,8 +151,10 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     }
   }
 
-  if (array_key_exists('field_on_time.value', $conditions)) {
-    $query->condition('field_on_time.value', $conditions['field_on_time.value']);
+  foreach (['field_on_time_obj1.value', 'field_on_time_obj2.value', 'field_on_time_obj3.value', 'field_on_time_obj5.value'] as $on_time_condition_key) {
+    if (array_key_exists($on_time_condition_key, $conditions)) {
+      $query->condition($on_time_condition_key, $conditions[$on_time_condition_key]);
+    }
   }
 
   if (array_key_exists('field_signature_rejection', $conditions)) {
@@ -175,6 +179,19 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
       $query->condition('status', 1);
     }
   }
+}
+
+/**
+ * Returns the on-time field name used for the given objective.
+ */
+function kemke_reports_get_on_time_field_for_objective(string $objective_key): string {
+  return match ($objective_key) {
+    'objective_1' => 'field_on_time_obj1',
+    'objective_2' => 'field_on_time_obj2',
+    'objective_3' => 'field_on_time_obj3',
+    'objective_5' => 'field_on_time_obj5',
+    default => 'field_on_time_obj5',
+  };
 }
 
 /**
@@ -265,12 +282,12 @@ function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = '
   $config = \Drupal::config('kemke_reports.settings');
   $days_for_report = (int) ($config->get($objective_key . '.deadline_days_for_report') ?? 0);
   $days_default = (int) ($config->get($objective_key . '.deadline_days_default') ?? 0);
-  $days = $days_for_report ?: $days_default;
+  $is_first_three_objective = in_array($objective_key, ['objective_1', 'objective_2', 'objective_3'], TRUE);
 
-  if ($days > 0) {
+  if ($days_for_report > 0) {
     $start_date = kemke_reports_get_first_date_value($node, 'field_fullness_check_date');
     if ($start_date) {
-      $deadline = greek_holidays_calculate_date_after($start_date, $days);
+      $deadline = greek_holidays_calculate_date_after($start_date, $days_for_report);
     }
   }
 
@@ -280,12 +297,18 @@ function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = '
   if (!$deadline) {
     $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline');
   }
+  if (!$deadline && $is_first_three_objective && $days_default > 0) {
+    $start_date = kemke_reports_get_first_date_value($node, 'field_fullness_check_date');
+    if ($start_date) {
+      $deadline = greek_holidays_calculate_date_after($start_date, $days_default);
+    }
+  }
 
   if (!$deadline) {
     return FALSE;
   }
 
-  return $completion->getTimestamp() < $deadline->getTimestamp();
+  return $completion->getTimestamp() <= $deadline->getTimestamp();
 }
 
 /**

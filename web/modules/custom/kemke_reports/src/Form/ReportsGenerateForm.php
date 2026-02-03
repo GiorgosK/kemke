@@ -106,13 +106,19 @@ class ReportsGenerateForm extends FormBase {
     kemke_reports_incoming_set_on_time_for($objective_5_filters, 'published', TRUE, 'objective_5', 'field_subtype_date', $year);
 
     $objective_1_total = kemke_reports_incoming_get_number_for($year, $objective_1_filters);
-    $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters);
+    $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters, 'published', 'objective_1');
+    $objective_1_ids = kemke_reports_incoming_get_ids_for($year, $objective_1_filters);
+    $objective_1_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_1_filters + ['field_on_time_obj1.value' => 'yes']);
     $objective_1_percentage = $objective_1_total > 0 ? ($objective_1_on_time / $objective_1_total) * 100 : 0.0;
     $objective_2_total = kemke_reports_incoming_get_number_for($year, $objective_2_filters);
-    $objective_2_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_2_filters);
+    $objective_2_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_2_filters, 'published', 'objective_2');
+    $objective_2_ids = kemke_reports_incoming_get_ids_for($year, $objective_2_filters);
+    $objective_2_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_2_filters + ['field_on_time_obj2.value' => 'yes']);
     $objective_2_percentage = $objective_2_total > 0 ? ($objective_2_on_time / $objective_2_total) * 100 : 0.0;
     $objective_3_total = kemke_reports_incoming_get_number_for($year, $objective_3_filters);
-    $objective_3_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_3_filters);
+    $objective_3_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_3_filters, 'published', 'objective_3');
+    $objective_3_ids = kemke_reports_incoming_get_ids_for($year, $objective_3_filters);
+    $objective_3_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_3_filters + ['field_on_time_obj3.value' => 'yes']);
     $objective_3_percentage = $objective_3_total > 0 ? ($objective_3_on_time / $objective_3_total) * 100 : 0.0;
     $objective_4_warning = NULL;
     $objective_4_on_time = 0;
@@ -135,7 +141,9 @@ class ReportsGenerateForm extends FormBase {
       }
     }
     $objective_5_total = kemke_reports_incoming_get_number_for($year, $objective_5_filters);
-    $objective_5_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_5_filters);
+    $objective_5_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_5_filters, 'published', 'objective_5');
+    $objective_5_ids = kemke_reports_incoming_get_ids_for($year, $objective_5_filters);
+    $objective_5_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_5_filters + ['field_on_time_obj5.value' => 'yes']);
     $objective_5_percentage = $objective_5_total > 0 ? ($objective_5_on_time / $objective_5_total) * 100 : 0.0;
     $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
     $seminar_percentage = $seminar_counts['total'] > 0
@@ -184,14 +192,20 @@ class ReportsGenerateForm extends FormBase {
       'year' => $year,
       'objective_1_total' => $objective_1_total,
       'objective_1_on_time' => $objective_1_on_time,
+      'objective_1_ids' => $objective_1_ids,
+      'objective_1_on_time_ids' => $objective_1_on_time_ids,
       'objective_1_percentage' => $objective_1_percentage,
       'objective_1' => $objective_1,
       'objective_2_total' => $objective_2_total,
       'objective_2_on_time' => $objective_2_on_time,
+      'objective_2_ids' => $objective_2_ids,
+      'objective_2_on_time_ids' => $objective_2_on_time_ids,
       'objective_2_percentage' => $objective_2_percentage,
       'objective_2' => $objective_2,
       'objective_3_total' => $objective_3_total,
       'objective_3_on_time' => $objective_3_on_time,
+      'objective_3_ids' => $objective_3_ids,
+      'objective_3_on_time_ids' => $objective_3_on_time_ids,
       'objective_3_percentage' => $objective_3_percentage,
       'objective_3' => $objective_3,
       'objective_4_total' => $objective_4_total,
@@ -201,6 +215,8 @@ class ReportsGenerateForm extends FormBase {
       'objective_4_warning' => $objective_4_warning,
       'objective_5_total' => $objective_5_total,
       'objective_5_on_time' => $objective_5_on_time,
+      'objective_5_ids' => $objective_5_ids,
+      'objective_5_on_time_ids' => $objective_5_on_time_ids,
       'objective_5_percentage' => $objective_5_percentage,
       'objective_5' => $objective_5,
       'seminar_total_users' => $seminar_counts['total'],
