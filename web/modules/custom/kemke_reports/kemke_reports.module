@@ -195,6 +195,39 @@ function kemke_reports_get_on_time_field_for_objective(string $objective_key): s
 }
 
 /**
+ * Returns standardized incoming filters for a report objective.
+ */
+function kemke_reports_get_objective_filters(string $objective_key): array {
+  return match ($objective_key) {
+    'objective_1' => [
+      'field_incoming_type' => 'Γνωμοδότηση',
+      'field_incoming_subtype' => [
+        'operator' => '<>',
+        'value' => 60, // Αίτημα από ιεραρχία
+        'include_null' => TRUE,
+      ],
+    ],
+    'objective_2' => [
+      'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
+      'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
+    ],
+    'objective_3' => [
+      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
+      'field_signature_rejection' => 'signature',
+    ],
+    'objective_4' => [
+      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+      'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
+    ],
+    'objective_5' => [
+      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+      'field_incoming_subtype' => 61, // Ανάκτηση
+    ],
+    default => [],
+  };
+}
+
+/**
  * Adds year boundaries to an entity query.
  */
 function kemke_reports_apply_year_condition(QueryInterface $query, int $year): void {
@@ -342,6 +375,48 @@ function kemke_reports_get_first_date_value(NodeInterface $node, string $field_n
   catch (\Exception $exception) {
     return NULL;
   }
+}
+
+/**
+ * Resolves objective key for an incoming node using report objective filters.
+ */
+function kemke_reports_get_objective_key_for_incoming(NodeInterface $node): string {
+  $incoming_type_name = '';
+  if ($node->hasField('field_incoming_type') && !$node->get('field_incoming_type')->isEmpty()) {
+    $type_tid = (int) ($node->get('field_incoming_type')->target_id ?? 0);
+    if ($type_tid > 0) {
+      $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load($type_tid);
+      $incoming_type_name = $term ? trim((string) $term->label()) : '';
+    }
+  }
+
+  $subtype_tid = (int) ($node->get('field_incoming_subtype')->target_id ?? 0);
+
+  if (in_array($incoming_type_name, ['Άποψη', 'Γνωμοδότηση'], TRUE) && $subtype_tid === 60) {
+    return 'objective_2';
+  }
+
+  if (in_array($incoming_type_name, ['Γνωστοποίηση', 'Κοινοποίηση'], TRUE)) {
+    return 'objective_3';
+  }
+
+  return 'objective_1';
+}
+
+/**
+ * Returns default deadline days from matched objective, fallback objective_1.
+ */
+function kemke_reports_get_deadline_days_default_for_incoming(NodeInterface $node): int {
+  $config = \Drupal::config('kemke_reports.settings');
+  $objective_key = kemke_reports_get_objective_key_for_incoming($node);
+  $objective_days = (int) ($config->get($objective_key . '.deadline_days_default') ?? 0);
+
+  if ($objective_days > 0) {
+    return $objective_days;
+  }
+
+  $fallback_days = (int) ($config->get('objective_1.deadline_days_default') ?? 20);
+  return $fallback_days > 0 ? $fallback_days : 20;
 }
 
 /**

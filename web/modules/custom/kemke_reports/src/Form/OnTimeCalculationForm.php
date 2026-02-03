@@ -142,26 +142,10 @@ class OnTimeCalculationForm extends FormBase {
       'objectives' => array_values($selected_objectives),
       'recalculate_all' => $recalculate_all,
     ]);
-    $objective_1_filters = [
-      'field_incoming_type' => 'Γνωμοδότηση',
-      'field_incoming_subtype' => [
-        'operator' => '<>',
-        'value' => 60, // Αίτημα από ιεραρχία
-        'include_null' => TRUE,
-      ],
-    ];
-    $objective_2_filters = [
-      'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-      'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
-    ];
-    $objective_3_filters = [
-      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
-      'field_signature_rejection' => 'signature',
-    ];
-    $objective_5_filters = [
-      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-      'field_incoming_subtype' => 61,  // Ανάκτηση
-    ];
+    $objective_1_filters = kemke_reports_get_objective_filters('objective_1');
+    $objective_2_filters = kemke_reports_get_objective_filters('objective_2');
+    $objective_3_filters = kemke_reports_get_objective_filters('objective_3');
+    $objective_5_filters = kemke_reports_get_objective_filters('objective_5');
     if (!$recalculate_all) {
       // Only update items not calculated yet.
       $objective_1_filters['field_on_time_obj1.value'] = 'not_calculated';

@@ -74,30 +74,11 @@ class ReportsGenerateForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $year = (int) $form_state->getValue('year');
-    $objective_1_filters = [
-      'field_incoming_type' => 'Γνωμοδότηση',
-      'field_incoming_subtype' => [
-        'operator' => '<>',
-        'value' => 60, // Αίτημα από ιεραρχία
-        'include_null' => TRUE,
-      ],
-    ];
-    $objective_2_filters = [
-      'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-      'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
-    ];
-    $objective_3_filters = [
-      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
-      'field_signature_rejection' => 'signature',
-    ];
-    $objective_4_filters = [
-      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-      'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
-    ];
-    $objective_5_filters = [
-      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-      'field_incoming_subtype' => 61, // Ανάκτηση
-    ];
+    $objective_1_filters = kemke_reports_get_objective_filters('objective_1');
+    $objective_2_filters = kemke_reports_get_objective_filters('objective_2');
+    $objective_3_filters = kemke_reports_get_objective_filters('objective_3');
+    $objective_4_filters = kemke_reports_get_objective_filters('objective_4');
+    $objective_5_filters = kemke_reports_get_objective_filters('objective_5');
 
     // Recalculate on-time values for the selected report year.
     kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', TRUE, 'objective_1', 'field_completion_date', $year);
