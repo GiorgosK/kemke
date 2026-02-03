@@ -30,6 +30,7 @@ third_party_settings:
       children:
         - group_general
         - group_other
+        - group_absenses
         - group_docutracks
         - group_log
       label: tabs
@@ -48,7 +49,6 @@ third_party_settings:
       children:
         - field_first_name
         - field_last_name
-        - field_absenses_ref
         - field_legal_entity
         - field_serial_number
       label: Γενικα
@@ -87,7 +87,7 @@ third_party_settings:
       label: docutracks
       parent_name: group_tabs
       region: content
-      weight: 9
+      weight: 10
       format_type: tab
       format_settings:
         classes: ''
@@ -102,7 +102,22 @@ third_party_settings:
       label: 'Αλλαγές καστάστασης'
       parent_name: group_tabs
       region: content
-      weight: 10
+      weight: 11
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_absenses:
+      children:
+        - field_absenses_ref
+      label: Άδειες
+      parent_name: group_tabs
+      region: hidden
+      weight: 9
       format_type: tab
       format_settings:
         classes: ''
@@ -141,14 +156,14 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 2
+    weight: 8
     region: content
   field_docutracks_json:
     type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 1
+    weight: 7
     region: content
   field_docutracks_username:
     type: string
@@ -156,7 +171,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 0
+    weight: 6
     region: content
   field_first_name:
     type: string

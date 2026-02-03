@@ -76,11 +76,10 @@ third_party_settings:
         - group_document_type
         - field_fullness_check_date
         - field_completion_date
-        - field_on_time
+        - field_legal_deadline
         - group_various
         - field_requested_deadline
         - field_interim_deadline
-        - field_legal_deadline
         - group_on_time
       label: Κατασταση
       region: content
@@ -469,7 +468,7 @@ third_party_settings:
       label: Εμπρόθεσμο
       region: content
       parent_name: group_status
-      weight: 30
+      weight: 29
       format_type: fieldset
       format_settings:
         classes: ''
@@ -608,7 +607,7 @@ content:
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_default
-    weight: 29
+    weight: 25
     region: content
     settings: {  }
     third_party_settings: {  }
