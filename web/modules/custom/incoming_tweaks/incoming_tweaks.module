@@ -639,14 +639,7 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
     ]
   )));
 
-  $table_id = (string) ($variables['table']['#id'] ?? '');
-  $is_related_incoming_widget = strpos($table_id, 'field-related-incoming') !== FALSE;
-  if (!$is_related_incoming_widget) {
-    return;
-  }
-
-  // For related incoming rows only: strip inline edit and hide "Remove"
-  // except for unsaved/new rows.
+  // Strip the inline edit button and hide "Remove" except for unsaved rows.
   foreach ($variables['table'] as &$row) {
     if (!is_array($row) || !isset($row['actions']) || !is_array($row['actions'])) {
       continue;
