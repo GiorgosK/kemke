@@ -53,6 +53,11 @@
       type: 'input',
       value: 'Αποθήκευση',
     };
+  const ruleDocStatusUnderProcessing =
+    {
+      selector: '[doc-status="under_processing"]',
+      type: 'exists',
+    };
   const ruleSubtypeSariChecked =
     {
       selector: '#edit-field-incoming-subtype-59',
@@ -150,6 +155,10 @@
       {
         selector: '#edit-moderation-state-published',
         rules: [
+          {
+            type: 'require',
+            valueIs: [ruleDocStatusUnderProcessing],
+          },
           {
             type: 'button',
             disabled: true,
@@ -313,7 +322,19 @@
    
     // Example reusable ruleset (shared across multiple roles).
     // rulesetExample: [
-    //   { selector: '#edit-submit', rules: [{ type: 'button', ... }] },
+    //   {
+    //     selector: '#edit-submit',
+    //     rules: [
+    //       { type: 'require', valueNot: [ruleDocStatusUnderProcessing] },
+    //       { type: 'require', valueIs: [{ selector: '[doc-status]', type: 'attribute', attribute: 'doc-status', value: 'for_signature' }] },
+    //       // Clear exists examples:
+    //       // Run validation only when this selector exists.
+    //       { type: 'require', valueIs: [{ selector: '[doc-status=\"under_processing\"]', type: 'exists' }] },
+    //       // Run validation only when this selector does NOT exist.
+    //       { type: 'require', valueNot: [{ selector: '[doc-status=\"published\"]', type: 'exists' }] },
+    //       { type: 'button', disabled: true, ... },
+    //     ],
+    //   },
     // ],
     // Example showWhenFilled ruleset.
     // rulesetShowWhenFilled: [
@@ -603,9 +624,14 @@
     return buttons;
   };
 
-  const getFieldValue = (field, type) => {
+  const getFieldValue = (field, cfg = {}) => {
+    const type = cfg.type;
     if (!field) {
       return null;
+    }
+    if (type === 'attribute') {
+      const attribute = cfg.attribute || 'doc-status';
+      return field.getAttribute(attribute);
     }
     if (type === 'checkbox' || field.type === 'checkbox') {
       return field.checked ? 'checked' : 'unchecked';
@@ -628,10 +654,13 @@
 
   const shouldHideByValueNot = (cfg) => {
     const field = document.querySelector(cfg.selector);
+    if (cfg.type === 'exists') {
+      return !field;
+    }
     if (!field) {
       return false;
     }
-    const value = getFieldValue(field, cfg.type);
+    const value = getFieldValue(field, cfg);
     if (Array.isArray(cfg.value)) {
       const allowed = cfg.value.map((v) => String(v));
       return !allowed.includes(String(value));
@@ -641,10 +670,13 @@
 
   const shouldHideByValueIs = (cfg) => {
     const field = document.querySelector(cfg.selector);
+    if (cfg.type === 'exists') {
+      return !!field;
+    }
     if (!field) {
       return false;
     }
-    const value = getFieldValue(field, cfg.type);
+    const value = getFieldValue(field, cfg);
     if (Array.isArray(cfg.value)) {
       const allowed = cfg.value.map((v) => String(v));
       return allowed.includes(String(value));
@@ -713,6 +745,12 @@
   };
 
   const updateButtonState = (button, rule) => {
+    if (rule.requires && !shouldHideByRequirements(rule.requires)) {
+      button.dataset.ifvDisabled = 'false';
+      button.setAttribute('aria-disabled', 'false');
+      (rule.toggleclasses || []).forEach((cls) => button.classList.remove(cls));
+      return;
+    }
     const tabStatus = new Map();
     let hasEmpty = false;
 
@@ -915,8 +953,23 @@
       if (!selectors.length) {
         return;
       }
+      const requires = (req.rules || []).filter((rule) => rule.type === 'require');
       (req.rules || []).forEach((rule) => {
-        selectors.forEach((selector) => pairs.push([selector, rule]));
+        if (rule.type === 'require') {
+          return;
+        }
+        const withRequires = requires.length
+          ? {
+            ...rule,
+            requires: {
+              valueNotOR: requires.flatMap((r) => r.valueNotOR || r.valueNot || []),
+              valueNotAND: requires.flatMap((r) => r.valueNotAND || []),
+              valueIsOR: requires.flatMap((r) => r.valueIsOR || r.valueIs || []),
+              valueIsAND: requires.flatMap((r) => r.valueIsAND || []),
+            },
+          }
+          : rule;
+        selectors.forEach((selector) => pairs.push([selector, withRequires]));
       });
     });
     return pairs;
