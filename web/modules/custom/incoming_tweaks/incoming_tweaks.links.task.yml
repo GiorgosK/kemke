@@ -1,7 +1,7 @@
 incoming_tweaks.incoming:
   route_name: view.incoming.page_1
   base_route: view.incoming.page_1
-  title: 'Εισερχόμενα'
+  title: 'Έγγραφα προς ενέργεια'
   weight: 0
 
 incoming_tweaks.incoming_completed:
@@ -13,7 +13,7 @@ incoming_tweaks.incoming_completed:
 incoming_tweaks.incoming_all:
   route_name: view.incoming.page_4
   base_route: view.incoming.page_1
-  title: 'Όλα τα Εισερχόμενα'
+  title: 'Όλα τα Έγγραφα'
   weight: 10
 
 incoming_tweaks.incoming_amke:

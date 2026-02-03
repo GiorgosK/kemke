@@ -4384,10 +4384,11 @@ display:
         - user_list
   page_1:
     id: page_1
-    display_title: Εισερχόμενα
+    display_title: 'Έγγραφα προς ενέργεια'
     display_plugin: page
     position: 1
     display_options:
+      title: 'Έγγραφα προς ενέργεια'
       fields:
         counter:
           id: counter
@@ -5474,6 +5475,7 @@ display:
           1: AND
       defaults:
         access: false
+        title: false
         fields: false
         filters: false
         filter_groups: false
@@ -5501,11 +5503,11 @@ display:
         - user_list
   page_2:
     id: page_2
-    display_title: Εισερχόμενα
+    display_title: 'Έγγραφα προς ενέργεια'
     display_plugin: page
     position: 2
     display_options:
-      title: Εισερχόμενα
+      title: 'Έγγραφα προς ενέργεια'
       access:
         type: role
         options:
@@ -5770,11 +5772,11 @@ display:
         - 'config:workflow_list'
   page_3:
     id: page_3
-    display_title: 'Εισερχόμενα υπόθεσης'
+    display_title: 'Έγγραφα υπόθεσης'
     display_plugin: page
     position: 3
     display_options:
-      title: 'Εισερχόμενα υπόθεσης'
+      title: 'Έγγραφα υπόθεσης'
       arguments:
         field_case_target_id:
           id: field_case_target_id
@@ -6026,11 +6028,11 @@ display:
         - 'config:workflow_list'
   page_4:
     id: page_4
-    display_title: 'Όλα τα Εισερχόμενα'
+    display_title: 'Όλα τα Έγγραφα'
     display_plugin: page
     position: 1
     display_options:
-      title: 'Όλα τα Εισερχόμενα'
+      title: 'Όλα τα Έγγραφα'
       access:
         type: role
         options:

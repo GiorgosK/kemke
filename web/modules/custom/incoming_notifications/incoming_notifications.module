@@ -245,7 +245,7 @@ function incoming_notifications_get_state_label(string $state, string $langcode)
   $entity_type_manager = \Drupal::entityTypeManager();
   if (!$entity_type_manager->hasDefinition('moderation_state')) {
     $fallback_labels = [
-      'draft' => t('Εισερχόμενη', [], ['langcode' => $langcode]),
+      'draft' => t('Εισερχόμενο', [], ['langcode' => $langcode]),
       'to_be_assigned' => t('Προς χρέωση', [], ['langcode' => $langcode]),
       'fullness_check' => t('Έλεγχος πληρότητας', [], ['langcode' => $langcode]),
       'pending_issues' => t('Με εκκρεμότητες', [], ['langcode' => $langcode]),
