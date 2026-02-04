@@ -54,6 +54,7 @@ dependencies:
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
+    - field.field.node.incoming.field_tags
     - field.field.node.incoming.field_thematic_unit
     - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
@@ -211,6 +212,7 @@ hidden:
   field_signature_rejection_date: true
   field_subtype_date: true
   field_supervisor: true
+  field_tags: true
   field_total_cases: true
   field_transparency_requirement: true
   moderation_state: true

@@ -53,6 +53,7 @@ dependencies:
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
+    - field.field.node.incoming.field_tags
     - field.field.node.incoming.field_thematic_unit
     - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
@@ -217,6 +218,7 @@ third_party_settings:
     group_case:
       children:
         - field_case
+        - field_tags
       label: Υπόθεση
       region: content
       parent_name: group_tabs
@@ -850,6 +852,16 @@ content:
     settings:
       size: 60
       placeholder: ''
+    third_party_settings: {  }
+  field_tags:
+    type: select2_entity_reference
+    weight: 23
+    region: content
+    settings:
+      width: 100%
+      autocomplete: false
+      match_operator: CONTAINS
+      match_limit: 10
     third_party_settings: {  }
   field_thematic_unit:
     type: string_textfield

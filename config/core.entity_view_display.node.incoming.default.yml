@@ -53,6 +53,7 @@ dependencies:
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
+    - field.field.node.incoming.field_tags
     - field.field.node.incoming.field_thematic_unit
     - field.field.node.incoming.field_total_cases
     - field.field.node.incoming.field_transparency_requirement
@@ -121,11 +122,10 @@ third_party_settings:
         - field_legal_deadline
         - field_fullness_check_date
         - field_completion_date
-        - field_on_time
       label: Κατάσταση
       parent_name: group_tabs
       region: content
-      weight: 14
+      weight: 13
       format_type: tab
       format_settings:
         classes: ''
@@ -142,7 +142,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 19
+      weight: 18
       format_type: details
       format_settings:
         classes: ''
@@ -156,8 +156,8 @@ third_party_settings:
       children:
         - group_general
         - group_documents
-        - group_case
         - group_status
+        - group_case
         - group_responsible
         - group_anwer
         - group_ccopy
@@ -179,10 +179,11 @@ third_party_settings:
     group_case:
       children:
         - field_case
+        - field_tags
       label: Υπόθεση
       parent_name: group_tabs
       region: content
-      weight: 13
+      weight: 14
       format_type: tab
       format_settings:
         classes: ''
@@ -220,7 +221,7 @@ third_party_settings:
       label: EE
       parent_name: group_tabs
       region: content
-      weight: 20
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -252,7 +253,7 @@ third_party_settings:
       label: API
       parent_name: group_tabs
       region: content
-      weight: 21
+      weight: 20
       format_type: tab
       format_settings:
         classes: ''
@@ -267,7 +268,7 @@ third_party_settings:
       label: 'Ακριβες Αντίγραφο'
       parent_name: group_tabs
       region: content
-      weight: 18
+      weight: 17
       format_type: tab
       format_settings:
         classes: ''
@@ -284,7 +285,7 @@ third_party_settings:
       label: Παράταση
       parent_name: group_status
       region: content
-      weight: 21
+      weight: 19
       format_type: fieldset
       format_settings:
         classes: ''
@@ -314,7 +315,7 @@ third_party_settings:
       label: 'Υπογραφή Απόρριψη'
       parent_name: group_status
       region: content
-      weight: 22
+      weight: 20
       format_type: fieldset
       format_settings:
         classes: ''
@@ -329,7 +330,7 @@ third_party_settings:
       label: Υποθέσεις
       parent_name: group_status
       region: content
-      weight: 19
+      weight: 18
       format_type: fieldset
       format_settings:
         classes: ''
@@ -375,7 +376,7 @@ third_party_settings:
       label: 'Χωρίς σχέδιο'
       parent_name: group_answer_tabs
       region: content
-      weight: 18
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -436,7 +437,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 29
+    weight: 28
     region: content
   field_dt_docid:
     type: string
@@ -481,7 +482,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 28
+    weight: 27
     region: content
   field_incoming_subtype:
     type: entity_reference_label
@@ -506,7 +507,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 26
+    weight: 25
     region: content
   field_legal_deadline:
     type: datetime_default
@@ -515,7 +516,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 27
+    weight: 26
     region: content
   field_legal_entity:
     type: entity_reference_label
@@ -523,7 +524,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 23
+    weight: 22
     region: content
   field_notes:
     type: basic_string
@@ -575,7 +576,7 @@ content:
       view_mode: compact
       link: false
     third_party_settings: {  }
-    weight: 12
+    weight: 11
     region: content
   field_opinion_ref_id:
     type: string
@@ -614,7 +615,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 24
+    weight: 23
     region: content
   field_ref_id:
     type: string
@@ -642,7 +643,7 @@ content:
       view_mode: default
       link: ''
     third_party_settings: {  }
-    weight: 19
+    weight: 21
     region: content
   field_requested_deadline:
     type: datetime_default
@@ -651,7 +652,7 @@ content:
       timezone_override: ''
       format_type: greek_date_with_day
     third_party_settings: {  }
-    weight: 25
+    weight: 24
     region: content
   field_sa_number:
     type: string
@@ -725,6 +726,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 23
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 17
     region: content
   field_thematic_unit:
     type: string
