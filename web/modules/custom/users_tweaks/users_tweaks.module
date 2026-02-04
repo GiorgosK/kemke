@@ -148,6 +148,16 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
   }
 
   $current_user = \Drupal::currentUser();
+  if (
+    $account instanceof UserInterface &&
+    $current_user->id() === $account->id() &&
+    isset($form['account']['pass']) &&
+    !\Drupal::request()->query->has('pass-reset-token')
+  ) {
+    // Keep profile updates independent from password reset validation.
+    $form['account']['pass']['#required'] = FALSE;
+  }
+
   if ($current_user->hasRole('administrator')) {
     return;
   }
