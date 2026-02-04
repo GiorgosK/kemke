@@ -135,6 +135,7 @@ class ReportsGenerateForm extends FormBase {
     $objective_1 = [
       'name' => $config->get('objective_1.name') ?? '',
       'description' => $config->get('objective_1.description') ?? '',
+      'title' => $config->get('objective_1.title') ?? '',
       'percentage' => (float) ($config->get('objective_1.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_1.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_1.deadline_days_default') ?? 0),
@@ -142,6 +143,7 @@ class ReportsGenerateForm extends FormBase {
     $objective_2 = [
       'name' => $config->get('objective_2.name') ?? '',
       'description' => $config->get('objective_2.description') ?? '',
+      'title' => $config->get('objective_2.title') ?? '',
       'percentage' => (float) ($config->get('objective_2.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_2.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_2.deadline_days_default') ?? 0),
@@ -149,6 +151,7 @@ class ReportsGenerateForm extends FormBase {
     $objective_3 = [
       'name' => $config->get('objective_3.name') ?? '',
       'description' => $config->get('objective_3.description') ?? '',
+      'title' => $config->get('objective_3.title') ?? '',
       'percentage' => (float) ($config->get('objective_3.percentage') ?? 90),
       'deadline_days_for_report' => (int) ($config->get('objective_3.deadline_days_for_report') ?? 0),
       'deadline_days_default' => (int) ($config->get('objective_3.deadline_days_default') ?? 0),
@@ -156,16 +159,19 @@ class ReportsGenerateForm extends FormBase {
     $objective_4 = [
       'name' => $config->get('objective_4.name') ?? '',
       'description' => $config->get('objective_4.description') ?? '',
+      'title' => $config->get('objective_4.title') ?? '',
       'percentage' => (float) ($config->get('objective_4.percentage') ?? 90),
     ];
     $objective_5 = [
       'name' => $config->get('objective_5.name') ?? '',
       'description' => $config->get('objective_5.description') ?? '',
+      'title' => $config->get('objective_5.title') ?? '',
       'percentage' => (float) ($config->get('objective_5.percentage') ?? 90),
     ];
     $objective_6 = [
       'name' => $config->get('objective_6.name') ?? '',
       'description' => $config->get('objective_6.description') ?? '',
+      'title' => $config->get('objective_6.title') ?? '',
       'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
     ];
 

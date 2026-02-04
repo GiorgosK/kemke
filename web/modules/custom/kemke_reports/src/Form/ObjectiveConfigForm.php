@@ -82,6 +82,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_1.description') ?? '',
     ];
 
+    $form['objective_1']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_1.title') ?? ($config->get('objective_1.name') ?? ''),
+    ];
+
     $form['objective_2'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 2',
@@ -126,6 +132,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#type' => 'textarea',
       '#title' => $this->t('Description'),
       '#default_value' => $config->get('objective_2.description') ?? '',
+    ];
+
+    $form['objective_2']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_2.title') ?? ($config->get('objective_2.name') ?? ''),
     ];
 
     $form['objective_3'] = [
@@ -174,6 +186,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_3.description') ?? '',
     ];
 
+    $form['objective_3']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_3.title') ?? ($config->get('objective_3.name') ?? ''),
+    ];
+
     $form['objective_4'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 4',
@@ -200,6 +218,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#type' => 'textarea',
       '#title' => $this->t('Description'),
       '#default_value' => $config->get('objective_4.description') ?? '',
+    ];
+
+    $form['objective_4']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_4.title') ?? ($config->get('objective_4.name') ?? ''),
     ];
 
     $form['objective_5'] = [
@@ -230,6 +254,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_5.description') ?? '',
     ];
 
+    $form['objective_5']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_5.title') ?? ($config->get('objective_5.name') ?? ''),
+    ];
+
     $form['objective_6'] = [
       '#type' => 'details',
       '#title' => $this->t('Objective') . ' 6',
@@ -258,6 +288,12 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_6.description') ?? '',
     ];
 
+    $form['objective_6']['title'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Title'),
+      '#default_value' => $config->get('objective_6.title') ?? ($config->get('objective_6.name') ?? ''),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -272,6 +308,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $values = $form_state->getValue('objective_1') ?? [];
     $objective_1_name = $values['name'] ?? '';
     $objective_1_description = $values['description'] ?? '';
+    $objective_1_title = $values['title'] ?? '';
     if ($objective_1_name !== '' && $objective_1_name === $objective_1_description) {
       $existing_name = (string) ($config->get('objective_1.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_1_name) {
@@ -286,6 +323,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1 = $this->configFactory()->getEditable('kemke_reports.settings')
       ->set('objective_1.name', $objective_1_name)
       ->set('objective_1.description', $objective_1_description)
+      ->set('objective_1.title', $objective_1_title)
       ->set('objective_1.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -296,6 +334,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $values = $form_state->getValue('objective_2') ?? [];
     $objective_2_name = $values['name'] ?? '';
     $objective_2_description = $values['description'] ?? '';
+    $objective_2_title = $values['title'] ?? '';
     if ($objective_2_name !== '' && $objective_2_name === $objective_2_description) {
       $existing_name = (string) ($config->get('objective_2.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_2_name) {
@@ -310,6 +349,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1
       ->set('objective_2.name', $objective_2_name)
       ->set('objective_2.description', $objective_2_description)
+      ->set('objective_2.title', $objective_2_title)
       ->set('objective_2.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -320,6 +360,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $values = $form_state->getValue('objective_3') ?? [];
     $objective_3_name = $values['name'] ?? '';
     $objective_3_description = $values['description'] ?? '';
+    $objective_3_title = $values['title'] ?? '';
     if ($objective_3_name !== '' && $objective_3_name === $objective_3_description) {
       $existing_name = (string) ($config->get('objective_3.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_3_name) {
@@ -334,6 +375,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1
       ->set('objective_3.name', $objective_3_name)
       ->set('objective_3.description', $objective_3_description)
+      ->set('objective_3.title', $objective_3_title)
       ->set('objective_3.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
       $objective_1
@@ -344,6 +386,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $values = $form_state->getValue('objective_4') ?? [];
     $objective_4_name = $values['name'] ?? '';
     $objective_4_description = $values['description'] ?? '';
+    $objective_4_title = $values['title'] ?? '';
     if ($objective_4_name !== '' && $objective_4_name === $objective_4_description) {
       $existing_name = (string) ($config->get('objective_4.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_4_name) {
@@ -358,11 +401,13 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1
       ->set('objective_4.name', $objective_4_name)
       ->set('objective_4.description', $objective_4_description)
+      ->set('objective_4.title', $objective_4_title)
       ->set('objective_4.percentage', (float) ($values['percentage'] ?? 90));
 
     $values = $form_state->getValue('objective_5') ?? [];
     $objective_5_name = $values['name'] ?? '';
     $objective_5_description = $values['description'] ?? '';
+    $objective_5_title = $values['title'] ?? '';
     if ($objective_5_name !== '' && $objective_5_name === $objective_5_description) {
       $existing_name = (string) ($config->get('objective_5.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_5_name) {
@@ -377,11 +422,13 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1
       ->set('objective_5.name', $objective_5_name)
       ->set('objective_5.description', $objective_5_description)
+      ->set('objective_5.title', $objective_5_title)
       ->set('objective_5.percentage', (float) ($values['percentage'] ?? 90));
 
     $values = $form_state->getValue('objective_6') ?? [];
     $objective_6_name = $values['name'] ?? '';
     $objective_6_description = $values['description'] ?? '';
+    $objective_6_title = $values['title'] ?? '';
     if ($objective_6_name !== '' && $objective_6_name === $objective_6_description) {
       $existing_name = (string) ($config->get('objective_6.name') ?? '');
       if ($existing_name !== '' && $existing_name !== $objective_6_name) {
@@ -396,6 +443,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
     $objective_1
       ->set('objective_6.name', $objective_6_name)
       ->set('objective_6.description', $objective_6_description)
+      ->set('objective_6.title', $objective_6_title)
       ->set('objective_6.percentage', (float) ($values['percentage'] ?? 30))
       ->save();
   }

@@ -291,8 +291,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_1_row(array $result): array {
     $objective = $result['objective_1'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 1');
-    $description = $objective['description'] ?: $this->t('Objective 1');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 1');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_1_percentage'] ?? 0);
@@ -307,8 +308,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_1_row_data(array $result): array {
     $objective = $result['objective_1'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 1');
-    $description = $objective['description'] ?: $this->t('Objective 1');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 1');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_1_percentage'] ?? 0);
@@ -323,8 +325,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_2_row(array $result): array {
     $objective = $result['objective_2'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 2');
-    $description = $objective['description'] ?: $this->t('Objective 2');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 2');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_2_percentage'] ?? 0);
@@ -339,8 +342,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_2_row_data(array $result): array {
     $objective = $result['objective_2'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 2');
-    $description = $objective['description'] ?: $this->t('Objective 2');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 2');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_2_percentage'] ?? 0);
@@ -355,8 +359,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_3_row(array $result): array {
     $objective = $result['objective_3'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 3');
-    $description = $objective['description'] ?: $this->t('Objective 3');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 3');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_3_percentage'] ?? 0);
@@ -371,8 +376,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_3_row_data(array $result): array {
     $objective = $result['objective_3'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 3');
-    $description = $objective['description'] ?: $this->t('Objective 3');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 3');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $days_for_report = $this->resolve_effective_days_for_report($objective);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_3_percentage'] ?? 0);
@@ -400,8 +406,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_4_row(array $result): array {
     $objective = $result['objective_4'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 4');
-    $description = $objective['description'] ?: $this->t('Objective 4');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 4');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $warning = $result['objective_4_warning'] ?? '';
     if ($warning) {
       $description = $this->t('@description (@warning)', [
@@ -422,8 +429,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_4_row_data(array $result): array {
     $objective = $result['objective_4'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 4');
-    $description = $objective['description'] ?: $this->t('Objective 4');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 4');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $warning = $result['objective_4_warning'] ?? '';
     if ($warning) {
       $description = $this->t('@description (@warning)', [
@@ -444,8 +452,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_5_row(array $result): array {
     $objective = $result['objective_5'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 5');
-    $description = $objective['description'] ?: $this->t('Objective 5');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 5');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_5_percentage'] ?? 0);
     $total = (int) ($result['objective_5_total'] ?? 0);
@@ -459,8 +468,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_5_row_data(array $result): array {
     $objective = $result['objective_5'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 5');
-    $description = $objective['description'] ?: $this->t('Objective 5');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 5');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['objective_5_percentage'] ?? 0);
     $total = (int) ($result['objective_5_total'] ?? 0);
@@ -474,8 +484,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_6_row(array $result): array {
     $objective = $result['objective_6'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 6');
-    $description = $objective['description'] ?: $this->t('Objective 6');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 6');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['seminar_percentage'] ?? 0);
     $total = (int) ($result['seminar_total_users'] ?? 0);
@@ -489,8 +500,9 @@ class ReportsResultsController extends ControllerBase {
    */
   private function build_objective_6_row_data(array $result): array {
     $objective = $result['objective_6'] ?? [];
-    $name = $objective['name'] ?: $this->t('Objective 6');
-    $description = $objective['description'] ?: $this->t('Objective 6');
+    $name = $this->resolve_objective_text((string) ($objective['title'] ?? ''), $objective, $result);
+    $description_source = $objective['description'] ?: $this->t('Objective 6');
+    $description = $this->resolve_objective_text((string) $description_source, $objective, $result);
     $target = (float) ($objective['percentage'] ?? 0);
     $calculated = (float) ($result['seminar_percentage'] ?? 0);
     $total = (int) ($result['seminar_total_users'] ?? 0);
@@ -549,6 +561,20 @@ class ReportsResultsController extends ControllerBase {
       $absolute_achievement_label,
       sprintf('%s%%', $calculated_formatted),
     ];
+  }
+
+  /**
+   * Resolves objective text tokens using report/year and objective values.
+   */
+  private function resolve_objective_text(string $text, array $objective, array $result): string {
+    if ($text === '') {
+      return '';
+    }
+
+    return strtr($text, [
+      '[year]' => (string) ($result['year'] ?? ''),
+      '[deadline_days_default]' => (string) ($objective['deadline_days_default'] ?? ''),
+    ]);
   }
 
 }
