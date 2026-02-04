@@ -8,6 +8,11 @@
   display: none;
 }
 
+#field-remarks-add-more-wrapper .field--name-field-legal-entity .govgr-hint.description,
+#edit-field-tags--description,
+#edit-field-operators--description {
+  display: none;
+}
 .pager__items .pager__item {
   display: inline-block;
 }
