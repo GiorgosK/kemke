@@ -25,6 +25,7 @@ module:
   contextual: 0
   csv_serialization: 0
   custom_permissions_access: 0
+  date_filter: 0
   datetime: 0
   datetime_optional_time: 0
   datetime_range: 0

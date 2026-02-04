@@ -30,6 +30,7 @@
         "drupal/core-project-message": "^11.2",
         "drupal/core-recipe-unpack": "^11.2",
         "drupal/core-recommended": "^11.2",
+        "drupal/date_filter": "^1.0",
         "drupal/diff": "^2.0@beta",
         "drupal/entity_browser": "^2.15",
         "drupal/entityreference_filter": "^2.0@beta",
