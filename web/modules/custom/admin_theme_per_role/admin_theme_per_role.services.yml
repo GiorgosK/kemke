@@ -1,0 +1,6 @@
+services:
+  admin_theme_per_role.negotiator:
+    class: Drupal\admin_theme_per_role\Theme\AdminThemePerRoleNegotiator
+    arguments: ['@current_user', '@router.admin_context', '@theme_handler']
+    tags:
+      - { name: theme_negotiator, priority: 0 }

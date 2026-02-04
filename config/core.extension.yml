@@ -3,6 +3,7 @@ _core:
 module:
   activities: 0
   activities_mods: 0
+  admin_theme_per_role: 0
   admin_toolbar: 0
   admin_toolbar_tools: 0
   amke_access_incoming_by_ref: 0

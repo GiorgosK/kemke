@@ -1,0 +1,5 @@
+name: Admin Theme Per Role
+type: module
+description: Uses Claro as the admin theme for administrator users.
+core_version_requirement: ^10 || ^11
+package: Custom
