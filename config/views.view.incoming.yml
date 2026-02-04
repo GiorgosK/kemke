@@ -761,8 +761,8 @@ display:
         type: basic
         options:
           submit_button: Φίλτρο
-          reset_button: false
-          reset_button_label: Reset
+          reset_button: true
+          reset_button_label: 'Εκκαθάριση φίλτρων'
           exposed_sorts_label: 'Sort by'
           expose_sort_order: true
           sort_asc_label: Asc
@@ -1049,7 +1049,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
@@ -3230,7 +3230,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
@@ -4292,7 +4292,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
@@ -5496,7 +5496,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
@@ -6000,16 +6000,6 @@ display:
           break_phrase: false
           not: false
       filters:
-        type:
-          id: type
-          table: node_field_data
-          field: type
-          entity_type: node
-          entity_field: type
-          plugin_id: bundle
-          value:
-            incoming: incoming
-          group: 1
         field_primary_value:
           id: field_primary_value
           table: node__field_primary
@@ -6048,33 +6038,52 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_incoming_type_target_id:
-          id: field_incoming_type_target_id
-          table: node__field_incoming_type
-          field: field_incoming_type_target_id
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            incoming: incoming
+          group: 1
+        field_subject_value:
+          id: field_subject_value
+          table: node__field_subject
+          field: field_subject_value
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: or
-          value: {  }
+          plugin_id: string
+          operator: contains
+          value: ''
           group: 1
           exposed: true
           expose:
-            operator_id: field_incoming_type_target_id_op
-            label: Είδος
+            operator_id: field_subject_value_op
+            label: Θέμα
             description: ''
             use_operator: false
-            operator: field_incoming_type_target_id_op
+            operator: field_subject_value_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: type
+            identifier: sub
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
-            reduce: false
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: field_subject
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
           is_grouped: false
           group_info:
             label: ''
@@ -6087,12 +6096,150 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          reduce_duplicates: false
-          vid: incoming_type
-          type: select
-          hierarchy: false
-          limit: true
-          error_message: true
+        field_sender_value:
+          id: field_sender_value
+          table: node__field_sender
+          field: field_sender_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_sender_value_op
+            label: Αποστολέας
+            description: ''
+            use_operator: false
+            operator: field_sender_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: sender_
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: field_sender
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_protocol_number_sender_value:
+          id: field_protocol_number_sender_value
+          table: node__field_protocol_number_sender
+          field: field_protocol_number_sender_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_protocol_number_sender_value_op
+            label: 'Α.Π. Αποστολέα'
+            description: ''
+            use_operator: false
+            operator: field_protocol_number_sender_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: send_number
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_protocol_number_doc_value:
+          id: field_protocol_number_doc_value
+          table: node__field_protocol_number_doc
+          field: field_protocol_number_doc_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_protocol_number_doc_value_op
+            label: 'Α.Π. Εισερχομένου'
+            description: ''
+            use_operator: false
+            operator: field_protocol_number_doc_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: doc_number
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         field_case_target_id:
           id: field_case_target_id
           table: node__field_case
@@ -6178,6 +6325,95 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_basic_operator_target_id_entityreference_filter:
+          id: field_basic_operator_target_id_entityreference_filter
+          table: node__field_basic_operator
+          field: field_basic_operator_target_id_entityreference_filter
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: entityreference_filter_view_result
+          operator: or
+          value: null
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_basic_operator_target_id_entityreference_filter_op
+            label: 'Βασικός χειριστής'
+            description: ''
+            use_operator: false
+            operator: field_basic_operator_target_id_entityreference_filter_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: operator
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          type: select
+          reference_display: 'operators_2:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_incoming_type_target_id_op
+            label: Είδος
+            description: ''
+            use_operator: false
+            operator: field_incoming_type_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: type
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
         field_tags_target_id:
           id: field_tags_target_id
           table: node__field_tags
@@ -6242,6 +6478,7 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - user
         - 'user.node_grants:view'
         - user.permissions
       tags:
@@ -6253,6 +6490,7 @@ display:
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - user_list
   page_4:
     id: page_4
     display_title: 'Όλα τα Έγγραφα'
@@ -6619,7 +6857,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
@@ -7171,7 +7409,7 @@ display:
             operator: field_basic_operator_target_id_entityreference_filter_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: op
+            identifier: operator
             required: false
             remember: false
             multiple: false
