@@ -11,8 +11,8 @@ label: Διαχειριστής
 weight: 3
 is_admin: true
 permissions:
-  - 'create field_temporary_disabled'
-  - 'edit field_temporary_disabled'
-  - 'edit own field_temporary_disabled'
-  - 'view field_temporary_disabled'
-  - 'view own field_temporary_disabled'
+  - 'create field_serial_number'
+  - 'edit field_serial_number'
+  - 'edit own field_serial_number'
+  - 'view field_serial_number'
+  - 'view own field_serial_number'

@@ -35,7 +35,7 @@ permissions:
   - 'create incoming content'
   - 'create terms in case'
   - 'edit any incoming content'
-  - 'edit field_legal_entity'
+  - 'edit field_serial_number'
   - 'edit field_temporary_disabled'
   - 'edit terms in case'
   - 'setup reports'
