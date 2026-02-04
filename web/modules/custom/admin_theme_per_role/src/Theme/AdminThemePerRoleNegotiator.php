@@ -33,6 +33,10 @@ class AdminThemePerRoleNegotiator implements ThemeNegotiatorInterface {
       return FALSE;
     }
 
+    if ($this->isEntityCreateOrEditRoute($route_match)) {
+      return FALSE;
+    }
+
     return $this->adminContext->isAdminRoute($route)
       && in_array('administrator', $this->currentUser->getRoles(), TRUE);
   }
@@ -42,6 +46,18 @@ class AdminThemePerRoleNegotiator implements ThemeNegotiatorInterface {
    */
   public function determineActiveTheme(RouteMatchInterface $route_match): ?string {
     return $this->themeHandler->themeExists('claro') ? 'claro' : NULL;
+  }
+
+  /**
+   * Determines whether the current route is an entity add/edit page.
+   */
+  private function isEntityCreateOrEditRoute(RouteMatchInterface $route_match): bool {
+    $route_name = $route_match->getRouteName();
+    if ($route_name === 'node.add' || $route_name === 'node.add_page') {
+      return TRUE;
+    }
+
+    return (bool) preg_match('/^entity\..+\.(add_form|edit_form)$/', $route_name);
   }
 
 }
