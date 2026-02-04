@@ -257,3 +257,12 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 .govgr-layout-wrapper__full-height {
   padding-top: 50px;
 }
+
+td a {
+  color: #0000b9;
+  text-decoration: underline;
+}
+td a:focus,
+td a:hover {
+  text-decoration: none;
+}
