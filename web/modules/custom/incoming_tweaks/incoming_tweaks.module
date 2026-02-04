@@ -628,6 +628,17 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
     return;
   }
 
+  // Keep IEF operations available on user add/edit forms.
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  $is_user_form_route = in_array($route_name, [
+    'entity.user.edit_form',
+    'user.register',
+    'user.admin_create',
+  ], TRUE);
+  if ($is_user_form_route) {
+    return;
+  }
+
   if (!isset($variables['table']['#attributes']['class'])) {
     $variables['table']['#attributes']['class'] = [];
   }
@@ -639,39 +650,14 @@ function incoming_tweaks_preprocess_inline_entity_form_entity_table(array &$vari
     ]
   )));
 
-  // Strip the inline edit button and hide "Remove" except for unsaved rows.
+  // Outside user add/edit forms, hide IEF row edit/remove operations.
   foreach ($variables['table'] as &$row) {
     if (!is_array($row) || !isset($row['actions']) || !is_array($row['actions'])) {
       continue;
     }
     foreach (array_keys($row['actions']) as $key) {
-      if (strpos($key, 'ief_entity_edit') === 0) {
+      if (strpos($key, 'ief_entity_edit') === 0 || strpos($key, 'ief_entity_remove') === 0) {
         unset($row['actions'][$key]);
-      }
-    }
-
-    $remove_key = NULL;
-    $delta = NULL;
-    foreach (array_keys($row['actions']) as $key) {
-      if (strpos($key, 'ief_entity_remove') === 0) {
-        $remove_key = $key;
-        $delta = $row['actions'][$key]['#ief_row_delta'] ?? NULL;
-        break;
-      }
-    }
-
-    if ($remove_key !== NULL) {
-      $entity = NULL;
-      $needs_save = NULL;
-      if ($delta !== NULL && isset($variables['form'][$delta])) {
-        $entity = $variables['form'][$delta]['#entity'] ?? NULL;
-        $needs_save = $variables['form'][$delta]['#needs_save'] ?? NULL;
-      }
-      $is_new_flag = $delta !== NULL && !empty($variables['form'][$delta]['#incoming_related_is_new']);
-      $is_new = $entity instanceof NodeInterface ? $entity->isNew() : FALSE;
-      $allow_remove = ($needs_save === TRUE) || $is_new || $is_new_flag;
-      if (!$allow_remove) {
-        unset($row['actions'][$remove_key]);
       }
     }
   }
