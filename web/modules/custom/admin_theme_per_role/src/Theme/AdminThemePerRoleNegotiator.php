@@ -33,7 +33,7 @@ class AdminThemePerRoleNegotiator implements ThemeNegotiatorInterface {
       return FALSE;
     }
 
-    if ($this->isEntityCreateOrEditRoute($route_match)) {
+    if ($this->isNodeOperationRoute($route_match)) {
       return FALSE;
     }
 
@@ -49,15 +49,14 @@ class AdminThemePerRoleNegotiator implements ThemeNegotiatorInterface {
   }
 
   /**
-   * Determines whether the current route is an entity add/edit page.
+   * Determines whether the current route is a node operation route.
+   *
+   * This mirrors node.settings:use_admin_theme behavior, which only affects
+   * routes marked with the "_node_operation_route" option.
    */
-  private function isEntityCreateOrEditRoute(RouteMatchInterface $route_match): bool {
-    $route_name = $route_match->getRouteName();
-    if ($route_name === 'node.add' || $route_name === 'node.add_page') {
-      return TRUE;
-    }
-
-    return (bool) preg_match('/^entity\..+\.(add_form|edit_form)$/', $route_name);
+  private function isNodeOperationRoute(RouteMatchInterface $route_match): bool {
+    $route = $route_match->getRouteObject();
+    return $route !== NULL && $route->hasOption('_node_operation_route');
   }
 
 }
