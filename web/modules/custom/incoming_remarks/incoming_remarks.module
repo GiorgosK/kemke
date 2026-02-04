@@ -310,6 +310,64 @@ function incoming_remarks_lock_embedded_paragraph_fields(array &$form, FormState
 }
 
 /**
+ * Prefills legal entity widget defaults for new remark IEF subforms.
+ */
+function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, NodeInterface $host_node): void {
+  $paragraph = $subform['#entity'] ?? NULL;
+  $bundle_hint = $subform['#paragraph_bundle'] ?? $subform['#paragraph_type'] ?? NULL;
+  if ($paragraph instanceof ParagraphInterface && $paragraph->bundle() !== 'remark') {
+    return;
+  }
+  if (!$paragraph instanceof ParagraphInterface && $bundle_hint && $bundle_hint !== 'remark') {
+    return;
+  }
+  if ($paragraph instanceof ParagraphInterface && !$paragraph->isNew()) {
+    return;
+  }
+  if (!isset($subform['field_legal_entity'])) {
+    return;
+  }
+  if (!$host_node->hasField('field_legal_entity') || $host_node->get('field_legal_entity')->isEmpty()) {
+    return;
+  }
+
+  $terms = $host_node->get('field_legal_entity')->referencedEntities();
+  $target_ids = array_column($host_node->get('field_legal_entity')->getValue(), 'target_id');
+  $target_ids = array_values(array_filter(array_map('intval', $target_ids)));
+  if (empty($target_ids)) {
+    return;
+  }
+
+  if (isset($subform['field_legal_entity']['widget']['#default_value'])) {
+    $subform['field_legal_entity']['widget']['#default_value'] = $target_ids;
+  }
+  if (isset($subform['field_legal_entity']['widget']) && is_array($subform['field_legal_entity']['widget'])) {
+    foreach (Element::children($subform['field_legal_entity']['widget']) as $delta) {
+      if (!isset($subform['field_legal_entity']['widget'][$delta]['target_id'])) {
+        continue;
+      }
+      if (isset($terms[$delta])) {
+        $subform['field_legal_entity']['widget'][$delta]['target_id']['#default_value'] = $terms[$delta];
+        $subform['field_legal_entity']['widget'][$delta]['target_id']['#value'] = $terms[$delta];
+        if (isset($subform['field_legal_entity']['widget'][$delta]['target_id']['#type']) && $subform['field_legal_entity']['widget'][$delta]['target_id']['#type'] === 'select') {
+          $subform['field_legal_entity']['widget'][$delta]['target_id']['#default_value'] = (string) $terms[$delta]->id();
+          $subform['field_legal_entity']['widget'][$delta]['target_id']['#value'] = (string) $terms[$delta]->id();
+        }
+      }
+    }
+  }
+
+  if (
+    isset($subform['field_legal_entity']['widget'][0]['target_id'])
+    && empty($subform['field_legal_entity']['widget'][0]['target_id']['#default_value'])
+    && !empty($terms[0])
+  ) {
+    $subform['field_legal_entity']['widget'][0]['target_id']['#default_value'] = $terms[0];
+    $subform['field_legal_entity']['widget'][0]['target_id']['#value'] = $terms[0];
+  }
+}
+
+/**
  * Hides the add-more button when a new remark subform is already present.
  */
 function incoming_remarks_hide_add_more_when_pending(array &$form, FormStateInterface $form_state): void {
@@ -772,6 +830,9 @@ function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInte
         $bundle = $element['subform']['#entity']->bundle();
       }
       if ($bundle) {
+        if ($bundle === 'remark') {
+          incoming_remarks_prefill_remark_legal_entity_widget($element['subform'], $entity);
+        }
         incoming_remarks_hide_paragraph_fields($element['subform'], $bundle);
         if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
           if (isset($element['subform']['field_legal_entity'])) {
@@ -956,7 +1017,10 @@ function incoming_remarks_apply_paragraph_field_locks(array &$subform, Paragraph
       // Hide empty legal entity on existing remarks; keep visible for new remarks.
       $subform[$field_name]['#access'] = FALSE;
     }
-    elseif (!$field_is_empty) {
+    elseif (
+      !$field_is_empty
+      && !($paragraph->bundle() === 'remark' && $field_name === 'field_legal_entity' && $paragraph->isNew())
+    ) {
       $subform[$field_name]['#access'] = FALSE;
     }
 
