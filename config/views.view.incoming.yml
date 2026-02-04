@@ -5007,6 +5007,7 @@ display:
             director_supervisor: director_supervisor
             department_supervisor: department_supervisor
             secretariat: secretariat
+            operator: operator
             kemke_admin: kemke_admin
       filters:
         field_primary_value:
@@ -6041,6 +6042,7 @@ display:
             director_supervisor: director_supervisor
             department_supervisor: department_supervisor
             secretariat: secretariat
+            operator: operator
             kemke_admin: kemke_admin
       filters:
         type:
@@ -6547,6 +6549,7 @@ display:
             director_supervisor: director_supervisor
             department_supervisor: department_supervisor
             secretariat: secretariat
+            operator: operator
             kemke_admin: kemke_admin
       filters:
         type:

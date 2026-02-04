@@ -1,0 +1,7 @@
+name: Incoming Views Tweaks
+type: module
+description: Restrict incoming view results for operator users.
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:views

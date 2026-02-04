@@ -1,0 +1,49 @@
+<?php
+
+use Drupal\views\Plugin\views\query\Sql;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function incoming_views_tweaks_views_query_alter(ViewExecutable $view, Sql $query): void {
+  if ($view->id() !== 'incoming') {
+    return;
+  }
+
+  $current_user = \Drupal::currentUser();
+  if (!in_array('operator', $current_user->getRoles(), TRUE)) {
+    return;
+  }
+
+  $uid = (int) $current_user->id();
+  if ($uid <= 0) {
+    return;
+  }
+
+  $base_alias = $query->ensureTable('node_field_data');
+  if (!$base_alias) {
+    return;
+  }
+
+  $query->addWhereExpression(
+    0,
+    "(
+      EXISTS (
+        SELECT 1
+        FROM {node__field_operators} nfo
+        WHERE nfo.entity_id = $base_alias.nid
+          AND nfo.deleted = 0
+          AND nfo.field_operators_target_id = :incoming_views_tweaks_uid
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM {node__field_basic_operator} nfbo
+        WHERE nfbo.entity_id = $base_alias.nid
+          AND nfbo.deleted = 0
+          AND nfbo.field_basic_operator_target_id = :incoming_views_tweaks_uid
+      )
+    )",
+    [':incoming_views_tweaks_uid' => $uid]
+  );
+}
