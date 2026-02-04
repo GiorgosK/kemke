@@ -97,7 +97,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 }
 
 /**
- * After-build callback to hide the "Αποστολή προς ΚΕΜΚΕ" button.
+ * After-build callback to hide the "Προς ΚΕΜΚΕ" button.
  */
 function amke_tweaks_hide_fullness_check_button_after_build(array $form, FormStateInterface $form_state): array {
   $form_object = $form_state->getFormObject();
@@ -121,7 +121,7 @@ function amke_tweaks_hide_fullness_check_button_after_build(array $form, FormSta
 }
 
 /**
- * Check whether the "Αποστολή προς ΚΕΜΚΕ" transition should be hidden.
+ * Check whether the "Προς ΚΕΜΚΕ" transition should be hidden.
  */
 function amke_tweaks_should_hide_fullness_check(NodeInterface $entity): bool {
   if (!$entity->hasField('field_legal_entity')) {

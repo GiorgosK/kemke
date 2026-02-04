@@ -68,7 +68,7 @@ type_settings:
       to: fullness_check
       weight: 2
     issues_to_check:
-      label: 'Αποστολή προς ΚΕΜΚΕ'
+      label: 'Προς ΚΕΜΚΕ'
       from:
         - pending_issues
       to: fullness_check

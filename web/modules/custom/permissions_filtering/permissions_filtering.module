@@ -39,7 +39,7 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
       'use incoming_processing transition for_signature' => 'Χρήση Εγκεκριμένο – Αποστολή στο ΣΗΔΕ προς υπογραφή',
       'use incoming_processing transition fullness_approved' => 'Χρήση Ολοκλήρωση πληρότητας φακέλου',
       'use incoming_processing transition fullness_check' => 'Χρήση Χρέωση',
-      'use incoming_processing transition issues_to_check' => 'Χρήση Αποστολή προς ΚΕΜΚΕ',
+      'use incoming_processing transition issues_to_check' => 'Χρήση Προς ΚΕΜΚΕ',
       'use incoming_processing transition pending_issues' => 'Χρήση Αποστολή προς ΑΜΚΕ',
       'use incoming_processing transition stay_draft' => 'Χρήση Αποθήκευσης σε κατάσταση Προς χρέωση.',
       'use incoming_processing transition stay_for_signature' => 'Χρήση Αποθήκευσης σε κατάσταση Εγκεκριμένο – Αποστολή στο ΣΗΔΕ προς υπογραφή.',
