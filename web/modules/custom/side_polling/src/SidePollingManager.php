@@ -199,6 +199,8 @@ final class SidePollingManager {
    */
   public function runDueJobs(int $limit = 10): void {
     $now = time();
+    $this->autoCancelExpiredActiveJobs($now);
+
     $query = $this->database->select('side_polling_job', 'j')
       ->fields('j')
       ->condition('status', 'active')
@@ -397,6 +399,36 @@ final class SidePollingManager {
     }
     $interval = (int) ($settings['interval'] ?? 300);
     return $interval > 0 ? $interval : 300;
+  }
+
+  private function getAutoCancelAfter(): int {
+    $settings = $this->settings->get('side_polling', []);
+    if (!is_array($settings)) {
+      $settings = [];
+    }
+
+    // 30 days by default.
+    $autoCancelAfter = (int) ($settings['auto_cancel_after'] ?? 30 * 24 * 60 * 60);
+    return $autoCancelAfter > 0 ? $autoCancelAfter : 30 * 24 * 60 * 60;
+  }
+
+  private function autoCancelExpiredActiveJobs(int $now): void {
+    $maxAge = $this->getAutoCancelAfter();
+    $expiryTimestamp = $now - $maxAge;
+    if ($expiryTimestamp <= 0) {
+      return;
+    }
+
+    $this->database->update('side_polling_job')
+      ->fields([
+        'status' => 'disabled',
+        'updated' => $now,
+        'last_error' => sprintf('Automatically cancelled after %d seconds of active status.', $maxAge),
+        'last_status_note' => $this->stampStatusNote('Auto cancelled'),
+      ])
+      ->condition('status', 'active')
+      ->condition('created', $expiryTimestamp, '<=')
+      ->execute();
   }
 
 }
