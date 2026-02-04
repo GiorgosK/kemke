@@ -142,6 +142,16 @@ pre {
   width: 250px;
 }
 
+#user-form .details-wrapper .form-type-number,
+#user-form .details-wrapper .field--type-string,
+#user-form .details-wrapper .form-type-email,
+#user-form .details-wrapper .form-text.username {
+  width: 300px;
+}
+#user-form .details-wrapper .form-text.username {
+  display: block;
+}
+
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-file {
   width: 450px;
 }
