@@ -269,8 +269,8 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 }
 
 td a {
-  color: #0000b9;
   text-decoration: underline;
+  text-underline-offset: 4px;
 }
 td a:focus,
 td a:hover {
