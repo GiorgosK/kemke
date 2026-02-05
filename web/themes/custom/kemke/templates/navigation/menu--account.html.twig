@@ -18,7 +18,9 @@
         ]
       %}
       {% set item_path = item.url.toString %}
+      {% set item_title = item.title|striptags|trim %}
       {% set icon_class = '' %}
+      {% set open_in_new_tab = false %}
       {% set link_classes = ['govgr-nav__list-item-link', 'govgr-link', 'kemke-account-menu__link'] %}
       {% if item.in_active_trail %}
         {% set link_classes = link_classes|merge(['is-active']) %}
@@ -33,9 +35,16 @@
         {% set icon_class = 'kemke-menu-icon--login' %}
       {% elseif item_path starts with '/user/logout' %}
         {% set icon_class = 'kemke-menu-icon--logout' %}
+      {% elseif item_path starts with '/manual' %}
+        {% set icon_class = 'kemke-menu-icon--manual' %}
+        {% set open_in_new_tab = true %}
+      {% endif %}
+      {% set link_attributes = {'class': link_classes, 'title': item.title} %}
+      {% if open_in_new_tab %}
+        {% set link_attributes = link_attributes|merge({'target': '_blank', 'rel': 'noopener noreferrer'}) %}
       {% endif %}
       <li{{ item.attributes.addClass(classes) }}>
-        <a href="{{ item_path }}"{{ create_attribute({'class': link_classes, 'title': item.title}) }}>
+        <a href="{{ item_path }}"{{ create_attribute(link_attributes) }}>
           <span class="kemke-menu-icon {{ icon_class }}" aria-hidden="true"></span>
           <span class="visually-hidden">{{ item.title }}</span>
         </a>

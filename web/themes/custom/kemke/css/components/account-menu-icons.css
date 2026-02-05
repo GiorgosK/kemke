@@ -47,3 +47,8 @@
   mask-image: url(../../images/icons/logout.svg);
   -webkit-mask-image: url(../../images/icons/logout.svg);
 }
+
+.kemke-account-menu .kemke-menu-icon--manual {
+  mask-image: url(../../images/icons/manual.svg);
+  -webkit-mask-image: url(../../images/icons/manual.svg);
+}
