@@ -212,3 +212,10 @@ tr.visible-to-amke {
 #edit-entry-wrapper #edit-entry-min > div {
   width: 165px;
 }
+
+.region-content .user-pass,
+.region-content .user-login-form {
+  display: block;
+  width: 400px;
+  margin: 0 auto;
+}
