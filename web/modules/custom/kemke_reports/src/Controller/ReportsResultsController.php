@@ -9,7 +9,9 @@ use Drupal\Core\Render\Markup;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\pdf_serialization\PdfManager;
 use Drupal\Core\Url;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -197,6 +199,24 @@ class ReportsResultsController extends ControllerBase {
       $sheet->fromArray($rows, NULL, 'A2');
     }
     $sheet->getStyle('1:1')->getFont()->setBold(TRUE);
+    $last_column_index = count($header);
+    $last_column_letter = Coordinate::stringFromColumnIndex($last_column_index);
+    $last_row = max(1, count($rows) + 1);
+    $sheet->getStyle(sprintf('A1:%s%d', $last_column_letter, $last_row))
+      ->getAlignment()
+      ->setWrapText(TRUE)
+      ->setVertical(Alignment::VERTICAL_TOP);
+
+    // Size columns from header length only, capped to avoid very wide columns.
+    $min_width = 25.0;
+    $max_width = 45.0;
+    foreach ($header as $index => $title) {
+      $header_length = function_exists('mb_strlen') ? mb_strlen((string) $title) : strlen((string) $title);
+      $width = min($max_width, max($min_width, (float) $header_length + 2.0));
+      $column_letter = Coordinate::stringFromColumnIndex($index + 1);
+      $sheet->getColumnDimension($column_letter)->setAutoSize(FALSE);
+      $sheet->getColumnDimension($column_letter)->setWidth($width);
+    }
 
     $writer = new Xlsx($spreadsheet);
     $year = $result['year'] ?? NULL;
