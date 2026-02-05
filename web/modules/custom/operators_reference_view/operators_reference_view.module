@@ -7,60 +7,7 @@
 
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
-use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
-use Drupal\views\Views;
-
-/**
- * Implements hook_views_query_alter().
- */
-function operators_reference_view_views_query_alter(ViewExecutable $view, Sql $query): void {
-  if ($view->id() !== 'operators') {
-    return;
-  }
-
-  if ($view->storage->get('base_table') !== 'users_field_data') {
-    return;
-  }
-
-  $absenses_alias = $query->ensureTable('user__field_absenses_ref');
-
-  if (empty($absenses_alias)) {
-    return;
-  }
-
-  $join = Views::pluginManager('join')->createInstance('standard', [
-    'table' => 'paragraph_revision__field_dates',
-    'field' => 'revision_id',
-    'left_table' => $absenses_alias,
-    'left_field' => 'field_absenses_ref_target_revision_id',
-    'operator' => '=',
-    'extra' => [
-      [
-        'field' => 'deleted',
-        'value' => 0,
-        'operator' => '=',
-      ],
-    ],
-  ]);
-
-  $dates_alias = $query->addRelationship('absenses_dates', $join, $absenses_alias);
-
-  $now = new DrupalDateTime('now', new \DateTimeZone('UTC'));
-  $now->setTime(0, 0, 0);
-  $end = (clone $now)->modify('+3 months');
-  $start_value = $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
-  $end_value = $end->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
-
-  $query->addWhereExpression(
-    0,
-    "(($dates_alias.field_dates_value >= :abs_start AND $dates_alias.field_dates_value < :abs_end) OR $dates_alias.field_dates_value IS NULL)",
-    [
-      ':abs_start' => $start_value,
-      ':abs_end' => $end_value,
-    ]
-  );
-}
 
 /**
  * Implements hook_views_pre_render().
