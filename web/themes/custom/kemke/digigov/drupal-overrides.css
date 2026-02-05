@@ -192,3 +192,23 @@ tr.visible-to-amke {
   display: flex;
   gap: 5px;
 }
+
+/* views date filter */ 
+#edit-entry-wrapper .fieldset-wrapper {
+  display: flex;
+}
+#edit-entry-wrapper .fieldset-legend {
+  font-size: 1.1875rem;
+}
+#edit-entry-wrapper .label {
+  display: none;
+}
+#edit-entry-wrapper #edit-entry-min:after {
+  content: '-';
+  margin: 5px;
+  font-size: 22px;
+}
+#edit-entry-wrapper #edit-entry-max > div,
+#edit-entry-wrapper #edit-entry-min > div {
+  width: 165px;
+}
