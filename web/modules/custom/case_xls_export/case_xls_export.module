@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Hooks for the Case XLS export module.
+ */
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function case_xls_export_views_data_alter(array &$data): void {
+  $data['taxonomy_term_field_data']['case_parent_chain'] = [
+    'title' => t('Case parent chain'),
+    'help' => t('Shows the full case path for each parent branch.'),
+    'field' => [
+      'id' => 'case_parent_chain',
+    ],
+  ];
+}
+

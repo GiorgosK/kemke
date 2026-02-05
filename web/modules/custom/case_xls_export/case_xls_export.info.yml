@@ -1,0 +1,8 @@
+name: 'Case XLS Export'
+type: module
+description: 'Adds case hierarchy helpers for Views XLS exports.'
+package: Custom
+core_version_requirement: '^10 || ^11'
+dependencies:
+  - drupal:taxonomy
+  - drupal:views
