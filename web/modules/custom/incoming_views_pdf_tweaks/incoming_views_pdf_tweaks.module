@@ -12,7 +12,7 @@ use Drupal\Component\Utility\UrlHelper;
  * Implements hook_views_pre_render().
  */
 function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
-  if ($view->id() !== 'incoming') {
+  if (!in_array($view->id(), ['incoming', 'incoming_amke'], TRUE)) {
     return;
   }
 
@@ -26,25 +26,43 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
   });
   unset($query['page'], $query['_format'], $query['op']);
 
-  if ($view->current_display === 'page_1') {
-    $query['no_state'] = 'incoming_processing-published';
-  }
-  if ($view->current_display === 'page_5') {
-    $query['state'] = 'incoming_processing-published';
+  if ($view->id() === 'incoming') {
+    if ($view->current_display === 'page_1') {
+      $query['no_state'] = 'incoming_processing-published';
+    }
+    if ($view->current_display === 'page_5') {
+      $query['state'] = 'incoming_processing-published';
+    }
   }
 
   if (
     $view->display_handler
     && $view->display_handler->getPluginId() === 'data_export'
   ) {
-    $query['no_state'] = 'completed';
+    if ($view->id() === 'incoming') {
+      $query['no_state'] = 'completed';
+    }
+    elseif (
+      $view->id() === 'incoming_amke'
+      && !isset($query['status'])
+      && isset($query['field_amke_status_value'])
+    ) {
+      // Backward compatibility with older AMKE exposed filter identifiers.
+      $query['status'] = $query['field_amke_status_value'];
+    }
+
   }
 
-  if (empty($query['state'])) {
+  if ($view->id() === 'incoming' && empty($query['state'])) {
     $defaults = incoming_views_pdf_tweaks_default_states($view);
     if (!empty($defaults)) {
       $query['state'] = $defaults;
     }
+  }
+
+  // PDF exports should not include operation links.
+  if ($view->id() === 'incoming_amke' && $view->current_display === 'data_export_2') {
+    unset($view->field['operations']);
   }
 
   $view->setExposedInput($query);
@@ -54,10 +72,26 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
  * Implements hook_views_post_build().
  */
 function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view) {
-  if ($view->id() !== 'incoming' || !in_array($view->current_display, ['page_1', 'page_5'], TRUE)) {
+  if (
+    $view->id() === 'incoming'
+    && in_array($view->current_display, ['page_1', 'page_5'], TRUE)
+  ) {
+    incoming_views_pdf_tweaks_adjust_incoming_export_links($view);
     return;
   }
 
+  if (
+    $view->id() === 'incoming_amke'
+    && in_array($view->current_display, ['page_1', 'page_2', 'page_3'], TRUE)
+  ) {
+    incoming_views_pdf_tweaks_adjust_incoming_amke_export_links($view);
+  }
+}
+
+/**
+ * Rewrites export links for the incoming view.
+ */
+function incoming_views_pdf_tweaks_adjust_incoming_export_links(ViewExecutable $view): void {
   if (empty($view->feedIcons)) {
     return;
   }
@@ -68,6 +102,9 @@ function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view) {
     }
 
     $parsed = UrlHelper::parse($icon['#url']);
+    if (empty($parsed['path']) || !is_string($parsed['path'])) {
+      continue;
+    }
     $existing = $parsed['query'] ?? [];
 
     if ($view->current_display === 'page_5') {
@@ -86,6 +123,77 @@ function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view) {
       . ($query_string !== '' ? '?' . $query_string : '')
       . (!empty($parsed['fragment']) ? '#' . $parsed['fragment'] : '');
   }
+}
+
+/**
+ * Rewrites export links for the AMKE incoming view.
+ */
+function incoming_views_pdf_tweaks_adjust_incoming_amke_export_links(ViewExecutable $view): void {
+  if (empty($view->feedIcons)) {
+    return;
+  }
+
+  foreach ($view->feedIcons as &$icon) {
+    if (empty($icon['#url']) || !is_string($icon['#url'])) {
+      continue;
+    }
+
+    $parsed = UrlHelper::parse($icon['#url']);
+    if (empty($parsed['path']) || !is_string($parsed['path'])) {
+      continue;
+    }
+    $existing = $parsed['query'] ?? [];
+
+    // Keep compatibility with legacy AMKE status identifier.
+    if (!isset($existing['status']) && isset($existing['field_amke_status_value'])) {
+      $existing['status'] = $existing['field_amke_status_value'];
+      unset($existing['field_amke_status_value']);
+    }
+
+    // Preserve display-specific status defaults when not explicitly provided.
+    if (!isset($existing['status'])) {
+      if ($view->current_display === 'page_1') {
+        $status_default = incoming_views_pdf_tweaks_filter_default_value($view, 'status');
+        if ($status_default !== NULL) {
+          $existing['status'] = is_array($status_default) ? array_values($status_default) : $status_default;
+        }
+      }
+      elseif ($view->current_display === 'page_3') {
+        $existing['status'] = 'published';
+      }
+    }
+
+    $query_string = UrlHelper::buildQuery($existing);
+    $icon['#url'] = $parsed['path']
+      . ($query_string !== '' ? '?' . $query_string : '')
+      . (!empty($parsed['fragment']) ? '#' . $parsed['fragment'] : '');
+  }
+}
+
+/**
+ * Gets the configured default value for an exposed filter identifier.
+ *
+ * @return mixed
+ *   The configured default value, or NULL when not found.
+ */
+function incoming_views_pdf_tweaks_filter_default_value(ViewExecutable $view, string $identifier) {
+  $display = $view->storage->getDisplay($view->current_display);
+  $filters = $display['display_options']['filters'] ?? [];
+  foreach ($filters as $filter) {
+    if (!empty($filter['exposed']) && ($filter['expose']['identifier'] ?? '') === $identifier) {
+      return $filter['value'] ?? NULL;
+    }
+  }
+
+  $default_display = $view->storage->getDisplay('default');
+  $default_filters = $default_display['display_options']['filters'] ?? [];
+  foreach ($default_filters as $filter) {
+    if (!empty($filter['exposed']) && ($filter['expose']['identifier'] ?? '') === $identifier) {
+      return $filter['value'] ?? NULL;
+    }
+  }
+
+  return NULL;
 }
 
 /**
