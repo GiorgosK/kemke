@@ -157,4 +157,15 @@ final class SideApiCommands extends DrushCommands {
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 
+  /**
+   * Assign node operators from Docutracks document assignees.
+   *
+   * @command side:assign-incoming-operators
+   * @aliases sdaio
+   */
+  public function assignIncomingOperators(int $nodeId, int $docutracksId): void {
+    $result = $this->client->assignIncomingOperatorsFromDocutracks($nodeId, $docutracksId);
+    $this->output()->writeln(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
 }

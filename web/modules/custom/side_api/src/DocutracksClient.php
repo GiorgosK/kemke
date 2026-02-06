@@ -1374,4 +1374,187 @@ final class DocutracksClient {
 
     return $current;
   }
+
+  /**
+   * Assign incoming node operators from a Docutracks document.
+   *
+   * - field_basic_operator: first matched MainAssignee.Id user (operator role only)
+   * - field_operators: matched ExtraAssignees[].Assignee.Id users (operator role only)
+   *
+   * @return array{
+   *   node_id:int,
+   *   docutracks_id:string,
+   *   basic_operator_uid:?int,
+   *   operators_uids:array<int, int>,
+   *   matched_main_ids:array<int, string>,
+   *   matched_extra_ids:array<int, string>
+   * }
+   */
+  public function assignIncomingOperatorsFromDocutracks(int $nodeId, string|int $docutracksId): array {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $node = $storage->load($nodeId);
+    if (!$node instanceof NodeInterface) {
+      throw new RuntimeException(sprintf('Node %d was not found.', $nodeId));
+    }
+    if ($node->bundle() !== 'incoming') {
+      throw new RuntimeException(sprintf('Node %d is not of type incoming.', $nodeId));
+    }
+    if (!$node->hasField('field_basic_operator') || !$node->hasField('field_operators')) {
+      throw new RuntimeException(sprintf('Node %d is missing operator fields.', $nodeId));
+    }
+
+    $jar = $this->loginToDocutracks();
+    $doc = $this->fetchDocument((string) $docutracksId, $jar);
+    $copies = $this->extractValueByPath($doc, 'Document.DocumentCopies');
+    if (!is_array($copies)) {
+      throw new RuntimeException('Docutracks response does not include Document.DocumentCopies.');
+    }
+
+    $main_ids = [];
+    $extra_ids = [];
+
+    foreach ($copies as $copy) {
+      if (!is_array($copy)) {
+        continue;
+      }
+
+      $main_assignee = $copy['MainAssignee'] ?? NULL;
+      if (is_array($main_assignee)) {
+        $main_id = $this->normalizeDocutracksId($main_assignee['Id'] ?? NULL);
+        if ($main_id !== NULL) {
+          $main_ids[] = $main_id;
+        }
+      }
+
+      $extra_assignees = $copy['ExtraAssignees'] ?? [];
+      if (is_array($extra_assignees)) {
+        foreach ($extra_assignees as $extra_assignee) {
+          if (!is_array($extra_assignee)) {
+            continue;
+          }
+          $assignee = $extra_assignee['Assignee'] ?? NULL;
+          if (!is_array($assignee)) {
+            continue;
+          }
+          $extra_id = $this->normalizeDocutracksId($assignee['Id'] ?? NULL);
+          if ($extra_id !== NULL) {
+            $extra_ids[] = $extra_id;
+          }
+        }
+      }
+    }
+
+    $main_ids = array_values(array_unique($main_ids));
+    $extra_ids = array_values(array_unique($extra_ids));
+    $all_ids = array_values(array_unique(array_merge($main_ids, $extra_ids)));
+    $id_to_uid = $this->loadOperatorUidsByDocutracksId($all_ids);
+
+    $basic_operator_uid = NULL;
+    $matched_main_ids = [];
+    foreach ($main_ids as $main_id) {
+      if (!isset($id_to_uid[$main_id])) {
+        continue;
+      }
+      $matched_main_ids[] = $main_id;
+      if ($basic_operator_uid === NULL) {
+        $basic_operator_uid = $id_to_uid[$main_id];
+      }
+    }
+
+    $operators_uids = [];
+    $matched_extra_ids = [];
+    foreach ($extra_ids as $extra_id) {
+      if (!isset($id_to_uid[$extra_id])) {
+        continue;
+      }
+      $matched_extra_ids[] = $extra_id;
+      $uid = $id_to_uid[$extra_id];
+      if ($basic_operator_uid !== NULL && $uid === $basic_operator_uid) {
+        continue;
+      }
+      $operators_uids[$uid] = $uid;
+    }
+    $operators_uids = array_values($operators_uids);
+
+    if ($basic_operator_uid !== NULL) {
+      $node->set('field_basic_operator', ['target_id' => $basic_operator_uid]);
+    }
+    else {
+      $node->set('field_basic_operator', []);
+    }
+
+    $field_operators_items = [];
+    foreach ($operators_uids as $uid) {
+      $field_operators_items[] = ['target_id' => $uid];
+    }
+    $node->set('field_operators', $field_operators_items);
+    $node->save();
+
+    return [
+      'node_id' => $nodeId,
+      'docutracks_id' => (string) $docutracksId,
+      'basic_operator_uid' => $basic_operator_uid,
+      'operators_uids' => $operators_uids,
+      'matched_main_ids' => $matched_main_ids,
+      'matched_extra_ids' => $matched_extra_ids,
+    ];
+  }
+
+  /**
+   * Normalize Docutracks id to a non-empty string.
+   */
+  private function normalizeDocutracksId(mixed $value): ?string {
+    if (is_int($value)) {
+      return (string) $value;
+    }
+    if (is_string($value)) {
+      $trimmed = trim($value);
+      return $trimmed === '' ? NULL : $trimmed;
+    }
+    return NULL;
+  }
+
+  /**
+   * Resolve Docutracks user IDs to Drupal operator UIDs.
+   *
+   * @param array<int, string> $docutracksIds
+   *   String Docutracks ids.
+   *
+   * @return array<string, int>
+   *   Map: docutracks id => user uid.
+   */
+  private function loadOperatorUidsByDocutracksId(array $docutracksIds): array {
+    if ($docutracksIds === []) {
+      return [];
+    }
+
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
+    $uids = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('field_docutracks_id.value', $docutracksIds, 'IN')
+      ->execute();
+    if ($uids === []) {
+      return [];
+    }
+
+    $users = $storage->loadMultiple($uids);
+    ksort($users);
+
+    $map = [];
+    foreach ($users as $user) {
+      if (!$user instanceof \Drupal\user\UserInterface) {
+        continue;
+      }
+      if (!$user->hasRole('operator')) {
+        continue;
+      }
+      $docutracks_id = $this->normalizeDocutracksId($user->get('field_docutracks_id')->value ?? NULL);
+      if ($docutracks_id === NULL || isset($map[$docutracks_id])) {
+        continue;
+      }
+      $map[$docutracks_id] = (int) $user->id();
+    }
+
+    return $map;
+  }
 }
