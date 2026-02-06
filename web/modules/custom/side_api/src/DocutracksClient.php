@@ -1376,73 +1376,56 @@ final class DocutracksClient {
   }
 
   /**
-   * Assign incoming node operators from a Docutracks document.
-   *
-   * - field_basic_operator: first matched MainAssignee.Id user (operator role only)
-   * - field_operators: matched ExtraAssignees[].Assignee.Id users (operator role only)
+   * Resolve incoming operator assignments from a Docutracks document.
    *
    * @return array{
-   *   node_id:int,
    *   docutracks_id:string,
+   *   main_assignee_docutracks_ids:array<int, string>,
+   *   extra_assignee_docutracks_ids:array<int, string>,
    *   basic_operator_uid:?int,
    *   operators_uids:array<int, int>,
    *   matched_main_ids:array<int, string>,
    *   matched_extra_ids:array<int, string>
    * }
    */
-  public function assignIncomingOperatorsFromDocutracks(int $nodeId, string|int $docutracksId): array {
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
-    $node = $storage->load($nodeId);
-    if (!$node instanceof NodeInterface) {
-      throw new RuntimeException(sprintf('Node %d was not found.', $nodeId));
-    }
-    if ($node->bundle() !== 'incoming') {
-      throw new RuntimeException(sprintf('Node %d is not of type incoming.', $nodeId));
-    }
-    if (!$node->hasField('field_basic_operator') || !$node->hasField('field_operators')) {
-      throw new RuntimeException(sprintf('Node %d is missing operator fields.', $nodeId));
+  public function resolveIncomingOperatorAssignments(string|int $docutracksId): array {
+    $jar = $this->loginToDocutracks();
+    $doc = $this->fetchDocument((string) $docutracksId, $jar);
+    return $this->resolveIncomingOperatorAssignmentsFromDocument($doc, (string) $docutracksId);
+  }
+
+  /**
+   * Resolve incoming operator assignments using protocol lookup.
+   *
+   * @return array{
+   *   docutracks_id:string,
+   *   main_assignee_docutracks_ids:array<int, string>,
+   *   extra_assignee_docutracks_ids:array<int, string>,
+   *   basic_operator_uid:?int,
+   *   operators_uids:array<int, int>,
+   *   matched_main_ids:array<int, string>,
+   *   matched_extra_ids:array<int, string>
+   * }
+   */
+  public function resolveIncomingOperatorAssignmentsByProtocol(string $protocolText, int $protocolYear, int $documentTypeId = 1): array {
+    if (trim($protocolText) === '' || $protocolYear <= 0) {
+      throw new RuntimeException('Protocol text and year are required for Docutracks protocol lookup.');
     }
 
     $jar = $this->loginToDocutracks();
-    $doc = $this->fetchDocument((string) $docutracksId, $jar);
-    $copies = $this->extractValueByPath($doc, 'Document.DocumentCopies');
-    if (!is_array($copies)) {
-      throw new RuntimeException('Docutracks response does not include Document.DocumentCopies.');
-    }
+    $doc = $this->fetchDocumentByProtocol($protocolText, $protocolYear, $documentTypeId, $jar);
+    $doc_id = (string) $this->extractDocumentId($doc);
+    return $this->resolveIncomingOperatorAssignmentsFromDocument($doc, $doc_id);
+  }
 
-    $main_ids = [];
-    $extra_ids = [];
-
-    foreach ($copies as $copy) {
-      if (!is_array($copy)) {
-        continue;
-      }
-
-      $main_assignee = $copy['MainAssignee'] ?? NULL;
-      if (is_array($main_assignee)) {
-        $main_id = $this->normalizeDocutracksId($main_assignee['Id'] ?? NULL);
-        if ($main_id !== NULL) {
-          $main_ids[] = $main_id;
-        }
-      }
-
-      $extra_assignees = $copy['ExtraAssignees'] ?? [];
-      if (is_array($extra_assignees)) {
-        foreach ($extra_assignees as $extra_assignee) {
-          if (!is_array($extra_assignee)) {
-            continue;
-          }
-          $assignee = $extra_assignee['Assignee'] ?? NULL;
-          if (!is_array($assignee)) {
-            continue;
-          }
-          $extra_id = $this->normalizeDocutracksId($assignee['Id'] ?? NULL);
-          if ($extra_id !== NULL) {
-            $extra_ids[] = $extra_id;
-          }
-        }
-      }
-    }
+  /**
+   * Resolve incoming operator assignments from a fetched document payload.
+   *
+   * @param array<string, mixed> $doc
+   *   Fetched Docutracks document payload.
+   */
+  private function resolveIncomingOperatorAssignmentsFromDocument(array $doc, string $docutracksId): array {
+    [$main_ids, $extra_ids] = $this->extractIncomingAssigneeIds($doc);
 
     $main_ids = array_values(array_unique($main_ids));
     $extra_ids = array_values(array_unique($extra_ids));
@@ -1476,6 +1459,51 @@ final class DocutracksClient {
     }
     $operators_uids = array_values($operators_uids);
 
+    return [
+      'docutracks_id' => $docutracksId,
+      'main_assignee_docutracks_ids' => $main_ids,
+      'extra_assignee_docutracks_ids' => $extra_ids,
+      'basic_operator_uid' => $basic_operator_uid,
+      'operators_uids' => $operators_uids,
+      'matched_main_ids' => $matched_main_ids,
+      'matched_extra_ids' => $matched_extra_ids,
+    ];
+  }
+
+  /**
+   * Assign incoming node operators from a Docutracks document.
+   *
+   * - field_basic_operator: first matched MainAssignee.Id user (operator role only)
+   * - field_operators: matched ExtraAssignees[].Assignee.Id users (operator role only)
+   *
+   * @return array{
+   *   node_id:int,
+   *   docutracks_id:string,
+   *   main_assignee_docutracks_ids:array<int, string>,
+   *   extra_assignee_docutracks_ids:array<int, string>,
+   *   basic_operator_uid:?int,
+   *   operators_uids:array<int, int>,
+   *   matched_main_ids:array<int, string>,
+   *   matched_extra_ids:array<int, string>
+   * }
+   */
+  public function assignIncomingOperatorsFromDocutracks(int $nodeId, string|int $docutracksId): array {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $node = $storage->load($nodeId);
+    if (!$node instanceof NodeInterface) {
+      throw new RuntimeException(sprintf('Node %d was not found.', $nodeId));
+    }
+    if ($node->bundle() !== 'incoming') {
+      throw new RuntimeException(sprintf('Node %d is not of type incoming.', $nodeId));
+    }
+    if (!$node->hasField('field_basic_operator') || !$node->hasField('field_operators')) {
+      throw new RuntimeException(sprintf('Node %d is missing operator fields.', $nodeId));
+    }
+
+    $assignment = $this->resolveIncomingOperatorAssignments($docutracksId);
+    $basic_operator_uid = $assignment['basic_operator_uid'];
+    $operators_uids = $assignment['operators_uids'];
+
     if ($basic_operator_uid !== NULL) {
       $node->set('field_basic_operator', ['target_id' => $basic_operator_uid]);
     }
@@ -1490,14 +1518,82 @@ final class DocutracksClient {
     $node->set('field_operators', $field_operators_items);
     $node->save();
 
-    return [
+    return $assignment + [
       'node_id' => $nodeId,
-      'docutracks_id' => (string) $docutracksId,
-      'basic_operator_uid' => $basic_operator_uid,
-      'operators_uids' => $operators_uids,
-      'matched_main_ids' => $matched_main_ids,
-      'matched_extra_ids' => $matched_extra_ids,
     ];
+  }
+
+  /**
+   * Extract main and extra assignee Docutracks IDs from a document payload.
+   *
+   * @param array<string, mixed> $doc
+   *   The fetched Docutracks document payload.
+   *
+   * @return array{0:array<int, string>, 1:array<int, string>}
+   *   [main_ids, extra_ids]
+   */
+  private function extractIncomingAssigneeIds(array $doc): array {
+    $copies = $this->extractValueByPath($doc, 'Document.DocumentCopies');
+    if (!is_array($copies)) {
+      throw new RuntimeException('Docutracks response does not include Document.DocumentCopies.');
+    }
+
+    $main_ids = [];
+    $extra_ids = [];
+
+    foreach ($copies as $copy) {
+      if (!is_array($copy)) {
+        continue;
+      }
+
+      $main_assignee = $copy['MainAssignee'] ?? NULL;
+      if (is_array($main_assignee)) {
+        $main_id = $this->normalizeDocutracksId($main_assignee['Id'] ?? NULL);
+        if ($main_id !== NULL) {
+          $main_ids[] = $main_id;
+        }
+      }
+
+      $extra_assignees = $copy['ExtraAssignees'] ?? [];
+      if (!is_array($extra_assignees)) {
+        continue;
+      }
+      foreach ($extra_assignees as $extra_assignee) {
+        if (!is_array($extra_assignee)) {
+          continue;
+        }
+        $assignee = $extra_assignee['Assignee'] ?? NULL;
+        if (!is_array($assignee)) {
+          continue;
+        }
+        $extra_id = $this->normalizeDocutracksId($assignee['Id'] ?? NULL);
+        if ($extra_id !== NULL) {
+          $extra_ids[] = $extra_id;
+        }
+      }
+    }
+
+    return [$main_ids, $extra_ids];
+  }
+
+  /**
+   * Extract a document id from a Docutracks response payload.
+   */
+  private function extractDocumentId(array $doc): int {
+    $paths = [
+      'Document.Id',
+      'DocumentReference',
+      'Document.DocumentId',
+    ];
+
+    foreach ($paths as $path) {
+      $value = $this->extractValueByPath($doc, $path);
+      if (is_numeric($value)) {
+        return (int) $value;
+      }
+    }
+
+    return 0;
   }
 
   /**

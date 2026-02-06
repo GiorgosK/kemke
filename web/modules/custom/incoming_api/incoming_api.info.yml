@@ -7,3 +7,4 @@ dependencies:
   - drupal:node
   - drupal:paragraphs
   - drupal:file
+  - side_api

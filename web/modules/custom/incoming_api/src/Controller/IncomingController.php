@@ -15,6 +15,7 @@ use Drupal\file\FileUsage\FileUsageInterface;
 use Drupal\incoming_api\Service\ChunkUploadManager;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\side_api\DocutracksClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,6 +54,11 @@ final class IncomingController extends ControllerBase {
   private ChunkUploadManager $chunkUploadManager;
 
   /**
+   * Docutracks client service.
+   */
+  private DocutracksClient $docutracksClient;
+
+  /**
    * Constructs the controller.
    */
   public function __construct(
@@ -62,6 +68,7 @@ final class IncomingController extends ControllerBase {
     FileUsageInterface $fileUsage,
     AccountProxyInterface $current_user,
     ChunkUploadManager $chunkUploadManager,
+    DocutracksClient $docutracksClient,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
@@ -69,6 +76,7 @@ final class IncomingController extends ControllerBase {
     $this->fileUsage = $fileUsage;
     $this->currentUser = $current_user;
     $this->chunkUploadManager = $chunkUploadManager;
+    $this->docutracksClient = $docutracksClient;
   }
 
   /**
@@ -82,6 +90,7 @@ final class IncomingController extends ControllerBase {
       $container->get('file.usage'),
       $container->get('current_user'),
       $container->get('incoming_api.chunk_upload_manager'),
+      $container->get('side_api.docutracks_client'),
     );
   }
 
@@ -305,6 +314,8 @@ final class IncomingController extends ControllerBase {
         $node->get('field_documents')->appendItem(['entity' => $paragraph]);
       }
     }
+
+    $this->applyDocutracksOperatorAssignments($node, $payload);
 
     try {
       $node->save();
@@ -582,6 +593,7 @@ final class IncomingController extends ControllerBase {
       'field_thematic_unit',
       'field_transparency_requirement',
       'field_notes',
+      'field_dt_docid',
     ];
 
     foreach ($simpleFields as $fieldName) {
@@ -825,6 +837,105 @@ final class IncomingController extends ControllerBase {
     }
 
     return $payload;
+  }
+
+  /**
+   * Resolve and apply operator references from Docutracks assignees.
+   */
+  private function applyDocutracksOperatorAssignments(NodeInterface $node, array $payload): void {
+    if (!$node->hasField('field_basic_operator') || !$node->hasField('field_operators')) {
+      return;
+    }
+
+    $protocolText = $this->extractProtocolNumberDoc($node, $payload);
+    $protocolYear = $this->extractEntryYear($node);
+    if ($protocolText === NULL || $protocolYear <= 0) {
+      return;
+    }
+
+    try {
+      $assignment = $this->docutracksClient->resolveIncomingOperatorAssignmentsByProtocol($protocolText, $protocolYear, 1);
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('incoming_api')->warning('Unable to resolve Docutracks assignees for protocol @protocol/@year: @message', [
+        '@protocol' => $protocolText,
+        '@year' => (string) $protocolYear,
+        '@message' => $exception->getMessage(),
+      ]);
+      return;
+    }
+
+    $resolvedDocId = trim((string) ($assignment['docutracks_id'] ?? ''));
+    if ($resolvedDocId !== '' && $resolvedDocId !== '0' && $node->hasField('field_dt_docid')) {
+      $node->set('field_dt_docid', $resolvedDocId);
+    }
+
+    if (($assignment['basic_operator_uid'] ?? NULL) !== NULL) {
+      $node->set('field_basic_operator', ['target_id' => (int) $assignment['basic_operator_uid']]);
+    }
+
+    $operators = $assignment['operators_uids'] ?? [];
+    if (is_array($operators) && $operators !== []) {
+      $items = [];
+      foreach ($operators as $uid) {
+        $items[] = ['target_id' => (int) $uid];
+      }
+      $node->set('field_operators', $items);
+    }
+  }
+
+  /**
+   * Extract protocol number doc from node/payload value shapes.
+   */
+  private function extractProtocolNumberDoc(NodeInterface $node, array $payload): ?string {
+    if ($node->hasField('field_protocol_number_doc') && !$node->get('field_protocol_number_doc')->isEmpty()) {
+      $value = trim((string) ($node->get('field_protocol_number_doc')->value ?? ''));
+      if ($value !== '') {
+        return $value;
+      }
+    }
+
+    $value = $payload['field_protocol_number_doc'] ?? NULL;
+    if (is_string($value) && trim($value) !== '') {
+      return trim($value);
+    }
+
+    if (!is_array($value)) {
+      return NULL;
+    }
+
+    if (isset($value['value']) && is_string($value['value'])) {
+      $candidate = trim($value['value']);
+      return $candidate === '' ? NULL : $candidate;
+    }
+
+    if (isset($value[0]) && is_string($value[0])) {
+      $candidate = trim($value[0]);
+      return $candidate === '' ? NULL : $candidate;
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Extract protocol year from entry date.
+   */
+  private function extractEntryYear(NodeInterface $node): int {
+    if (!$node->hasField('field_entry_date') || $node->get('field_entry_date')->isEmpty()) {
+      return 0;
+    }
+
+    $value = (string) ($node->get('field_entry_date')->value ?? '');
+    if ($value === '') {
+      return 0;
+    }
+
+    try {
+      return (int) (new \DateTime($value))->format('Y');
+    }
+    catch (\Throwable) {
+      return 0;
+    }
   }
 
   /**
