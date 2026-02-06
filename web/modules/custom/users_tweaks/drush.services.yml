@@ -1,0 +1,5 @@
+services:
+  users_tweaks.commands:
+    class: Drupal\users_tweaks\Commands\UsersTweaksCommands
+    tags:
+      - { name: drush.command }
