@@ -55,4 +55,12 @@
   ddev exec php scripts/passwords.php expire:bulk on  
   ```
 - add docutracks username for syncing
-- 
+- can use following commands for checking
+  ```
+  drush users_tweaks:users --dt
+  ```
+- and syncing
+  ```
+  drush users_tweaks:users-sync-dt
+  drush users_tweaks:users-sync-dt --force
+  ```
