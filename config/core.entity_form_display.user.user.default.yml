@@ -6,6 +6,7 @@ dependencies:
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_access_change_log
     - field.field.user.user.field_docutracks_email
+    - field.field.user.user.field_docutracks_id
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
@@ -30,8 +31,8 @@ third_party_settings:
       children:
         - group_general
         - group_other
-        - group_absenses
         - group_docutracks
+        - group_absenses
       label: tabs
       region: content
       parent_name: ''
@@ -83,6 +84,7 @@ third_party_settings:
     group_docutracks:
       children:
         - field_docutracks_username
+        - field_docutracks_id
         - field_docutracks_email
         - field_docutracks_json
       label: docutracks
@@ -151,15 +153,22 @@ content:
     third_party_settings: {  }
   field_docutracks_email:
     type: email_default
-    weight: 5
+    weight: 6
     region: content
     settings:
       placeholder: ''
       size: 60
     third_party_settings: {  }
+  field_docutracks_id:
+    type: number
+    weight: 5
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
   field_docutracks_json:
     type: string_textarea
-    weight: 6
+    weight: 7
     region: content
     settings:
       rows: 5

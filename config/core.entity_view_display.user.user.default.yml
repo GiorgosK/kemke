@@ -6,6 +6,7 @@ dependencies:
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_access_change_log
     - field.field.user.user.field_docutracks_email
+    - field.field.user.user.field_docutracks_id
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
@@ -30,8 +31,8 @@ third_party_settings:
       children:
         - group_general
         - group_other
-        - group_absenses
         - group_docutracks
+        - group_absenses
         - group_log
       label: tabs
       parent_name: ''
@@ -82,12 +83,13 @@ third_party_settings:
     group_docutracks:
       children:
         - field_docutracks_username
-        - field_docutracks_json
+        - field_docutracks_id
         - field_docutracks_email
+        - field_docutracks_json
       label: docutracks
       parent_name: group_tabs
       region: content
-      weight: 10
+      weight: 9
       format_type: tab
       format_settings:
         classes: ''
@@ -116,8 +118,8 @@ third_party_settings:
         - field_absenses_ref
       label: Άδειες
       parent_name: group_tabs
-      region: hidden
-      weight: 9
+      region: content
+      weight: 10
       format_type: tab
       format_settings:
         classes: ''
@@ -158,12 +160,21 @@ content:
     third_party_settings: {  }
     weight: 8
     region: content
+  field_docutracks_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 7
+    region: content
   field_docutracks_json:
     type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 7
+    weight: 9
     region: content
   field_docutracks_username:
     type: string

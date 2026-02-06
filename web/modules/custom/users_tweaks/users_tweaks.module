@@ -20,20 +20,28 @@ function users_tweaks_entity_presave(EntityInterface $entity): void {
 
   users_tweaks_track_access_change($entity);
 
+  users_tweaks_populate_docutracks_fields($entity);
+}
+
+/**
+ * Populate Docutracks fields for a user based on Docutracks username.
+ */
+function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
   if (
-    !$entity->hasField('field_docutracks_username') ||
-    !$entity->hasField('field_docutracks_json') ||
-    !$entity->hasField('field_docutracks_email')
+    !$account->hasField('field_docutracks_username') ||
+    !$account->hasField('field_docutracks_json') ||
+    !$account->hasField('field_docutracks_email') ||
+    !$account->hasField('field_docutracks_id')
   ) {
     return;
   }
 
-  $username = trim((string) $entity->get('field_docutracks_username')->value);
+  $username = trim((string) $account->get('field_docutracks_username')->value);
   if ($username === '') {
     return;
   }
 
-  if (!$entity->get('field_docutracks_json')->isEmpty()) {
+  if (!$account->get('field_docutracks_id')->isEmpty()) {
     return;
   }
 
@@ -42,11 +50,16 @@ function users_tweaks_entity_presave(EntityInterface $entity): void {
     $client = \Drupal::service('side_api.docutracks_client');
     $payload = $client->fetchUserByUsername($username);
     $encoded = Json::encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-    $entity->set('field_docutracks_json', $encoded);
+    $account->set('field_docutracks_json', $encoded);
 
     $email = $client->extractValueByPath($payload, 'User.Email');
     if (is_string($email) && $email !== '') {
-      $entity->set('field_docutracks_email', $email);
+      $account->set('field_docutracks_email', $email);
+    }
+
+    $docutracks_id = $client->extractValueByPath($payload, 'User.Id');
+    if ((is_int($docutracks_id) || is_string($docutracks_id)) && (string) $docutracks_id !== '') {
+      $account->set('field_docutracks_id', (string) $docutracks_id);
     }
   }
   catch (\Throwable $throwable) {

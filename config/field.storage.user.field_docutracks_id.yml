@@ -1,0 +1,20 @@
+uuid: c487cfee-0ef9-4e56-a0e6-f490edb10c82
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_docutracks_id
+field_name: field_docutracks_id
+entity_type: user
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

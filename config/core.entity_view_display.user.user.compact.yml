@@ -7,6 +7,7 @@ dependencies:
     - field.field.user.user.field_absenses_ref
     - field.field.user.user.field_access_change_log
     - field.field.user.user.field_docutracks_email
+    - field.field.user.user.field_docutracks_id
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
@@ -48,6 +49,7 @@ hidden:
   field_absenses_ref: true
   field_access_change_log: true
   field_docutracks_email: true
+  field_docutracks_id: true
   field_docutracks_json: true
   field_docutracks_username: true
   field_last_access_change: true
