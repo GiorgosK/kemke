@@ -164,6 +164,10 @@ function taxonomy_tweaks_form_taxonomy_overview_terms_alter(array &$form, FormSt
     return;
   }
 
+  if (isset($form['help'])) {
+    unset($form['help']);
+  }
+
   if (isset($form['terms']['#header']) && is_array($form['terms']['#header'])) {
     unset($form['terms']['#header']['status'], $form['terms']['#header']['weight']);
     $form['terms']['#header'] = array_filter(
