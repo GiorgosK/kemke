@@ -6,6 +6,7 @@ dependencies:
     - filter.format.full_html
     - node.type.incoming
     - taxonomy.vocabulary.case
+    - taxonomy.vocabulary.tags
     - workflows.workflow.incoming_processing
   module:
     - activities_mods
@@ -24,11 +25,13 @@ permissions:
   - 'access administration pages'
   - 'access content'
   - 'access node activity'
+  - 'access taxonomy overview'
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
   - 'create incoming content'
   - 'create terms in case'
+  - 'create terms in tags'
   - 'edit any incoming content'
   - 'edit terms in case'
   - 'use incoming_processing transition completed'
