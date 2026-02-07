@@ -1,7 +1,7 @@
 incoming_plan_correction.form:
   path: '/node/{node}/correction'
   defaults:
-    _title: 'Plan correction'
+    _title: 'Ορθή επανάληψη'
     _form: '\Drupal\incoming_plan_correction\Form\IncomingPlanCorrectionForm'
   requirements:
     _entity_access: 'node.view'
