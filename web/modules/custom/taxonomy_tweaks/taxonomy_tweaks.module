@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\taxonomy\TermInterface;
+use Drupal\taxonomy\VocabularyInterface;
 use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
 
@@ -196,6 +197,84 @@ function taxonomy_tweaks_form_taxonomy_overview_terms_alter(array &$form, FormSt
       $term_element['#markup'] = Html::escape(Html::decodeEntities((string) $term_element['#markup']));
     }
   }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for menu local actions.
+ */
+function taxonomy_tweaks_preprocess_menu_local_action(array &$variables): void {
+  $link = $variables['element']['#link'] ?? NULL;
+  if (!is_array($link) || empty($link['url']) || !$link['url'] instanceof Url) {
+    return;
+  }
+
+  if ($link['url']->getRouteName() !== 'entity.taxonomy_term.add_form') {
+    return;
+  }
+
+  $route_parameters = $link['url']->getRouteParameters();
+  if (empty($route_parameters['taxonomy_vocabulary'])) {
+    return;
+  }
+
+  $label = taxonomy_tweaks_get_add_term_action_title($route_parameters['taxonomy_vocabulary']);
+  $variables['element']['#link']['title'] = $label;
+  // Ensure the rendered variable used by Twig gets the updated title.
+  $variables['link'] = [
+    '#type' => 'link',
+    '#title' => $label,
+    '#url' => $link['url'],
+    '#options' => (array) ($link['localized_options'] ?? []),
+  ];
+}
+
+/**
+ * Builds the custom add-term label for taxonomy overview pages.
+ */
+function taxonomy_tweaks_get_add_term_action_title(VocabularyInterface|string|null $taxonomy_vocabulary = NULL): string {
+  if (is_string($taxonomy_vocabulary) && $taxonomy_vocabulary !== '') {
+    $taxonomy_vocabulary = \Drupal::entityTypeManager()
+      ->getStorage('taxonomy_vocabulary')
+      ->load($taxonomy_vocabulary);
+  }
+
+  if (!$taxonomy_vocabulary instanceof VocabularyInterface) {
+    return (string) t('Προσθήκη όρου');
+  }
+
+  // Override per vocabulary where grammar should not directly follow the label.
+  // Key: vocabulary machine name (vid), Value: custom Greek text after
+  // "Προσθήκη". Leave NULL to use the vocabulary name as-is.
+  $label_overrides = [
+    'case' => 'υπόθεσης',
+    'incoming_subtype' => NULL,
+    'incoming_type' => NULL,
+    'legal_entity' => NULL,
+    'priority' => NULL,
+    'tags' => 'λέξή κλειδί',
+  ];
+
+  $vid = $taxonomy_vocabulary->id();
+  $override = $label_overrides[$vid] ?? NULL;
+  $label = is_string($override) && trim($override) !== ''
+    ? $override
+    : trim((string) $taxonomy_vocabulary->label());
+  if ($label === '') {
+    return (string) t('Προσθήκη όρου');
+  }
+
+  return 'Προσθήκη ' . taxonomy_tweaks_strtolower($label);
+}
+
+/**
+ * Lowercases UTF-8 text safely.
+ */
+function taxonomy_tweaks_strtolower(string $text): string {
+  if (function_exists('mb_strtolower')) {
+    return mb_strtolower($text, 'UTF-8');
+  }
+
+  return strtolower($text);
 }
 
 /**
