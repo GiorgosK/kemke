@@ -86,6 +86,21 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     'Views UI',
     'Views Bulk Edit',
     'Workflows',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ];
   
   // remove
@@ -293,7 +308,7 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
   }
 
   // Hide permission checkboxes for administrator role(s).
-  $roles_to_hide = ['administrator','kemke_admin_readonly','anonymous','api'];
+  $roles_to_hide = ['administrator','kemke_admin_readonly','anonymous','api','authenticated'];
   $role_labels = [];
   foreach ($roles_to_hide as $role_id) {
     $role = Role::load($role_id);
