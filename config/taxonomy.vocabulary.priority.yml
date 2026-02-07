@@ -2,7 +2,7 @@ uuid: 6699bb6a-65d3-4224-89f7-bc51f096094f
 langcode: en
 status: true
 dependencies: {  }
-name: Priority
+name: Προτεραιότητα
 vid: priority
 description: null
 weight: 0
