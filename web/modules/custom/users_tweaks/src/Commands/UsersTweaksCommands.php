@@ -22,7 +22,7 @@ final class UsersTweaksCommands extends DrushCommands {
    */
   public function listUsers(array $options = ['dt' => FALSE]): void {
     $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('user', 'user');
-    foreach (['field_docutracks_id', 'field_docutracks_username', 'field_first_name', 'field_last_name'] as $field_name) {
+    foreach (['field_docutracks_id', 'field_docutracks_username', 'field_first_name', 'field_last_name', 'field_notifications'] as $field_name) {
       if (!isset($field_definitions[$field_name])) {
         $this->logger()->error(sprintf('Missing field on user entity: %s', $field_name));
         return;
@@ -61,6 +61,7 @@ final class UsersTweaksCommands extends DrushCommands {
         (string) $user->get('field_docutracks_username')->value,
         (string) $user->get('field_first_name')->value,
         (string) $user->get('field_last_name')->value,
+        (string) $user->get('field_notifications')->value,
       ];
     }
 
@@ -68,10 +69,11 @@ final class UsersTweaksCommands extends DrushCommands {
 
     $this->io()->table([
       'username',
-      'field_docutracks_id',
-      'field_docutracks_username',
-      'field_first_name',
-      'field_last_name',
+      'docutracks_id',
+      'docutracks_username',
+      'first_name',
+      'last_name',
+      'notifications',
     ], $rows);
   }
 
