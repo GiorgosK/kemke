@@ -1,0 +1,9 @@
+/* Hide the raw select until Select2 turns it into a widget. */
+select.views-entity-reference-select2-preinit:not(.select2-hidden-accessible) {
+  visibility: hidden;
+}
+
+/* Keep Select2 usable on narrow form layouts. */
+select.views-entity-reference-select2 + .select2-container {
+  min-width: 200px;
+}

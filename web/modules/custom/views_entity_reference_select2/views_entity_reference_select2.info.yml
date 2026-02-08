@@ -1,0 +1,9 @@
+name: Views Entity Reference Select2
+type: module
+description: 'Adds a Select2-based Views entity reference filter powered by entityreference_filter displays.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:views
+  - entityreference_filter:entityreference_filter
+  - select2:select2

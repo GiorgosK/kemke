@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Hooks for Views Entity Reference Select2.
+ */
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function views_entity_reference_select2_views_data_alter(array &$data): void {
+  foreach ($data as $table_name => $table_info) {
+    foreach ($table_info as $field_name => $field_info) {
+      $filter_id = $field_info['filter']['id'] ?? '';
+      if ($filter_id !== 'entityreference_filter_view_result') {
+        continue;
+      }
+
+      $new_key = $field_name . '_select2';
+      if (isset($data[$table_name][$new_key])) {
+        continue;
+      }
+
+      $new_filter = $field_info;
+
+      $title = $field_info['filter']['title'] ?? $field_info['title'] ?? $field_name;
+      $title_short = $field_info['filter']['title short'] ?? $field_info['title'] ?? $field_name;
+
+      $new_filter['filter']['id'] = 'views_entity_reference_select2';
+      $new_filter['filter']['title'] = t('@title (select2)', ['@title' => $title]);
+      $new_filter['filter']['title short'] = t('@title (s2)', ['@title' => $title_short]);
+
+      $data[$table_name][$new_key] = $new_filter;
+    }
+  }
+}

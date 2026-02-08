@@ -1,0 +1,26 @@
+views.filter.views_entity_reference_select2:
+  type: views.filter.many_to_one
+  label: 'Views entity reference Select2 filter'
+  mapping:
+    type:
+      type: string
+      label: 'Selection type'
+    reference_display:
+      type: string
+      label: 'Entity reference view display'
+    reference_arguments:
+      type: string
+      label: 'Entity reference view arguments'
+    hide_empty_filter:
+      type: boolean
+      label: 'Hide empty filter'
+    minimum_input_length:
+      type: integer
+      label: 'Minimum input length'
+    value:
+      type: sequence
+      label: 'Values'
+      nullable: true
+      sequence:
+        type: integer
+        label: 'Value'

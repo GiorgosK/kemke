@@ -111,6 +111,7 @@ module:
   views_bulk_edit: 0
   views_bulk_operations: 0
   views_data_export: 0
+  views_entity_reference_select2: 0
   views_tree: 0
   views_ui: 0
   views_year_filters: 0

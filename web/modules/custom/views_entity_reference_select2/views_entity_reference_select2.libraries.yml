@@ -1,0 +1,4 @@
+widget:
+  css:
+    component:
+      css/views-entity-reference-select2.css: {}
