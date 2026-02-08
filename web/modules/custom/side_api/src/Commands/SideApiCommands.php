@@ -6,7 +6,6 @@ namespace Drupal\side_api\Commands;
 
 use Drupal\side_api\DocutracksClient;
 use Drush\Commands\DrushCommands;
-use GuzzleHttp\Cookie\CookieJar;
 
 /**
  * Drush commands to exercise the Docutracks client quickly.
@@ -166,6 +165,22 @@ final class SideApiCommands extends DrushCommands {
   public function assignIncomingOperators(int $nodeId, int $docutracksId): void {
     $result = $this->client->assignIncomingOperatorsFromDocutracks($nodeId, $docutracksId);
     $this->output()->writeln(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
+  /**
+   * Check whether SIDE connection is available.
+   *
+   * @command side:connect
+   * @aliases connect,sdc
+   */
+  public function connect(): void {
+    try {
+      $this->client->loginToDocutracks();
+      $this->logger()->success('SIDE connection successful.');
+    }
+    catch (\Throwable $e) {
+      throw new \RuntimeException(sprintf('SIDE connection failed: %s', $e->getMessage()), 0, $e);
+    }
   }
 
 }

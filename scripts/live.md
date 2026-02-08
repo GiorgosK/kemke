@@ -1,7 +1,13 @@
 ## Server 
 - check the file upload max limit ?
 - setup cron jobs to run every 15 minutes ?
-  
+
+## connection to side
+- put the correct login details in settings
+- test connection
+  ```
+  drush side:connect
+  ```
 
 ## Cases
 - reset case numbering
