@@ -720,6 +720,51 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
       filter_groups:
         operator: AND
         groups:
@@ -1426,6 +1471,51 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
       filter_groups:
         operator: AND
         groups:
