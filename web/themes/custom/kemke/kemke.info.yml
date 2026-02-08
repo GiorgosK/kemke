@@ -2,7 +2,7 @@ name: kemke
 type: theme
 base theme: false
 single_directory_component: true
-version: 1.0.0
+version: 1.0.1
 libraries:
   - kemke/messages
   - core/normalize
