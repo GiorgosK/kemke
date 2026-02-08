@@ -10,7 +10,7 @@ id: node.incoming.field_tags
 field_name: field_tags
 entity_type: node
 bundle: incoming
-label: Ετικέτες
+label: 'Λέξεις κλειδιά'
 description: ''
 required: false
 translatable: false
