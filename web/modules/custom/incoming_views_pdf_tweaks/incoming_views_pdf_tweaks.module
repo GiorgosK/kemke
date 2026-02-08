@@ -109,13 +109,16 @@ function incoming_views_pdf_tweaks_adjust_incoming_export_links(ViewExecutable $
 
     if ($view->current_display === 'page_5') {
       $existing['state'] = 'incoming_processing-published';
+      $existing['from_completed'] = '1';
     }
     elseif (!empty($existing['state']) && $existing['state'] !== 'All') {
       unset($existing['no_state']);
+      unset($existing['from_completed']);
     }
     else {
       // Always default to no_state=completed on page_1 exports.
       $existing['no_state'] = 'incoming_processing-published';
+      unset($existing['from_completed']);
     }
 
     $query_string = UrlHelper::buildQuery($existing);

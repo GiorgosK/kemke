@@ -11,6 +11,19 @@ function incoming_views_tweaks_views_query_alter(ViewExecutable $view, Sql $quer
     return;
   }
 
+  $request = \Drupal::request();
+  $path = '/' . ltrim((string) $request->getPathInfo(), '/');
+
+  $is_incoming_scope_page = in_array($path, ['/incoming', '/incoming/all'], TRUE);
+  $is_export = ($view->display_handler && $view->display_handler->getPluginId() === 'data_export');
+  $is_completed_export = $request->query->getBoolean('from_completed');
+
+  // Apply operator scoping only on /incoming and /incoming/all pages,
+  // and for exports unless they are explicitly triggered from /incoming/completed.
+  if (!$is_incoming_scope_page && !($is_export && !$is_completed_export)) {
+    return;
+  }
+
   $current_user = \Drupal::currentUser();
   if (!in_array('operator', $current_user->getRoles(), TRUE)) {
     return;
