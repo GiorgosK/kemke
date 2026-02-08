@@ -84,6 +84,98 @@ final class UsersTweaksCommands extends DrushCommands {
   }
 
   /**
+   * Set field_notifications for users by role or for all users.
+   *
+   * @command users_tweaks:notifications
+   * @aliases utn
+   *
+   * @param string $role
+   *   Role machine name, or "all".
+   * @param string $notification
+   *   Notification value to set.
+   */
+  public function setUsersNotifications(string $role, string $notification): void {
+    $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('user', 'user');
+    if (!isset($field_definitions['field_notifications'])) {
+      $this->logger()->error('Missing field on user entity: field_notifications');
+      return;
+    }
+
+    $role = trim($role);
+    $notification = trim($notification);
+
+    $allowed_values = array_keys((array) $field_definitions['field_notifications']
+      ->getFieldStorageDefinition()
+      ->getSetting('allowed_values'));
+    if (!in_array($notification, $allowed_values, TRUE)) {
+      $this->logger()->error(sprintf(
+        'Invalid notification value "%s". Allowed values: %s',
+        $notification,
+        implode(', ', $allowed_values)
+      ));
+      return;
+    }
+
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $user_storage = $entity_type_manager->getStorage('user');
+    $query = $user_storage->getQuery()->accessCheck(FALSE);
+
+    if ($role !== 'all') {
+      $role_entity = $entity_type_manager->getStorage('user_role')->load($role);
+      if ($role_entity === NULL) {
+        $this->logger()->error(sprintf('Role "%s" does not exist.', $role));
+        return;
+      }
+      $query->condition('roles', $role);
+    }
+
+    $uids = $query->execute();
+    if (empty($uids)) {
+      $this->logger()->notice(sprintf('No users found for role "%s".', $role));
+      return;
+    }
+
+    $users = $user_storage->loadMultiple($uids);
+    $updated = 0;
+    $skipped = 0;
+    $failed = 0;
+
+    foreach ($users as $user) {
+      if (!$user instanceof UserInterface) {
+        continue;
+      }
+
+      if ((string) $user->get('field_notifications')->value === $notification) {
+        $skipped++;
+        continue;
+      }
+
+      try {
+        $user->set('field_notifications', $notification);
+        $user->save();
+        $updated++;
+      }
+      catch (\Throwable $throwable) {
+        $failed++;
+        $this->logger()->warning(sprintf(
+          'Failed user uid=%d account=%s: %s',
+          (int) $user->id(),
+          $user->getAccountName(),
+          $throwable->getMessage()
+        ));
+      }
+    }
+
+    $this->logger()->success(sprintf(
+      'Notifications update completed for role "%s". Updated: %d. Skipped: %d. Failed: %d.',
+      $role,
+      $updated,
+      $skipped,
+      $failed
+    ));
+  }
+
+  /**
    * Fetch and save Docutracks details for users with Docutracks username.
    *
    * @command users_tweaks:users-sync-dt
