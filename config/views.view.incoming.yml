@@ -35,6 +35,7 @@ dependencies:
     - user.role.operator
     - user.role.secretariat
     - views.view.operators_2
+    - views.view.tags
     - workflows.workflow.incoming_processing
   module:
     - content_moderation
@@ -48,6 +49,7 @@ dependencies:
     - text
     - user
     - views_data_export
+    - views_entity_reference_select2
     - views_year_filters
     - xls_serialization
 id: incoming
@@ -5646,24 +5648,24 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_tags_target_id:
-          id: field_tags_target_id
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
           table: node__field_tags
-          field: field_tags_target_id
+          field: field_tags_target_id_entityreference_filter_select2
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: and
-          value: {  }
+          plugin_id: views_entity_reference_select2
+          operator: or
+          value: null
           group: 1
           exposed: true
           expose:
-            operator_id: field_tags_target_id_op
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
             label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
-            operator: field_tags_target_id_op
+            operator: field_tags_target_id_entityreference_filter_select2_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: tags
@@ -5686,11 +5688,11 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-          vid: tags
-          type: textfield
-          hierarchy: false
-          limit: true
-          error_message: true
+          type: select
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
@@ -5722,6 +5724,7 @@ display:
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - taxonomy_term_list
         - user_list
   page_3:
     id: page_3
