@@ -64,7 +64,26 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
 
     $exposed = $form_state->get('exposed');
     $is_required = !empty($this->options['expose']['required']);
-    $is_multiple = !empty($this->options['expose']['multiple']);
+    $identifier = (string) ($this->options['expose']['identifier'] ?? '');
+    $force_multiple = $exposed && $this->view->id() === 'incoming' && $identifier === 'tags';
+    $is_multiple = !empty($this->options['expose']['multiple']) || $force_multiple;
+    $user_input = $exposed ? $form_state->getUserInput() : [];
+    $input_value = ($exposed && $identifier !== '') ? ($user_input[$identifier] ?? NULL) : NULL;
+    $input_has_all = $input_value === 'All' || (is_array($input_value) && in_array('All', $input_value, TRUE));
+
+    if ($force_multiple && isset($form['value']) && is_array($form['value'])) {
+      $form['value']['#multiple'] = TRUE;
+      unset($form['value']['#size']);
+      // "All" is single-select sentinel and should not be part of multi mode.
+      if (isset($form['value']['#options']['All'])) {
+        unset($form['value']['#options']['All']);
+      }
+      // Normalize legacy single-select query values (e.g. ?tags=All).
+      if ($input_has_all && $identifier !== '') {
+        $user_input[$identifier] = [];
+        $form_state->setUserInput($user_input);
+      }
+    }
 
     // Entityreference_filter uses "All" as the empty sentinel for single,
     // non-required exposed filters. Ensure it exists in options to pass
@@ -73,6 +92,18 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
       $exposed
       && !$is_required
       && !$is_multiple
+      && isset($form['value']['#options'])
+      && is_array($form['value']['#options'])
+      && !array_key_exists('All', $form['value']['#options'])
+    ) {
+      $form['value']['#options'] = ['All' => (string) $this->t('- Any -')] + $form['value']['#options'];
+    }
+
+    // If request input contains "All", ensure it's an allowed option so form
+    // validation does not fail before the filter plugin handles sentinel logic.
+    if (
+      $exposed
+      && $input_has_all
       && isset($form['value']['#options'])
       && is_array($form['value']['#options'])
       && !array_key_exists('All', $form['value']['#options'])

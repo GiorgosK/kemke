@@ -6188,24 +6188,24 @@ display:
           hierarchy: false
           limit: true
           error_message: true
-        field_tags_target_id:
-          id: field_tags_target_id
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
           table: node__field_tags
-          field: field_tags_target_id
+          field: field_tags_target_id_entityreference_filter_select2
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: and
-          value: {  }
+          plugin_id: views_entity_reference_select2
+          operator: or
+          value: null
           group: 1
           exposed: true
           expose:
-            operator_id: field_tags_target_id_op
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
             label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
-            operator: field_tags_target_id_op
+            operator: field_tags_target_id_entityreference_filter_select2_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: tags
@@ -6228,11 +6228,11 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-          vid: tags
-          type: textfield
-          hierarchy: false
-          limit: true
-          error_message: true
+          type: select
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
@@ -6264,6 +6264,7 @@ display:
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - taxonomy_term_list
         - user_list
   page_4:
     id: page_4
@@ -6697,51 +6698,6 @@ display:
           hierarchy: false
           limit: true
           error_message: true
-        field_tags_target_id:
-          id: field_tags_target_id
-          table: node__field_tags
-          field: field_tags_target_id
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: and
-          value: {  }
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_tags_target_id_op
-            label: 'Λέξεις κλειδιά'
-            description: ''
-            use_operator: false
-            operator: field_tags_target_id_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: tags
-            required: false
-            remember: false
-            multiple: true
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          reduce_duplicates: false
-          vid: tags
-          type: textfield
-          hierarchy: false
-          limit: true
-          error_message: true
         field_entry_date_value:
           id: field_entry_date_value
           table: node__field_entry_date
@@ -6787,6 +6743,51 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           type: date
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
+          table: node__field_tags
+          field: field_tags_target_id_entityreference_filter_select2
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: views_entity_reference_select2
+          operator: or
+          value: null
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
+            label: 'Λέξεις κλειδιά'
+            description: ''
+            use_operator: false
+            operator: field_tags_target_id_entityreference_filter_select2_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: tags
+            required: false
+            remember: false
+            multiple: true
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          type: select
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
@@ -6818,6 +6819,7 @@ display:
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - taxonomy_term_list
         - user_list
   page_5:
     id: page_5
@@ -7295,24 +7297,24 @@ display:
           hierarchy: false
           limit: true
           error_message: true
-        field_tags_target_id:
-          id: field_tags_target_id
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
           table: node__field_tags
-          field: field_tags_target_id
+          field: field_tags_target_id_entityreference_filter_select2
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: and
-          value: {  }
+          plugin_id: views_entity_reference_select2
+          operator: or
+          value: null
           group: 1
           exposed: true
           expose:
-            operator_id: field_tags_target_id_op
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
             label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
-            operator: field_tags_target_id_op
+            operator: field_tags_target_id_entityreference_filter_select2_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: tags
@@ -7335,11 +7337,11 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-          vid: tags
-          type: textfield
-          hierarchy: false
-          limit: true
-          error_message: true
+          type: select
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
@@ -7371,4 +7373,5 @@ display:
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_subject'
         - 'config:workflow_list'
+        - taxonomy_term_list
         - user_list

@@ -106,6 +106,9 @@
 }
 
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--single {
+  position: relative;
+  display: flex;
+  align-items: center;
   padding: .5rem;
 }
 
@@ -114,14 +117,34 @@
 }
 
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__rendered {
-  line-height: 1.5rem;
-  padding-left: 0;
-  padding-right: 1.5rem;
+  position: static;
+  top: auto;
+  transform: none;
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  margin: 0 !important;
+  line-height: 1.5rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 3rem !important;
+  box-sizing: border-box;
 }
 
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__arrow {
   height: calc(var(--kemke-exposed-control-height) - 4px);
   right: .25rem;
+}
+
+.views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__clear {
+  position: absolute;
+  right: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 .25rem;
+  line-height: 1;
 }
 
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple .select2-selection__rendered {
