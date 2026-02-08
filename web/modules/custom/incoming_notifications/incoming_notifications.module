@@ -82,14 +82,20 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
 
   if ($new_state === 'draft') {
     $recipients = _incoming_notifications_get_users_by_role('secretariat');
-    _incoming_notifications_send_notifications('draft', $node, $recipients);
+    $context = [
+      'changes_lines' => activities_mods_incoming_build_change_lines($node),
+    ];
+    _incoming_notifications_send_notifications('draft', $node, $recipients, $context);
   }
 
   if ($new_state === 'to_be_assigned' && $node->hasField('field_supervisor')) {
     $target_id = $node->get('field_supervisor')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_notifications('to_be_assigned', $node, [$user]);
+      $context = [
+        'changes_lines' => activities_mods_incoming_build_change_lines($node),
+      ];
+      _incoming_notifications_send_notifications('to_be_assigned', $node, [$user], $context);
     }
   }
 
@@ -97,7 +103,10 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     $target_id = $node->get('field_basic_operator')->target_id;
     $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
     if ($user instanceof UserInterface) {
-      _incoming_notifications_send_notifications('fullness_check', $node, [$user]);
+      $context = [
+        'changes_lines' => activities_mods_incoming_build_change_lines($node),
+      ];
+      _incoming_notifications_send_notifications('fullness_check', $node, [$user], $context);
     }
   }
 
@@ -115,7 +124,10 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
         $target_id = $node->get('field_basic_operator')->target_id;
         $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
         if ($user instanceof UserInterface) {
-          $context = ['remark_comment' => _incoming_notifications_get_remark_comment($remark)];
+          $context = [
+            'remark_comment' => _incoming_notifications_get_remark_comment($remark),
+            'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark),
+          ];
           _incoming_notifications_send_notifications('pending_issues', $node, [$user], $context);
         }
       }
@@ -126,12 +138,17 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     if (_incoming_notifications_node_has_any_remarks($node)) {
       // Empty remark legal entity means no notifications.
       $recipients = $remark ? _incoming_notifications_get_users_by_legal_entity($remark) : [];
-      $context = $remark ? ['remark_comment' => _incoming_notifications_get_remark_comment($remark)] : [];
+      $context = $remark ? [
+        'remark_comment' => _incoming_notifications_get_remark_comment($remark),
+        'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark),
+      ] : [];
     }
     else {
       // If no remarks exist at all, use the node legal entity selection.
       $recipients = _incoming_notifications_get_users_by_legal_entity($node);
-      $context = [];
+      $context = [
+        'changes_lines' => activities_mods_incoming_build_change_lines($node),
+      ];
     }
 
     _incoming_notifications_send_notifications('pending_issues', $node, $recipients, $context);
@@ -139,7 +156,10 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
 
   if ($new_state === 'published') {
     $recipients = _incoming_notifications_get_users_by_legal_entity($node);
-    _incoming_notifications_send_notifications('published', $node, $recipients);
+    $context = [
+      'changes_lines' => activities_mods_incoming_build_change_lines($node),
+    ];
+    _incoming_notifications_send_notifications('published', $node, $recipients, $context);
   }
 }
 
@@ -162,6 +182,9 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $mailManager = \Drupal::service('plugin.manager.mail');
   $langcode = $entity->language()->getId();
   $title = trim((string) $entity->label());
+  if ($entity instanceof NodeInterface && function_exists('activities_mods_incoming_build_title')) {
+    $title = activities_mods_incoming_build_title($entity);
+  }
   if ($title === '') {
     $title = t('Untitled incoming');
   }
@@ -175,10 +198,13 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $subject_text = incoming_notifications_trim_with_ellipsis($subject_text, 50);
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
-  $state_label = $state !== '' ? incoming_notifications_get_state_label($state, $langcode) : '';
+  $state_label = $state !== '' ? activities_mods_incoming_get_state_label($state, $langcode) : '';
   $link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
   $link_relative = $entity->toUrl('edit-form')->toString();
   $remark_comment = isset($context['remark_comment']) ? trim((string) $context['remark_comment']) : '';
+  $changes_lines = isset($context['changes_lines']) && is_array($context['changes_lines']) ? $context['changes_lines'] : [];
+  $changes_summary_email = activities_mods_incoming_render_change_lines($changes_lines, FALSE);
+  $changes_summary_notify = activities_mods_incoming_render_change_lines($changes_lines, TRUE);
 
   $notify_service_id = 'notify_widget.api';
   $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
@@ -200,6 +226,8 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
       'state_label' => $state_label,
       'incoming_link' => $link_absolute,
       'remark_comment' => $remark_comment,
+      'changes_summary_email' => $changes_summary_email,
+      'changes_summary_notify' => $changes_summary_notify,
     ];
     if ($delivery['email'] && $user->getEmail()) {
       $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
@@ -273,38 +301,6 @@ function _incoming_notifications_get_users_by_role(string $role_id): array {
   }
 
   return $users_list;
-}
-
-/**
- * Returns the localized moderation state label.
- */
-function incoming_notifications_get_state_label(string $state, string $langcode): string {
-  $entity_type_manager = \Drupal::entityTypeManager();
-  if (!$entity_type_manager->hasDefinition('moderation_state')) {
-    $fallback_labels = [
-      'draft' => t('Εισερχόμενο', [], ['langcode' => $langcode]),
-      'to_be_assigned' => t('Προς χρέωση', [], ['langcode' => $langcode]),
-      'fullness_check' => t('Έλεγχος πληρότητας', [], ['langcode' => $langcode]),
-      'pending_issues' => t('Με εκκρεμότητες', [], ['langcode' => $langcode]),
-      'published' => t('Δημοσιευμένο', [], ['langcode' => $langcode]),
-    ];
-    return $fallback_labels[$state] ?? $state;
-  }
-
-  $labels = &drupal_static(__FUNCTION__, []);
-  if (!isset($labels[$langcode])) {
-    $storage = $entity_type_manager->getStorage('moderation_state');
-    $states = $storage->loadMultiple();
-    $labels[$langcode] = [];
-    foreach ($states as $state_entity) {
-      if ($state_entity->hasTranslation($langcode)) {
-        $state_entity = $state_entity->getTranslation($langcode);
-      }
-      $labels[$langcode][$state_entity->id()] = $state_entity->label();
-    }
-  }
-
-  return $labels[$langcode][$state] ?? $state;
 }
 
 /**
@@ -489,20 +485,27 @@ function _incoming_notifications_get_users_by_legal_entity(EntityInterface $enti
  * Builds the email subject for a notification.
  */
 function incoming_notifications_build_subject_email(string $key, array $params): string {
-  return (string) ($params['incoming_subject'] ?? $params['incoming_title'] ?? '');
+  $title = trim((string) ($params['incoming_title'] ?? ''));
+  $subject = trim((string) ($params['incoming_subject'] ?? ''));
+  return $title !== '' ? $title : $subject;
 }
 
 /**
  * Builds the notify_widget subject for a notification.
  */
 function incoming_notifications_build_subject_notify(string $key, array $params): string {
-  return (string) ($params['incoming_subject'] ?? $params['incoming_title'] ?? '');
+  return (string) ($params['incoming_title'] ?? $params['incoming_subject'] ?? '');
 }
 
 /**
  * Builds the email body for a notification.
  */
 function incoming_notifications_build_body_email(string $key, array $params): string {
+  $changes_summary = trim((string) ($params['changes_summary_email'] ?? ''));
+  if ($changes_summary !== '') {
+    return $changes_summary;
+  }
+
   $comment = trim((string) ($params['remark_comment'] ?? ''));
   if ($comment !== '') {
     return $comment;
@@ -515,6 +518,11 @@ function incoming_notifications_build_body_email(string $key, array $params): st
  * Builds the notify_widget body for a notification.
  */
 function incoming_notifications_build_body_notify(string $key, array $params): string {
+  $changes_summary = trim((string) ($params['changes_summary_notify'] ?? ''));
+  if ($changes_summary !== '') {
+    return $changes_summary;
+  }
+
   $comment = trim((string) ($params['remark_comment'] ?? ''));
   if ($comment !== '') {
     return $comment;

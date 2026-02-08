@@ -156,6 +156,20 @@ tr.visible-to-amke {
 .region-header #notify_widget #notify_widget_popup .inner {
   border: none;
 }
+
+.view-activities-mods-node-activity  .views-field-info {
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  font-size: 15px;  
+}
+body.user-notifications table.govgr-table-simple > tbody > tr > td:nth-child(4),
+.region-header #notify_widget #notify_widget_popup .inner a .notification .text_wrapper .text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  font-size: 15px;  
+}
 .region-header #notify_widget>a {
   background-image: url(../images/icons/bell.svg) !important;
   background-size: 24px 24px;
