@@ -14,6 +14,7 @@ dependencies:
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
     - field.field.user.user.field_legal_entity
+    - field.field.user.user.field_notifications
     - field.field.user.user.field_password_expiration
     - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
@@ -31,8 +32,8 @@ third_party_settings:
       children:
         - group_general
         - group_other
-        - group_docutracks
         - group_absenses
+        - group_docutracks
       label: tabs
       region: content
       parent_name: ''
@@ -68,6 +69,7 @@ third_party_settings:
         - field_legal_entity
         - field_serial_number
         - field_temporary_disabled
+        - field_notifications
       label: Γενικά
       region: content
       parent_name: group_tabs
@@ -104,7 +106,7 @@ third_party_settings:
       children:
         - field_absenses_ref
       label: Άδειες
-      region: hidden
+      region: content
       parent_name: group_tabs
       weight: 6
       format_type: tab
@@ -124,7 +126,7 @@ bundle: user
 mode: default
 content:
   account:
-    weight: 0
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -200,13 +202,13 @@ content:
     third_party_settings: {  }
   field_last_password_reset:
     type: datetime_default
-    weight: 2
+    weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 3
+    weight: 2
     region: content
     settings:
       width: 100%
@@ -214,23 +216,29 @@ content:
       match_operator: CONTAINS
       match_limit: 10
     third_party_settings: {  }
+  field_notifications:
+    type: options_select
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   field_password_expiration:
     type: boolean_checkbox
-    weight: 1
+    weight: 2
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   field_serial_number:
     type: number
-    weight: 4
+    weight: 3
     region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
   field_temporary_disabled:
     type: boolean_checkbox
-    weight: 5
+    weight: 4
     region: content
     settings:
       display_label: true

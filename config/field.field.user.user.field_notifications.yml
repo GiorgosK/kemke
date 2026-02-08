@@ -1,0 +1,23 @@
+uuid: d12225ac-0810-4aec-a5e8-0bdc63fe1a32
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_notifications
+  module:
+    - options
+    - user
+id: user.user.field_notifications
+field_name: field_notifications
+entity_type: user
+bundle: user
+label: 'Επιλογή Ειδοποιήσεων'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: all_notifications
+default_value_callback: ''
+settings: {  }
+field_type: list_string

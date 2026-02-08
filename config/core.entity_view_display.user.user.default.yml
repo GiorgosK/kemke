@@ -14,15 +14,15 @@ dependencies:
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
     - field.field.user.user.field_legal_entity
+    - field.field.user.user.field_notifications
     - field.field.user.user.field_password_expiration
     - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
     - field.field.user.user.field_temporary_disabled
     - field.field.user.user.user_picture
-    - image.style.thumbnail
   module:
     - field_group
-    - image
+    - options
     - reference_table_formatter
     - user
 third_party_settings:
@@ -30,10 +30,9 @@ third_party_settings:
     group_tabs:
       children:
         - group_general
-        - group_other
-        - group_docutracks
         - group_absenses
         - group_log
+        - group_docutracks
       label: tabs
       parent_name: ''
       region: content
@@ -52,26 +51,11 @@ third_party_settings:
         - field_last_name
         - field_legal_entity
         - field_serial_number
+        - field_notifications
       label: Γενικα
       parent_name: group_tabs
       region: content
       weight: 7
-      format_type: tab
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        formatter: closed
-        description: ''
-    group_other:
-      children:
-        - user_picture
-        - member_for
-      label: Διαφορα
-      parent_name: group_tabs
-      region: content
-      weight: 8
       format_type: tab
       format_settings:
         classes: ''
@@ -89,7 +73,7 @@ third_party_settings:
       label: docutracks
       parent_name: group_tabs
       region: content
-      weight: 9
+      weight: 12
       format_type: tab
       format_settings:
         classes: ''
@@ -119,7 +103,7 @@ third_party_settings:
       label: Άδειες
       parent_name: group_tabs
       region: content
-      weight: 10
+      weight: 9
       format_type: tab
       format_settings:
         classes: ''
@@ -206,6 +190,13 @@ content:
     settings:
       link: true
     third_party_settings: {  }
+    weight: 4
+    region: content
+  field_notifications:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
     weight: 6
     region: content
   field_serial_number:
@@ -215,12 +206,7 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 7
-    region: content
-  member_for:
-    settings: {  }
-    third_party_settings: {  }
-    weight: 2
+    weight: 5
     region: content
   roles:
     type: user_roles
@@ -229,17 +215,6 @@ content:
     third_party_settings: {  }
     weight: 4
     region: content
-  user_picture:
-    type: image
-    label: hidden
-    settings:
-      image_link: content
-      image_style: thumbnail
-      image_loading:
-        attribute: lazy
-    third_party_settings: {  }
-    weight: 0
-    region: content
 hidden:
   field_last_access_change: true
   field_last_password_reset: true
@@ -247,3 +222,5 @@ hidden:
   field_pending_expire_sent: true
   field_temporary_disabled: true
   langcode: true
+  member_for: true
+  user_picture: true

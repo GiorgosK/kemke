@@ -1,0 +1,33 @@
+uuid: f84f4c3a-dc33-430c-ad3c-4e1c6416537e
+langcode: el
+status: true
+dependencies:
+  module:
+    - options
+    - user
+id: user.field_notifications
+field_name: field_notifications
+entity_type: user
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: all_notifications
+      label: 'Ολες οι ειδοποιήσεις'
+    -
+      value: platform_notifications
+      label: 'Ειδοποιήσεις πλατφόρμας'
+    -
+      value: email_notifications
+      label: 'Ειδοποιήσεις email'
+    -
+      value: 'Αποκλεισμός όλων των ειδοποιήσεων'
+      label: 'Αποκλεισμός όλων των ειδοποιήσεων'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
