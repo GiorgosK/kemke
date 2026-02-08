@@ -17,14 +17,14 @@ final class AbsenseCommands extends DrushCommands {
    * Changes absenses field_type key values from one value to another.
    *
    * Example:
-   *   drush taxonomy_tweaks:absense-change holiday seminar
+   *   drush user_tweaks:absense-change holiday seminar
    *
    * @param string $from
    *   Source key value (for example: holiday).
    * @param string $to
    *   Target key value (for example: seminar).
    *
-   * @command taxonomy_tweaks:absense-change
+   * @command user_tweaks:absense-change
    * @aliases ttac
    * @option dry-run Show the changes without saving.
    */
