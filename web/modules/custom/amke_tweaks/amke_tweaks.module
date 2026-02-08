@@ -325,6 +325,16 @@ function amke_tweaks_incoming_new_validate(array &$form, FormStateInterface $for
  * Hide the "View" local task when editing a node.
  */
 function amke_tweaks_menu_local_tasks_alter(array &$data, $route_name, $cacheable_metadata = NULL): void {
+  if ($route_name === 'node.add') {
+    $route_params = \Drupal::routeMatch()->getParameters();
+    if ($route_params->get('node_type') === 'incoming') {
+      foreach ($data['tabs'] as $group_key => $tab_group) {
+        unset($data['tabs'][$group_key]['amke_tweaks.incoming_amke_add']);
+      }
+    }
+    return;
+  }
+
   if ($route_name !== 'entity.node.edit_form') {
     return;
   }

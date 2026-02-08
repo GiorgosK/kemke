@@ -15,29 +15,3 @@ incoming_tweaks.incoming_all:
   base_route: view.incoming.page_1
   title: 'Όλα τα Έγγραφα'
   weight: 10
-
-incoming_tweaks.incoming_amke:
-  route_name: view.incoming_amke.page_1
-  base_route: view.incoming_amke.page_1
-  title: 'Έγγραφα προς απάντηση'
-  weight: 0
-
-incoming_tweaks.amke_completed:
-  route_name: view.incoming_amke.page_3
-  base_route: view.incoming_amke.page_1
-  title: 'Ολοκληρωμένα'
-  weight: 5
-
-incoming_tweaks.amke_all:
-  route_name: view.incoming_amke.page_2
-  base_route: view.incoming_amke.page_1
-  title: 'Ολα τα Έγγραφα'
-  weight: 10
-
-incoming_tweaks.incoming_amke_add:
-  route_name: node.add
-  route_parameters:
-    node_type: incoming
-  base_route: view.incoming_amke.page_1
-  title: 'Καταχώρηση Εγγράφου'
-  weight: 12
