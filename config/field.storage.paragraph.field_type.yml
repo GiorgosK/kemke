@@ -12,11 +12,11 @@ type: list_string
 settings:
   allowed_values:
     -
-      value: holiday
-      label: Διακοπές
-    -
       value: seminar
       label: Σεμινάριο
+    -
+      value: absent
+      label: 'Μη διαθέσιμος'
   allowed_values_function: ''
 module: options
 locked: false
