@@ -5,6 +5,8 @@
  * Hooks for the Case XLS export module.
  */
 
+use Drupal\views\ViewExecutable;
+
 /**
  * Implements hook_views_data_alter().
  */
@@ -18,3 +20,21 @@ function case_xls_export_views_data_alter(array &$data): void {
   ];
 }
 
+/**
+ * Implements hook_views_pre_render().
+ */
+function case_xls_export_views_pre_render(ViewExecutable $view): void {
+  if ($view->id() !== 'cases') {
+    return;
+  }
+
+  if (!str_starts_with((string) $view->current_display, 'data_export')) {
+    return;
+  }
+
+  if (!isset($view->field['field_ref_id'])) {
+    return;
+  }
+
+  $view->field['field_ref_id']->options['label'] = 'Case ID';
+}
