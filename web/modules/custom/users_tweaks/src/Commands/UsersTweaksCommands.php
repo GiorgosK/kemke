@@ -19,8 +19,9 @@ final class UsersTweaksCommands extends DrushCommands {
    * @command users_tweaks:users
    * @aliases utu
    * @option dt Filter to users that have Docutracks info.
+   * @option role Filter to users that have the given role machine name.
    */
-  public function listUsers(array $options = ['dt' => FALSE]): void {
+  public function listUsers(array $options = ['dt' => FALSE, 'role' => '']): void {
     $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('user', 'user');
     foreach (['field_docutracks_id', 'field_docutracks_username', 'field_first_name', 'field_last_name', 'field_notifications'] as $field_name) {
       if (!isset($field_definitions[$field_name])) {
@@ -34,6 +35,9 @@ final class UsersTweaksCommands extends DrushCommands {
     $query = $storage->getQuery()->accessCheck(FALSE);
     if (!empty($options['dt'])) {
       $query->condition('field_docutracks_id.value', '', '<>');
+    }
+    if (!empty($options['role'])) {
+      $query->condition('roles', (string) $options['role']);
     }
 
     $uids = $query->execute();
@@ -57,6 +61,7 @@ final class UsersTweaksCommands extends DrushCommands {
 
       $rows[] = [
         $user->getAccountName(),
+        implode(',', array_values(array_diff($user->getRoles(), ['authenticated'])) ?: ['authenticated']),
         (string) $user->get('field_docutracks_id')->value,
         (string) $user->get('field_docutracks_username')->value,
         (string) $user->get('field_first_name')->value,
@@ -69,6 +74,7 @@ final class UsersTweaksCommands extends DrushCommands {
 
     $this->io()->table([
       'username',
+      'role',
       'docutracks_id',
       'docutracks_username',
       'first_name',
