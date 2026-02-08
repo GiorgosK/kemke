@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\LocalTaskManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -212,6 +213,25 @@ function amke_tweaks_entity_view_mode_alter(&$view_mode, EntityInterface $entity
 }
 
 /**
+ * Hide plan tab group on incoming view pages for AMKE users.
+ */
+function amke_tweaks_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (\Drupal::routeMatch()->getRouteName() !== 'entity.node.canonical') {
+    return;
+  }
+
+  if (!\Drupal::currentUser()->hasRole('amke_user')) {
+    return;
+  }
+
+  amke_tweaks_hide_incoming_plan_group($build);
+}
+
+/**
  * Sync AMKE status with moderation state on save.
  */
 function amke_tweaks_entity_presave(EntityInterface $entity): void {
@@ -378,6 +398,26 @@ function amke_tweaks_limit_documents_widget(array &$form): void {
 
   if (isset($form['field_documents']['add_more'])) {
     $form['field_documents']['add_more']['#access'] = FALSE;
+  }
+}
+
+/**
+ * Hide plan tab group and fields from incoming render arrays.
+ */
+function amke_tweaks_hide_incoming_plan_group(array &$build): void {
+  if (isset($build['group_plan'])) {
+    $build['group_plan']['#access'] = FALSE;
+  }
+
+  $keys = [
+    'field_plan',
+    'field_plan_signed',
+    'field_plan_dt_api_response',
+  ];
+  foreach ($keys as $key) {
+    if (isset($build[$key])) {
+      $build[$key]['#access'] = FALSE;
+    }
   }
 }
 
