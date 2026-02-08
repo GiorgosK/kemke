@@ -21,8 +21,8 @@ function operators_reference_view_views_pre_render(ViewExecutable $view): void {
   $now = new DrupalDateTime('now', $timezone);
   $now->setTime(0, 0, 0);
   $end = (clone $now)->modify('+3 months');
-  $start_value = $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
-  $end_value = $end->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
+  $window_start_ts = $now->getTimestamp();
+  $window_end_ts = $end->getTimestamp();
 
   $storage = \Drupal::entityTypeManager()->getStorage('paragraph');
 
@@ -44,12 +44,31 @@ function operators_reference_view_views_pre_render(ViewExecutable $view): void {
         continue;
       }
 
-      $start = $paragraph->get('field_dates')->value;
-      if (!$start) {
+      $start_value = $paragraph->get('field_dates')->value;
+      if (!$start_value) {
         continue;
       }
 
-      if ($start >= $start_value && $start < $end_value) {
+      $end_value = $paragraph->get('field_dates')->end_value ?: $start_value;
+      $start_date = DrupalDateTime::createFromFormat(
+        DateTimeItemInterface::DATE_STORAGE_FORMAT,
+        $start_value,
+        new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE)
+      );
+      $end_date = DrupalDateTime::createFromFormat(
+        DateTimeItemInterface::DATE_STORAGE_FORMAT,
+        $end_value,
+        new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE)
+      );
+      if (!$start_date || !$end_date) {
+        continue;
+      }
+
+      $absence_start_ts = $start_date->getTimestamp();
+      $absence_end_ts = $end_date->getTimestamp();
+
+      // Keep absences that overlap with [now, now + 3 months).
+      if ($absence_start_ts < $window_end_ts && $absence_end_ts >= $window_start_ts) {
         $filtered[] = [
           'target_id' => $target_id,
           'target_revision_id' => $revision_id,
