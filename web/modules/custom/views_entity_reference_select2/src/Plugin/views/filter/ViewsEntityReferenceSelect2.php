@@ -92,12 +92,14 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
 
         if (!empty($form['value']['#multiple'])) {
           $form['value']['#select2']['closeOnSelect'] = FALSE;
+          // Prevent native multi-select from rendering as a tall box before
+          // Select2 initializes.
+          $form['value']['#size'] = 1;
         }
         else {
           $form['value']['#select2']['placeholder'] = (string) $this->t('- Any -');
+          unset($form['value']['#size']);
         }
-
-        unset($form['value']['#size']);
 
         $form['#attached']['library'][] = 'views_entity_reference_select2/widget';
       }
