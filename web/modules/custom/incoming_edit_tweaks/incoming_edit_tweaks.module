@@ -249,7 +249,7 @@ function incoming_edit_tweaks_redirect_back_to_edit_submit(array &$form, FormSta
   }
 
   if ($account->hasRole('operator')) {
-    $form_state->setRedirectUrl(Url::fromUserInput('/incoming/my'));
+    $form_state->setRedirectUrl(Url::fromUserInput('/incoming'));
     return;
   }
 
