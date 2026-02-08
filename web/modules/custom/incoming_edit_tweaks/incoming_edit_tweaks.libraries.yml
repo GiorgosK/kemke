@@ -1,0 +1,6 @@
+tab_restore:
+  js:
+    js/tab-restore.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

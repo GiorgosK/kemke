@@ -3,6 +3,7 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Drupal\views\ViewExecutable;
 
@@ -120,18 +121,75 @@ function incoming_edit_tweaks_entity_access(EntityInterface $entity, $operation,
  * Implements hook_form_FORM_ID_alter() for incoming edit form.
  */
 function incoming_edit_tweaks_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
-  $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
-  $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
-  incoming_edit_tweaks_add_status_display($form, $form_state);
+  incoming_edit_tweaks_prepare_incoming_form($form, $form_state);
 }
 
 /**
  * Implements hook_form_FORM_ID_alter() for incoming add form.
  */
 function incoming_edit_tweaks_form_node_incoming_form_alter(array &$form, FormStateInterface $form_state): void {
-  $form['actions']['submit']['#submit'][] = 'incoming_edit_tweaks_redirect_back_to_edit_submit';
+  incoming_edit_tweaks_prepare_incoming_form($form, $form_state);
+}
+
+/**
+ * Prepare incoming add/edit forms with shared tweaks.
+ */
+function incoming_edit_tweaks_prepare_incoming_form(array &$form, FormStateInterface $form_state): void {
+  incoming_edit_tweaks_attach_submit_redirect_handler($form, 'incoming_edit_tweaks_redirect_back_to_edit_submit');
+  $form['incoming_edit_tweaks_active_tab'] = [
+    '#type' => 'hidden',
+    '#default_value' => '',
+  ];
+  $form['#attached']['library'][] = 'incoming_edit_tweaks/tab_restore';
   $form['#after_build'][] = 'incoming_edit_tweaks_hide_plan_signed_remove_button_after_build';
   incoming_edit_tweaks_add_status_display($form, $form_state);
+}
+
+/**
+ * Ensure the redirect submit handler is wired for all submit buttons.
+ */
+function incoming_edit_tweaks_attach_submit_redirect_handler(array &$form, string $handler): void {
+  if (!isset($form['#submit']) || !is_array($form['#submit'])) {
+    $form['#submit'] = isset($form['#submit']) ? [$form['#submit']] : [];
+  }
+  incoming_edit_tweaks_append_submit_handler($form['#submit'], $handler);
+  if (isset($form['actions']) && is_array($form['actions'])) {
+    incoming_edit_tweaks_attach_submit_handler_recursive($form['actions'], $handler);
+  }
+}
+
+/**
+ * Recursively appends a submit handler to submit elements.
+ */
+function incoming_edit_tweaks_attach_submit_handler_recursive(array &$element, string $handler): void {
+  if (($element['#type'] ?? NULL) === 'submit') {
+    if (!isset($element['#submit']) || !is_array($element['#submit'])) {
+      $element['#submit'] = isset($element['#submit']) ? [$element['#submit']] : [];
+    }
+    incoming_edit_tweaks_append_submit_handler($element['#submit'], $handler);
+  }
+
+  foreach (Element::children($element) as $child_key) {
+    if (isset($element[$child_key]) && is_array($element[$child_key])) {
+      incoming_edit_tweaks_attach_submit_handler_recursive($element[$child_key], $handler);
+    }
+  }
+}
+
+/**
+ * Appends a submit handler once.
+ */
+function incoming_edit_tweaks_append_submit_handler(&$handlers, string $handler): void {
+  if (!isset($handlers)) {
+    $handlers = [];
+  }
+  elseif (!is_array($handlers)) {
+    $handlers = [$handlers];
+  }
+
+  if (!in_array($handler, $handlers, TRUE)) {
+    $handlers[] = $handler;
+  }
 }
 
 /**
@@ -238,8 +296,10 @@ function incoming_edit_tweaks_redirect_back_to_edit_submit(array &$form, FormSta
 
   $account = \Drupal::currentUser();
   $edit_url = $entity->toUrl('edit-form');
+  $active_tab = incoming_edit_tweaks_normalize_tab_alias((string) $form_state->getValue('incoming_edit_tweaks_active_tab', ''));
+  $redirect_options = $active_tab !== '' ? ['query' => ['tab' => $active_tab]] : [];
   if ($edit_url->access($account)) {
-    $form_state->setRedirect('entity.node.edit_form', ['node' => $node_id]);
+    $form_state->setRedirect('entity.node.edit_form', ['node' => $node_id], $redirect_options);
     return;
   }
 
@@ -260,4 +320,20 @@ function incoming_edit_tweaks_redirect_back_to_edit_submit(array &$form, FormSta
       return;
     }
   }
+}
+
+/**
+ * Normalize and sanitize the tab alias before adding it to redirect options.
+ */
+function incoming_edit_tweaks_normalize_tab_alias(string $tab_id): string {
+  $tab_id = strtolower(ltrim(trim($tab_id), '#'));
+  if (str_starts_with($tab_id, 'edit-group-')) {
+    $tab_id = substr($tab_id, strlen('edit-group-'));
+  }
+
+  if ($tab_id === '') {
+    return '';
+  }
+
+  return preg_match('/^[A-Za-z0-9_-]+$/', $tab_id) ? $tab_id : '';
 }
