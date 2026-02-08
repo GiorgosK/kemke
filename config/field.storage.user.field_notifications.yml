@@ -21,7 +21,7 @@ settings:
       value: email_notifications
       label: 'Ειδοποιήσεις email'
     -
-      value: 'Αποκλεισμός όλων των ειδοποιήσεων'
+      value: 'no_notifications'
       label: 'Αποκλεισμός όλων των ειδοποιήσεων'
   allowed_values_function: ''
 module: options
