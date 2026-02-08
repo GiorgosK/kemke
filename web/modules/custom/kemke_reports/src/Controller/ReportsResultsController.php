@@ -12,6 +12,7 @@ use Drupal\Core\Url;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -206,6 +207,10 @@ class ReportsResultsController extends ControllerBase {
       ->getAlignment()
       ->setWrapText(TRUE)
       ->setVertical(Alignment::VERTICAL_TOP);
+    $sheet->getStyle(sprintf('A1:%s%d', $last_column_letter, $last_row))
+      ->getBorders()
+      ->getAllBorders()
+      ->setBorderStyle(Border::BORDER_THIN);
 
     // Size columns from header length only, capped to avoid very wide columns.
     $min_width = 25.0;
