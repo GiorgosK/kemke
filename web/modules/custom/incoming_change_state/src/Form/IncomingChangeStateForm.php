@@ -169,7 +169,25 @@ final class IncomingChangeStateForm extends FormBase {
     $node->setRevisionUserId($this->currentUser()->id());
     $node->setRevisionCreationTime($this->time->getRequestTime());
     $node->setRevisionLogMessage($reason !== '' ? $reason : $this->t('State changed via Change state form.'));
-    $node->save();
+
+
+    // let this save not cause any automations related 
+    // to presave or update hooks
+    $request = \Drupal::request();
+    $had_flag = $request->attributes->has('incoming_change_state_skip_file_hooks');
+    $previous_flag = $had_flag ? (bool) $request->attributes->get('incoming_change_state_skip_file_hooks') : NULL;
+    $request->attributes->set('incoming_change_state_skip_file_hooks', TRUE);
+    try {
+      $node->save();
+    }
+    finally {
+      if ($had_flag) {
+        $request->attributes->set('incoming_change_state_skip_file_hooks', $previous_flag);
+      }
+      else {
+        $request->attributes->remove('incoming_change_state_skip_file_hooks');
+      }
+    }
 
     $stateLabels = $form['new_state']['#options'] ?? [];
     $this->messenger()->addStatus($this->t('State changed to @state.', ['@state' => $stateLabels[$newState] ?? $newState]));

@@ -884,8 +884,19 @@ function incoming_tweaks_node_update(NodeInterface $node): void {
   static $processing = [];
   static $processing_signed = [];
 
+  if (incoming_tweaks_skip_docutracks_file_hooks()) {
+    return;
+  }
+
   incoming_tweaks_send_plan($node, $reverting, $processing);
   incoming_tweaks_get_plan_signed($node, $processing_signed);
+}
+
+/**
+ * Returns TRUE when Docutracks file send/receive hooks should be skipped.
+ */
+function incoming_tweaks_skip_docutracks_file_hooks(): bool {
+  return (bool) \Drupal::request()->attributes->get('incoming_change_state_skip_file_hooks', FALSE);
 }
 
 /**
