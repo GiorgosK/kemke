@@ -38,6 +38,7 @@ permissions:
   - 'create terms in tags'
   - 'edit any incoming content'
   - 'edit field_serial_number'
+  - 'edit own field_notifications'
   - 'edit terms in case'
   - 'edit terms in legal_entity'
   - 'edit terms in tags'

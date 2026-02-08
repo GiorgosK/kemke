@@ -11,8 +11,8 @@ label: Διαχειριστής
 weight: 3
 is_admin: true
 permissions:
-  - 'create field_serial_number'
-  - 'edit field_serial_number'
-  - 'edit own field_serial_number'
-  - 'view field_serial_number'
-  - 'view own field_serial_number'
+  - 'create field_notifications'
+  - 'edit field_notifications'
+  - 'edit own field_notifications'
+  - 'view field_notifications'
+  - 'view own field_notifications'

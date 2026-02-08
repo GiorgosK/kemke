@@ -21,5 +21,7 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'use text format basic_html'
+  - 'view field_notifications'
   - 'view field_serial_number'
   - 'view field_temporary_disabled'
+  - 'view own field_notifications'

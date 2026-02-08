@@ -11,6 +11,7 @@ dependencies:
   module:
     - activities_mods
     - content_moderation
+    - field_permissions
     - filter
     - node
     - node_view_permissions
@@ -33,6 +34,7 @@ permissions:
   - 'create terms in case'
   - 'create terms in tags'
   - 'edit any incoming content'
+  - 'edit own field_notifications'
   - 'edit terms in case'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'
