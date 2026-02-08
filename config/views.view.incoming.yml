@@ -1132,7 +1132,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -3310,7 +3310,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -4457,7 +4457,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -5660,7 +5660,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -6199,7 +6199,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -6708,7 +6708,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
@@ -7306,7 +7306,7 @@ display:
           exposed: true
           expose:
             operator_id: field_tags_target_id_op
-            label: Λέξεις κλειδιά
+            label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
             operator: field_tags_target_id_op
