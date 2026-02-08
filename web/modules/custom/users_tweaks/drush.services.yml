@@ -3,3 +3,7 @@ services:
     class: Drupal\users_tweaks\Commands\UsersTweaksCommands
     tags:
       - { name: drush.command }
+  users_tweaks.absense_commands:
+    class: Drupal\users_tweaks\Commands\AbsenseCommands
+    tags:
+      - { name: drush.command }
