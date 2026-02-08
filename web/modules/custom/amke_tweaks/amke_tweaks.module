@@ -59,6 +59,11 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       }
     }
 
+    // AMKE users can view but not modify subject on existing incoming items.
+    if (!$entity->isNew() && isset($form['field_subject'])) {
+      amke_tweaks_render_subject_read_only($form, $entity);
+    }
+
     amke_tweaks_limit_documents_widget($form);
 
     if (amke_tweaks_should_hide_fullness_check($entity)) {
@@ -216,6 +221,16 @@ function amke_tweaks_entity_presave(EntityInterface $entity): void {
 
   // For AMKE users, autofill legal entity from their profile when missing.
   $account = \Drupal::currentUser();
+  if (
+    $account->hasRole('amke_user') &&
+    !$entity->isNew() &&
+    $entity->hasField('field_subject') &&
+    $entity->original instanceof NodeInterface &&
+    $entity->original->hasField('field_subject')
+  ) {
+    $entity->set('field_subject', $entity->original->get('field_subject')->getValue());
+  }
+
   if ($account->hasRole('amke_user') && $entity->hasField('field_legal_entity') && $entity->get('field_legal_entity')->isEmpty()) {
     $user = User::load($account->id());
     if ($user && $user->hasField('field_legal_entity') && !$user->get('field_legal_entity')->isEmpty()) {
@@ -364,4 +379,46 @@ function amke_tweaks_limit_documents_widget(array &$form): void {
   if (isset($form['field_documents']['add_more'])) {
     $form['field_documents']['add_more']['#access'] = FALSE;
   }
+}
+
+/**
+ * Replace subject widget with read-only rendered content.
+ */
+function amke_tweaks_render_subject_read_only(array &$form, NodeInterface $entity): void {
+  if (
+    !isset($form['field_subject']) ||
+    !$entity->hasField('field_subject') ||
+    $entity->get('field_subject')->isEmpty()
+  ) {
+    return;
+  }
+
+  $subject = $entity->get('field_subject')->first();
+  if (!$subject) {
+    return;
+  }
+
+  $weight = $form['field_subject']['#weight'] ?? 0;
+  $group = $form['field_subject']['#group'] ?? NULL;
+  $title = $form['field_subject']['widget'][0]['value']['#title'] ?? t('Θέμα');
+
+  $form['field_subject'] = [
+    '#type' => 'container',
+    '#weight' => $weight,
+  ];
+
+  if ($group !== NULL) {
+    $form['field_subject']['#group'] = $group;
+  }
+
+  $form['field_subject']['label'] = [
+    '#type' => 'item',
+    '#title' => $title,
+  ];
+
+  $form['field_subject']['value'] = [
+    '#type' => 'processed_text',
+    '#text' => (string) $subject->value,
+    '#format' => (string) ($subject->format ?? 'full_html'),
+  ];
 }
