@@ -184,9 +184,15 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
 
   foreach ($recipients as $user) {
-    if (!$user instanceof UserInterface || !$user->getEmail()) {
+    if (!$user instanceof UserInterface) {
       continue;
     }
+
+    $delivery = _incoming_notifications_get_user_notification_delivery($user);
+    if (!$delivery['email'] && !$delivery['platform']) {
+      continue;
+    }
+
     $params = [
       'incoming_title' => $title,
       'incoming_subject' => $subject_text,
@@ -195,9 +201,11 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
       'incoming_link' => $link_absolute,
       'remark_comment' => $remark_comment,
     ];
-    $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
+    if ($delivery['email'] && $user->getEmail()) {
+      $mailManager->mail('incoming_notifications', $key, $user->getEmail(), $langcode, $params, NULL, TRUE);
+    }
 
-    if ($notify_api) {
+    if ($delivery['platform'] && $notify_api) {
       $subject = incoming_notifications_build_subject_notify($key, $params);
       $body = incoming_notifications_build_body_notify($key, $params);
       $notify_api->send(
@@ -209,6 +217,35 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
         $link_relative
       );
     }
+  }
+}
+
+/**
+ * Resolves which notification channels are enabled for a user.
+ *
+ * @return array{email: bool, platform: bool}
+ *   Enabled channels keyed by delivery type.
+ */
+function _incoming_notifications_get_user_notification_delivery(UserInterface $user): array {
+  // Keep backward-compatible defaults for accounts without the field/value.
+  $value = 'all_notifications';
+  if ($user->hasField('field_notifications') && !$user->get('field_notifications')->isEmpty()) {
+    $value = (string) $user->get('field_notifications')->value;
+  }
+
+  switch ($value) {
+    case 'no_notifications':
+      return ['email' => FALSE, 'platform' => FALSE];
+
+    case 'email_notifications':
+      return ['email' => TRUE, 'platform' => FALSE];
+
+    case 'platform_notifications':
+      return ['email' => FALSE, 'platform' => TRUE];
+
+    case 'all_notifications':
+    default:
+      return ['email' => TRUE, 'platform' => TRUE];
   }
 }
 
