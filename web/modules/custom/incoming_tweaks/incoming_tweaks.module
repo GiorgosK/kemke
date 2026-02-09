@@ -278,8 +278,13 @@ function incoming_tweaks_find_protocol_conflict(string $protocol_value, int $cur
     return NULL;
   }
 
-  $year_start = sprintf('%d-01-01', $year);
-  $year_end = sprintf('%d-12-31', $year);
+  $is_entry_datetime = incoming_tweaks_entry_date_is_datetime();
+  $year_start = $is_entry_datetime
+    ? sprintf('%d-01-01T00:00:00', $year)
+    : sprintf('%d-01-01', $year);
+  $year_end = $is_entry_datetime
+    ? sprintf('%d-12-31T23:59:59', $year)
+    : sprintf('%d-12-31', $year);
 
   $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
     ->accessCheck(FALSE)
@@ -398,12 +403,18 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
  */
 function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime {
   $baseline = NULL;
+  $is_entry_datetime = incoming_tweaks_entry_date_is_datetime();
+  $entry_storage_format = $is_entry_datetime
+    ? DateTimeItemInterface::DATETIME_STORAGE_FORMAT
+    : DateTimeItemInterface::DATE_STORAGE_FORMAT;
 
   if ($node->get('field_entry_date')->isEmpty()) {
     $entry_date = new DrupalDateTime('now');
-    $entry_date->setTime(0, 0, 0);
+    if (!$is_entry_datetime) {
+      $entry_date->setTime(0, 0, 0);
+    }
     $node->set('field_entry_date', [
-      'value' => $entry_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
+      'value' => $entry_date->format($entry_storage_format),
     ]);
     $baseline = clone $entry_date;
   }
@@ -413,10 +424,16 @@ function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime 
       $value = $entry_item->getValue()['value'] ?? NULL;
       if ($value) {
         try {
-          $baseline = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+          $baseline = DrupalDateTime::createFromFormat($entry_storage_format, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
         }
         catch (\Exception $exception) {
-          // Fall through to the default baseline when parsing fails.
+          // Backward compatibility with previous date-only storage.
+          try {
+            $baseline = DrupalDateTime::createFromFormat(DateTimeItemInterface::DATE_STORAGE_FORMAT, $value, new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+          }
+          catch (\Exception $exception) {
+            // Fall through to the default baseline when parsing fails.
+          }
         }
       }
     }
@@ -426,6 +443,18 @@ function incoming_tweaks_ensure_entry_date(NodeInterface $node): DrupalDateTime 
   $baseline->setTime(0, 0, 0);
 
   return $baseline;
+}
+
+/**
+ * Checks whether field_entry_date stores a full datetime value.
+ */
+function incoming_tweaks_entry_date_is_datetime(): bool {
+  $definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'incoming');
+  if (empty($definitions['field_entry_date'])) {
+    return FALSE;
+  }
+  $storage_definition = $definitions['field_entry_date']->getFieldStorageDefinition();
+  return (string) ($storage_definition->getSetting('datetime_type') ?? 'date') === 'datetime';
 }
 
 /**

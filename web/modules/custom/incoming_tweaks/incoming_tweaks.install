@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Convert incoming field_entry_date to datetime storage.
+ */
+function incoming_tweaks_update_9001(): void {
+  $storage = FieldStorageConfig::loadByName('node', 'field_entry_date');
+  if (!$storage || $storage->getType() !== 'datetime') {
+    return;
+  }
+
+  if (($storage->getSetting('datetime_type') ?? 'date') !== 'datetime') {
+    $storage->setSetting('datetime_type', 'datetime');
+    $storage->save();
+  }
+
+  $database = \Drupal::database();
+  $schema = $database->schema();
+  foreach (['node__field_entry_date', 'node_revision__field_entry_date'] as $table) {
+    if (!$schema->tableExists($table)) {
+      continue;
+    }
+    $database->query(
+      "UPDATE {{$table}}
+       SET field_entry_date_value = CONCAT(field_entry_date_value, 'T00:00:00')
+       WHERE field_entry_date_value IS NOT NULL
+         AND field_entry_date_value <> ''
+         AND LENGTH(field_entry_date_value) = 10"
+    );
+  }
+}
+
