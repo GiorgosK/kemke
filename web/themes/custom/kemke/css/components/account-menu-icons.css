@@ -14,41 +14,31 @@
   display: inline-block;
   width: 1.7rem;
   height: 1.7rem;
-  background-color: currentColor;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .kemke-account-menu .kemke-menu-icon--report {
-  mask-image: url(../../images/icons/report.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/report.svg?v=1.0.1);
+  background-image: url(../../images/icons/report.svg?v=1.0.3);
 }
 
 .kemke-account-menu .kemke-menu-icon--case {
-  mask-image: url(../../images/icons/case.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/case.svg?v=1.0.1);
+  background-image: url(../../images/icons/case.svg?v=1.0.3);
 }
 
 .kemke-account-menu .kemke-menu-icon--incoming {
-  mask-image: url(../../images/icons/incoming.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/incoming.svg?v=1.0.1);
+  background-image: url(../../images/icons/incoming.svg?v=1.0.3);
 }
 
 .kemke-account-menu .kemke-menu-icon--login {
-  mask-image: url(../../images/icons/login.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/login.svg?v=1.0.1);
+  background-image: url(../../images/icons/login.svg?v=1.0.3);
 }
 
 .kemke-account-menu .kemke-menu-icon--logout {
-  mask-image: url(../../images/icons/logout.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/logout.svg?v=1.0.1);
+  background-image: url(../../images/icons/logout.svg?v=1.0.3);
 }
 
 .kemke-account-menu .kemke-menu-icon--manual {
-  mask-image: url(../../images/icons/manual.svg?v=1.0.1);
-  -webkit-mask-image: url(../../images/icons/manual.svg?v=1.0.1);
+  background-image: url(../../images/icons/manual.svg?v=1.0.3);
 }
