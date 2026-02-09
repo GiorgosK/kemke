@@ -82,7 +82,6 @@ permissions:
   - 'use incoming_processing transition stay_published'
   - 'use incoming_processing transition stay_under_processing'
   - 'use text format full_html'
-  - 'view all revisions'
   - 'view any incoming content'
   - 'view any unpublished content'
   - 'view incoming revisions'
