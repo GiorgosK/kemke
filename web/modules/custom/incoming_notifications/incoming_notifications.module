@@ -126,7 +126,8 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
         if ($user instanceof UserInterface) {
           $context = [
             'remark_comment' => _incoming_notifications_get_remark_comment($remark),
-            'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark),
+            'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark, 'full'),
+            'change_remark' => $remark,
           ];
           _incoming_notifications_send_notifications('pending_issues', $node, [$user], $context);
         }
@@ -140,7 +141,8 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
       $recipients = $remark ? _incoming_notifications_get_users_by_legal_entity($remark) : [];
       $context = $remark ? [
         'remark_comment' => _incoming_notifications_get_remark_comment($remark),
-        'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark),
+        'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark, 'full'),
+        'change_remark' => $remark,
       ] : [];
     }
     else {
@@ -202,9 +204,10 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
   $link_relative = $entity->toUrl('edit-form')->toString();
   $remark_comment = isset($context['remark_comment']) ? trim((string) $context['remark_comment']) : '';
-  $changes_lines = isset($context['changes_lines']) && is_array($context['changes_lines']) ? $context['changes_lines'] : [];
-  $changes_summary_email = activities_mods_incoming_render_change_lines($changes_lines, FALSE);
-  $changes_summary_notify = activities_mods_incoming_render_change_lines($changes_lines, TRUE);
+  $base_changes_lines = isset($context['changes_lines']) && is_array($context['changes_lines']) ? $context['changes_lines'] : [];
+  $change_remark = isset($context['change_remark']) && $context['change_remark'] instanceof ParagraphInterface
+    ? $context['change_remark']
+    : NULL;
 
   $notify_service_id = 'notify_widget.api';
   $notify_api = \Drupal::hasService($notify_service_id) ? \Drupal::service($notify_service_id) : NULL;
@@ -218,6 +221,26 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     if (!$delivery['email'] && !$delivery['platform']) {
       continue;
     }
+
+    $recipient_lines = $base_changes_lines;
+    if ($entity instanceof NodeInterface) {
+      try {
+        if ($user->hasRole('amke_user')) {
+          $recipient_lines = activities_mods_incoming_build_change_lines($entity, NULL, $change_remark, 'minimal');
+        }
+        elseif (empty($recipient_lines)) {
+          $recipient_lines = activities_mods_incoming_build_change_lines($entity, NULL, $change_remark, 'full');
+        }
+      }
+      catch (\Throwable $e) {
+        \Drupal::logger('incoming_notifications')->warning('Failed to build changes summary for notification on incoming @nid: @message', [
+          '@nid' => (string) $entity->id(),
+          '@message' => $e->getMessage(),
+        ]);
+      }
+    }
+    $changes_summary_email = activities_mods_incoming_render_change_lines($recipient_lines, FALSE);
+    $changes_summary_notify = activities_mods_incoming_render_change_lines($recipient_lines, TRUE);
 
     $params = [
       'incoming_title' => $title,

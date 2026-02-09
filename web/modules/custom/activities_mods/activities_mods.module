@@ -77,7 +77,9 @@ function activities_mods_activities_logger_log(UserActivitiesInterface $activiti
 
   $changes_lines = activities_mods_incoming_build_change_lines(
     $latest,
-    $previous instanceof NodeInterface ? $previous : NULL
+    $previous instanceof NodeInterface ? $previous : NULL,
+    NULL,
+    'full'
   );
   $changes_text = activities_mods_incoming_render_change_lines($changes_lines, FALSE);
 
@@ -144,7 +146,12 @@ function activities_mods_incoming_build_title(NodeInterface $node): string {
  * @return string[]
  *   Change lines.
  */
-function activities_mods_incoming_build_change_lines(NodeInterface $node, ?NodeInterface $original = NULL, ?ParagraphInterface $remark = NULL): array {
+function activities_mods_incoming_build_change_lines(
+  NodeInterface $node,
+  ?NodeInterface $original = NULL,
+  ?ParagraphInterface $remark = NULL,
+  string $fields_profile = 'full'
+): array {
   $lines = [];
 
   if ($remark instanceof ParagraphInterface) {
@@ -158,7 +165,7 @@ function activities_mods_incoming_build_change_lines(NodeInterface $node, ?NodeI
   }
 
   $langcode = $node->language()->getId();
-  foreach (activities_mods_incoming_get_changed_field_lines($node, $langcode, $original) as $line) {
+  foreach (activities_mods_incoming_get_changed_field_lines($node, $langcode, $original, $fields_profile, $remark) as $line) {
     $lines[] = $line;
   }
 
@@ -212,7 +219,13 @@ function activities_mods_incoming_get_new_remark_file_names(ParagraphInterface $
  * @return string[]
  *   Changed field lines.
  */
-function activities_mods_incoming_get_changed_field_lines(NodeInterface $node, string $langcode, ?NodeInterface $original = NULL): array {
+function activities_mods_incoming_get_changed_field_lines(
+  NodeInterface $node,
+  string $langcode,
+  ?NodeInterface $original = NULL,
+  string $fields_profile = 'full',
+  ?ParagraphInterface $remark = NULL
+): array {
   $original_node = $original;
   if (!$original_node && isset($node->original) && ($node->original instanceof NodeInterface)) {
     $original_node = $node->original;
@@ -240,10 +253,24 @@ function activities_mods_incoming_get_changed_field_lines(NodeInterface $node, s
     'field_supervisor',
     'field_case',
     'field_tags',
+    'field_answer',
+    'field_answer_files',
+    'field_plan',
+    'field_plan_signed',
+    'field_completion_date',
+    'field_remarks',
   ];
+  $minimal_fields = [
+    'field_amke_status',
+    'field_documents',
+    'field_attachments',
+    'field_plan_signed',
+    'field_remarks',
+  ];
+  $selected_fields = $fields_profile === 'minimal' ? $minimal_fields : $ordered_fields;
 
   $lines = [];
-  foreach ($ordered_fields as $field_name) {
+  foreach ($selected_fields as $field_name) {
     if (!$node->hasField($field_name) || !$original_node->hasField($field_name)) {
       continue;
     }
@@ -262,9 +289,23 @@ function activities_mods_incoming_get_changed_field_lines(NodeInterface $node, s
       }
     }
 
-    $value = activities_mods_incoming_get_field_value_for_notification($node->get($field_name), $field_name, $langcode);
+    if ($field_name === 'field_remarks' && $remark instanceof ParagraphInterface) {
+      // Already included as "- παρατήρηση: ..." when remark context exists.
+      continue;
+    }
+
+    $value = activities_mods_incoming_get_field_value_for_notification(
+      $node->get($field_name),
+      $field_name,
+      $langcode,
+      $node,
+      $original_node
+    );
     if ($field_name === 'field_related_incoming' && trim($value) === '-') {
       // Treat an empty related list as no effective change.
+      continue;
+    }
+    if ($field_name === 'field_remarks' && trim($value) === '-') {
       continue;
     }
     $lines[] = '- ' . $label . ': ' . $value;
@@ -287,7 +328,13 @@ function activities_mods_incoming_get_remark_comment_with_limit(ParagraphInterfa
 /**
  * Extracts a readable field value for notifications/activity text.
  */
-function activities_mods_incoming_get_field_value_for_notification(FieldItemListInterface $field, string $field_name, string $langcode): string {
+function activities_mods_incoming_get_field_value_for_notification(
+  FieldItemListInterface $field,
+  string $field_name,
+  string $langcode,
+  ?NodeInterface $node = NULL,
+  ?NodeInterface $original_node = NULL
+): string {
   if ($field->isEmpty()) {
     return '-';
   }
@@ -297,10 +344,38 @@ function activities_mods_incoming_get_field_value_for_notification(FieldItemList
     return $raw_state !== '' ? activities_mods_incoming_get_state_label($raw_state, $langcode) : '-';
   }
 
+  if ($field_name === 'field_amke_status') {
+    $raw = (string) ($field->value ?? '');
+    if ($raw === '') {
+      return '-';
+    }
+    $allowed = options_allowed_values($field->getFieldDefinition()->getFieldStorageDefinition());
+    if (isset($allowed[$raw]) && $allowed[$raw] !== '') {
+      return activities_mods_incoming_trim_with_ellipsis((string) $allowed[$raw], 100);
+    }
+    return activities_mods_incoming_trim_with_ellipsis($raw, 100);
+  }
+
+  if ($field_name === 'field_remarks' && $node instanceof NodeInterface) {
+    return activities_mods_incoming_get_latest_inserted_remark_comment($node, $original_node);
+  }
+
+  if ($field_name === 'field_completion_date') {
+    $raw = trim((string) ($field->value ?? ''));
+    if ($raw === '') {
+      return '-';
+    }
+    $timestamp = strtotime($raw);
+    if ($timestamp !== FALSE) {
+      return date('m/d/Y', $timestamp);
+    }
+    return activities_mods_incoming_trim_with_ellipsis($raw, 100);
+  }
+
   if (method_exists($field, 'referencedEntities')) {
     $entities = $field->referencedEntities();
     if (!empty($entities)) {
-      if (in_array($field_name, ['field_documents', 'field_attachments'], TRUE)) {
+      if (in_array($field_name, ['field_documents', 'field_attachments', 'field_answer_files', 'field_plan', 'field_plan_signed'], TRUE)) {
         $file_names = activities_mods_incoming_extract_document_file_names($entities);
         if (!empty($file_names)) {
           $text = trim(implode(', ', array_filter(array_map('trim', $file_names))));
@@ -463,4 +538,42 @@ function activities_mods_incoming_trim_with_ellipsis(string $value, int $limit):
     return $value;
   }
   return rtrim(substr($value, 0, $limit - 3)) . '...';
+}
+
+/**
+ * Returns latest newly inserted remark comment, trimmed for notifications.
+ */
+function activities_mods_incoming_get_latest_inserted_remark_comment(NodeInterface $node, ?NodeInterface $original_node = NULL): string {
+  if (!$node->hasField('field_remarks') || $node->get('field_remarks')->isEmpty()) {
+    return '-';
+  }
+
+  $previous_ids = [];
+  if ($original_node instanceof NodeInterface && $original_node->hasField('field_remarks')) {
+    foreach ($original_node->get('field_remarks')->referencedEntities() as $previous) {
+      if ($previous instanceof ParagraphInterface && $previous->id()) {
+        $previous_ids[(int) $previous->id()] = TRUE;
+      }
+    }
+  }
+
+  $remarks = $node->get('field_remarks')->referencedEntities();
+  foreach (array_reverse($remarks) as $remark) {
+    if (!$remark instanceof ParagraphInterface || $remark->bundle() !== 'remark') {
+      continue;
+    }
+    $remark_id = $remark->id() ? (int) $remark->id() : NULL;
+    if ($remark_id && isset($previous_ids[$remark_id])) {
+      continue;
+    }
+    if (!$remark->hasField('field_comment') || $remark->get('field_comment')->isEmpty()) {
+      continue;
+    }
+    $comment = trim(strip_tags((string) $remark->get('field_comment')->value));
+    if ($comment !== '') {
+      return activities_mods_incoming_trim_with_ellipsis($comment, 100);
+    }
+  }
+
+  return '-';
 }
