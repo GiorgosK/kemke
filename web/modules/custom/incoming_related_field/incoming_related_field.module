@@ -51,6 +51,12 @@ function incoming_related_field_inline_entity_form_entity_form_alter(array &$ent
     unset($entity_form[$key]);
   }
 
+  if (isset($entity_form['field_protocol_number_sender']) && is_array($entity_form['field_protocol_number_sender'])) {
+    // In IEF AJAX forms there may be no matching field-group container.
+    // A stale #group hides the field from rendering.
+    unset($entity_form['field_protocol_number_sender']['#group']);
+  }
+
   if (isset($entity_form['field_documents']['widget']) && is_array($entity_form['field_documents']['widget'])) {
     if (isset($entity_form['field_documents']['widget']['#header'])) {
       $entity_form['field_documents']['widget']['#header'] = [];
