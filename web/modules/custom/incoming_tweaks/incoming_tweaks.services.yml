@@ -4,6 +4,13 @@ services:
     arguments:
       - '@side_api.docutracks_client'
       - '@logger.channel.incoming_tweaks'
+  incoming_tweaks.edit_access_redirect_subscriber:
+    class: Drupal\incoming_tweaks\EventSubscriber\EditAccessRedirectSubscriber
+    arguments:
+      - '@current_user'
+      - '@entity_type.manager'
+    tags:
+      - { name: event_subscriber }
   logger.channel.incoming_tweaks:
     class: Drupal\Core\Logger\LoggerChannel
     arguments: ['incoming_tweaks']
