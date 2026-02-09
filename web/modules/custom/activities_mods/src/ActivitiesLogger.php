@@ -59,7 +59,7 @@ class ActivitiesLogger extends BaseActivitiesLogger {
       }
 
       // Skip noisy updates immediately after create or duplicate update info.
-      if ($this->shouldSuppressUpdate($entity)) {
+      if ($this->shouldSuppressUpdate($entity, $user)) {
         return NULL;
       }
     }
@@ -92,7 +92,7 @@ class ActivitiesLogger extends BaseActivitiesLogger {
   protected function buildInfo(EntityInterface $entity, string $op): string {
     $label = $entity->label();
     if (
-      $op === 'create' &&
+      in_array($op, ['create', 'update'], TRUE) &&
       $entity instanceof NodeInterface &&
       $entity->bundle() === 'incoming' &&
       function_exists('activities_mods_incoming_build_change_lines') &&
@@ -101,9 +101,29 @@ class ActivitiesLogger extends BaseActivitiesLogger {
       $title = function_exists('activities_mods_incoming_build_title')
         ? activities_mods_incoming_build_title($entity)
         : $label;
-      $lines = activities_mods_incoming_build_change_lines($entity, NULL, NULL, 'full', TRUE);
+      $original = NULL;
+      if ($op === 'update' && isset($entity->original) && $entity->original instanceof NodeInterface) {
+        $original = $entity->original;
+      }
+      $lines = activities_mods_incoming_build_change_lines(
+        $entity,
+        $original,
+        NULL,
+        'full',
+        $op === 'create'
+      );
       $details = activities_mods_incoming_render_change_lines($lines, FALSE);
-      return $details !== '' ? sprintf('%s | %s', $title, $details) : (string) $title;
+      if ($op === 'create') {
+        return $details !== '' ? sprintf('%s | %s', $title, $details) : (string) $title;
+      }
+      $state_change = $this->buildIncomingStateChange($entity, $op);
+      if ($state_change && $details !== '') {
+        return sprintf('%s | %s' . "\n" . '%s', $label, $state_change, $details);
+      }
+      if ($state_change) {
+        return sprintf('%s | %s', $label, $state_change);
+      }
+      return $details !== '' ? sprintf('%s | %s', $label, $details) : $label;
     }
     $state_change = $this->buildIncomingStateChange($entity, $op);
     return $state_change ? sprintf('%s | %s', $label, $state_change) : $label;
@@ -172,7 +192,11 @@ class ActivitiesLogger extends BaseActivitiesLogger {
   /**
    * Determines whether an update should be suppressed as noise.
    */
-  protected function shouldSuppressUpdate(EntityInterface $entity): bool {
+  protected function shouldSuppressUpdate(EntityInterface $entity, ?AccountInterface $account = NULL): bool {
+    if ($this->shouldSuppressIncomingApiBootstrapUpdate($entity, $account)) {
+      return TRUE;
+    }
+
     $latest = $this->getLatestActivityForEntity($entity->getEntityTypeId(), $entity->id());
     if (!$latest) {
       return FALSE;
@@ -191,6 +215,39 @@ class ActivitiesLogger extends BaseActivitiesLogger {
     return $latest->getOperation() === 'update'
       && $latest->getInfo() === $current_info
       && ($request_time - $latest->getCreatedTime()) < $threshold;
+  }
+
+  /**
+   * Suppresses noisy update rows emitted during API incoming creation bootstrap.
+   */
+  protected function shouldSuppressIncomingApiBootstrapUpdate(EntityInterface $entity, ?AccountInterface $account = NULL): bool {
+    if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+      return FALSE;
+    }
+    if (!isset($entity->original) || !$entity->original instanceof NodeInterface) {
+      return FALSE;
+    }
+    if (!$entity->hasField('moderation_state') || !$entity->original->hasField('moderation_state')) {
+      return FALSE;
+    }
+
+    $old_state = (string) ($entity->original->get('moderation_state')->value ?? '');
+    if ($old_state !== 'published') {
+      return FALSE;
+    }
+
+    $request_time = \Drupal::time()->getRequestTime();
+    $created_time = method_exists($entity, 'getCreatedTime') ? (int) $entity->getCreatedTime() : 0;
+    if ($created_time <= 0 || ($request_time - $created_time) > 120) {
+      return FALSE;
+    }
+
+    // Restrict to API-driven saves only.
+    if (!$account || !$account->hasRole('api')) {
+      return FALSE;
+    }
+
+    return TRUE;
   }
 
   /**

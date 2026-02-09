@@ -14,7 +14,6 @@ class ActivitiesModsController extends ControllerBase {
    * Displays the activity log for a node.
    */
   public function activity(NodeInterface $node): array {
-    $this->pruneRecentDuplicates($node);
     $build = views_embed_view('activities_mods_node_activity', 'default', $node->id());
     return $build ?: ['#markup' => $this->t('No activity found.')];
   }

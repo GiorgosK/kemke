@@ -27,7 +27,9 @@ function activities_mods_activities_logger_log(UserActivitiesInterface $activiti
   }
 
   $op = $activities->getOperation();
-  if ($op === 'delete' || $op === 'create') {
+  // Incoming create/update/delete info is now built deterministically in
+  // ActivitiesLogger::buildInfo() from the current entity + original.
+  if (in_array($op, ['delete', 'create', 'update'], TRUE)) {
     return;
   }
 
@@ -238,7 +240,7 @@ function activities_mods_incoming_get_changed_field_lines(
   bool $include_initial_values = FALSE
 ): array {
   $original_node = $original;
-  if (!$original_node && isset($node->original) && ($node->original instanceof NodeInterface)) {
+  if (!$include_initial_values && !$original_node && isset($node->original) && ($node->original instanceof NodeInterface)) {
     $original_node = $node->original;
   }
   if (!$original_node && !$include_initial_values) {
@@ -285,7 +287,7 @@ function activities_mods_incoming_get_changed_field_lines(
     if (!$node->hasField($field_name)) {
       continue;
     }
-    if ($original_node) {
+    if (!$include_initial_values && $original_node) {
       if (!$original_node->hasField($field_name)) {
         continue;
       }
@@ -582,6 +584,9 @@ function activities_mods_incoming_get_state_label(string $state, string $langcod
       'to_be_assigned' => t('Προς χρέωση', [], ['langcode' => $langcode]),
       'fullness_check' => t('Έλεγχος πληρότητας', [], ['langcode' => $langcode]),
       'pending_issues' => t('Με εκκρεμότητες', [], ['langcode' => $langcode]),
+      'issues_to_check' => t('Προς έλεγχο εκκρεμοτήτων', [], ['langcode' => $langcode]),
+      'under_processing' => t('Υπό επεξεργασία', [], ['langcode' => $langcode]),
+      'for_signature' => t('Εγκεκριμένο – Αποστολή στο ΣΗΔΕ προς υπογραφή', [], ['langcode' => $langcode]),
       'published' => t('Δημοσιευμένο', [], ['langcode' => $langcode]),
     ];
     return (string) ($fallback_labels[$state] ?? $state);

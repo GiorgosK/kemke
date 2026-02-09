@@ -70,7 +70,7 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
 
   $new_state = $node->get('moderation_state')->value;
 
-  if ((!$new_state) || ($new_state === $original_state && $new_state !== 'pending_issues')) {
+  if ((!$new_state) || ($new_state === $original_state && !in_array($new_state, ['pending_issues', 'issues_to_check'], TRUE))) {
     return;
   }
 
@@ -83,7 +83,8 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
   if ($new_state === 'draft') {
     $recipients = _incoming_notifications_get_users_by_role('secretariat');
     $context = [
-      'changes_lines' => activities_mods_incoming_build_change_lines($node),
+      // On initial creation, include initial values (same behavior as /activity).
+      'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, NULL, 'full', TRUE),
     ];
     _incoming_notifications_send_notifications('draft', $node, $recipients, $context);
   }
@@ -110,22 +111,25 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
     }
   }
 
-  if ($new_state === 'pending_issues') {
+  if (in_array($new_state, ['pending_issues', 'issues_to_check'], TRUE)) {
     // Pending issues rules are role-sensitive and only use remarks from this save.
     $account = \Drupal::currentUser();
     $current_uid = (int) $account->id();
     // Only consider a remark created in the current save by the current user.
     $remark = _incoming_notifications_get_current_save_remark($node, $current_uid);
     $is_amke_user = $account->hasRole('amke_user');
+    $is_state_pair_transition = in_array((string) $original_state, ['pending_issues', 'issues_to_check'], TRUE)
+      && $new_state !== (string) $original_state;
+    $is_transition_into_issues_states = $new_state !== (string) $original_state;
 
     if ($is_amke_user) {
-      // AMKE users only notify the basic operator when they add a remark.
-      if ($remark && $node->hasField('field_basic_operator')) {
+      // AMKE users notify basic operator on explicit state-pair transition or new remark.
+      if (($remark || $is_state_pair_transition) && $node->hasField('field_basic_operator')) {
         $target_id = $node->get('field_basic_operator')->target_id;
         $user = $target_id ? \Drupal::entityTypeManager()->getStorage('user')->load($target_id) : NULL;
         if ($user instanceof UserInterface) {
           $context = [
-            'remark_comment' => _incoming_notifications_get_remark_comment($remark),
+            'remark_comment' => $remark ? _incoming_notifications_get_remark_comment($remark) : '',
             'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark, 'full'),
             'change_remark' => $remark,
           ];
@@ -135,22 +139,26 @@ function incoming_notifications_handle_state_change(NodeInterface $node, ?string
       return;
     }
 
-    // Non-AMKE users: if any remarks exist, notifications are driven by the new remark.
-    if (_incoming_notifications_node_has_any_remarks($node)) {
-      // Empty remark legal entity means no notifications.
-      $recipients = $remark ? _incoming_notifications_get_users_by_legal_entity($remark) : [];
-      $context = $remark ? [
+    // Non-AMKE users: use remark-targeting for new remarks.
+    if ($remark) {
+      $recipients = _incoming_notifications_get_users_by_legal_entity($remark);
+      $context = [
         'remark_comment' => _incoming_notifications_get_remark_comment($remark),
         'changes_lines' => activities_mods_incoming_build_change_lines($node, NULL, $remark, 'full'),
         'change_remark' => $remark,
-      ] : [];
+      ];
     }
-    else {
-      // If no remarks exist at all, use the node legal entity selection.
+    elseif ($is_transition_into_issues_states) {
+      // No new remark: notify on explicit state transitions into issues states.
       $recipients = _incoming_notifications_get_users_by_legal_entity($node);
       $context = [
         'changes_lines' => activities_mods_incoming_build_change_lines($node),
       ];
+    }
+    else {
+      // Same-state save without new remark: no notification.
+      $recipients = [];
+      $context = [];
     }
 
     _incoming_notifications_send_notifications('pending_issues', $node, $recipients, $context);
@@ -201,8 +209,6 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
   $incoming_id = $entity->id() ? (string) $entity->id() : t('unassigned');
   $state = $entity->get('moderation_state')->value ?? '';
   $state_label = $state !== '' ? activities_mods_incoming_get_state_label($state, $langcode) : '';
-  $link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
-  $link_relative = $entity->toUrl('edit-form')->toString();
   $remark_comment = isset($context['remark_comment']) ? trim((string) $context['remark_comment']) : '';
   $base_changes_lines = isset($context['changes_lines']) && is_array($context['changes_lines']) ? $context['changes_lines'] : [];
   $change_remark = isset($context['change_remark']) && $context['change_remark'] instanceof ParagraphInterface
@@ -226,10 +232,22 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     if ($entity instanceof NodeInterface) {
       try {
         if ($user->hasRole('amke_user')) {
-          $recipient_lines = activities_mods_incoming_build_change_lines($entity, NULL, $change_remark, 'minimal');
+          $recipient_lines = activities_mods_incoming_build_change_lines(
+            $entity,
+            NULL,
+            $change_remark,
+            'minimal',
+            $key === 'draft'
+          );
         }
         elseif (empty($recipient_lines)) {
-          $recipient_lines = activities_mods_incoming_build_change_lines($entity, NULL, $change_remark, 'full');
+          $recipient_lines = activities_mods_incoming_build_change_lines(
+            $entity,
+            NULL,
+            $change_remark,
+            'full',
+            $key === 'draft'
+          );
         }
       }
       catch (\Throwable $e) {
@@ -241,13 +259,22 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     }
     $changes_summary_email = activities_mods_incoming_render_change_lines($recipient_lines, FALSE);
     $changes_summary_notify = activities_mods_incoming_render_change_lines($recipient_lines, TRUE);
+    $recipient_link_absolute = '';
+    $recipient_link_relative = '';
+    if ($entity instanceof NodeInterface) {
+      [$recipient_link_relative, $recipient_link_absolute] = _incoming_notifications_get_recipient_link($entity, $user);
+    }
+    else {
+      $recipient_link_absolute = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
+      $recipient_link_relative = $entity->toUrl('edit-form')->toString();
+    }
 
     $params = [
       'incoming_title' => $title,
       'incoming_subject' => $subject_text,
       'incoming_id' => $incoming_id,
       'state_label' => $state_label,
-      'incoming_link' => $link_absolute,
+      'incoming_link' => $recipient_link_absolute,
       'remark_comment' => $remark_comment,
       'changes_summary_email' => $changes_summary_email,
       'changes_summary_notify' => $changes_summary_notify,
@@ -265,10 +292,37 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
         $subject,
         $body,
         (int) $user->id(),
-        $link_relative
+        $recipient_link_relative
       );
     }
   }
+}
+
+/**
+ * Resolves the best destination URL for a recipient.
+ *
+ * @return array{0:string,1:string}
+ *   Relative and absolute URLs.
+ */
+function _incoming_notifications_get_recipient_link(NodeInterface $node, UserInterface $user): array {
+  $relative = '';
+  $absolute = '';
+
+  if ($node->access('update', $user)) {
+    $relative = $node->toUrl('edit-form')->toString();
+    $absolute = $node->toUrl('edit-form', ['absolute' => TRUE])->toString();
+    return [$relative, $absolute];
+  }
+
+  if ($node->access('view', $user)) {
+    $relative = $node->toUrl('canonical')->toString();
+    $absolute = $node->toUrl('canonical', ['absolute' => TRUE])->toString();
+    return [$relative, $absolute];
+  }
+
+  $relative = $node->toUrl('edit-form')->toString();
+  $absolute = $node->toUrl('edit-form', ['absolute' => TRUE])->toString();
+  return [$relative, $absolute];
 }
 
 /**
