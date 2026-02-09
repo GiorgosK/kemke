@@ -79,7 +79,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       return $form;
     }
 
-    $show_receive_button = $latest_correction
+    $has_pending_receive = $latest_correction
       && ($latest_correction['type'] ?? '') === 'plan'
       && ($latest_correction['Send']['purpose'] ?? '') === 'correction'
       && empty($latest_correction['Receive']['success']);
@@ -88,30 +88,37 @@ final class IncomingPlanCorrectionForm extends FormBase {
       '#type' => 'actions',
     ];
 
-    if ($show_receive_button) {
-      $form['actions']['receive'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Ορθή Επανάληψη Σχεδίου, παραλαβή υπογεγγραμένο απο ΣΗΔΕ'),
-        '#submit' => ['::receiveSignedForm'],
-      ];
-    }
-    else {
-      $form['document'] = [
-        '#type' => 'managed_file',
-        '#description' => $this->t('doc, docx, pdf'),
-        '#upload_location' => 'public://incoming_plan_correction',
-        '#upload_validators' => [
-          'FileExtension' => ['extensions' => 'doc docx pdf'],
-        ],
-        '#required' => TRUE,
-      ];
+    $form['document'] = [
+      '#type' => 'managed_file',
+      '#description' => $this->t('doc, docx, pdf'),
+      '#upload_location' => 'public://incoming_plan_correction',
+      '#upload_validators' => [
+        'FileExtension' => ['extensions' => 'doc docx pdf'],
+      ],
+      '#required' => !$has_pending_receive,
+      '#disabled' => $has_pending_receive,
+    ];
 
-      $form['actions']['submit'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Ορθή Επανάληψη Σχεδίου, Αποστολή προς ΣΗΔΕ'),
-        '#submit' => ['::sendCorrectionForm'],
-      ];
-    }
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Αποστολή προς ΣΗΔΕ'),
+      '#submit' => ['::sendCorrectionForm'],
+      '#disabled' => $has_pending_receive,
+      '#attributes' => [
+        'class' => $has_pending_receive ? ['govgr-btn--disabled'] : [],
+      ],
+    ];
+
+    $form['actions']['receive'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Παραλαβή υπογεγγραμένου σχεδίου απο ΣΗΔΕ'),
+      '#submit' => ['::receiveSignedForm'],
+      '#disabled' => !$has_pending_receive,
+      '#limit_validation_errors' => [],
+      '#attributes' => [
+        'class' => !$has_pending_receive ? ['govgr-btn--disabled'] : [],
+      ],
+    ];
 
     $form_state->set('incoming_plan_correction_node', $node);
 
@@ -136,27 +143,27 @@ final class IncomingPlanCorrectionForm extends FormBase {
     }
 
     if (!$node->hasField('field_plan_dt_api_response')) {
-      $this->messenger()->addError($this->t('Missing Docutracks plan field.'));
+      $this->messenger()->addError($this->t('Δεν υπαρχει πεδίο καταγραφής συμβάντων ΣΗΔΕ.'));
       return;
     }
 
     $log_value = (string) ($node->get('field_plan_dt_api_response')->value ?? '');
     $doc_id = \Drupal\side_api\DocutracksClient::getDocIdFromLog($log_value, 'plan', 'initial', 1);
     if (empty($doc_id)) {
-      $this->messenger()->addError($this->t('Missing Docutracks plan id.'));
+      $this->messenger()->addError($this->t('Δεν υπαρχει ID για το σχεδίο.'));
       return;
     }
 
     $fids = array_values($form_state->getValue('document') ?? []);
     $fid = $fids[0] ?? NULL;
     if (!$fid) {
-      $this->messenger()->addError($this->t('No document selected.'));
+      $this->messenger()->addError($this->t('Δεν επιλέξατε αρχείο.'));
       return;
     }
 
     $file = File::load($fid);
     if (!$file) {
-      $this->messenger()->addError($this->t('Uploaded document could not be loaded.'));
+      $this->messenger()->addError($this->t('Δεν μπορούμε να φορτώσουμε το αρχείο.'));
       return;
     }
 
@@ -168,7 +175,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $file_system = \Drupal::service('file_system');
     $real_path = $file_system->realpath($file->getFileUri());
     if (!$real_path || !is_readable($real_path)) {
-      $this->messenger()->addError($this->t('Uploaded document is not readable.'));
+      $this->messenger()->addError($this->t('Το αρχείο δεν ειναι διαθέσιμο για ανάγνωση ειναι ειναι κατεστραμένο.'));
       return;
     }
 
@@ -246,13 +253,13 @@ final class IncomingPlanCorrectionForm extends FormBase {
         $node->setNewRevision(FALSE);
         $node->save();
 
-        $this->messenger()->addStatus($this->t('Correction was transfered to SIDE.'));
+        $this->messenger()->addStatus($this->t('Ορθη επανάληψη εστάλη με επιτυχία στο ΣΗΔΕ.'));
         $this->getLogger('incoming_plan_correction')->info('Docutracks correction push succeeded for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
       }
       else {
-        $this->messenger()->addError($this->t('Docutracks did not accept the correction document.'));
+        $this->messenger()->addError($this->t('Το ΣΗΔΕ δεν αποδέχτηκε την ορθη επανάληψη.'));
         $this->getLogger('incoming_plan_correction')->warning('Docutracks correction push returned non-success for incoming @nid: @response', [
           '@nid' => $node->id(),
           '@response' => Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
@@ -260,7 +267,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       }
     }
     catch (\Throwable $throwable) {
-      $this->messenger()->addError($this->t('Docutracks push failed: @message', [
+      $this->messenger()->addError($this->t('Δεν ήταν δυνατή η αποστολή της ορθης επανάληψης στο ΣΗΔΕ: @message', [
         '@message' => $throwable->getMessage(),
       ]));
       $this->getLogger('incoming_plan_correction')->error('Docutracks correction push failed for incoming @nid: @message', [
@@ -290,7 +297,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
         ? ($latest_correction['Send']['dt_doc_id'] ?? NULL)
         : NULL;
     if (!$document_id) {
-      $this->messenger()->addError($this->t('Missing Docutracks correction document id.'));
+      $this->messenger()->addError($this->t('Δεν υπάρχει ΣΗΔΕ document ID.'));
       $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
       return;
     }
@@ -306,7 +313,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       $received = !empty($result['success']);
       $error_reason = (string) ($result['error'] ?? '');
       if ($received) {
-        $this->messenger()->addStatus($this->t('Signed correction received from SIDE.'));
+        $this->messenger()->addStatus($this->t('Υπογεγραμμένη διόρθωση ελήφθη από ΣΗΔΕ.'));
         $this->getLogger('incoming_plan_correction')->info('Docutracks correction signed download succeeded for incoming @nid.', [
           '@nid' => $node->id(),
         ]);
@@ -328,7 +335,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       if (!empty($manual['job_exists'])) {
         $polling->resumeJobs('plan_correction', $polling_match, TRUE);
       }
-      $this->messenger()->addError($this->t('Docutracks signed fetch failed: @message', [
+      $this->messenger()->addError($this->t('Προσπάθεια λήψης υπογεγραμμένης διόρθωσης απέτυχε: @message', [
         '@message' => $throwable->getMessage(),
       ]));
       $this->getLogger('incoming_plan_correction')->error('Docutracks correction signed fetch failed for incoming @nid: @message', [
