@@ -20,6 +20,12 @@ use Drupal\node\NodeInterface;
 function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
   $current_user = \Drupal::currentUser();
   $entity = $form_state->getFormObject()->getEntity();
+  $is_incoming_form = $entity instanceof NodeInterface && $entity->bundle() === 'incoming';
+
+  if ($is_incoming_form) {
+    $form['#after_build'][] = 'incoming_tweaks_after_build_set_remarks_add_more_label';
+    incoming_tweaks_set_remarks_add_more_label($form);
+  }
 
   // Skip tweaks during paragraphs add-more AJAX rebuilds to avoid breaking subforms.
   if (incoming_tweaks_is_remarks_add_more($form_state)) {
@@ -67,7 +73,7 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
     $form['field_plan']['widget']['#after_build'][] = 'incoming_tweaks_limit_plan_widget';
   }
 
-  if ($entity instanceof NodeInterface && $entity->bundle() === 'incoming') {
+  if ($is_incoming_form) {
     $is_new_incoming = $entity->isNew();
     if ($is_new_incoming) {
       $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
@@ -104,6 +110,39 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
       ];
     }
   }
+}
+
+/**
+ * Normalizes the remarks add-more button label on incoming forms.
+ */
+function incoming_tweaks_set_remarks_add_more_label(array &$form): void {
+  incoming_tweaks_set_remarks_add_more_label_recursive($form);
+}
+
+/**
+ * Recursively updates the remarks add-more button label.
+ */
+function incoming_tweaks_set_remarks_add_more_label_recursive(array &$element): void {
+  $is_target = (($element['#name'] ?? NULL) === 'field_remarks_remark_add_more')
+    || (($element['#id'] ?? NULL) === 'field-remarks-remark-add-more');
+
+  if ($is_target) {
+    $element['#value'] = t('Προσθήκη Παρατήρησης');
+  }
+
+  foreach (Element::children($element) as $child) {
+    if (isset($element[$child]) && is_array($element[$child])) {
+      incoming_tweaks_set_remarks_add_more_label_recursive($element[$child]);
+    }
+  }
+}
+
+/**
+ * After-build guard to keep the remarks add-more label normalized.
+ */
+function incoming_tweaks_after_build_set_remarks_add_more_label(array $form, FormStateInterface $form_state): array {
+  incoming_tweaks_set_remarks_add_more_label($form);
+  return $form;
 }
 
 /**
