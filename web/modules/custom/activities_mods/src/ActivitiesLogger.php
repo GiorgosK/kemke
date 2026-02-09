@@ -5,6 +5,7 @@ namespace Drupal\activities_mods;
 use Drupal\activities\ActivitiesLogger as BaseActivitiesLogger;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
 
 /**
  * Overrides the activities logger to append moderation state info.
@@ -57,9 +58,7 @@ class ActivitiesLogger extends BaseActivitiesLogger {
         return NULL;
       }
 
-      // Skip noisy updates that happen immediately after a create for the same
-      // entity (e.g. extra presave hooks firing in the same minute) or repeat
-      // updates with identical info within the same window.
+      // Skip noisy updates immediately after create or duplicate update info.
       if ($this->shouldSuppressUpdate($entity)) {
         return NULL;
       }
@@ -92,6 +91,20 @@ class ActivitiesLogger extends BaseActivitiesLogger {
    */
   protected function buildInfo(EntityInterface $entity, string $op): string {
     $label = $entity->label();
+    if (
+      $op === 'create' &&
+      $entity instanceof NodeInterface &&
+      $entity->bundle() === 'incoming' &&
+      function_exists('activities_mods_incoming_build_change_lines') &&
+      function_exists('activities_mods_incoming_render_change_lines')
+    ) {
+      $title = function_exists('activities_mods_incoming_build_title')
+        ? activities_mods_incoming_build_title($entity)
+        : $label;
+      $lines = activities_mods_incoming_build_change_lines($entity, NULL, NULL, 'full', TRUE);
+      $details = activities_mods_incoming_render_change_lines($lines, FALSE);
+      return $details !== '' ? sprintf('%s | %s', $title, $details) : (string) $title;
+    }
     $state_change = $this->buildIncomingStateChange($entity, $op);
     return $state_change ? sprintf('%s | %s', $label, $state_change) : $label;
   }

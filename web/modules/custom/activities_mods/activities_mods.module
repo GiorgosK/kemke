@@ -27,7 +27,7 @@ function activities_mods_activities_logger_log(UserActivitiesInterface $activiti
   }
 
   $op = $activities->getOperation();
-  if ($op === 'delete') {
+  if ($op === 'delete' || $op === 'create') {
     return;
   }
 
@@ -91,7 +91,11 @@ function activities_mods_activities_logger_log(UserActivitiesInterface $activiti
     '@from' => $old_label,
     '@to' => $new_label,
   ]);
-  $extra = $changes_text !== '' ? $changes_text : $state_extra;
+  // Avoid appending duplicate state-only info on update rows.
+  if ($changes_text === '') {
+    return;
+  }
+  $extra = $changes_text;
 
   // Avoid double-appending if the logger already added state info.
   $info = (string) $activities->getInfo();
@@ -110,6 +114,7 @@ function activities_mods_views_query_alter(ViewExecutable $view, QueryPluginBase
 
   $query->orderby = [];
   $query->addOrderBy('user_activities', 'created', 'ASC');
+  $query->addOrderBy('user_activities', 'id', 'ASC');
 }
 
 /**
@@ -150,22 +155,27 @@ function activities_mods_incoming_build_change_lines(
   NodeInterface $node,
   ?NodeInterface $original = NULL,
   ?ParagraphInterface $remark = NULL,
-  string $fields_profile = 'full'
+  string $fields_profile = 'full',
+  bool $include_initial_values = FALSE
 ): array {
   $lines = [];
+  $remark_lines = [];
 
   if ($remark instanceof ParagraphInterface) {
     foreach (activities_mods_incoming_get_new_remark_file_names($remark) as $filename) {
-      $lines[] = '- Νέο αρχείο: ' . activities_mods_incoming_trim_with_ellipsis($filename, 100);
+      $remark_lines[] = '- Νέο αρχείο: ' . activities_mods_incoming_trim_with_ellipsis($filename, 100);
     }
     $remark_comment = activities_mods_incoming_get_remark_comment_with_limit($remark, 100);
     if ($remark_comment !== '') {
-      $lines[] = '- παρατήρηση: ' . $remark_comment;
+      $remark_lines[] = '- παρατήρηση: ' . $remark_comment;
     }
   }
 
   $langcode = $node->language()->getId();
-  foreach (activities_mods_incoming_get_changed_field_lines($node, $langcode, $original, $fields_profile, $remark) as $line) {
+  foreach (activities_mods_incoming_get_changed_field_lines($node, $langcode, $original, $fields_profile, $remark, $include_initial_values) as $line) {
+    $lines[] = $line;
+  }
+  foreach ($remark_lines as $line) {
     $lines[] = $line;
   }
 
@@ -224,13 +234,14 @@ function activities_mods_incoming_get_changed_field_lines(
   string $langcode,
   ?NodeInterface $original = NULL,
   string $fields_profile = 'full',
-  ?ParagraphInterface $remark = NULL
+  ?ParagraphInterface $remark = NULL,
+  bool $include_initial_values = FALSE
 ): array {
   $original_node = $original;
   if (!$original_node && isset($node->original) && ($node->original instanceof NodeInterface)) {
     $original_node = $node->original;
   }
-  if (!$original_node) {
+  if (!$original_node && !$include_initial_values) {
     return [];
   }
 
@@ -242,8 +253,8 @@ function activities_mods_incoming_get_changed_field_lines(
     'field_protocol_number_doc',
     'field_incoming_type',
     'field_incoming_subtype',
-    'field_related_incoming',
     'field_priority',
+    'field_related_incoming',
     'field_documents',
     'field_attachments',
     'field_legal_deadline',
@@ -271,14 +282,27 @@ function activities_mods_incoming_get_changed_field_lines(
 
   $lines = [];
   foreach ($selected_fields as $field_name) {
-    if (!$node->hasField($field_name) || !$original_node->hasField($field_name)) {
+    if (!$node->hasField($field_name)) {
       continue;
     }
-    if ($node->get($field_name)->getValue() === $original_node->get($field_name)->getValue()) {
+    if ($original_node) {
+      if (!$original_node->hasField($field_name)) {
+        continue;
+      }
+      if ($node->get($field_name)->getValue() === $original_node->get($field_name)->getValue()) {
+        continue;
+      }
+    }
+    elseif ($node->get($field_name)->isEmpty()) {
       continue;
     }
 
     if ($field_name === 'moderation_state') {
+      $new_state = (string) ($node->get('moderation_state')->value ?? '');
+      if ($new_state === 'published') {
+        // Do not emit a change line for "Published" state transitions.
+        continue;
+      }
       $label = 'Κατάσταση';
     }
     else {
@@ -301,11 +325,11 @@ function activities_mods_incoming_get_changed_field_lines(
       $node,
       $original_node
     );
-    if ($field_name === 'field_related_incoming' && trim($value) === '-') {
-      // Treat an empty related list as no effective change.
-      continue;
-    }
-    if ($field_name === 'field_remarks' && trim($value) === '-') {
+    if (
+      trim($value) === '-' &&
+      in_array($field_name, ['field_documents', 'field_attachments', 'field_related_incoming', 'field_plan', 'field_plan_signed', 'field_remarks'], TRUE)
+    ) {
+      // For delta-only fields, '-' means no effective new change for this save.
       continue;
     }
     $lines[] = '- ' . $label . ': ' . $value;
@@ -360,7 +384,7 @@ function activities_mods_incoming_get_field_value_for_notification(
     return activities_mods_incoming_get_latest_inserted_remark_comment($node, $original_node);
   }
 
-  if ($field_name === 'field_completion_date') {
+  if (in_array($field_name, ['field_completion_date', 'field_legal_deadline'], TRUE)) {
     $raw = trim((string) ($field->value ?? ''));
     if ($raw === '') {
       return '-';
@@ -375,6 +399,68 @@ function activities_mods_incoming_get_field_value_for_notification(
   if (method_exists($field, 'referencedEntities')) {
     $entities = $field->referencedEntities();
     if (!empty($entities)) {
+      if (
+        in_array($field_name, ['field_documents', 'field_attachments', 'field_plan', 'field_plan_signed'], TRUE) &&
+        $node instanceof NodeInterface &&
+        $original_node instanceof NodeInterface &&
+        $node->hasField($field_name) &&
+        $original_node->hasField($field_name)
+      ) {
+        $new_ids = array_map(
+          static fn(array $item) => (int) ($item['target_id'] ?? 0),
+          $node->get($field_name)->getValue()
+        );
+        $old_ids = array_map(
+          static fn(array $item) => (int) ($item['target_id'] ?? 0),
+          $original_node->get($field_name)->getValue()
+        );
+        $added_ids = array_values(array_unique(array_diff($new_ids, $old_ids)));
+        if (empty($added_ids)) {
+          return '-';
+        }
+
+        $target_type = (string) $field->getFieldDefinition()->getSetting('target_type');
+        $storage_type = $target_type !== '' ? $target_type : 'file';
+        $loaded = \Drupal::entityTypeManager()->getStorage($storage_type)->loadMultiple($added_ids);
+
+        $ordered_entities = [];
+        foreach ($added_ids as $id) {
+          if (isset($loaded[$id])) {
+            $ordered_entities[] = $loaded[$id];
+          }
+        }
+        $file_names = activities_mods_incoming_extract_document_file_names($ordered_entities);
+        if (!empty($file_names)) {
+          $text = trim(implode(', ', array_filter(array_map('trim', $file_names))));
+          return $text !== '' ? activities_mods_incoming_trim_with_ellipsis($text, 100) : '-';
+        }
+        return '-';
+      }
+
+      if ($field_name === 'field_related_incoming' && $node instanceof NodeInterface && $original_node instanceof NodeInterface) {
+        $new_ids = array_map(
+          static fn(array $item) => (int) ($item['target_id'] ?? 0),
+          $node->get('field_related_incoming')->getValue()
+        );
+        $old_ids = array_map(
+          static fn(array $item) => (int) ($item['target_id'] ?? 0),
+          $original_node->get('field_related_incoming')->getValue()
+        );
+        $added_ids = array_values(array_unique(array_diff($new_ids, $old_ids)));
+        if (empty($added_ids)) {
+          return '-';
+        }
+        $loaded = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($added_ids);
+        $parts = [];
+        foreach ($added_ids as $nid) {
+          if (isset($loaded[$nid])) {
+            $parts[] = (string) $loaded[$nid]->label();
+          }
+        }
+        $text = trim(implode(', ', array_filter(array_map('trim', $parts))));
+        return $text !== '' ? activities_mods_incoming_trim_with_ellipsis($text, 100) : '-';
+      }
+
       if (in_array($field_name, ['field_documents', 'field_attachments', 'field_answer_files', 'field_plan', 'field_plan_signed'], TRUE)) {
         $file_names = activities_mods_incoming_extract_document_file_names($entities);
         if (!empty($file_names)) {
@@ -395,10 +481,6 @@ function activities_mods_incoming_get_field_value_for_notification(
         }
         $text = trim(implode(', ', array_filter(array_map('trim', $parts))));
         return $text !== '' ? activities_mods_incoming_trim_with_ellipsis($text, 100) : '-';
-      }
-
-      if ($field_name === 'field_related_incoming') {
-        array_shift($entities);
       }
 
       foreach ($entities as $entity) {
