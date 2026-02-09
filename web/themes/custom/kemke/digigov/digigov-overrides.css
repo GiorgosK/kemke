@@ -242,6 +242,15 @@ pre {
   margin-top: 0.5rem;
 }
 
+/* Keep IEF action buttons (Create/Cancel) on one row for related incoming. */
+[class*="node-incoming-"] [id^="edit-field-related-incoming-form-"][id*="-actions"],
+.node--type-incoming [id^="edit-field-related-incoming-form-"][id*="-actions"] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .kemke-reports-objective-config-form .details-wrapper,
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform,
 [class*="node-incoming-"] .details-wrapper {
