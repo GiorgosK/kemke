@@ -15,30 +15,38 @@
  * @see template_preprocess_details()
  */
 #}
-<details{{ attributes }}>
-  {%- if title -%}
-    {%
-      set summary_classes = [
-        required ? 'js-form-required',
-        required ? 'form-required',
-      ]
-    %}
-    <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}</summary>
-  {%- endif -%}
-  <div class="details-wrapper">
-    {% if errors %}
-      <div class="form-item--error-message">
-        <strong>{{ errors }}</strong>
-      </div>
-    {% endif %}
-    {%- if description -%}
-      <div class="details-description">{{ description }}</div>
+{% set has_body_content = errors
+  or description
+  or (children is not empty and children|trim != '')
+  or (value is not empty and value|trim != '')
+%}
+
+{% if has_body_content %}
+  <details{{ attributes }}>
+    {%- if title -%}
+      {%
+        set summary_classes = [
+          required ? 'js-form-required',
+          required ? 'form-required',
+        ]
+      %}
+      <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}</summary>
     {%- endif -%}
-    {%- if children -%}
-      {{ children }}
-    {%- endif -%}
-    {%- if value -%}
-      {{ value }}
-    {%- endif -%}
-  </div>
-</details>
+    <div class="details-wrapper">
+      {% if errors %}
+        <div class="form-item--error-message">
+          <strong>{{ errors }}</strong>
+        </div>
+      {% endif %}
+      {%- if description -%}
+        <div class="details-description">{{ description }}</div>
+      {%- endif -%}
+      {%- if children -%}
+        {{ children }}
+      {%- endif -%}
+      {%- if value -%}
+        {{ value }}
+      {%- endif -%}
+    </div>
+  </details>
+{% endif %}
