@@ -421,7 +421,6 @@ function amke_tweaks_hide_incoming_plan_group(array &$build): void {
 
   $keys = [
     'field_plan',
-    'field_plan_signed',
     'field_plan_dt_api_response',
   ];
   foreach ($keys as $key) {
