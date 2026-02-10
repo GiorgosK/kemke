@@ -87,17 +87,24 @@ function kemke_preprocess_field(array &$variables): void {
     return;
   }
 
-  $items = $variables['element']['#items'] ?? NULL;
-  if (!$items) {
+  if (empty($variables['items']) || !is_array($variables['items'])) {
     return;
   }
 
-  foreach ($items as $delta => $item) {
+  $field_items = $variables['element']['#items'] ?? NULL;
+  $filtered_items = [];
+
+  foreach ($variables['items'] as $delta => $rendered_item) {
+    if (!_kemke_has_render_content($rendered_item['content'] ?? NULL)) {
+      continue;
+    }
+
     $classes = [];
 
     // Match edit-mode row striping.
-    $classes[] = ($delta % 2 === 0) ? 'odd' : 'even';
+    $classes[] = (count($filtered_items) % 2 === 0) ? 'odd' : 'even';
 
+    $item = ($field_items && isset($field_items[$delta])) ? $field_items[$delta] : NULL;
     $paragraph = $item->entity ?? NULL;
     if ($paragraph && $paragraph->hasField('field_visible_to')) {
       $visible_to = $paragraph->get('field_visible_to')->value;
@@ -107,12 +114,16 @@ function kemke_preprocess_field(array &$variables): void {
     }
 
     if (!empty($classes)) {
-      if (empty($variables['items'][$delta]['attributes'])) {
-        $variables['items'][$delta]['attributes'] = new Attribute();
+      if (empty($rendered_item['attributes'])) {
+        $rendered_item['attributes'] = new Attribute();
       }
-      $variables['items'][$delta]['attributes']->addClass($classes);
+      $rendered_item['attributes']->addClass($classes);
     }
+
+    $filtered_items[] = $rendered_item;
   }
+
+  $variables['items'] = $filtered_items;
 }
 
 /**
@@ -187,4 +198,49 @@ function _kemke_attach_action_link_classes(array &$element): void {
   foreach (Element::children($element) as $child) {
     _kemke_attach_action_link_classes($element[$child]);
   }
+}
+
+/**
+ * Returns TRUE when a render value contains visible content.
+ *
+ * @param mixed $value
+ *   A render value.
+ */
+function _kemke_has_render_content($value): bool {
+  if (is_string($value)) {
+    return trim($value) !== '';
+  }
+  if (is_numeric($value)) {
+    return TRUE;
+  }
+  if (!is_array($value)) {
+    return !empty($value);
+  }
+
+  if (array_key_exists('#access', $value) && $value['#access'] === FALSE) {
+    return FALSE;
+  }
+  if (!empty($value['#markup'])) {
+    return trim((string) $value['#markup']) !== '';
+  }
+  if (!empty($value['#plain_text'])) {
+    return trim((string) $value['#plain_text']) !== '';
+  }
+  if (!empty($value['#children'])) {
+    return trim((string) $value['#children']) !== '';
+  }
+  if (!empty($value['#text'])) {
+    return trim((string) $value['#text']) !== '';
+  }
+  if (isset($value['data'])) {
+    return _kemke_has_render_content($value['data']);
+  }
+
+  foreach ($value as $child) {
+    if (_kemke_has_render_content($child)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
