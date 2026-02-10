@@ -124,6 +124,24 @@ function users_tweaks_get_docutracks_value(UserInterface $account, string $path)
 }
 
 /**
+ * Get all Kemke user role IDs.
+ */
+function users_tweaks_get_kemke_user_roles(string $include = 'admin'): array {
+  $roles = [
+    'director_supervisor',
+    'department_supervisor',
+    'secretariat',
+    'operator',
+  ];
+
+  if ($include === 'admin') {
+    $roles[] = 'kemke_admin';
+  }
+
+  return $roles;
+}
+
+/**
  * Implements hook_form_FORM_ID_alter() for user login form.
  */
 function users_tweaks_form_user_login_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
