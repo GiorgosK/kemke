@@ -212,7 +212,7 @@
         rules: [
           {
             type: 'hideIf',
-            valueNot: [ruleIncTypeGnomodotisi],
+            valueNot: [ruleIncTypeGnomodotisi, ruleDocStatusUnderProcessing],
           },
         ],
       },
