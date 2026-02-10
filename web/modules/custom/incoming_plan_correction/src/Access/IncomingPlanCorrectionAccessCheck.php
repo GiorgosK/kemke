@@ -21,6 +21,14 @@ final class IncomingPlanCorrectionAccessCheck {
       return AccessResult::neutral()->addCacheableDependency($node);
     }
 
+    $kemke_roles = users_tweaks_get_kemke_user_roles('admin');
+    $has_kemke_role = count(array_intersect($account->getRoles(), $kemke_roles)) > 0;
+    if (!$has_kemke_role) {
+      return AccessResult::forbidden()
+        ->addCacheableDependency($node)
+        ->addCacheContexts(['user.roles']);
+    }
+
     if (!$node->hasField('moderation_state') || !$node->hasField('field_plan_dt_api_response')) {
       return AccessResult::forbidden()->addCacheableDependency($node);
     }
@@ -31,7 +39,9 @@ final class IncomingPlanCorrectionAccessCheck {
 
     $allowed = $state === 'published' && !empty($doc_id);
 
-    return AccessResult::allowedIf($allowed)->addCacheableDependency($node);
+    return AccessResult::allowedIf($allowed)
+      ->addCacheableDependency($node)
+      ->addCacheContexts(['user.roles']);
   }
 
 }

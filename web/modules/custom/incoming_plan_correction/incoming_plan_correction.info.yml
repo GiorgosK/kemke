@@ -3,3 +3,5 @@ type: module
 description: 'Provides a correction form to send updated plans to Docutracks.'
 core_version_requirement: ^9 || ^10 || ^11
 package: Custom
+dependencies:
+  - users_tweaks:users_tweaks
