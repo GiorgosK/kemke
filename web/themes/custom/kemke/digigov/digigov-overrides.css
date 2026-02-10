@@ -242,6 +242,10 @@ pre {
   margin-top: 0.5rem;
 }
 
+[id*="edit-field-related-incoming-form-"] label {
+  display: none;
+}
+
 /* Keep IEF action buttons (Create/Cancel) on one row for related incoming. */
 [class*="node-incoming-"] [id^="edit-field-related-incoming-form-"][id*="-actions"],
 .node--type-incoming [id^="edit-field-related-incoming-form-"][id*="-actions"],
