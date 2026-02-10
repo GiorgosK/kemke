@@ -244,11 +244,20 @@ pre {
 
 /* Keep IEF action buttons (Create/Cancel) on one row for related incoming. */
 [class*="node-incoming-"] [id^="edit-field-related-incoming-form-"][id*="-actions"],
-.node--type-incoming [id^="edit-field-related-incoming-form-"][id*="-actions"] {
+.node--type-incoming [id^="edit-field-related-incoming-form-"][id*="-actions"],
+[class*="node-incoming-"] [id^="edit-field-related-incoming-actions"],
+.node--type-incoming [id^="edit-field-related-incoming-actions"] {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+[class*="node-incoming-"] .incoming-tweaks-protocol-conflict-warning,
+.node--type-incoming .incoming-tweaks-protocol-conflict-warning {
+  flex: 0 0 100%;
+  order: -1;
+  margin-bottom: 0.5rem;
 }
 
 .kemke-reports-objective-config-form .details-wrapper,

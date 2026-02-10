@@ -24,7 +24,12 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
 
   if ($is_incoming_form) {
     $form['#after_build'][] = 'incoming_tweaks_after_build_set_remarks_add_more_label';
-    incoming_tweaks_set_remarks_add_more_label($form);
+    $form['#after_build'][] = 'incoming_tweaks_after_build_add_related_incoming_ief_overrides';
+    $form['#attached']['library'][] = 'incoming_tweaks/protocol_conflict_bypass';
+    $form['incoming_tweaks_bypass_protocol_conflict'] = [
+      '#type' => 'hidden',
+      '#value' => '0',
+    ];
   }
 
   // Skip tweaks during paragraphs add-more AJAX rebuilds to avoid breaking subforms.
@@ -65,8 +70,7 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   }
 
   if (
-    $entity instanceof NodeInterface &&
-    $entity->bundle() === 'incoming' &&
+    $is_incoming_form &&
     isset($form['field_plan']['widget']) &&
     is_array($form['field_plan']['widget'])
   ) {
@@ -75,9 +79,7 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
 
   if ($is_incoming_form) {
     $is_new_incoming = $entity->isNew();
-    if ($is_new_incoming) {
-      $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
-    }
+    $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
 
     incoming_tweaks_apply_legal_entity_hierarchy($form);
 
@@ -142,6 +144,14 @@ function incoming_tweaks_set_remarks_add_more_label_recursive(array &$element): 
  */
 function incoming_tweaks_after_build_set_remarks_add_more_label(array $form, FormStateInterface $form_state): array {
   incoming_tweaks_set_remarks_add_more_label($form);
+  return $form;
+}
+
+/**
+ * After-build hook to inject IEF protocol conflict warning/override controls.
+ */
+function incoming_tweaks_after_build_add_related_incoming_ief_overrides(array $form, FormStateInterface $form_state): array {
+  incoming_tweaks_add_related_incoming_ief_override_buttons($form, $form_state);
   return $form;
 }
 
@@ -254,30 +264,33 @@ function incoming_tweaks_validate_sender_protocol_unique_current_year(array &$fo
   if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
     return;
   }
-  if (!$entity->isNew()) {
-    return;
-  }
-  if (!$entity->isNew()) {
-    $form_state->set('incoming_tweaks_protocol_conflict_visible', FALSE);
-    return;
-  }
-
-  $protocol_value = trim((string) $form_state->getValue(['field_protocol_number_sender', 0, 'value'], ''));
-  if ($protocol_value === '') {
-    return;
-  }
-
   $trigger = $form_state->getTriggeringElement();
-  if (($trigger['#name'] ?? '') === 'override_submit') {
+  $trigger_name = incoming_tweaks_get_trigger_name($form_state);
+  if (incoming_tweaks_is_protocol_conflict_bypass_trigger($form_state, $trigger_name, is_array($trigger) ? $trigger : [])) {
+    // Consume bypass token immediately so subsequent regular clicks do not skip.
+    $form_state->setValue('incoming_tweaks_bypass_protocol_conflict', '0');
+    return;
+  }
+
+  $is_related_ief_submit = incoming_tweaks_is_related_incoming_ief_submit($trigger_name);
+  if (!$is_related_ief_submit && !$entity->isNew()) {
+    return;
+  }
+
+  $protocol_value = $is_related_ief_submit
+    ? incoming_tweaks_extract_related_incoming_ief_protocol_value($form_state)
+    : trim((string) $form_state->getValue(['field_protocol_number_sender', 0, 'value'], ''));
+  if ($protocol_value === '') {
     return;
   }
 
   $current_year = (int) (new \DateTimeImmutable('now'))->format('Y');
 
-  $current_nid = (int) ($entity->id() ?? 0);
+  $current_nid = $is_related_ief_submit ? 0 : (int) ($entity->id() ?? 0);
   $match = incoming_tweaks_find_protocol_conflict($protocol_value, $current_nid, $current_year);
   if (!$match instanceof NodeInterface) {
     $form_state->set('incoming_tweaks_protocol_conflict_visible', FALSE);
+    $form_state->set('incoming_tweaks_protocol_conflict_message', '');
     return;
   }
   $form_state->set('incoming_tweaks_protocol_conflict_visible', TRUE);
@@ -306,7 +319,11 @@ function incoming_tweaks_validate_sender_protocol_unique_current_year(array &$fo
     '@ref' => $match_label,
     '@date' => $date_label,
   ]);
-  $form_state->setErrorByName('field_protocol_number_sender', Markup::create($message));
+  $form_state->set('incoming_tweaks_protocol_conflict_message', (string) $message);
+  $error_name = $is_related_ief_submit
+    ? 'field_related_incoming][form][field_protocol_number_sender'
+    : 'field_protocol_number_sender';
+  $form_state->setErrorByName($error_name, Markup::create($message));
 }
 
 /**
@@ -355,6 +372,163 @@ function incoming_tweaks_override_protocol_conflict_submit(array &$form, FormSta
 }
 
 /**
+ * Returns TRUE when the current submit intent is protocol-conflict bypass.
+ */
+function incoming_tweaks_is_protocol_conflict_bypass_trigger(FormStateInterface $form_state, string $trigger_name, array $trigger): bool {
+  $request = \Drupal::request();
+
+  // Prefer raw POST first because IEF AJAX submit can omit unrelated values
+  // from FormState when limited validation scopes are applied.
+  if ((string) $request->request->get('incoming_tweaks_bypass_protocol_conflict', '0') === '1') {
+    return TRUE;
+  }
+
+  if ($trigger_name === 'override_submit') {
+    return TRUE;
+  }
+
+  if (!empty($trigger['#incoming_tweaks_bypass_protocol_conflict'])) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns TRUE when the trigger belongs to related incoming IEF create submit.
+ */
+function incoming_tweaks_is_related_incoming_ief_submit(string $trigger_name): bool {
+  return $trigger_name !== '' && str_starts_with($trigger_name, 'ief-add-submit-field_related_incoming-form');
+}
+
+/**
+ * Extracts sender protocol from the related incoming IEF form values.
+ */
+function incoming_tweaks_extract_related_incoming_ief_protocol_value(FormStateInterface $form_state): string {
+  $value = trim((string) $form_state->getValue(['field_related_incoming', 'form', 'field_protocol_number_sender', 0, 'value'], ''));
+  if ($value !== '') {
+    return $value;
+  }
+
+  $related_values = $form_state->getValue('field_related_incoming');
+  if (!is_array($related_values)) {
+    return '';
+  }
+
+  return incoming_tweaks_extract_protocol_from_nested_values($related_values);
+}
+
+/**
+ * Recursively finds the first non-empty protocol sender value in nested values.
+ */
+function incoming_tweaks_extract_protocol_from_nested_values(array $values): string {
+  if (isset($values['field_protocol_number_sender'][0]['value'])) {
+    $value = trim((string) $values['field_protocol_number_sender'][0]['value']);
+    if ($value !== '') {
+      return $value;
+    }
+  }
+
+  foreach ($values as $value) {
+    if (is_array($value)) {
+      $nested = incoming_tweaks_extract_protocol_from_nested_values($value);
+      if ($nested !== '') {
+        return $nested;
+      }
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Adds override buttons for related incoming IEF create actions.
+ */
+function incoming_tweaks_add_related_incoming_ief_override_buttons(array &$form, FormStateInterface $form_state): void {
+  incoming_tweaks_add_related_incoming_ief_override_buttons_recursive($form, $form_state);
+}
+
+/**
+ * Traverses form elements to add IEF override submit buttons where needed.
+ */
+function incoming_tweaks_add_related_incoming_ief_override_buttons_recursive(array &$element, FormStateInterface $form_state): void {
+  foreach (Element::children($element) as $child) {
+    if (!isset($element[$child]) || !is_array($element[$child])) {
+      continue;
+    }
+    incoming_tweaks_add_related_incoming_ief_override_buttons_recursive($element[$child], $form_state);
+  }
+
+  foreach (Element::children($element) as $child) {
+    if (empty($element[$child]) || !is_array($element[$child])) {
+      continue;
+    }
+    if (($element[$child]['#type'] ?? NULL) !== 'submit') {
+      continue;
+    }
+    $name = (string) ($element[$child]['#name'] ?? '');
+    if (!incoming_tweaks_is_related_incoming_ief_submit($name)) {
+      continue;
+    }
+    if (!isset($element[$child]['#attributes']['class']) || !is_array($element[$child]['#attributes']['class'])) {
+      $element[$child]['#attributes']['class'] = [];
+    }
+    $element[$child]['#attributes']['class'][] = 'incoming-tweaks-ief-create-original';
+    $override_key = $child . '_override_protocol_conflict';
+    $warning_key = $child . '_protocol_conflict_warning';
+    $conflict_visible = (bool) $form_state->get('incoming_tweaks_protocol_conflict_visible');
+    $default_weight = (int) ($element[$child]['#weight'] ?? 0);
+
+    if (!isset($element[$warning_key]) || !is_array($element[$warning_key])) {
+      $element[$warning_key] = [];
+    }
+    $warning_message = (string) $form_state->get('incoming_tweaks_protocol_conflict_message', '');
+    if ($warning_message === '') {
+      $warning_message = (string) t('Το πρωτόκολλο αποστολέα υπάρχει ήδη για το τρέχον έτος.<br>Αν θέλετε να το αποστείλετε ξανά, πατήστε το κουμπι παράκαμψης.');
+    }
+    $element[$warning_key] += [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['messages', 'messages--warning', 'incoming-tweaks-protocol-conflict-warning'],
+      ],
+      'text' => [
+        '#markup' => Markup::create($warning_message),
+      ],
+    ];
+    $element[$warning_key]['#access'] = $conflict_visible;
+    $element[$warning_key]['#weight'] = $default_weight - 100;
+
+    if (!isset($element[$override_key]) || !is_array($element[$override_key])) {
+      $element[$override_key] = $element[$child];
+    }
+    $element[$override_key]['#type'] = 'button';
+    unset($element[$override_key]['#submit'], $element[$override_key]['#ajax']);
+    $element[$override_key]['#value'] = t('@label (παράκαμψη ελέγχου Α.Π. Αποστολέα)', [
+      '@label' => (string) ($element[$child]['#value'] ?? t('Δημιουργία')),
+    ]);
+    $element[$override_key]['#name'] = $name . '_bypass';
+    $element[$override_key]['#incoming_tweaks_bypass_protocol_conflict'] = TRUE;
+    if (!empty($element[$child]['#id'])) {
+      $element[$override_key]['#id'] = (string) $element[$child]['#id'] . '--override';
+    }
+    if (isset($element[$override_key]['#attributes']) && is_array($element[$override_key]['#attributes'])) {
+      if (!empty($element[$override_key]['#attributes']['data-drupal-selector'])) {
+        $element[$override_key]['#attributes']['data-drupal-selector'] = (string) $element[$override_key]['#attributes']['data-drupal-selector'] . '--override';
+      }
+      if (!empty($element[$override_key]['#attributes']['id'])) {
+        $element[$override_key]['#attributes']['id'] = (string) $element[$override_key]['#attributes']['id'] . '--override';
+      }
+    }
+    $element[$override_key]['#access'] = $conflict_visible;
+    $element[$override_key]['#weight'] = $default_weight;
+    if (!isset($element[$override_key]['#attributes']['class']) || !is_array($element[$override_key]['#attributes']['class'])) {
+      $element[$override_key]['#attributes']['class'] = [];
+    }
+    $element[$override_key]['#attributes']['class'][] = 'incoming-tweaks-protocol-bypass-trigger';
+  }
+}
+
+/**
  * AJAX callback to refresh the actions area.
  */
 function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, FormStateInterface $form_state): array {
@@ -384,19 +558,26 @@ function incoming_tweaks_protocol_sender_ajax_refresh_actions(array &$form, Form
  * Returns TRUE when the current request is a remarks add-more trigger.
  */
 function incoming_tweaks_is_remarks_add_more(FormStateInterface $form_state): bool {
-  $trigger = $form_state->getTriggeringElement();
-  $trigger_name = $trigger['#name'] ?? '';
+  $trigger_name = incoming_tweaks_get_trigger_name($form_state);
   if ($trigger_name === 'field_remarks_remark_add_more') {
     return TRUE;
   }
 
-  $request = \Drupal::request();
-  $request_trigger = (string) $request->request->get('_triggering_element_name', '');
-  if ($request_trigger === 'field_remarks_remark_add_more') {
-    return TRUE;
+  return FALSE;
+}
+
+/**
+ * Resolves triggering element name with fallback for AJAX/IEF submissions.
+ */
+function incoming_tweaks_get_trigger_name(FormStateInterface $form_state): string {
+  $trigger = $form_state->getTriggeringElement();
+  $trigger_name = (string) ($trigger['#name'] ?? '');
+  if ($trigger_name !== '') {
+    return $trigger_name;
   }
 
-  return FALSE;
+  $request = \Drupal::request();
+  return (string) $request->request->get('_triggering_element_name', '');
 }
 
 
