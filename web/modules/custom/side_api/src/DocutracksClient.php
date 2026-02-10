@@ -1079,6 +1079,44 @@ final class DocutracksClient {
   }
 
   /**
+   * Fetch a group with users.
+   *
+   * This endpoint is documented in side/docs as:
+   * GET /services/organization/getGroupWithUsers/{groupId}
+   *
+   * @return array<string, mixed>
+   */
+  public function fetchGroupWithUsers(int $groupId = 1, ?\GuzzleHttp\Cookie\CookieJarInterface $jar = NULL, ?string $baseUrl = NULL, float $timeout = 30.0): array {
+    if ($groupId <= 0) {
+      throw new RuntimeException('Group id must be a positive integer.');
+    }
+
+    $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+    $jar = $jar ?? $this->loginToDocutracks(baseUrl: $resolvedBaseUrl, timeout: $timeout);
+    $verify = $this->getTlsVerify();
+
+    try {
+      $response = $this->httpClient->request('GET', $resolvedBaseUrl . '/services/organization/getGroupWithUsers/' . $groupId, [
+        'headers' => ['Accept' => 'application/json'],
+        'cookies' => $jar,
+        'timeout' => $timeout,
+        'verify' => $verify,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      throw new RuntimeException(sprintf('Group with users request failed: %s', $e->getMessage()), 0, $e);
+    }
+
+    $body = (string) $response->getBody();
+    $decoded = json_decode($body, TRUE);
+    if (!is_array($decoded)) {
+      throw new RuntimeException('Group with users response could not be decoded as JSON.');
+    }
+
+    return $decoded;
+  }
+
+  /**
    * Defaults for CreatedBy / CreatedByGroup depending on environment.
    *
    * @return array{created_by:int, created_by_group:int}

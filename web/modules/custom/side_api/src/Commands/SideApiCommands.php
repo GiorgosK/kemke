@@ -145,14 +145,48 @@ final class SideApiCommands extends DrushCommands {
   }
 
   /**
-   * Fetch the full users tree (organization structure with users).
+   * Fetch SIDE users/contacts from organization endpoints.
+   *
+   * Oldest command kept: side:users-tree.
+   *
+   * Sources:
+   * - users-tree: /services/organization/fullUsersTree
+   * - group: /services/organization/getGroupWithUsers/{groupId}
    *
    * @command side:users-tree
-   * @aliases sdut
+   * @aliases sdut,side:contacts,sdcnt,side:apostoleas,sdap
+   * @option source Data source: users-tree (default) or group.
+   * @option group-id Group id for --source=group (default 1).
+   * @option flatten Return only a flat unique list of users (0/1).
    */
-  public function getFullUsersTree(): void {
+  public function getFullUsersTree(array $options = ['source' => 'users-tree', 'group-id' => 1, 'flatten' => 0]): void {
+    $source = strtolower(trim((string) ($options['source'] ?? 'users-tree')));
+    $groupId = (int) ($options['group-id'] ?? 1);
+    $flatten = filter_var((string) ($options['flatten'] ?? '0'), FILTER_VALIDATE_BOOL);
+
     $jar = $this->client->loginToDocutracks();
+
+    if ($source === 'group') {
+      $response = $this->client->fetchGroupWithUsers($groupId, $jar);
+      if ($flatten) {
+        $this->output()->writeln(json_encode($this->flattenGroupUsers($response), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return;
+      }
+
+      $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+      return;
+    }
+
+    if ($source !== 'users-tree') {
+      throw new \InvalidArgumentException(sprintf('Unsupported --source value "%s". Use "users-tree" or "group".', $source));
+    }
+
     $response = $this->client->fetchFullUsersTree($jar);
+    if ($flatten) {
+      $this->output()->writeln(json_encode($this->flattenUsersTree($response), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+      return;
+    }
+
     $this->output()->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
   }
 
@@ -181,6 +215,74 @@ final class SideApiCommands extends DrushCommands {
     catch (\Throwable $e) {
       throw new \RuntimeException(sprintf('SIDE connection failed: %s', $e->getMessage()), 0, $e);
     }
+  }
+
+  /**
+   * Flatten users from /organization/getGroupWithUsers payload.
+   *
+   * @return array<int, array{Id:int, DisplayName:string}>
+   */
+  private function flattenGroupUsers(array $payload): array {
+    $users = [];
+    $seen = [];
+
+    foreach (($payload['Users'] ?? []) as $user) {
+      if (!is_array($user)) {
+        continue;
+      }
+      $id = (int) ($user['Id'] ?? 0);
+      if ($id <= 0 || isset($seen[$id])) {
+        continue;
+      }
+      $seen[$id] = TRUE;
+      $users[] = [
+        'Id' => $id,
+        'DisplayName' => (string) ($user['DisplayName'] ?? ''),
+      ];
+    }
+
+    return $users;
+  }
+
+  /**
+   * Flatten users from /organization/fullUsersTree payload.
+   *
+   * @return array<int, array{Id:int, DisplayName:string}>
+   */
+  private function flattenUsersTree(array $payload): array {
+    $users = [];
+    $seen = [];
+
+    $walk = function (array $node) use (&$walk, &$users, &$seen): void {
+      foreach (($node['Users'] ?? []) as $user) {
+        if (!is_array($user)) {
+          continue;
+        }
+        $id = (int) ($user['Id'] ?? 0);
+        if ($id <= 0 || isset($seen[$id])) {
+          continue;
+        }
+        $seen[$id] = TRUE;
+        $users[] = [
+          'Id' => $id,
+          'DisplayName' => (string) ($user['DisplayName'] ?? ''),
+        ];
+      }
+
+      foreach (($node['SubGroups'] ?? []) as $subGroup) {
+        if (is_array($subGroup)) {
+          $walk($subGroup);
+        }
+      }
+    };
+
+    foreach ($payload as $group) {
+      if (is_array($group)) {
+        $walk($group);
+      }
+    }
+
+    return $users;
   }
 
 }
