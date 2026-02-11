@@ -21,6 +21,7 @@ use Drupal\taxonomy\TermStorageInterface;
 final class IncomingBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
   use StringTranslationTrait;
+  use RoleAwareHomeLinkTrait;
 
   private TermStorageInterface $termStorage;
 
@@ -45,7 +46,7 @@ final class IncomingBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function build(RouteMatchInterface $route_match): Breadcrumb {
     $breadcrumb = (new Breadcrumb())
-      ->addCacheContexts(['route']);
+      ->addCacheContexts(['route', 'user.roles']);
 
     $node = $this->resolveNode($route_match);
     if (!$node instanceof NodeInterface) {
@@ -53,7 +54,7 @@ final class IncomingBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     }
 
     $breadcrumb->addCacheableDependency($node);
-    $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink($this->buildHomeLink());
 
     if ($case_term = $this->getPrimaryCaseTerm($node)) {
       foreach ($this->getCaseAncestry($case_term) as $term) {

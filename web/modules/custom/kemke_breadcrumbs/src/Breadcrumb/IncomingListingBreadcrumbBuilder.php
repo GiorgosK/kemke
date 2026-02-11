@@ -17,6 +17,7 @@ use Drupal\Core\Url;
 final class IncomingListingBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
   use StringTranslationTrait;
+  use RoleAwareHomeLinkTrait;
 
   /**
    * {@inheritdoc}
@@ -31,11 +32,11 @@ final class IncomingListingBreadcrumbBuilder implements BreadcrumbBuilderInterfa
    */
   public function build(RouteMatchInterface $route_match): Breadcrumb {
     $breadcrumb = (new Breadcrumb())
-      ->addCacheContexts(['route']);
+      ->addCacheContexts(['route', 'user.roles']);
 
     $route_name = $route_match->getRouteName();
 
-    $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink($this->buildHomeLink());
 
     // Base incoming listing.
     if ($route_name === 'view.incoming.page_1') {

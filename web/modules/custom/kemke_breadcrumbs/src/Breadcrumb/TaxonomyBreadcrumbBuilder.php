@@ -23,6 +23,7 @@ use Drupal\taxonomy\VocabularyStorageInterface;
 final class TaxonomyBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
   use StringTranslationTrait;
+  use RoleAwareHomeLinkTrait;
 
   private TermStorageInterface $termStorage;
   private VocabularyStorageInterface $vocabularyStorage;
@@ -49,7 +50,7 @@ final class TaxonomyBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function build(RouteMatchInterface $route_match): Breadcrumb {
     $breadcrumb = (new Breadcrumb())
-      ->addCacheContexts(['route']);
+      ->addCacheContexts(['route', 'user.roles']);
 
     $term = $this->resolveTerm($route_match);
     if (!$term instanceof TermInterface) {
@@ -57,7 +58,7 @@ final class TaxonomyBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     }
 
     $breadcrumb->addCacheableDependency($term);
-    $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink($this->buildHomeLink());
 
     $vocabulary = $this->resolveVocabulary($term);
     if ($vocabulary instanceof VocabularyInterface) {

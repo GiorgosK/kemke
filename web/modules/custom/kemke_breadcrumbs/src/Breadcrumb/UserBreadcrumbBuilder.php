@@ -18,6 +18,7 @@ use Drupal\user\UserInterface;
 final class UserBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
   use StringTranslationTrait;
+  use RoleAwareHomeLinkTrait;
 
   /**
    * {@inheritdoc}
@@ -36,7 +37,7 @@ final class UserBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function build(RouteMatchInterface $route_match): Breadcrumb {
     $breadcrumb = (new Breadcrumb())
-      ->addCacheContexts(['route']);
+      ->addCacheContexts(['route', 'user.roles']);
 
     $account = $this->resolveUser($route_match);
     if (!$account instanceof UserInterface) {
@@ -44,7 +45,7 @@ final class UserBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     }
 
     $breadcrumb->addCacheableDependency($account);
-    $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink($this->buildHomeLink());
 
     $display_name = $this->buildUserTitle($account);
 

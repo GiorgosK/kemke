@@ -20,6 +20,7 @@ use Drupal\taxonomy\TermStorageInterface;
 final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
 
   use StringTranslationTrait;
+  use RoleAwareHomeLinkTrait;
 
   private TermStorageInterface $termStorage;
 
@@ -44,11 +45,11 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function build(RouteMatchInterface $route_match): Breadcrumb {
     $breadcrumb = (new Breadcrumb())
-      ->addCacheContexts(['route']);
+      ->addCacheContexts(['route', 'user.roles']);
 
     // Handle /cases listing breadcrumb.
     if ($route_match->getRouteName() === 'view.cases.page_1') {
-      $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+      $breadcrumb->addLink($this->buildHomeLink());
       $breadcrumb->addLink(Link::fromTextAndUrl($this->t('Υποθέσεις'), Url::fromRoute('<nolink>')));
       return $breadcrumb;
     }
@@ -59,7 +60,7 @@ final class CaseBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     }
 
     $breadcrumb->addCacheableDependency($term);
-    $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
+    $breadcrumb->addLink($this->buildHomeLink());
     $breadcrumb->addLink(Link::fromTextAndUrl(
       $this->t('Υποθέσεις'),
       Url::fromRoute('view.cases.page_1'),
