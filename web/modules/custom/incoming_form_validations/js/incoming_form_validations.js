@@ -76,6 +76,18 @@
       type: 'checkbox',
       value: 'checked',
     };
+  const ruleSignatureChecked =
+    {
+      selector: '#edit-field-signature-rejection-signature',
+      type: 'checkbox',
+      value: 'checked',
+    };
+  const ruleRejectionChecked =
+    {
+      selector: '#edit-field-signature-rejection-rejection',
+      type: 'checkbox',
+      value: 'checked',
+    };
 
   const ruleSets = {
     baseAssignment: [
@@ -298,6 +310,15 @@
         },],
       },
     ],
+    SignatureRejectionDateVis: [
+      {
+        selector: '#edit-field-signature-rejection-date-wrapper',
+        rules: [{
+            type: 'hideIf',
+            valueNotAND: [ruleSignatureChecked, ruleRejectionChecked],
+        },],
+      },
+    ],
     PendingIssuesRequiresLegalEntity: [
       {
         selector: '#edit-moderation-state-pending-issues',
@@ -377,6 +398,7 @@
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
       ...ruleSets.ExtensionDateVis,
+      ...ruleSets.SignatureRejectionDateVis,
       ...ruleSets.PendingIssuesRequiresLegalEntity,
     ],
     // amke_user: [
