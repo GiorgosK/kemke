@@ -219,7 +219,10 @@ function kemke_reports_get_objective_filters(string $objective_key): array {
     ],
     'objective_3' => [
       'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
-      'field_signature_rejection' => 'signature',
+      'field_signature_rejection' => [
+        'operator' => '<>',
+        'value' => '',
+      ],
     ],
     'objective_4' => [
       'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
