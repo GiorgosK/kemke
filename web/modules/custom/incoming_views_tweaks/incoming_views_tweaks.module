@@ -25,7 +25,19 @@ function incoming_views_tweaks_views_query_alter(ViewExecutable $view, Sql $quer
   }
 
   $current_user = \Drupal::currentUser();
-  if (!in_array('operator', $current_user->getRoles(), TRUE)) {
+  $roles = $current_user->getRoles();
+  $is_kemke_admin = in_array('kemke_admin', $roles, TRUE);
+  $is_secretariat = in_array('secretariat', $roles, TRUE);
+  $is_department_supervisor = in_array('department_supervisor', $roles, TRUE);
+  $is_director_supervisor = in_array('director_supervisor', $roles, TRUE);
+  $is_operator = in_array('operator', $roles, TRUE);
+
+  // Admin, director supervisor and $is_secretariat should see all results.
+  if ($is_kemke_admin || $is_director_supervisor || $is_secretariat) {
+    return;
+  }
+
+  if (!$is_department_supervisor && !$is_operator) {
     return;
   }
 
@@ -39,24 +51,41 @@ function incoming_views_tweaks_views_query_alter(ViewExecutable $view, Sql $quer
     return;
   }
 
-  $query->addWhereExpression(
-    0,
-    "(
-      EXISTS (
+  if ($is_department_supervisor) {
+    $query->addWhereExpression(
+      0,
+      "EXISTS (
         SELECT 1
-        FROM {node__field_operators} nfo
-        WHERE nfo.entity_id = $base_alias.nid
-          AND nfo.deleted = 0
-          AND nfo.field_operators_target_id = :incoming_views_tweaks_uid
-      )
-      OR EXISTS (
-        SELECT 1
-        FROM {node__field_basic_operator} nfbo
-        WHERE nfbo.entity_id = $base_alias.nid
-          AND nfbo.deleted = 0
-          AND nfbo.field_basic_operator_target_id = :incoming_views_tweaks_uid
-      )
-    )",
-    [':incoming_views_tweaks_uid' => $uid]
-  );
+        FROM {node__field_supervisor} nfs
+        WHERE nfs.entity_id = $base_alias.nid
+          AND nfs.deleted = 0
+          AND nfs.field_supervisor_target_id = :incoming_views_tweaks_uid
+      )",
+      [':incoming_views_tweaks_uid' => $uid]
+    );
+    return;
+  }
+
+  if ($is_operator) {
+    $query->addWhereExpression(
+      0,
+      "(
+        EXISTS (
+          SELECT 1
+          FROM {node__field_operators} nfo
+          WHERE nfo.entity_id = $base_alias.nid
+            AND nfo.deleted = 0
+            AND nfo.field_operators_target_id = :incoming_views_tweaks_uid
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM {node__field_basic_operator} nfbo
+          WHERE nfbo.entity_id = $base_alias.nid
+            AND nfbo.deleted = 0
+            AND nfbo.field_basic_operator_target_id = :incoming_views_tweaks_uid
+        )
+      )",
+      [':incoming_views_tweaks_uid' => $uid]
+    );
+  }
 }
