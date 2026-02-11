@@ -154,6 +154,17 @@
                 tab_button_active_class: 'selected',
                 indicator: 'div',
               },
+              {
+                selector: '#opinion-ref-id-field, #edit-field-opinion-ref-id-0-value',
+                type: 'input',
+                // Required only for incoming type = Γνωμοδότηση (value 3).
+                requires: {
+                  valueIs: [ruleIncTypeGnomodotisi],
+                },
+                tab_button_links: ['#edit-group-status'],
+                tab_button_active_class: 'selected',
+                indicator: 'input',
+              },
             ],
           },
           {
@@ -720,6 +731,27 @@
     return notOr || notAnd || isOr || isAnd;
   };
 
+  const isConfigActive = (config) => {
+    if (!config || !config.requires) {
+      return true;
+    }
+    return shouldHideByRequirements(config.requires);
+  };
+
+  const getRequirementWatchers = (requirement) => {
+    if (!requirement) {
+      return [];
+    }
+    return [
+      ...(requirement.valueNotOR || []),
+      ...(requirement.valueNotAND || []),
+      ...(requirement.valueNot || []),
+      ...(requirement.valueIsOR || []),
+      ...(requirement.valueIsAND || []),
+      ...(requirement.valueIs || []),
+    ];
+  };
+
   const ensureTabOpen = (config) => {
     const tabButtons = getTabButtonsToOpen(config);
     if (!tabButtons.length) {
@@ -744,7 +776,9 @@
     if (!tabButton) {
       return true;
     }
-    const related = (rule.emptyFields || []).filter((cfg) => getTabButtonsToOpen(cfg).includes(tabButton));
+    const related = (rule.emptyFields || [])
+      .filter((cfg) => isConfigActive(cfg))
+      .filter((cfg) => getTabButtonsToOpen(cfg).includes(tabButton));
     if (!related.length) {
       return true;
     }
@@ -777,6 +811,9 @@
     let hasEmpty = false;
 
     (rule.emptyFields || []).forEach((config) => {
+      if (!isConfigActive(config)) {
+        return;
+      }
       const field = document.querySelector(config.selector);
       const indicator = resolveIndicator(field, config.indicator);
       const empty = isEmpty(field, config);
@@ -819,7 +856,7 @@
 
     const refresh = () => updateButtonState(button, rule);
 
-    (rule.emptyFields || []).forEach((config) => {
+    const attachFieldWatcher = (config) => {
       const field = document.querySelector(config.selector);
       if (field) {
         const events = ['input', 'change', 'blur', 'keyup'];
@@ -843,8 +880,24 @@
           }
         }
       }
-      else {
+    };
+
+    const watchers = [];
+    (rule.emptyFields || []).forEach((config) => {
+      watchers.push(config);
+      watchers.push(...getRequirementWatchers(config.requires));
+    });
+    const seen = new Set();
+    watchers.forEach((config) => {
+      if (!config || !config.selector) {
+        return;
       }
+      const key = `${config.selector}::${config.type || ''}`;
+      if (seen.has(key)) {
+        return;
+      }
+      seen.add(key);
+      attachFieldWatcher(config);
     });
 
     button.addEventListener('click', (event) => {
@@ -857,6 +910,9 @@
       document.querySelectorAll('.ifv-missing').forEach((el) => clearHighlight(el));
 
       (rule.emptyFields || []).forEach((config) => {
+        if (!isConfigActive(config)) {
+          return;
+        }
         const field = document.querySelector(config.selector);
         const indicator = resolveIndicator(field, config.indicator);
         const tabButtons = getTabButtonsToOpen(config);
