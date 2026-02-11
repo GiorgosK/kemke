@@ -334,8 +334,11 @@ function kemke_reports_is_on_time(NodeInterface $node, string $objective_key = '
     }
   }
 
+  $extension_enabled = (bool) ($node->get('field_extension')->value ?? FALSE);
   if (!$deadline) {
-    $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline_ext');
+    if ($extension_enabled) {
+      $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline_ext');
+    }
   }
   if (!$deadline) {
     $deadline = kemke_reports_get_first_date_value($node, 'field_legal_deadline');
