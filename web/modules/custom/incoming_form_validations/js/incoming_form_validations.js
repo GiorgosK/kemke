@@ -167,9 +167,32 @@
               },
             ],
           },
+        ],
+      },
+    ],
+    OpinionRefIdVis: [
+      {
+        selector: '.field--name-field-opinion-ref-id',
+        rules: [
           {
             type: 'hideIf',
-            valueNot: [ruleIncTypePlan],
+            valueNot: [ruleIncTypeGnomodotisi],
+          },
+          
+        ],
+      },
+    ],    
+    OpinionRefIdDisabled: [
+      {
+        selector: [
+          '#opinion-ref-id-field',
+          '#edit-field-opinion-ref-id-0-value',
+          '#edit-field-opinion-ref-id-0-opinion-ref-id-tweaks-generate',
+        ],
+        rules: [
+          {
+            type: 'disableIf',
+            valueNot: [ruleDocStatusUnderProcessing],
           },
         ],
       },
@@ -225,17 +248,6 @@
           {
             type: 'hideIf',
             valueNot: [ruleIncTypePlan],
-          },
-        ],
-      },
-    ],
-    OpinionRefIdVis: [
-      {
-        selector: '.field--name-field-opinion-ref-id',
-        rules: [
-          {
-            type: 'hideIf',
-            valueNot: [ruleIncTypeGnomodotisi, ruleDocStatusUnderProcessing],
           },
         ],
       },
@@ -399,6 +411,7 @@
       ...ruleSets.TabEEVis,
       ...ruleSets.TabPlanVis,
       ...ruleSets.baseForCompleted,
+      ...ruleSets.OpinionRefIdDisabled,
       ...ruleSets.OpinionRefIdVis,
       ...ruleSets.EditGroupSubtypeVis,
       ...ruleSets.SubtypeHierarchyVis,
@@ -928,6 +941,82 @@
     refresh();
   };
 
+  const applyDisabled = (selector, rule) => {
+    const el = document.querySelector(selector);
+    const hasConditions =
+      (rule.valueNotOR && rule.valueNotOR.length) ||
+      (rule.valueNot && rule.valueNot.length) ||
+      (rule.valueNotAND && rule.valueNotAND.length) ||
+      (rule.valueIsOR && rule.valueIsOR.length) ||
+      (rule.valueIs && rule.valueIs.length) ||
+      (rule.valueIsAND && rule.valueIsAND.length);
+    if (!el || !hasConditions) {
+      return;
+    }
+    const shouldDisable = shouldHideByRequirements(rule);
+    const isLink = el.tagName === 'A';
+    if (shouldDisable) {
+      if (isLink) {
+        if (!el.dataset.ifvOriginalTabindex) {
+          el.dataset.ifvOriginalTabindex = el.getAttribute('tabindex') ?? '';
+        }
+        el.setAttribute('tabindex', '-1');
+        el.style.pointerEvents = 'none';
+      }
+      else {
+        el.setAttribute('disabled', 'disabled');
+      }
+    }
+    else if (isLink) {
+      const originalTabindex = el.dataset.ifvOriginalTabindex ?? '';
+      if (originalTabindex === '') {
+        el.removeAttribute('tabindex');
+      }
+      else {
+        el.setAttribute('tabindex', originalTabindex);
+      }
+      delete el.dataset.ifvOriginalTabindex;
+      el.style.pointerEvents = '';
+    }
+    else {
+      el.removeAttribute('disabled');
+    }
+    el.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
+    (rule.toggleclasses || []).forEach((cls) => el.classList.toggle(cls, shouldDisable));
+  };
+
+  const attachDisableHandler = (selector, rule) => {
+    const watchers = [
+      ...(rule.valueNotOR || []),
+      ...(rule.valueNotAND || []),
+      ...(rule.valueNot || []),
+      ...(rule.valueIsOR || []),
+      ...(rule.valueIsAND || []),
+      ...(rule.valueIs || []),
+    ];
+    if (!watchers.length) {
+      return;
+    }
+    watchers.forEach((cfg) => {
+      const field = document.querySelector(cfg.selector);
+      if (!field) {
+        return;
+      }
+      const events = ['input', 'change', 'blur', 'keyup'];
+      const handler = () => applyDisabled(selector, rule);
+      events.forEach((evt) => field.addEventListener(evt, handler));
+
+      if (cfg.type === 'select2' && window.jQuery) {
+        const $field = window.jQuery(field);
+        if (typeof $field.on === 'function') {
+          $field.on('select2:select select2:unselect select2:clear select2:close select2:opening select2:closing select2:open', handler);
+        }
+      }
+    });
+
+    applyDisabled(selector, rule);
+  };
+
   const applyVisibility = (selector, rule) => {
     const el = document.querySelector(selector);
     const hasConditions =
@@ -1050,6 +1139,7 @@
         selectors.forEach((selector) => pairs.push([selector, withRequires]));
       });
     });
+
     return pairs;
   };
 
@@ -1063,6 +1153,10 @@
           attachVisibilityHandler(selector, rule);
           return;
         }
+        if (rule.type === 'disableIf') {
+          attachDisableHandler(selector, rule);
+          return;
+        }
         if (rule.type === 'showWhenFilled') {
           attachShowWhenFilled(selector, rule);
           return;
@@ -1074,6 +1168,9 @@
         rules.forEach(([selector, rule]) => {
           if (rule.type === 'hideIf') {
             applyVisibility(selector, rule);
+          }
+          else if (rule.type === 'disableIf') {
+            applyDisabled(selector, rule);
           }
           else if (rule.type === 'showWhenFilled') {
             showWhenFilled(selector, rule);
@@ -1091,6 +1188,9 @@
         rules.forEach(([selector, rule]) => {
           if (rule.type === 'hideIf') {
             applyVisibility(selector, rule);
+          }
+          else if (rule.type === 'disableIf') {
+            applyDisabled(selector, rule);
           }
           else if (rule.type === 'showWhenFilled') {
             showWhenFilled(selector, rule);
