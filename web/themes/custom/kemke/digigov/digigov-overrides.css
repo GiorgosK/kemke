@@ -242,7 +242,7 @@ pre {
   margin-top: 0.5rem;
 }
 
-[id*="edit-field-related-incoming-form-"] label {
+[for^="edit-field-related-incoming-form-"][for*="-entity-id--"] {
   display: none;
 }
 
