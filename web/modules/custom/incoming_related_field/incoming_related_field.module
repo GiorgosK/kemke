@@ -442,6 +442,7 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
   }
 
   try {
+    $input = $form_state->getUserInput();
     $sender_protocol = $sender_protocol_name ? trim((string) ($input[$sender_protocol_name] ?? '')) : '';
     $result = incoming_related_field_send_file_to_side($file, [
       'title' => incoming_related_field_build_doc_title($file, ['parent_node_id' => $node_id]),
@@ -892,9 +893,18 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
   /** @var \Drupal\side_api\DocutracksClient $client */
   $client = \Drupal::service('side_api.docutracks_client');
   $payload = $client->prepareRegisterPayload($doc_payload, $real_path, [], $type_id);
-  if (!empty($options['field_protocol_number_sender'])) {
-    $payload['field_protocol_number_sender'] = $options['field_protocol_number_sender'];
+  $sender_protocol = trim((string) ($options['field_protocol_number_sender'] ?? ''));
+  if ($sender_protocol !== '') {
+    $payload['field_protocol_number_sender'] = $sender_protocol;
   }
+
+  \Drupal::logger('incoming_related_field')->info('SIDE register start for file @fid (@name), sender_protocol_present=@has_sender, sender_protocol=@sender', [
+    '@fid' => (string) $file->id(),
+    '@name' => $file->getFilename(),
+    '@has_sender' => $sender_protocol === '' ? '0' : '1',
+    '@sender' => $sender_protocol === '' ? '-' : $sender_protocol,
+  ]);
+
   $jar = $client->loginToDocutracks();
   $response = $client->registerDocument($payload, $jar);
 
@@ -902,10 +912,15 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
     throw new RuntimeException('Docutracks returned an unsuccessful response.');
   }
 
-  $document_id = (int) ($response['DocumentReference'] ?? 0);
+  $document_id = incoming_related_field_extract_registered_document_id($response);
   if (!$document_id) {
-    throw new RuntimeException('Docutracks did not return a document reference.');
+    throw new RuntimeException('Docutracks did not return a document reference (DocumentReference/Document.Id).');
   }
+
+  \Drupal::logger('incoming_related_field')->notice('SIDE register success for file @fid, document_id=@doc_id', [
+    '@fid' => (string) $file->id(),
+    '@doc_id' => (string) $document_id,
+  ]);
 
   $doc = $client->fetchDocument((string) $document_id, $jar);
   $generated_file_id = (int) ($client->extractValueByPath($doc, 'Document.GeneratedFile.Id') ?? 0);
@@ -927,6 +942,28 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
     'document' => $doc,
     'response' => $response,
   ];
+}
+
+/**
+ * Extract the registered Docutracks document id from common response shapes.
+ */
+function incoming_related_field_extract_registered_document_id(array $response): int {
+  $direct = (int) ($response['DocumentReference'] ?? 0);
+  if ($direct > 0) {
+    return $direct;
+  }
+
+  $from_document = (int) (($response['Document']['Id'] ?? 0));
+  if ($from_document > 0) {
+    return $from_document;
+  }
+
+  $from_data_document = (int) (($response['Data']['Document']['Id'] ?? 0));
+  if ($from_data_document > 0) {
+    return $from_data_document;
+  }
+
+  return 0;
 }
 
 /**
