@@ -11,7 +11,7 @@ id: node.incoming.field_on_time_obj3
 field_name: field_on_time_obj3
 entity_type: node
 bundle: incoming
-label: 'Εμπρόθεσμο Στόχος 1'
+label: 'Εμπρόθεσμο Στόχος 3'
 description: ''
 required: false
 translatable: false
