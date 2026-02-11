@@ -50,7 +50,6 @@ dependencies:
     - user
     - views_data_export
     - views_entity_reference_select2
-    - views_year_filters
     - xls_serialization
 id: incoming
 label: Incoming
@@ -7079,49 +7078,6 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: '2025'
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
-            description: ''
-            use_operator: false
-            operator: field_entry_date_value_year_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: entry
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          year_min: 2025
-          year_max: current
         field_case_target_id:
           id: field_case_target_id
           table: node__field_case
@@ -7342,6 +7298,51 @@ display:
           reference_arguments: ''
           hide_empty_filter: true
           minimum_input_length: 0
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
       filter_groups:
         operator: AND
         groups:
