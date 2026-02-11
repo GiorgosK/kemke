@@ -171,7 +171,7 @@ body.user-notifications table.govgr-table-simple > tbody > tr > td:nth-child(4),
   font-size: 15px;  
 }
 .region-header #notify_widget>a {
-  background-image: url(../images/icons/bell.svg) !important;
+  background-image: url(../images/icons/bell-h2.svg) !important;
   background-size: 24px 24px;
   background-position: center;
   background-repeat: no-repeat;

@@ -20,25 +20,25 @@
 }
 
 .kemke-account-menu .kemke-menu-icon--report {
-  background-image: url(../../images/icons/report.svg?v=1.0.3);
+  background-image: url(../../images/icons/report-h2.svg);
 }
 
 .kemke-account-menu .kemke-menu-icon--case {
-  background-image: url(../../images/icons/case.svg?v=1.0.3);
+  background-image: url(../../images/icons/case-h2.svg);
 }
 
 .kemke-account-menu .kemke-menu-icon--incoming {
-  background-image: url(../../images/icons/incoming.svg?v=1.0.3);
+  background-image: url(../../images/icons/incoming-h2.svg);
 }
 
 .kemke-account-menu .kemke-menu-icon--login {
-  background-image: url(../../images/icons/login.svg?v=1.0.3);
+  background-image: url(../../images/icons/login-h2.svg);
 }
 
 .kemke-account-menu .kemke-menu-icon--logout {
-  background-image: url(../../images/icons/logout.svg?v=1.0.3);
+  background-image: url(../../images/icons/logout-h2.svg);
 }
 
 .kemke-account-menu .kemke-menu-icon--manual {
-  background-image: url(../../images/icons/manual.svg?v=1.0.3);
+  background-image: url(../../images/icons/manual-h2.svg);
 }
