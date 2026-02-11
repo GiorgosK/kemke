@@ -1,5 +1,5 @@
 {
-    "_hash": "c3f00a017c9004a6e268a7b38251cf4f32b5e0ef85eabc9177642e1e87b7dd38",
+    "_hash": "a5091ecd0359a20251e02fd0c83384502443375f24006e293ad0c5939e3a858e",
     "patches": {
         "drupal/core": [
             {
@@ -41,28 +41,6 @@
                 "description": "Skip buttons missing transition metadata",
                 "url": "patches/workflow_buttons-missing-transition-data.patch",
                 "sha256": "3bf39b084bbcd5ef98912aa06d4515a1ae7af404b70f4eaa1149846e42ceaecf",
-                "depth": 1,
-                "extra": {
-                    "provenance": "root"
-                }
-            }
-        ],
-        "drupal/notify_widget": [
-            {
-                "package": "drupal/notify_widget",
-                "description": "Add mark all as read action",
-                "url": "patches/notify_widget-mark-all-read.patch",
-                "sha256": "97981604a44745a70512b2b30cff78c8dadf3b4b91a9d238d2718402d05fbd28",
-                "depth": 1,
-                "extra": {
-                    "provenance": "root"
-                }
-            },
-            {
-                "package": "drupal/notify_widget",
-                "description": "Add paging and purge settings",
-                "url": "patches/notify_widget-paging-purge.patch",
-                "sha256": "02d14c1d52de1a89e918881efb73ca8222168011aa12b68c50c86920578c2825",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
