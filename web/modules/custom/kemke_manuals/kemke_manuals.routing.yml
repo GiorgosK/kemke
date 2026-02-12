@@ -1,7 +1,7 @@
 kemke_manuals.manual:
   path: '/manual'
   defaults:
-    _controller: '\Drupal\kemke_manuals\Controller\ManualController::redirectToManual'
+    _controller: '\Drupal\kemke_manuals\Controller\ManualController::manualPage'
     _title: 'User manual'
   requirements:
     _user_is_logged_in: 'TRUE'

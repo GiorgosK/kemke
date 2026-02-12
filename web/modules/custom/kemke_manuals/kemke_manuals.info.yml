@@ -1,5 +1,5 @@
 name: KEMKE Manuals
 type: module
-description: Provides a role-based /manual redirect for user manuals.
+description: Provides a role-based /manual page for user resources.
 core_version_requirement: ^10 || ^11
 package: Custom
