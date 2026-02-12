@@ -27,6 +27,12 @@
     {
       selector: '#edit-field-incoming-type',
       type: 'select',
+      value: ['2'], //ΕΕ
+    };
+  const ruleIncTypeEENoti = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
       value: ['2', '5','6'], //ΕΕ, Κοινοποιήση και Γνωστοποιήση
     };
   const ruleIncTypeNone = 
@@ -263,7 +269,7 @@
         selector: '#edit-group-subtype',
         rules: [{
             type: 'hideIf',
-            valueNotAND: [ruleIncTypeOpinion,ruleIncTypeEE],
+            valueNotAND: [ruleIncTypeEE],
         },],
       },
     ],
