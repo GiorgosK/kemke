@@ -4,3 +4,7 @@ services:
     arguments: ['@entity_type.manager']
     tags:
       - { name: module_install.uninstall_validator, priority: 100 }
+  greek_holidays.working_day_calculator:
+    class: Drupal\greek_holidays\Service\WorkingDayCalculator
+  greek_holidays.form_date_calculator_attacher:
+    class: Drupal\greek_holidays\Service\FormDateCalculatorAttacher

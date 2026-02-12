@@ -38,3 +38,10 @@ greek_holidays.delete_form:
     _title: 'Delete holiday'
   requirements:
     _permission: 'delete holiday entities'
+
+greek_holidays.calculate_date_after:
+  path: /greek_holidays/calculate-date-after
+  defaults:
+    _controller: '\Drupal\greek_holidays\Controller\DateCalculationController::calculateDateAfter'
+  requirements:
+    _permission: 'access content'

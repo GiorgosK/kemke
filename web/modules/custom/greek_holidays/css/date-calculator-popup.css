@@ -1,0 +1,63 @@
+.greek-holidays-calc-host {
+  position: relative;
+}
+
+.greek-holidays-calc-trigger-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+}
+
+.greek-holidays-calc-trigger {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.greek-holidays-calc-dialog {
+  border: 0;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  width: min(420px, 92vw);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.greek-holidays-calc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.greek-holidays-calc-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.greek-holidays-calc-dialog__title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.greek-holidays-calc-dialog__close {
+  border: 0;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.4rem;
+}
+
+.greek-holidays-calc-dialog__body {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.greek-holidays-calc-dialog__actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
