@@ -47,6 +47,12 @@
       type: 'select',
       value: ['5','6'], // Κοινοποιήση και Γνωστοποιήση
     };
+  const ruleIncTypeEEKoinopProKoinop = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['2','5','42'], // ΕΕ, Κοινοποιήση και Προκοινοποιήση
+    };
   const ruleButtonUndeprocessingStay = 
     {
       selector: '#edit-moderation-state-under-processing',
@@ -315,6 +321,15 @@
         },],
       },
     ],
+    RequestedDeadlineDateVis: [
+      {
+        selector: '.field--name-field-requested-deadline',
+        rules: [{
+            type: 'hideIf',
+            valueIs: [ruleIncTypeEEKoinopProKoinop],
+        },],
+      },
+    ],
     SubtypeDateVis: [
       {
         selector: '.field--name-field-subtype-date',
@@ -418,6 +433,7 @@
       ...ruleSets.GroupSignatureRejecionVis,
       ...ruleSets.GroupReportCasesVis,
       ...ruleSets.GroupExtensionVis,
+      ...ruleSets.RequestedDeadlineDateVis,
       ...ruleSets.SubtypeDateVis,
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
