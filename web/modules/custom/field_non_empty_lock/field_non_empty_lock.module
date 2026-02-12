@@ -643,6 +643,11 @@ function field_non_empty_lock_boolean_false_is_empty(EntityInterface $entity, ar
  */
 function field_non_empty_lock_disable_widget(array &$widget) {
   $widget['#disabled'] = TRUE;
+  // Prevent browser validation errors for hidden/locked required controls.
+  $widget['#required'] = FALSE;
+  if (isset($widget['#attributes']['required'])) {
+    unset($widget['#attributes']['required']);
+  }
   foreach (Element::children($widget) as $child) {
     if (is_array($widget[$child])) {
       field_non_empty_lock_disable_widget($widget[$child]);
