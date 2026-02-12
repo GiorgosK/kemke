@@ -96,6 +96,10 @@
   display: none;
 }
 
+.field-group-fieldset .field--name-field-start-date h4.label {
+  display: block;
+}
+
 .full-width-flexbox {
   width: 100%;
   display: flex;

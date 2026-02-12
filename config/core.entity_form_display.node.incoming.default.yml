@@ -49,6 +49,7 @@ dependencies:
     - field.field.node.incoming.field_sender
     - field.field.node.incoming.field_signature_rejection
     - field.field.node.incoming.field_signature_rejection_date
+    - field.field.node.incoming.field_start_date
     - field.field.node.incoming.field_subject
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
@@ -103,7 +104,7 @@ third_party_settings:
       label: Υπεύθυνοι
       region: content
       parent_name: group_tabs
-      weight: 18
+      weight: 17
       format_type: tab
       format_settings:
         classes: ''
@@ -120,7 +121,6 @@ third_party_settings:
         - field_taa_project
         - field_thematic_unit
         - field_transparency_requirement
-        - field_working_days
       label: EE
       region: content
       parent_name: group_tabs
@@ -222,7 +222,7 @@ third_party_settings:
       label: Υπόθεση
       region: content
       parent_name: group_tabs
-      weight: 17
+      weight: 16
       format_type: tab
       format_settings:
         classes: ''
@@ -273,7 +273,7 @@ third_party_settings:
       label: 'Ακριβες Αντίγραφο'
       region: content
       parent_name: group_tabs
-      weight: 20
+      weight: 19
       format_type: tab
       format_settings:
         classes: ''
@@ -323,7 +323,7 @@ third_party_settings:
       label: Παράταση
       region: content
       parent_name: group_document_type
-      weight: 26
+      weight: 27
       format_type: fieldset
       format_settings:
         classes: ''
@@ -370,6 +370,7 @@ third_party_settings:
         - group_incoming_type
         - group_subtype
         - group_signature_rejection
+        - group_ee_noti
         - group_extension
       label: 'Τύπος εγγράφου'
       region: content
@@ -396,7 +397,7 @@ third_party_settings:
       label: Various
       region: content
       parent_name: group_status
-      weight: 26
+      weight: 27
       format_type: html_element
       format_settings:
         classes: full-width-flexbox
@@ -417,7 +418,7 @@ third_party_settings:
       label: Απάντηση
       region: content
       parent_name: group_tabs
-      weight: 19
+      weight: 18
       format_type: tab
       format_settings:
         classes: ''
@@ -452,7 +453,7 @@ third_party_settings:
       label: Απάντηση
       region: content
       parent_name: group_answer
-      weight: 19
+      weight: 21
       format_type: tabs
       format_settings:
         classes: ''
@@ -470,7 +471,23 @@ third_party_settings:
       label: Εμπρόθεσμο
       region: content
       parent_name: group_status
-      weight: 29
+      weight: 30
+      format_type: fieldset
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        description: ''
+        required_fields: true
+    group_ee_noti:
+      children:
+        - field_start_date
+        - field_working_days
+      label: 'ΕΕ  Κοινοποιήση Προκοινοποιήση'
+      region: content
+      parent_name: group_document_type
+      weight: 26
       format_type: fieldset
       format_settings:
         classes: ''
@@ -603,7 +620,7 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 28
+    weight: 29
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -659,7 +676,7 @@ content:
     third_party_settings: {  }
   field_on_time_obj5:
     type: options_select
-    weight: 12
+    weight: 13
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -780,7 +797,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
-    weight: 27
+    weight: 28
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -816,6 +833,12 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_signature_rejection_date:
+    type: datetime_default
+    weight: 8
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_start_date:
     type: datetime_default
     weight: 8
     region: content
@@ -889,7 +912,7 @@ content:
     third_party_settings: {  }
   field_working_days:
     type: number
-    weight: 28
+    weight: 9
     region: content
     settings:
       placeholder: ''
@@ -943,7 +966,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 1
+    weight: 2
     region: content
     settings:
       match_operator: CONTAINS

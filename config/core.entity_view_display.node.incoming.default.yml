@@ -49,6 +49,7 @@ dependencies:
     - field.field.node.incoming.field_sender
     - field.field.node.incoming.field_signature_rejection
     - field.field.node.incoming.field_signature_rejection_date
+    - field.field.node.incoming.field_start_date
     - field.field.node.incoming.field_subject
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
@@ -541,34 +542,6 @@ content:
     third_party_settings: {  }
     weight: 18
     region: content
-  field_on_time_obj1:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 36
-    region: content
-  field_on_time_obj2:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 37
-    region: content
-  field_on_time_obj3:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 38
-    region: content
-  field_on_time_obj5:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 39
-    region: content
   field_operators:
     type: entity_reference_entity_view
     label: above
@@ -694,6 +667,15 @@ content:
     third_party_settings: {  }
     weight: 23
     region: content
+  field_start_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 36
+    region: content
   field_subject:
     type: text_default
     label: above
@@ -775,6 +757,10 @@ hidden:
   field_documents: true
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
+  field_on_time_obj1: true
+  field_on_time_obj2: true
+  field_on_time_obj3: true
+  field_on_time_obj5: true
   field_primary: true
   field_protocol_date: true
   field_protocol_number_doc: true

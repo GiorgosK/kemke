@@ -50,6 +50,7 @@ dependencies:
     - field.field.node.incoming.field_sender
     - field.field.node.incoming.field_signature_rejection
     - field.field.node.incoming.field_signature_rejection_date
+    - field.field.node.incoming.field_start_date
     - field.field.node.incoming.field_subject
     - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
@@ -210,6 +211,7 @@ hidden:
   field_sani_user: true
   field_signature_rejection: true
   field_signature_rejection_date: true
+  field_start_date: true
   field_subtype_date: true
   field_supervisor: true
   field_tags: true

@@ -9,7 +9,7 @@ id: node.incoming.field_working_days
 field_name: field_working_days
 entity_type: node
 bundle: incoming
-label: 'Working days'
+label: 'Αριθμός εργάσιμων ημερών '
 description: ''
 required: false
 translatable: false

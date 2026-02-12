@@ -1,0 +1,21 @@
+uuid: 78a2d335-a2dd-4f8d-bedd-0f24f97d8c1d
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_start_date
+    - node.type.incoming
+  module:
+    - datetime
+id: node.incoming.field_start_date
+field_name: field_start_date
+entity_type: node
+bundle: incoming
+label: 'Ημερομηνία έναρξης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime
