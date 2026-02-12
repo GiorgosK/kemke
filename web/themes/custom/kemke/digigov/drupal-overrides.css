@@ -95,7 +95,7 @@
 .field-group-fieldset fieldset > legend {
   display: none;
 }
-
+.field-group-fieldset .field--name-field-extension-date h4.label,
 .field-group-fieldset .field--name-field-start-date h4.label {
   display: block;
 }
