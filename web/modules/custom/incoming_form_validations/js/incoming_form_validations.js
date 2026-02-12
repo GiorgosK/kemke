@@ -267,6 +267,15 @@
         },],
       },
     ],
+    EditGroupEEnotiVis: [
+      {
+        selector: '#edit-group-ee-noti',
+        rules: [{
+            type: 'hideIf',
+            valueNot: [ruleIncTypeEEKoinopProKoinop],
+        },],
+      },
+    ],
     SubtypeHierarchyVis: [
       {
         selector: '.form-item-field-incoming-subtype-60',
@@ -317,7 +326,7 @@
         selector: '#edit-group-extension',
         rules: [{
             type: 'hideIf',
-            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE],
+            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE,ruleIncTypeEEKoinopProKoinop],
         },],
       },
     ],
@@ -429,6 +438,7 @@
       ...ruleSets.OpinionRefIdDisabled,
       ...ruleSets.OpinionRefIdVis,
       ...ruleSets.EditGroupSubtypeVis,
+      ...ruleSets.EditGroupEEnotiVis,
       ...ruleSets.SubtypeHierarchyVis,
       ...ruleSets.GroupSignatureRejecionVis,
       ...ruleSets.GroupReportCasesVis,
