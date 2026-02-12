@@ -26,6 +26,12 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
     $form['#after_build'][] = 'incoming_tweaks_after_build_set_remarks_add_more_label';
     $form['#after_build'][] = 'incoming_tweaks_after_build_add_related_incoming_ief_overrides';
     $form['#attached']['library'][] = 'incoming_tweaks/protocol_conflict_bypass';
+    \Drupal::service('greek_holidays.form_date_calculator_attacher')->attachToFormFields($form, [
+      'field_legal_deadline',
+      'field_extension_date',
+      'field_requested_deadline',
+      'field_interim_deadline',
+    ]);
     $form['incoming_tweaks_bypass_protocol_conflict'] = [
       '#type' => 'hidden',
       '#value' => '0',
