@@ -1,0 +1,5 @@
+services:
+  opinion_ref_id_tweaks.commands:
+    class: Drupal\opinion_ref_id_tweaks\Commands\OpinionRefIdTweaksCommands
+    tags:
+      - { name: drush.command }

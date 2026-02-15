@@ -17,8 +17,8 @@ class OpinionRefIdAjaxController extends ControllerBase {
    * Generates the next reference ID and updates the example field.
    */
   public function generateNext(): AjaxResponse {
-    $candidate = opinion_ref_id_tweaks_generate_reference_id();
     $request = \Drupal::request();
+    $candidate = opinion_ref_id_tweaks_generate_reference_id();
     $target = trim((string) $request->query->get('target'));
 
     $response = new AjaxResponse();

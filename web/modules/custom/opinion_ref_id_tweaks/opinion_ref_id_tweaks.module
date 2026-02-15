@@ -129,7 +129,7 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
 
   $controls_prefix = '<div class="opinion-ref-id-controls">' .
     '<a class="use-ajax opinion-ref-id-generate" data-dialog-type="ajax" data-opinion-ref-id-target="' . Html::escape($field['#attributes']['id']) . '" href="' . Html::escape($generate_url) . '">' . t('Get next') . '</a>' .
-    ' <a href="' . Html::escape($opinions_url) . '" target="_blank" rel="noopener noreferrer">Όλες οι Γνωμοδότησεις</a>';
+    ' <a href="' . Html::escape($opinions_url) . '" target="_blank" rel="noopener noreferrer">Όλες οι Γνωμοδοτήσεις</a>';
 
   $form['field_opinion_ref_id']['widget'][0]['#attributes']['class'][] = 'container-inline';
   $form['field_opinion_ref_id']['widget'][0]['opinion_ref_id_bypass_check'] = [
@@ -155,6 +155,10 @@ function opinion_ref_id_tweaks_opinion_ref_id_element_validate(array &$element, 
   }
 
   $entity = $form_state->getFormObject()->getEntity();
+  if (!opinion_ref_id_tweaks_should_validate_changed_value($entity, $value)) {
+    return;
+  }
+
   $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
   if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
     $form_state->setError($element, t('Ο Αριθμός Γνωμοδότησης @actual_number ειναι ήδη σε χρήση.', [
@@ -204,11 +208,14 @@ function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterfac
   }
 
   $entity = $form_state->getFormObject()->getEntity();
-  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
+  if (!opinion_ref_id_tweaks_should_validate_changed_value($entity, $value)) {
+    return;
+  }
 
+  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
   if (!opinion_ref_id_tweaks_is_valid_current_year_reference_format($value)) {
     $current_year = (int) (new DrupalDateTime('now'))->format('Y');
-    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι στη μορφή ΓΝ5-@year.', [
+    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι της μορφής ΓΝ5-@year.', [
       '@year' => $current_year,
     ]));
     return;
@@ -220,7 +227,7 @@ function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterfac
     $expected_next = opinion_ref_id_tweaks_generate_reference_id();
     if ($value !== $expected_next) {
       $expected_sequence = opinion_ref_id_tweaks_extract_sequence_for_current_year($expected_next) ?? 0;
-      $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσθαθήστε ξανά', [
+      $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσπαθήστε ξανά', [
         '@expected_sequence' => $expected_sequence,
         '@expected_next' => $expected_next,
         '@actual_number' => $value,
@@ -262,9 +269,10 @@ function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
-  $bypass = opinion_ref_id_tweaks_request_has_bypass_flag();
-
-  if (!$entity->hasField('field_incoming_type') || $entity->get('field_incoming_type')->isEmpty() || (int) $entity->get('field_incoming_type')->target_id !== 3) {
+  // Skip strict opinion ref validation for programmatic/background saves
+  // (reports, batch operations, etc.) where the opinion field is not being
+  // submitted through the node form request.
+  if (!opinion_ref_id_tweaks_request_contains_opinion_ref_submission()) {
     return;
   }
 
@@ -273,7 +281,18 @@ function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
   }
 
   $value = trim((string) $entity->get('field_opinion_ref_id')->value);
+  // Empty opinion ref values are always allowed on presave.
   if ($value === '') {
+    return;
+  }
+
+  if (!opinion_ref_id_tweaks_should_validate_changed_value($entity, $value)) {
+    return;
+  }
+
+  $bypass = opinion_ref_id_tweaks_request_has_bypass_flag();
+
+  if (!$entity->hasField('field_incoming_type') || $entity->get('field_incoming_type')->isEmpty() || (int) $entity->get('field_incoming_type')->target_id !== 3) {
     return;
   }
 
@@ -286,7 +305,7 @@ function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
 
   if (!opinion_ref_id_tweaks_is_valid_current_year_reference_format($value)) {
     $current_year = (int) (new DrupalDateTime('now'))->format('Y');
-    throw new EntityStorageException((string) t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι στη μορφή ΓΝ5-@year.', [
+    throw new EntityStorageException((string) t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι της μορφής ΓΝ5-@year.', [
       '@year' => $current_year,
     ]));
   }
@@ -295,7 +314,7 @@ function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
     $expected_next = opinion_ref_id_tweaks_generate_reference_id();
     if ($value !== $expected_next) {
       $expected_sequence = opinion_ref_id_tweaks_extract_sequence_for_current_year($expected_next) ?? 0;
-      throw new EntityStorageException((string) t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσθαθήστε ξανά', [
+      throw new EntityStorageException((string) t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσπαθήστε ξανά', [
         '@expected_sequence' => $expected_sequence,
         '@expected_next' => $expected_next,
         '@actual_number' => $value,
@@ -343,8 +362,52 @@ function opinion_ref_id_tweaks_form_state_has_bypass_flag(FormStateInterface $fo
 }
 
 /**
+ * Checks whether current request includes submitted opinion ref field values.
+ */
+function opinion_ref_id_tweaks_request_contains_opinion_ref_submission(): bool {
+  $request = \Drupal::requestStack()->getCurrentRequest();
+  if (!$request) {
+    return FALSE;
+  }
+
+  return $request->request->has('field_opinion_ref_id');
+}
+
+/**
  * Checks if an opinion reference matches ΓΝ{number}-{currentYear}.
  */
 function opinion_ref_id_tweaks_is_valid_current_year_reference_format(string $value): bool {
   return opinion_ref_id_tweaks_extract_sequence_for_current_year($value) !== NULL;
+}
+
+/**
+ * Checks if field_opinion_ref_id changed compared to stored entity value.
+ */
+function opinion_ref_id_tweaks_should_validate_changed_value(?EntityInterface $entity, string $new_value): bool {
+  if (!$entity || $entity->isNew()) {
+    return TRUE;
+  }
+
+  if (!$entity->hasField('field_opinion_ref_id')) {
+    return FALSE;
+  }
+
+  $new_value = trim($new_value);
+
+  $original_value = NULL;
+  if (isset($entity->original) && $entity->original instanceof EntityInterface && $entity->original->hasField('field_opinion_ref_id')) {
+    $original_value = trim((string) $entity->original->get('field_opinion_ref_id')->value);
+  }
+  else {
+    $stored = \Drupal::entityTypeManager()->getStorage('node')->loadUnchanged($entity->id());
+    if ($stored && $stored->hasField('field_opinion_ref_id')) {
+      $original_value = trim((string) $stored->get('field_opinion_ref_id')->value);
+    }
+  }
+
+  if ($original_value === NULL) {
+    return TRUE;
+  }
+
+  return $new_value !== $original_value;
 }
