@@ -31,14 +31,9 @@ For standard objectives (everything except objective 4/5 special branch):
 
 1. Read completion date (objective definition `completion_fields`, in order).
    - If missing => `FALSE`.
-2. Build deadline by checking `deadline_fields` in order:
-   - **A. Config-based deadline from fullness check date using `{objective}.deadline_days_for_report`**
-     - If `deadline_days_for_report > 0` and `field_fullness_check_date` exists:
-       - deadline = `greek_holidays_calculate_date_after(field_fullness_check_date, days)`
-   - **B. `field_legal_deadline_ext`** (if A missing)
-   - **C. `field_legal_deadline`** (if A and B missing)
-   - **D. Fallback to `{objective}.deadline_days_default`** (Objectives 1, 2, 3 only)
-     - Used only if A/B/C did not produce a deadline and `field_fullness_check_date` exists.
+2. Build deadline by checking `deadline_fields` in order.
+   - `field` entries use the corresponding date field directly.
+   - `config_days` entries are optional and only used if explicitly included in the objective definition.
 3. If no deadline found => `FALSE`.
 4. Compare dates:
    - On time if `completion_date <= deadline`.

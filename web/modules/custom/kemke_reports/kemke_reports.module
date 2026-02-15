@@ -217,10 +217,10 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'completion_fields' => ['field_completion_date'],
         'comparison' => '<=',
         'deadline_fields' => [
-          // Use configured "days for report" from fullness check date.
-          [
-            'config_days' => 'deadline_days_for_report',
-          ],
+          // Optional: use configured days from start date.
+          // Uncomment to include in on-time calculation order.
+          // ['config_days' => 'deadline_days_for_report'],
+
           // If extension is enabled, use the extension legal deadline.
           [
             'field' => 'field_legal_deadline_ext',
@@ -230,10 +230,8 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
           [
             'field' => 'field_legal_deadline',
           ],
-          // Final fallback: use default configured days from fullness check date.
-          [
-            'config_days' => 'deadline_days_default',
-          ],
+          // Optional fallback: default configured days from start date.
+          // ['config_days' => 'deadline_days_default'],
         ],
       ],
     ],
@@ -251,17 +249,11 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'comparison' => '<=',
         'deadline_fields' => [
           [
-            'config_days' => 'deadline_days_for_report',
-          ],
-          [
             'field' => 'field_legal_deadline_ext',
             'requires' => 'field_extension',
           ],
           [
             'field' => 'field_legal_deadline',
-          ],
-          [
-            'config_days' => 'deadline_days_default',
           ],
         ],
       ],
@@ -282,17 +274,11 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'comparison' => '<=',
         'deadline_fields' => [
           [
-            'config_days' => 'deadline_days_for_report',
-          ],
-          [
             'field' => 'field_legal_deadline_ext',
             'requires' => 'field_extension',
           ],
           [
             'field' => 'field_legal_deadline',
-          ],
-          [
-            'config_days' => 'deadline_days_default',
           ],
         ],
       ],
@@ -539,23 +525,37 @@ function kemke_reports_resolve_deadline_from_definition(NodeInterface $node, str
     }
 
     if (!empty($source_definition['config_days'])) {
-      $config_key = (string) $source_definition['config_days'];
-      $days = (int) ($config->get($objective_key . '.' . $config_key) ?? 0);
-      if ($days <= 0) {
-        continue;
+      $deadline = kemke_reports_get_deadline_from_config_days(
+        $node,
+        $config,
+        $objective_key,
+        (string) $source_definition['config_days'],
+        (array) ($source_definition['start_date_field'] ?? $calculation['start_date_field'] ?? [])
+      );
+      if ($deadline) {
+        return $deadline;
       }
-
-      $start_fields = (array) ($source_definition['start_date_field'] ?? $calculation['start_date_field'] ?? []);
-      $start_date = kemke_reports_get_first_date_from_ordered_fields($node, $start_fields);
-      if (!$start_date) {
-        continue;
-      }
-
-      return greek_holidays_calculate_date_after($start_date, $days);
     }
   }
 
   return NULL;
+}
+
+/**
+ * Builds a deadline from configured day offset and start date fields.
+ */
+function kemke_reports_get_deadline_from_config_days(NodeInterface $node, \Drupal\Core\Config\ImmutableConfig $config, string $objective_key, string $config_key, array $start_fields): ?DrupalDateTime {
+  $days = (int) ($config->get($objective_key . '.' . $config_key) ?? 0);
+  if ($days <= 0) {
+    return NULL;
+  }
+
+  $start_date = kemke_reports_get_first_date_from_ordered_fields($node, $start_fields);
+  if (!$start_date) {
+    return NULL;
+  }
+
+  return greek_holidays_calculate_date_after($start_date, $days);
 }
 
 /**
