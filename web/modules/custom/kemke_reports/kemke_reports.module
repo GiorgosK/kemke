@@ -199,42 +199,108 @@ function kemke_reports_get_on_time_field_for_objective(string $objective_key): s
 }
 
 /**
- * Returns standardized incoming filters for a report objective.
+ * Returns centralized objective calculation definitions.
  */
-function kemke_reports_get_objective_filters(string $objective_key): array {
+function kemke_reports_get_objective_calculation_definition(string $objective_key): array {
   return match ($objective_key) {
     'objective_1' => [
-      'field_incoming_type' => 'Γνωμοδότηση',
-      'field_completion_date_not_empty' => TRUE,
-      'field_incoming_subtype' => [
-        'operator' => '<>',
-        'value' => 60, // Αίτημα από ιεραρχία
-        'include_null' => TRUE,
+      'filters' => [
+        'field_incoming_type' => 'Γνωμοδότηση',
+        'field_completion_date_not_empty' => TRUE,
+        'field_incoming_subtype' => [
+          'operator' => '<>',
+          'value' => 60, // Αίτημα από ιεραρχία
+          'include_null' => TRUE,
+        ],
       ],
+      'completion_field' => 'field_completion_date',
+      'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_1'),
     ],
     'objective_2' => [
-      'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-      'field_completion_date_not_empty' => TRUE,
-      'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
+      'filters' => [
+        'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
+        'field_completion_date_not_empty' => TRUE,
+        'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
+      ],
+      'completion_field' => 'field_completion_date',
+      'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_2'),
     ],
     'objective_3' => [
-      'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
-      'field_signature_rejection' => [
-        'operator' => '<>',
-        'value' => '',
+      'filters' => [
+        'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
+        'field_signature_rejection' => [
+          'operator' => '<>',
+          'value' => '',
+        ],
       ],
+      'completion_field' => 'field_signature_rejection_date',
+      'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_3'),
     ],
     'objective_4' => [
-      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-      'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
+      'filters' => [
+        'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+        'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
+      ],
+      'completion_field' => 'field_completion_date',
+      'on_time_field' => NULL,
     ],
     'objective_5' => [
-      'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-      'field_completion_date_not_empty' => TRUE,
-      'field_incoming_subtype' => 61, // Ανάκτηση
+      'filters' => [
+        'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+        'field_completion_date_not_empty' => TRUE,
+        'field_incoming_subtype' => 61, // Ανάκτηση
+      ],
+      'completion_field' => 'field_subtype_date',
+      'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_5'),
     ],
     default => [],
   };
+}
+
+/**
+ * Returns standardized incoming filters for a report objective.
+ */
+function kemke_reports_get_objective_filters(string $objective_key): array {
+  $definition = kemke_reports_get_objective_calculation_definition($objective_key);
+  return $definition['filters'] ?? [];
+}
+
+/**
+ * Recalculates on-time values for selected objectives and returns update counts.
+ *
+ * @return array<string, int>
+ *   Updated counts keyed by objective key.
+ */
+function kemke_reports_incoming_recalculate_on_time(array $objective_keys, int $year, bool $force_recalculate = FALSE, bool $only_not_calculated = FALSE, string $state = 'published'): array {
+  $updated_by_objective = [];
+
+  foreach (array_unique($objective_keys) as $objective_key) {
+    $definition = kemke_reports_get_objective_calculation_definition((string) $objective_key);
+    if (empty($definition)) {
+      continue;
+    }
+
+    $on_time_field = $definition['on_time_field'] ?? NULL;
+    if (!$on_time_field) {
+      continue;
+    }
+
+    $conditions = $definition['filters'] ?? [];
+    if ($only_not_calculated) {
+      $conditions[$on_time_field . '.value'] = 'not_calculated';
+    }
+
+    $updated_by_objective[$objective_key] = kemke_reports_incoming_set_on_time_for(
+      $conditions,
+      $state,
+      $force_recalculate,
+      $objective_key,
+      (string) ($definition['completion_field'] ?? 'field_completion_date'),
+      $year
+    );
+  }
+
+  return $updated_by_objective;
 }
 
 /**

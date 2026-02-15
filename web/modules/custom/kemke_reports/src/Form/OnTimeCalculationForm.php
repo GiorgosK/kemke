@@ -137,47 +137,25 @@ class OnTimeCalculationForm extends FormBase {
     $recalculate_all = (bool) $form_state->getValue('recalculate_all');
     $year = (int) $form_state->getValue('year');
     $selected_objectives = array_filter($form_state->getValue('objectives') ?? []);
+    $selected_objective_keys = array_values($selected_objectives);
     $this->state->set('kemke_reports.last_on_time_settings', [
       'year' => $year,
-      'objectives' => array_values($selected_objectives),
+      'objectives' => $selected_objective_keys,
       'recalculate_all' => $recalculate_all,
     ]);
-    $objective_1_filters = kemke_reports_get_objective_filters('objective_1');
-    $objective_2_filters = kemke_reports_get_objective_filters('objective_2');
-    $objective_3_filters = kemke_reports_get_objective_filters('objective_3');
-    $objective_5_filters = kemke_reports_get_objective_filters('objective_5');
-    if (!$recalculate_all) {
-      // Only update items not calculated yet.
-      $objective_1_filters['field_on_time_obj1.value'] = 'not_calculated';
-      $objective_2_filters['field_on_time_obj2.value'] = 'not_calculated';
-      $objective_3_filters['field_on_time_obj3.value'] = 'not_calculated';
-      $objective_5_filters['field_on_time_obj5.value'] = 'not_calculated';
-    }
-
-    $updated_objective_1 = 0;
-    $updated_objective_2 = 0;
-    $updated_objective_3 = 0;
-    $updated_objective_5 = 0;
-
-    if (in_array('objective_1', $selected_objectives, TRUE)) {
-      $updated_objective_1 = kemke_reports_incoming_set_on_time_for($objective_1_filters, 'published', $recalculate_all, 'objective_1', 'field_completion_date', $year);
-    }
-    if (in_array('objective_2', $selected_objectives, TRUE)) {
-      $updated_objective_2 = kemke_reports_incoming_set_on_time_for($objective_2_filters, 'published', $recalculate_all, 'objective_2', 'field_completion_date', $year);
-    }
-    if (in_array('objective_3', $selected_objectives, TRUE)) {
-      $updated_objective_3 = kemke_reports_incoming_set_on_time_for($objective_3_filters, 'published', $recalculate_all, 'objective_3', 'field_signature_rejection_date', $year);
-    }
-    if (in_array('objective_5', $selected_objectives, TRUE)) {
-      $updated_objective_5 = kemke_reports_incoming_set_on_time_for($objective_5_filters, 'published', $recalculate_all, 'objective_5', 'field_subtype_date', $year);
-    }
+    $updated_by_objective = kemke_reports_incoming_recalculate_on_time(
+      $selected_objective_keys,
+      $year,
+      $recalculate_all,
+      !$recalculate_all
+    );
     $this->state->set('kemke_reports.last_on_time_run', $this->time->getCurrentTime());
 
     // Clear cached results so the next report reflects new calculations.
     $this->tempStoreFactory->get('kemke_reports')->delete('last_result');
 
     $this->messenger()->addStatus($this->t('On time values recalculated (@count updated).', [
-      '@count' => $updated_objective_1 + $updated_objective_2 + $updated_objective_3 + $updated_objective_5,
+      '@count' => array_sum($updated_by_objective),
     ]));
   }
 
