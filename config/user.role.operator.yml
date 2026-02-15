@@ -6,7 +6,6 @@ dependencies:
     - filter.format.full_html
     - node.type.incoming
     - taxonomy.vocabulary.case
-    - taxonomy.vocabulary.tags
     - workflows.workflow.incoming_processing
   module:
     - activities_mods
@@ -32,7 +31,6 @@ permissions:
   - 'change own username'
   - 'create incoming content'
   - 'create terms in case'
-  - 'create terms in tags'
   - 'edit any incoming content'
   - 'edit own field_notifications'
   - 'edit terms in case'

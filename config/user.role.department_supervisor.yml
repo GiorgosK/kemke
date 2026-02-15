@@ -7,13 +7,13 @@ dependencies:
     - node.type.incoming
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.legal_entity
-    - taxonomy.vocabulary.tags
     - workflows.workflow.incoming_processing
   module:
     - activities_mods
     - content_moderation
     - field_permissions
     - filter
+    - incoming_change_state
     - kemke_reports
     - node
     - node_view_permissions
@@ -32,16 +32,15 @@ permissions:
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'
+  - 'change to arbitary state'
   - 'create incoming content'
   - 'create terms in case'
   - 'create terms in legal_entity'
-  - 'create terms in tags'
   - 'edit any incoming content'
   - 'edit field_serial_number'
   - 'edit own field_notifications'
   - 'edit terms in case'
   - 'edit terms in legal_entity'
-  - 'edit terms in tags'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'
   - 'use incoming_processing transition fullness_approved'

@@ -7,7 +7,6 @@ dependencies:
     - node.type.incoming
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.legal_entity
-    - taxonomy.vocabulary.tags
     - workflows.workflow.incoming_processing
   module:
     - activities_mods
@@ -38,14 +37,12 @@ permissions:
   - 'create incoming content'
   - 'create terms in case'
   - 'create terms in legal_entity'
-  - 'create terms in tags'
   - 'edit any incoming content'
   - 'edit field_serial_number'
   - 'edit field_temporary_disabled'
   - 'edit own field_notifications'
   - 'edit terms in case'
   - 'edit terms in legal_entity'
-  - 'edit terms in tags'
   - 'setup reports'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'

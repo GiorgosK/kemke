@@ -754,9 +754,6 @@ function field_non_empty_lock_get_node_field_map() {
       'field_subject' => [
         'lock_always_roles' => ['director_supervisor', 'department_supervisor', 'operator'],
       ],
-      'field_tags' => [
-        'lock_always_roles' => ['director_supervisor', 'department_supervisor', 'operator', 'secretariat'],
-      ],
       'field_supervisor' => [
         'lock_always_roles' => ['department_supervisor', 'operator'],
       ],
