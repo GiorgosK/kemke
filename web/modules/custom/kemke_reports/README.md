@@ -1,12 +1,13 @@
-# KEMKE Reports: `kemke_reports_is_on_time` calculation
+# KEMKE Reports: definition-driven on-time calculation
 
 This document explains how **On Time** is calculated for incoming items.
 
 ## Where the calculation runs
 
-- Core function: `kemke_reports_is_on_time()` in `web/modules/custom/kemke_reports/kemke_reports.module`.
+- Core function: `kemke_reports_evaluate_objective_on_time()` in `web/modules/custom/kemke_reports/kemke_reports.module`.
 - It is executed by `kemke_reports_incoming_set_on_time_for()` (bulk recalculation).
 - The admin form `OnTimeCalculationForm` chooses objectives, year, and whether to recalculate all.
+- Objective-specific rules are centralized in `kemke_reports_get_objective_calculation_definition()`.
 
 ## Final result
 
@@ -28,9 +29,9 @@ If not recalculated yet, items may remain `not_calculated` (depending on form op
 
 For standard objectives (everything except objective 4/5 special branch):
 
-1. Read completion date (objective-specific field passed to the function).
+1. Read completion date (objective definition `completion_fields`, in order).
    - If missing => `FALSE`.
-2. Build deadline using this priority:
+2. Build deadline by checking `deadline_fields` in order:
    - **A. Config-based deadline from fullness check date using `{objective}.deadline_days_for_report`**
      - If `deadline_days_for_report > 0` and `field_fullness_check_date` exists:
        - deadline = `greek_holidays_calculate_date_after(field_fullness_check_date, days)`
@@ -40,8 +41,7 @@ For standard objectives (everything except objective 4/5 special branch):
      - Used only if A/B/C did not produce a deadline and `field_fullness_check_date` exists.
 3. If no deadline found => `FALSE`.
 4. Compare dates:
-   - On time only if `completion_date < deadline`.
-   - **Important:** equality is **not** on time (`completion_date == deadline` => `FALSE`).
+   - On time if `completion_date <= deadline`.
 
 ## Special logic (Objectives 4 and 5 branch)
 
@@ -63,7 +63,7 @@ Again, comparison is strict (`>`), so equal dates are not on time.
 
 ## Objective-specific recalculation in current form
 
-The admin form currently recalculates these objectives with these completion fields:
+Current objective definitions use these completion fields:
 
 - Objective 1: completion = `field_completion_date`
 - Objective 2: completion = `field_completion_date`
