@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
+use Drupal\Component\Utility\Html;
 
 /**
  * Builds the opinion reference ID, e.g. "ΓΝ-2025-1".
@@ -161,26 +163,45 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
   $field = &$form['field_opinion_ref_id']['widget'][0]['value'];
   $field['#attributes']['id'] = $field['#attributes']['id'] ?? 'opinion-ref-id-field';
 
-  $form['field_opinion_ref_id']['widget'][0]['opinion_ref_id_tweaks_generate'] = [
-    '#type' => 'link',
-    '#title' => t('Get next'),
-    '#url' => Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
-      'query' => [
-        '_wrapper_format' => 'drupal_ajax',
-        'target' => $field['#attributes']['id'],
-      ],
-    ]),
-    '#attributes' => [
-      'class' => ['use-ajax', 'opinion-ref-id-generate'],
-      'data-dialog-type' => 'ajax',
-      'data-opinion-ref-id-target' => $field['#attributes']['id'],
+  $generate_url = Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
+    'query' => [
+      '_wrapper_format' => 'drupal_ajax',
+      'target' => $field['#attributes']['id'],
     ],
-    '#weight' => 10,
-  ];
+  ])->toString();
+
+  $field['#suffix'] = ($field['#suffix'] ?? '') . ' <a class="use-ajax opinion-ref-id-generate" data-dialog-type="ajax" data-opinion-ref-id-target="' . Html::escape($field['#attributes']['id']) . '" href="' . Html::escape($generate_url) . '">' . t('Get next') . '</a>';
 
   $form['field_opinion_ref_id']['widget'][0]['#attributes']['class'][] = 'container-inline';
 
+  $form['#after_build'][] = 'opinion_ref_id_tweaks_after_build_fix_missing_parents';
   $form['#validate'][] = 'opinion_ref_id_tweaks_incoming_validate';
+}
+
+/**
+ * After-build callback to avoid FormState::getError() notices.
+ */
+function opinion_ref_id_tweaks_after_build_fix_missing_parents(array $form, FormStateInterface $form_state): array {
+  opinion_ref_id_tweaks_fill_missing_parents($form);
+  return $form;
+}
+
+/**
+ * Recursively fill missing #parents based on current tree path.
+ */
+function opinion_ref_id_tweaks_fill_missing_parents(array &$element, array $tree_path = []): void {
+  if (!isset($element['#parents']) || !is_array($element['#parents'])) {
+    $element['#parents'] = isset($element['#array_parents']) && is_array($element['#array_parents'])
+      ? $element['#array_parents']
+      : $tree_path;
+  }
+
+  foreach (Element::children($element) as $child_key) {
+    if (!isset($element[$child_key]) || !is_array($element[$child_key])) {
+      continue;
+    }
+    opinion_ref_id_tweaks_fill_missing_parents($element[$child_key], array_merge($tree_path, [(string) $child_key]));
+  }
 }
 
 /**
@@ -207,7 +228,7 @@ function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterfac
 
   $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
   if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
-    $form_state->setErrorByName('field_opinion_ref_id', t('This opinion reference ID already exists.'));
+    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('This opinion reference ID already exists.'));
     return;
   }
 
