@@ -221,13 +221,20 @@
             type: 'button',
             disabled: true,
             toggleclasses: ['govgr-btn--disabled', 'is-disabled'],
-            emptyFields: [
+            emptyFieldsOneOf: [
               {
                 selector: '[data-drupal-selector="edit-field-answer-files"]',
                 type: 'file',
                 tab_button_links: ['#edit-group-answer', '#edit-group-no-plan'],
                 tab_button_active_class: 'selected',
                 indicator: 'div',
+              },
+              {
+                selector: '[data-drupal-selector="edit-field-answer-0-value"]',
+                type: 'ckeditor',
+                tab_button_links: ['#edit-group-answer', '#edit-group-no-plan'],
+                tab_button_active_class: 'selected',
+                indicator: '.ck-editor',
               },
             ],
           },
@@ -563,6 +570,14 @@
     return !el.value;
   }
 
+  const getCkEditorEditable = (field) => {
+    if (!field) {
+      return null;
+    }
+    const formItem = field.closest('.js-form-item, .form-item') || field.parentElement;
+    return formItem?.querySelector('.ck-editor__editable') || null;
+  };
+
   const isEmpty = (el, config = {}) => {
     const hasNonEmptyFids = (root) => {
       if (!root || typeof root.querySelectorAll !== 'function') {
@@ -598,6 +613,13 @@
     }
     if (!el) {
       return true;
+    }
+    if (config.type === 'ckeditor') {
+      const editable = getCkEditorEditable(el);
+      if (editable) {
+        const text = String(editable.textContent || '').replace(/\u00a0/g, ' ').trim();
+        return text === '';
+      }
     }
     if (config.type === 'file' || el.type === 'file') {
       if (hasNonEmptyFids(el) || hasNonEmptyFids(el.closest('.js-form-managed-file, .js-form-item, details'))) {
@@ -653,6 +675,17 @@
     indicator.classList.remove('ifv-missing');
     indicator.style.outline = '';
     indicator.style.outlineOffset = '';
+  };
+
+  const clearHighlightTargets = (field, indicator) => {
+    clearHighlight(indicator);
+    if (field && field !== indicator) {
+      clearHighlight(field);
+    }
+    const formItem = field?.closest('.js-form-item, .form-item');
+    if (formItem) {
+      formItem.querySelectorAll('.ifv-missing').forEach((el) => clearHighlight(el));
+    }
   };
 
   const getTabButton = (config) => {
@@ -783,6 +816,10 @@
     return shouldHideByRequirements(config.requires);
   };
 
+  const getActiveRuleFields = (rule, key = 'emptyFields') => {
+    return (rule[key] || []).filter((cfg) => isConfigActive(cfg));
+  };
+
   const getRequirementWatchers = (requirement) => {
     if (!requirement) {
       return [];
@@ -821,16 +858,22 @@
     if (!tabButton) {
       return true;
     }
-    const related = (rule.emptyFields || [])
-      .filter((cfg) => isConfigActive(cfg))
+    const related = getActiveRuleFields(rule, 'emptyFields')
       .filter((cfg) => getTabButtonsToOpen(cfg).includes(tabButton));
-    if (!related.length) {
+    const relatedOneOf = getActiveRuleFields(rule, 'emptyFieldsOneOf')
+      .filter((cfg) => getTabButtonsToOpen(cfg).includes(tabButton));
+    if (!related.length && !relatedOneOf.length) {
       return true;
     }
-    return related.every((cfg) => {
+    const allFilled = related.every((cfg) => {
       const field = document.querySelector(cfg.selector);
       return !isEmpty(field, cfg);
     });
+    const oneOfFilled = relatedOneOf.length === 0 || relatedOneOf.some((cfg) => {
+      const field = document.querySelector(cfg.selector);
+      return !isEmpty(field, cfg);
+    });
+    return allFilled && oneOfFilled;
   };
 
   const scrollToField = (field) => {
@@ -855,10 +898,10 @@
     const tabStatus = new Map();
     let hasEmpty = false;
 
-    (rule.emptyFields || []).forEach((config) => {
-      if (!isConfigActive(config)) {
-        return;
-      }
+    const requiredAllFields = getActiveRuleFields(rule, 'emptyFields');
+    const requiredOneOfFields = getActiveRuleFields(rule, 'emptyFieldsOneOf');
+
+    requiredAllFields.forEach((config) => {
       const field = document.querySelector(config.selector);
       const indicator = resolveIndicator(field, config.indicator);
       const empty = isEmpty(field, config);
@@ -879,6 +922,38 @@
         }
       });
     });
+
+    if (requiredOneOfFields.length) {
+      const oneOfState = requiredOneOfFields.map((config) => {
+        const field = document.querySelector(config.selector);
+        const indicator = resolveIndicator(field, config.indicator);
+        const empty = isEmpty(field, config);
+        return { config, empty, indicator };
+      });
+
+      const oneOfFilled = oneOfState.some((state) => !state.empty);
+      if (!oneOfFilled) {
+        hasEmpty = true;
+      }
+      else {
+        // One-of requirement is satisfied; clear stale highlights for all members.
+        oneOfState.forEach(({ config, indicator }) => {
+          const field = document.querySelector(config.selector);
+          clearHighlightTargets(field, indicator);
+        });
+      }
+
+      oneOfState.forEach(({ config }) => {
+        getTabButtonsToOpen(config).forEach((tabButton) => {
+          if (!tabStatus.has(tabButton)) {
+            tabStatus.set(tabButton, true);
+          }
+          if (!oneOfFilled) {
+            tabStatus.set(tabButton, false);
+          }
+        });
+      });
+    }
 
     tabStatus.forEach((filled, tabButton) => {
       if (filled) {
@@ -907,13 +982,14 @@
         const events = ['input', 'change', 'blur', 'keyup'];
         const handler = () => {
           if (!isEmpty(field, config)) {
-            clearHighlight(resolveIndicator(field, config.indicator));
+            clearHighlightTargets(field, resolveIndicator(field, config.indicator));
             getTabButtonsToOpen(config).forEach((tabButton) => {
               if (tabFieldsFilled(tabButton, rule)) {
                 clearHighlight(tabButton);
               }
             });
           }
+
           refresh();
         };
         events.forEach((evt) => field.addEventListener(evt, handler));
@@ -924,11 +1000,33 @@
             $field.on('select2:select select2:unselect select2:clear select2:close select2:opening select2:closing select2:open', handler);
           }
         }
+
+        if (config.type === 'ckeditor') {
+          const bindEditableListeners = () => {
+            const editable = getCkEditorEditable(field);
+            if (!editable || editable.dataset.ifvCkeditorWatchAttached === 'true') {
+              return;
+            }
+            editable.dataset.ifvCkeditorWatchAttached = 'true';
+            ['input', 'change', 'blur', 'keyup', 'focusout'].forEach((evt) => editable.addEventListener(evt, handler));
+            const observer = new MutationObserver(handler);
+            observer.observe(editable, {
+              characterData: true,
+              childList: true,
+              subtree: true,
+            });
+          };
+
+          bindEditableListeners();
+          [100, 300, 800, 1500].forEach((delay) => {
+            window.setTimeout(bindEditableListeners, delay);
+          });
+        }
       }
     };
 
     const watchers = [];
-    (rule.emptyFields || []).forEach((config) => {
+    [...(rule.emptyFields || []), ...(rule.emptyFieldsOneOf || [])].forEach((config) => {
       watchers.push(config);
       watchers.push(...getRequirementWatchers(config.requires));
     });
@@ -954,10 +1052,7 @@
       // Clear any previous indicators before adding new ones.
       document.querySelectorAll('.ifv-missing').forEach((el) => clearHighlight(el));
 
-      (rule.emptyFields || []).forEach((config) => {
-        if (!isConfigActive(config)) {
-          return;
-        }
+      getActiveRuleFields(rule, 'emptyFields').forEach((config) => {
         const field = document.querySelector(config.selector);
         const indicator = resolveIndicator(field, config.indicator);
         const tabButtons = getTabButtonsToOpen(config);
@@ -968,6 +1063,34 @@
           scrollToField(indicator || field || button);
         }
       });
+
+      const oneOfFields = getActiveRuleFields(rule, 'emptyFieldsOneOf');
+      if (oneOfFields.length) {
+        const oneOfState = oneOfFields.map((config) => {
+          const field = document.querySelector(config.selector);
+          return {
+            config,
+            field,
+            indicator: resolveIndicator(field, config.indicator),
+            empty: isEmpty(field, config),
+          };
+        });
+        const oneOfFilled = oneOfState.some((state) => !state.empty);
+        if (!oneOfFilled) {
+          oneOfState.forEach(({ config, field, indicator, empty }) => {
+            const tabButtons = getTabButtonsToOpen(config);
+            if (empty) {
+              addHighlight(indicator || field);
+            }
+            tabButtons.forEach((tabButton) => addHighlight(tabButton));
+            ensureTabOpen(config);
+          });
+          const first = oneOfState.find((state) => state.indicator || state.field);
+          if (first) {
+            scrollToField(first.indicator || first.field || button);
+          }
+        }
+      }
     });
 
     refresh();
