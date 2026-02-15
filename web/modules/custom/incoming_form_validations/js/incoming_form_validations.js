@@ -47,6 +47,12 @@
       type: 'select',
       value: ['3'], // Γνωμοδότηση
     };
+  const ruleIncTypeNoAction =
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['8'], // Εγγραφο χωρίς ενέργεια
+    };
   const ruleIncTypeKoinopGnostop = 
     {
       selector: '#edit-field-incoming-type',
@@ -316,6 +322,20 @@
         },],
       },
     ],
+    NoActionDatesVis: [
+      {
+        selector: [
+          '#edit-field-fullness-check-date-wrapper',
+          '#edit-field-legal-deadline-wrapper',
+          '#edit-field-interim-deadline-wrapper',
+          '#edit-field-requested-deadline-wrapper',
+        ],
+        rules: [{
+            type: 'hideIf',
+            valueIs: [ruleIncTypeNoAction],
+        }],
+      },
+    ],
     GroupSignatureRejecionVis: [
       {
         selector: '#edit-group-signature-rejection',
@@ -460,6 +480,7 @@
       ...ruleSets.SubtypeDateVis,
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
+      ...ruleSets.NoActionDatesVis,
       ...ruleSets.ExtensionDateVis,
       ...ruleSets.SignatureRejectionDateVis,
       ...ruleSets.PendingIssuesRequiresLegalEntity,
