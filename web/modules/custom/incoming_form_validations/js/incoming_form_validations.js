@@ -322,6 +322,21 @@
         },],
       },
     ],
+    NoneFieldsVis: [
+      {
+        selector: [
+          '#edit-field-completion-date-wrapper',
+          '#edit-field-fullness-check-date-wrapper',
+          '#edit-field-legal-deadline-wrapper',
+          '#edit-field-interim-deadline-wrapper',
+          '#edit-field-requested-deadline-wrapper',
+        ],
+        rules: [{
+            type: 'hideIf',
+            valueIs: [ruleIncTypeNone],
+        }],
+      },
+    ],
     NoActionDatesVis: [
       {
         selector: [
@@ -481,6 +496,7 @@
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
       ...ruleSets.NoActionDatesVis,
+      ...ruleSets.NoneFieldsVis,
       ...ruleSets.ExtensionDateVis,
       ...ruleSets.SignatureRejectionDateVis,
       ...ruleSets.PendingIssuesRequiresLegalEntity,
