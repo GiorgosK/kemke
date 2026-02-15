@@ -43,7 +43,7 @@ type_settings:
       default_revision: true
   transitions:
     completed:
-      label: Ολοκληρωμένο
+      label: Αρχειοθέτηση
       from:
         - for_signature
         - under_processing
