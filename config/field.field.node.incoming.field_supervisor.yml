@@ -9,7 +9,7 @@ id: node.incoming.field_supervisor
 field_name: field_supervisor
 entity_type: node
 bundle: incoming
-label: Προϊστάμενος
+label: 'Προϊστάμενος τμήματος'
 description: ''
 required: false
 translatable: false
