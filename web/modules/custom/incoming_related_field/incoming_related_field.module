@@ -484,7 +484,7 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
       $form_state->set('incoming_related_field_refresh_node_id', $current_node_id);
     }
 
-    \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
+    \Drupal::messenger()->addStatus(t('`Εγγραφο ελήφθη πρωτοκολλημένο από ΣΗΔΕ'));
     $form_state->setRebuild(TRUE);
   }
   catch (\Throwable $throwable) {
@@ -492,7 +492,7 @@ function incoming_related_field_send_to_side_entity_submit(array &$form, FormSta
       '@fid' => $file_id,
       '@message' => $throwable->getMessage(),
     ]);
-    \Drupal::messenger()->addError(t('SIDE transfer failed: @message', ['@message' => $throwable->getMessage()]));
+    \Drupal::messenger()->addError(t('Μεταφορά προς ΣΗΔΕ δεν ειναι δυνατή: @message', ['@message' => $throwable->getMessage()]));
   }
 }
 
@@ -506,7 +506,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   $dt_docid_name = $context['dt_docid_name'] ?? NULL;
 
   if (!$node_id || !$dt_docid_name) {
-    \Drupal::messenger()->addError(t('Missing incoming reference for Docutracks lookup.'));
+    \Drupal::messenger()->addError(t('Δεν υπάρχει αντιστοίχιση εγγράφου με Α/Α εγγράφου στο ΣΗΔΕ.'));
     $form_state->setRebuild(TRUE);
     return;
   }
@@ -529,7 +529,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     $protocol_year = (int) ($context['protocol_year'] ?? 0);
     $document_type_id = (int) ($context['document_type_id'] ?? 1);
     if ($protocol_text === '' || $protocol_year <= 0) {
-      \Drupal::messenger()->addError(t('Missing protocol details for Docutracks lookup.'));
+      \Drupal::messenger()->addError(t('Δεν υπάρχει αριθμός πρωτοκόλλου για αναζήτηση στο ΣΗΔΕ.'));
       $form_state->setRebuild(TRUE);
       return;
     }
@@ -537,7 +537,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   else {
     $doc_id = trim((string) ($input[$dt_docid_name] ?? ''));
     if ($doc_id === '') {
-      \Drupal::messenger()->addError(t('Please provide an Α/Α ΣΗΔΕ value.'));
+      \Drupal::messenger()->addError(t('Παρακαλώ εισάγετε Α/Α εγγράφου για το ΣΗΔΕ.'));
       $form_state->setRebuild(TRUE);
       return;
     }
@@ -546,13 +546,13 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
   /** @var \Drupal\node\NodeInterface|null $node */
   $node = \Drupal::entityTypeManager()->getStorage('node')->load($node_id);
   if (!$node instanceof NodeInterface) {
-    \Drupal::messenger()->addError(t('The selected incoming document could not be loaded.'));
+    \Drupal::messenger()->addError(t('Δεν μπορέσαμε να φορτώσουμε το έγγραφο'));
     $form_state->setRebuild(TRUE);
     return;
   }
 
   if (!$node->hasField('field_dt_docid')) {
-    \Drupal::messenger()->addError(t('Missing Docutracks id field on incoming.'));
+    \Drupal::messenger()->addError(t('Δεν υπαρχει Α/Α εγγράφου ΣΗΔΕ.'));
     $form_state->setRebuild(TRUE);
     return;
   }
@@ -565,7 +565,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
       $doc = $client->fetchDocumentByProtocol($protocol_text, $protocol_year, $document_type_id, $jar);
       $doc_id = (string) incoming_related_field_extract_document_id($client, $doc);
       if ($doc_id === '' || $doc_id === '0') {
-        \Drupal::messenger()->addError(t('Docutracks did not return a document id.'));
+        \Drupal::messenger()->addError(t('Το ΣΗΔΕ δεν επέστρεψε Α/Α εγγράφου.'));
         $form_state->setRebuild(TRUE);
         return;
       }
@@ -627,7 +627,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
     $node->set('field_dt_docid', $doc_id);
     incoming_related_field_apply_docutracks_fields($node, $doc, $force_update_fields);
 
-    \Drupal::messenger()->addStatus(t('Corrected document was downloaded from Docutracks.'));
+    \Drupal::messenger()->addStatus(t('Ορθή επανάληψη ελήφθη απο ΣΗΔΕ.'));
     $form_state->setRebuild(TRUE);
   }
   catch (\Throwable $throwable) {
@@ -635,7 +635,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
       '@nid' => $node_id,
       '@message' => $throwable->getMessage(),
     ]);
-    \Drupal::messenger()->addError(t('Docutracks fetch failed: @message', ['@message' => $throwable->getMessage()]));
+    \Drupal::messenger()->addError(t('ΣΗΔΕ ορθή επανάληψη δεν ειναι δυνατή: @message', ['@message' => $throwable->getMessage()]));
     $form_state->setRebuild(TRUE);
   }
 }
@@ -862,7 +862,7 @@ function incoming_related_field_send_to_side_submit(array &$form, FormStateInter
       }
     }
 
-    \Drupal::messenger()->addStatus(t('Document was transferred to SIDE and stamped.'));
+    \Drupal::messenger()->addStatus(t('`Εγγραφο ελήφθη πρωτοκολλημένο από ΣΗΔΕ.'));
     $form_state->setRebuild(TRUE);
   }
   catch (\Throwable $throwable) {
