@@ -224,6 +224,35 @@
   opacity: 0.5;
 } 
 
+.opinion-ref-id-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  line-height: 1.2;
+}
+
+.opinion-ref-id-controls a {
+  width: fit-content;
+  text-decoration: underline;
+}
+
+.opinion-ref-id-controls a:hover {
+  text-decoration: none;
+}
+
+.opinion-ref-id-controls .form-item,
+.opinion-ref-id-controls .govgr-label,
+.opinion-ref-id-controls label {
+  font-size: 1rem;
+}
+
+.opinion-ref-id-controls label {
+  margin-left: 23px;
+  line-height: 1;
+}
+
+
 pre {
   background: rgba(var(--color-base-300-rgb));
   padding: 0.5rem;

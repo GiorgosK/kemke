@@ -3,31 +3,33 @@
 declare(strict_types=1);
 
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\Html;
 
 /**
- * Builds the opinion reference ID, e.g. "ΓΝ-2025-1".
+ * Builds the opinion reference ID, e.g. "ΓΝ1-2026".
  */
 function opinion_ref_id_tweaks_build_reference_id(int $year, int $sequence): string {
-  return sprintf('ΓΝ-%d-%d', $year, $sequence);
+  return sprintf('ΓΝ%d-%d', $sequence, $year);
 }
 
 /**
  * Generates the next reference ID without incrementing the counter.
  */
-function opinion_ref_id_tweaks_generate_reference_id(?int $year = NULL): string {
+function opinion_ref_id_tweaks_generate_reference_id(): string {
   $now = new DrupalDateTime('now');
-  $year = $year ?? (int) $now->format('Y');
-  $sequence = opinion_ref_id_tweaks_next_reference_sequence($year, FALSE);
+  $year = (int) $now->format('Y');
+  $sequence = opinion_ref_id_tweaks_next_reference_sequence();
 
   return opinion_ref_id_tweaks_build_reference_id($year, $sequence);
 }
 
 /**
- * Validates uniqueness and increments the next number if available.
+ * Validates uniqueness for the submitted reference ID.
  */
 function opinion_ref_id_tweaks_check_unique_and_increment(string $value, ?int $exclude_nid = NULL): bool {
   $value = trim($value);
@@ -44,106 +46,52 @@ function opinion_ref_id_tweaks_check_unique_and_increment(string $value, ?int $e
   }
 
   $existing = $query->count()->execute();
-  if ($existing > 0) {
-    return FALSE;
-  }
-
-  $year = opinion_ref_id_tweaks_extract_year($value);
-  $next = opinion_ref_id_tweaks_next_reference_sequence($year, TRUE);
-  $state = \Drupal::state();
-  $state->set('opinion_ref_id_tweaks.next_number', max(1, $next + 1));
-  $state->set('opinion_ref_id_tweaks.next_number_year', $year);
-
-  return TRUE;
+  return $existing === 0;
 }
 
 /**
- * Retrieves the per-year sequence, optionally incrementing it.
+ * Computes the next sequence by scanning existing opinion refs for current year.
  */
-function opinion_ref_id_tweaks_next_reference_sequence(int $year, bool $increment): int {
-  $state = \Drupal::state();
-  $lock = \Drupal::lock();
-  $lock_name = "opinion_ref_id_tweaks.ref_counter.$year";
-  $counter_key = "opinion_ref_id_tweaks.ref_counter.$year";
+function opinion_ref_id_tweaks_next_reference_sequence(): int {
+  $year = (int) (new DrupalDateTime('now'))->format('Y');
+  $query = \Drupal::database()->select('node_field_data', 'nfd');
+  $query->fields('ref', ['field_opinion_ref_id_value']);
+  $query->join('node__field_opinion_ref_id', 'ref', 'ref.entity_id = nfd.nid AND ref.deleted = 0');
+  $query->join('node__field_incoming_type', 'fit', 'fit.entity_id = nfd.nid AND fit.deleted = 0');
+  $query->condition('nfd.type', 'incoming');
+  $query->condition('fit.field_incoming_type_target_id', 3);
+  $values = $query->distinct()->execute()->fetchCol();
 
-  $acquired = $lock->acquire($lock_name, 5.0);
-  if (!$acquired) {
-    \Drupal::logger('opinion_ref_id_tweaks')->warning('Unable to acquire reference counter lock for @year, falling back to non-locked increment.', ['@year' => $year]);
+  $max_sequence = 0;
+  foreach ($values as $value) {
+    $sequence = opinion_ref_id_tweaks_extract_sequence_for_current_year((string) $value);
+    if ($sequence !== NULL && $sequence > $max_sequence) {
+      $max_sequence = $sequence;
+    }
   }
 
-  opinion_ref_id_tweaks_sync_next_number_year($year);
-  $state = \Drupal::state();
-  $next_number = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
-  $default_current = max(0, $next_number - 1);
-
-  $stored = (int) $state->get($counter_key, $default_current);
-  $current = max($stored, $default_current);
-  opinion_ref_id_tweaks_sync_next_number_state($year, $current + 1);
-  $next = max(1, $current + 1);
-
-  if ($increment) {
-    $state->set($counter_key, $next);
-  }
-
-  if ($acquired) {
-    $lock->release($lock_name);
-  }
-
-  return $next;
+  return $max_sequence + 1;
 }
 
 /**
- * Extracts the year from a reference ID, defaulting to current year.
+ * Extracts the sequence for current year from a reference ID.
  */
-function opinion_ref_id_tweaks_extract_year(string $value): int {
-  if (preg_match('/^ΓΝ-(\\d{4})-\\d+$/u', $value, $matches)) {
-    return (int) $matches[1];
+function opinion_ref_id_tweaks_extract_sequence_for_current_year(string $value): ?int {
+  $year = (int) (new DrupalDateTime('now'))->format('Y');
+  $value = trim($value);
+  if ($value === '') {
+    return NULL;
   }
 
-  $now = new DrupalDateTime('now');
-  return (int) $now->format('Y');
-}
-
-/**
- * Resets next number when the year changes while keeping it editable later.
- */
-function opinion_ref_id_tweaks_sync_next_number_year(int $year): void {
-  $state = \Drupal::state();
-  $stored_year = (int) $state->get('opinion_ref_id_tweaks.next_number_year', 0);
-
-  if ($stored_year === 0) {
-    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
-    return;
+  // New format: ΓΝ{sequence}-{year}, e.g. ΓΝ1-2026.
+  if (preg_match('/^ΓΝ(\\d+)-(\\d{4})$/u', $value, $matches)) {
+    if ((int) $matches[2] !== $year) {
+      return NULL;
+    }
+    return max(1, (int) $matches[1]);
   }
 
-  if ($stored_year !== $year) {
-    $state->set('opinion_ref_id_tweaks.next_number', 1);
-    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
-  }
-}
-
-/**
- * Keeps next_number config and state counter aligned.
- */
-function opinion_ref_id_tweaks_sync_next_number_state(int $year, int $desired_next): void {
-  $desired_next = max(1, $desired_next);
-  $state = \Drupal::state();
-  $config_next = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
-
-  $counter_key = "opinion_ref_id_tweaks.ref_counter.$year";
-  $state_current = (int) $state->get($counter_key, max(0, $config_next - 1));
-
-  $target_next = max($desired_next, $config_next, $state_current + 1);
-
-  if ($config_next !== $target_next) {
-    $state->set('opinion_ref_id_tweaks.next_number', $target_next);
-    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
-  }
-
-  $target_current = $target_next - 1;
-  if ($state_current !== $target_current) {
-    $state->set($counter_key, $target_current);
-  }
+  return NULL;
 }
 
 /**
@@ -159,9 +107,11 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
   }
 
   $form['#attached']['library'][] = 'core/drupal.ajax';
+  $form['#attached']['library'][] = 'opinion_ref_id_tweaks/opinion_ref_id_tweaks';
 
   $field = &$form['field_opinion_ref_id']['widget'][0]['value'];
   $field['#attributes']['id'] = $field['#attributes']['id'] ?? 'opinion-ref-id-field';
+  $field['#element_validate'][] = 'opinion_ref_id_tweaks_opinion_ref_id_element_validate';
 
   $generate_url = Url::fromRoute('opinion_ref_id_tweaks.generate_next', [], [
     'query' => [
@@ -169,13 +119,48 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
       'target' => $field['#attributes']['id'],
     ],
   ])->toString();
+  $opinions_url = Url::fromUri('internal:/incoming/all', [
+    'query' => [
+      'type' => 3,
+      'order' => 'field_entry_date',
+      'sort' => 'desc',
+    ],
+  ])->toString();
 
-  $field['#suffix'] = ($field['#suffix'] ?? '') . ' <a class="use-ajax opinion-ref-id-generate" data-dialog-type="ajax" data-opinion-ref-id-target="' . Html::escape($field['#attributes']['id']) . '" href="' . Html::escape($generate_url) . '">' . t('Get next') . '</a>';
+  $controls_prefix = '<div class="opinion-ref-id-controls">' .
+    '<a class="use-ajax opinion-ref-id-generate" data-dialog-type="ajax" data-opinion-ref-id-target="' . Html::escape($field['#attributes']['id']) . '" href="' . Html::escape($generate_url) . '">' . t('Get next') . '</a>' .
+    ' <a href="' . Html::escape($opinions_url) . '" target="_blank" rel="noopener noreferrer">Όλες οι Γνωμοδότησεις</a>';
 
   $form['field_opinion_ref_id']['widget'][0]['#attributes']['class'][] = 'container-inline';
+  $form['field_opinion_ref_id']['widget'][0]['opinion_ref_id_bypass_check'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Παράκαμψη ελέγχου'),
+    '#default_value' => 0,
+    '#prefix' => $controls_prefix,
+    '#suffix' => '</div>',
+    '#weight' => 20,
+  ];
 
   $form['#after_build'][] = 'opinion_ref_id_tweaks_after_build_fix_missing_parents';
   $form['#validate'][] = 'opinion_ref_id_tweaks_incoming_validate';
+}
+
+/**
+ * Element-level validation so duplicate check runs before generic validators.
+ */
+function opinion_ref_id_tweaks_opinion_ref_id_element_validate(array &$element, FormStateInterface $form_state, array &$complete_form): void {
+  $value = trim((string) ($element['#value'] ?? ''));
+  if ($value === '') {
+    return;
+  }
+
+  $entity = $form_state->getFormObject()->getEntity();
+  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
+  if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
+    $form_state->setError($element, t('Ο Αριθμός Γνωμοδότησης @actual_number ειναι ήδη σε χρήση.', [
+      '@actual_number' => $value,
+    ]));
+  }
 }
 
 /**
@@ -208,29 +193,158 @@ function opinion_ref_id_tweaks_fill_missing_parents(array &$element, array $tree
  * Validates the opinion reference ID for incoming forms.
  */
 function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterface $form_state): void {
+  if (isset($form['field_opinion_ref_id']['widget'][0]['value']) && $form_state->getError($form['field_opinion_ref_id']['widget'][0]['value'])) {
+    return;
+  }
+
   $value = (string) $form_state->getValue(['field_opinion_ref_id', 0, 'value']);
   $value = trim($value);
   if ($value === '') {
     return;
   }
 
-  if ($form_state->get('opinion_ref_id_tweaks_incremented')) {
+  $entity = $form_state->getFormObject()->getEntity();
+  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
+
+  if (!opinion_ref_id_tweaks_is_valid_current_year_reference_format($value)) {
+    $current_year = (int) (new DrupalDateTime('now'))->format('Y');
+    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι στη μορφή ΓΝ5-@year.', [
+      '@year' => $current_year,
+    ]));
     return;
   }
 
-  $entity = $form_state->getFormObject()->getEntity();
-  if ($entity && $entity->hasField('field_opinion_ref_id') && !$entity->isNew()) {
-    $original = (string) $entity->get('field_opinion_ref_id')->value;
-    if ($original === $value) {
+  $bypass = opinion_ref_id_tweaks_form_state_has_bypass_flag($form_state);
+
+  if (!$bypass && opinion_ref_id_tweaks_is_opinion_incoming($form_state, $entity)) {
+    $expected_next = opinion_ref_id_tweaks_generate_reference_id();
+    if ($value !== $expected_next) {
+      $expected_sequence = opinion_ref_id_tweaks_extract_sequence_for_current_year($expected_next) ?? 0;
+      $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσθαθήστε ξανά', [
+        '@expected_sequence' => $expected_sequence,
+        '@expected_next' => $expected_next,
+        '@actual_number' => $value,
+      ]));
       return;
     }
   }
 
-  $exclude_nid = $entity && !$entity->isNew() ? (int) $entity->id() : NULL;
   if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
-    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('This opinion reference ID already exists.'));
+    $form_state->setErrorByName('field_opinion_ref_id][0][value', t('Ο Αριθμός Γνωμοδότησης @actual_number ειναι ήδη σε χρήση.', [
+      '@actual_number' => $value,
+    ]));
     return;
   }
 
-  $form_state->set('opinion_ref_id_tweaks_incremented', TRUE);
+}
+
+/**
+ * Checks if the current form entity is an opinion incoming (type = 3).
+ */
+function opinion_ref_id_tweaks_is_opinion_incoming(FormStateInterface $form_state, $entity): bool {
+  $submitted = $form_state->getValue(['field_incoming_type', 0, 'target_id']);
+  if ($submitted !== NULL && $submitted !== '') {
+    return (int) $submitted === 3;
+  }
+
+  if ($entity && $entity->hasField('field_incoming_type') && !$entity->get('field_incoming_type')->isEmpty()) {
+    return (int) $entity->get('field_incoming_type')->target_id === 3;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
+  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $bypass = opinion_ref_id_tweaks_request_has_bypass_flag();
+
+  if (!$entity->hasField('field_incoming_type') || $entity->get('field_incoming_type')->isEmpty() || (int) $entity->get('field_incoming_type')->target_id !== 3) {
+    return;
+  }
+
+  if (!$entity->hasField('field_opinion_ref_id')) {
+    return;
+  }
+
+  $value = trim((string) $entity->get('field_opinion_ref_id')->value);
+  if ($value === '') {
+    return;
+  }
+
+  $exclude_nid = !$entity->isNew() ? (int) $entity->id() : NULL;
+  if (!opinion_ref_id_tweaks_check_unique_and_increment($value, $exclude_nid)) {
+    throw new EntityStorageException((string) t('Ο Αριθμός Γνωμοδότησης @actual_number ειναι ήδη σε χρήση.', [
+      '@actual_number' => $value,
+    ]));
+  }
+
+  if (!opinion_ref_id_tweaks_is_valid_current_year_reference_format($value)) {
+    $current_year = (int) (new DrupalDateTime('now'))->format('Y');
+    throw new EntityStorageException((string) t('Ο Αριθμός Γνωμοδότησης πρέπει να είναι στη μορφή ΓΝ5-@year.', [
+      '@year' => $current_year,
+    ]));
+  }
+
+  if (!$bypass) {
+    $expected_next = opinion_ref_id_tweaks_generate_reference_id();
+    if ($value !== $expected_next) {
+      $expected_sequence = opinion_ref_id_tweaks_extract_sequence_for_current_year($expected_next) ?? 0;
+      throw new EntityStorageException((string) t('Ο επόμενος επιτρεπόμενος Αριθμός Γνωμοδότησης είναι το @expected_sequence (@expected_next). Εάν επιθυμείτε να χρησιμοποιήσετε τον αριθμό @actual_number πατήστε την Παράκαμψη ελέγχου και προσθαθήστε ξανά', [
+        '@expected_sequence' => $expected_sequence,
+        '@expected_next' => $expected_next,
+        '@actual_number' => $value,
+      ]));
+    }
+  }
+}
+
+/**
+ * Checks whether the current request submitted the bypass flag.
+ */
+function opinion_ref_id_tweaks_request_has_bypass_flag(): bool {
+  $request = \Drupal::requestStack()->getCurrentRequest();
+  if (!$request) {
+    return FALSE;
+  }
+
+  $direct_value = $request->request->get('opinion_ref_id_bypass_check');
+  if ($direct_value !== NULL && in_array((string) $direct_value, ['1', 'true', 'on'], TRUE)) {
+    return TRUE;
+  }
+
+  $field_values = $request->request->all('field_opinion_ref_id');
+  if (is_array($field_values) && isset($field_values[0]) && is_array($field_values[0])) {
+    $nested_value = $field_values[0]['opinion_ref_id_bypass_check'] ?? NULL;
+    if ($nested_value !== NULL && in_array((string) $nested_value, ['1', 'true', 'on'], TRUE)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Checks whether the bypass checkbox is enabled in submitted form values.
+ */
+function opinion_ref_id_tweaks_form_state_has_bypass_flag(FormStateInterface $form_state): bool {
+  $direct_value = $form_state->getValue('opinion_ref_id_bypass_check');
+  if ($direct_value !== NULL && in_array((string) $direct_value, ['1', 'true', 'on'], TRUE)) {
+    return TRUE;
+  }
+
+  $nested_value = $form_state->getValue(['field_opinion_ref_id', 0, 'opinion_ref_id_bypass_check']);
+  return $nested_value !== NULL && in_array((string) $nested_value, ['1', 'true', 'on'], TRUE);
+}
+
+/**
+ * Checks if an opinion reference matches ΓΝ{number}-{currentYear}.
+ */
+function opinion_ref_id_tweaks_is_valid_current_year_reference_format(string $value): bool {
+  return opinion_ref_id_tweaks_extract_sequence_for_current_year($value) !== NULL;
 }

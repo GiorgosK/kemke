@@ -25,17 +25,11 @@ class OpinionRefIdSettingsForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $state = \Drupal::state();
-    $next_number = max(1, (int) $state->get('opinion_ref_id_tweaks.next_number', 1));
-
     $form['#attached']['library'][] = 'core/drupal.ajax';
 
-    $form['next_number'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Next number'),
-      '#default_value' => $next_number,
-      '#required' => TRUE,
-      '#size' => 10,
+    $form['description'] = [
+      '#type' => 'item',
+      '#markup' => $this->t('Reference IDs are generated dynamically from existing opinion records (incoming type 3) for the current year.'),
     ];
 
     $form['example_container'] = [
@@ -64,52 +58,14 @@ class OpinionRefIdSettingsForm extends FormBase {
       ],
     ];
 
-    $form['actions'] = [
-      '#type' => 'actions',
-    ];
-    $form['actions']['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Save'),
-    ];
-
     return $form;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state): void {
-    $next_number = trim((string) $form_state->getValue('next_number'));
-    if ($next_number === '' || !ctype_digit($next_number) || (int) $next_number < 1) {
-      $form_state->setErrorByName('next_number', $this->t('Next number must be a positive integer.'));
-      return;
-    }
-
-    $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
-    $candidate = opinion_ref_id_tweaks_build_reference_id($year, (int) $next_number);
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(FALSE)
-      ->condition('type', 'incoming')
-      ->condition('field_opinion_ref_id', $candidate);
-    if ($query->count()->execute() > 0) {
-      $form_state->setErrorByName('next_number', $this->t('Next number is already used (@value). Choose a higher number.', [
-        '@value' => $candidate,
-      ]));
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $next_number = (int) $form_state->getValue('next_number');
-    $year = (int) (new \Drupal\Core\Datetime\DrupalDateTime('now'))->format('Y');
-    $state = \Drupal::state();
-    $state->set('opinion_ref_id_tweaks.next_number', $next_number);
-    $state->set('opinion_ref_id_tweaks.next_number_year', $year);
-    $state->set("opinion_ref_id_tweaks.ref_counter.$year", max(0, $next_number - 1));
-
-    $this->messenger()->addStatus($this->t('Next number updated.'));
+    // Intentionally left empty: numbering is computed on the fly.
   }
 
   /**
