@@ -1256,6 +1256,9 @@ function incoming_tweaks_remove_primary_from_newly_related(NodeInterface $node):
     if ((int) $related->id() === (int) $node->id()) {
       continue;
     }
+    if ((string) ($related->get('field_primary')->value ?? '') === '0') {
+      continue;
+    }
 
     $related->set('field_primary', 0);
     $related->setNewRevision(FALSE);
@@ -1271,6 +1274,7 @@ function incoming_tweaks_restore_primary_for_removed_related(NodeInterface $node
     return;
   }
 
+  $self_id = (int) ($node->id() ?? 0);
   $current_ids = incoming_tweaks_collect_related_incoming_ids($node);
   $original_ids = incoming_tweaks_collect_related_incoming_ids($node->original);
   $removed_ids = array_diff($original_ids, $current_ids);
@@ -1282,7 +1286,15 @@ function incoming_tweaks_restore_primary_for_removed_related(NodeInterface $node
   $storage = \Drupal::entityTypeManager()->getStorage('node');
   $removed_nodes = $storage->loadMultiple($removed_ids);
   foreach ($removed_nodes as $removed) {
-    if (!$removed instanceof NodeInterface || !$removed->hasField('field_primary')) {
+    if (
+      !$removed instanceof NodeInterface ||
+      !$removed->hasField('field_primary') ||
+      ((int) ($removed->id() ?? 0) === $self_id)
+    ) {
+      continue;
+    }
+
+    if ((string) ($removed->get('field_primary')->value ?? '') === '1') {
       continue;
     }
 
