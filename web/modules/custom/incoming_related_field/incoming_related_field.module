@@ -122,6 +122,39 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
   if (isset($form['field_related_incoming']['incoming_related_field_messages'])) {
     unset($form['field_related_incoming']['incoming_related_field_messages']);
   }
+
+  incoming_related_field_hide_documents_add_more_without_related($form, $form_state);
+}
+
+/**
+ * Hide top-level documents add-more when related incoming is still empty.
+ */
+function incoming_related_field_hide_documents_add_more_without_related(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (
+    !$entity->hasField('field_related_incoming') ||
+    !$entity->hasField('field_documents') ||
+    $entity->get('field_related_incoming')->count() > 0 ||
+    $entity->get('field_documents')->count() === 0
+  ) {
+    return;
+  }
+
+  if (isset($form['field_documents']['widget']['add_more'])) {
+    $form['field_documents']['widget']['add_more']['#access'] = FALSE;
+  }
+  if (isset($form['field_documents']['add_more'])) {
+    $form['field_documents']['add_more']['#access'] = FALSE;
+  }
 }
 
 /**
@@ -253,7 +286,6 @@ function incoming_related_field_add_send_to_side_actions(array &$form): void {
     if ($current_node instanceof NodeInterface && (int) $current_node->id() === (int) $node->id()) {
       $is_current_node = TRUE;
     }
-
     if (incoming_related_field_should_show_send_button($node)) {
       $send_classes = ['incoming-related-field-send-to-side'];
 

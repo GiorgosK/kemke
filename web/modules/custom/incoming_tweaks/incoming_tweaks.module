@@ -86,6 +86,7 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   if ($is_incoming_form) {
     $is_new_incoming = $entity->isNew();
     $form['#validate'][] = 'incoming_tweaks_validate_sender_protocol_unique_current_year';
+    $form['#validate'][] = 'incoming_tweaks_drop_empty_related_ief_on_parent_save_validate';
 
     incoming_tweaks_apply_legal_entity_hierarchy($form);
 
@@ -586,6 +587,143 @@ function incoming_tweaks_get_trigger_name(FormStateInterface $form_state): strin
   return (string) $request->request->get('_triggering_element_name', '');
 }
 
+/**
+ * Drops empty related IEF payload on parent save across all incoming forms.
+ */
+function incoming_tweaks_drop_empty_related_ief_on_parent_save_validate(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (incoming_tweaks_should_skip_empty_related_ief_cleanup($form_state)) {
+    return;
+  }
+
+  $trigger_name = incoming_tweaks_get_trigger_name($form_state);
+  // Only apply on parent save actions, not explicit IEF actions.
+  if ($trigger_name !== '' && str_starts_with($trigger_name, 'ief-')) {
+    return;
+  }
+
+  $related = $form_state->getValue('field_related_incoming');
+  if (!is_array($related) || !isset($related['form']) || !is_array($related['form'])) {
+    return;
+  }
+
+  if (incoming_tweaks_related_ief_form_has_uploaded_file($related['form'])) {
+    return;
+  }
+
+  unset($related['form']);
+  $form_state->setValue('field_related_incoming', $related);
+
+  $input = $form_state->getUserInput();
+  if (is_array($input) && isset($input['field_related_incoming']['form'])) {
+    unset($input['field_related_incoming']['form']);
+    $form_state->setUserInput($input);
+  }
+
+  $errors = $form_state->getErrors();
+  if (!$errors) {
+    return;
+  }
+
+  $cleaned = [];
+  foreach ($errors as $name => $message) {
+    if (incoming_tweaks_is_transition_error_message((string) $message)) {
+      continue;
+    }
+    $cleaned[$name] = $message;
+  }
+
+  if (count($cleaned) !== count($errors)) {
+    $form_state->clearErrors();
+    foreach ($cleaned as $name => $message) {
+      $form_state->setErrorByName($name, $message);
+    }
+  }
+}
+
+/**
+ * Skip empty-IEF cleanup for AJAX and file widget interaction triggers.
+ */
+function incoming_tweaks_should_skip_empty_related_ief_cleanup(FormStateInterface $form_state): bool {
+  $request = \Drupal::request();
+  if ($request->isXmlHttpRequest()) {
+    return TRUE;
+  }
+
+  $trigger_name = incoming_tweaks_get_trigger_name($form_state);
+  if ($trigger_name === '') {
+    return FALSE;
+  }
+
+  $lower = mb_strtolower($trigger_name);
+  return str_contains($lower, 'add_more')
+    || str_contains($lower, 'upload_button')
+    || str_contains($lower, 'remove_button')
+    || str_contains($lower, 'field_documents')
+    || str_starts_with($lower, 'ief-');
+}
+
+/**
+ * Checks whether related IEF values include an uploaded file reference.
+ */
+function incoming_tweaks_related_ief_form_has_uploaded_file(array $related_form_values): bool {
+  if (!isset($related_form_values['field_documents']) || !is_array($related_form_values['field_documents'])) {
+    return FALSE;
+  }
+
+  return incoming_tweaks_array_contains_file_reference($related_form_values['field_documents']);
+}
+
+/**
+ * Recursively detects managed-file/target file references in values.
+ */
+function incoming_tweaks_array_contains_file_reference(array $values): bool {
+  foreach ($values as $key => $value) {
+    if (is_array($value)) {
+      if (incoming_tweaks_array_contains_file_reference($value)) {
+        return TRUE;
+      }
+      continue;
+    }
+
+    if (!is_scalar($value)) {
+      continue;
+    }
+
+    $is_file_key = $key === 'target_id' || $key === 'fids';
+    if (!$is_file_key) {
+      continue;
+    }
+
+    $text = trim((string) $value);
+    if ($text !== '' && $text !== '0') {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Determines whether an error message is transition-access related.
+ */
+function incoming_tweaks_is_transition_error_message(string $message): bool {
+  $text = mb_strtolower($message);
+  return str_contains($text, 'transition')
+    || str_contains($text, 'μετάβα')
+    || str_contains($text, 'access to transition')
+    || str_contains($text, 'state transition');
+}
+
 
 /**
  * Implements hook_entity_presave().
@@ -596,32 +734,102 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   }
 
   $is_new = $entity->isNew();
+  $entered_draft = incoming_tweaks_is_draft_entry_event($entity);
+  $state = $entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()
+    ? (string) $entity->get('moderation_state')->value
+    : '';
+  $primary_missing = $entity->hasField('field_primary') && $entity->get('field_primary')->isEmpty();
 
-  incoming_tweaks_ensure_title($entity);
-  $baseline = incoming_tweaks_ensure_entry_date($entity);
-  incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
+  if ($state === 'temp') {
+    incoming_tweaks_ensure_storage_title($entity);
+  }
+  else {
+    incoming_tweaks_ensure_title($entity);
+  }
+  incoming_tweaks_clear_entry_date_while_temp($entity);
+  incoming_tweaks_remove_self_related_without_primary_document($entity);
+  if ($state === 'temp') {
+    // Temp items must remain primary so they are visible in /amke.
+    incoming_tweaks_set_primary_flag($entity);
+  }
+  elseif ($is_new || $entered_draft || ($primary_missing && $state === 'draft')) {
+    incoming_tweaks_set_primary_flag($entity);
+  }
+  if ($entered_draft) {
+    $baseline = incoming_tweaks_ensure_entry_date($entity);
+    incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
+  }
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
   incoming_tweaks_recalculate_deadline_on_type_change($entity);
   incoming_tweaks_recalculate_deadline_on_ee_start_and_days_change($entity);
   incoming_tweaks_set_completion_date_on_publish($entity);
   incoming_tweaks_set_transition_revision_log($entity);
 
+  incoming_tweaks_remove_related_without_primary_document($entity);
   incoming_tweaks_remove_primary_from_newly_related($entity);
+  incoming_tweaks_force_non_primary_for_related($entity);
   incoming_tweaks_restore_primary_for_removed_related($entity);
   incoming_tweaks_sync_related_legal_entities($entity);
+  incoming_tweaks_ensure_self_related_when_primary_document_exists($entity);
 
-  if ($is_new) {
+  if ($entered_draft) {
     if (incoming_tweaks_populate_field_ref_id($entity)) {
       $reference = (string) $entity->get('field_ref_id')->value;
       if ($reference !== '') {
         $entity->setTitle($reference);
       }
     }
-    incoming_tweaks_set_primary_flag($entity);
     incoming_tweaks_add_self_related_incoming($entity);
   }
-  else {
-    incoming_tweaks_populate_field_ref_id($entity);
+}
+
+/**
+ * Returns TRUE when the node enters draft for processing.
+ */
+function incoming_tweaks_is_draft_entry_event(NodeInterface $node): bool {
+  if (!$node->hasField('moderation_state') || $node->get('moderation_state')->isEmpty()) {
+    return FALSE;
+  }
+
+  $current_state = (string) $node->get('moderation_state')->value;
+  if ($current_state !== 'draft') {
+    return FALSE;
+  }
+
+  if ($node->isNew()) {
+    return TRUE;
+  }
+
+  if (!$node->original instanceof NodeInterface || !$node->original->hasField('moderation_state')) {
+    return FALSE;
+  }
+
+  $previous_state = $node->original->get('moderation_state')->isEmpty()
+    ? ''
+    : (string) $node->original->get('moderation_state')->value;
+
+  return $previous_state === 'temp';
+}
+
+/**
+ * Keeps entry date empty while an incoming remains in temp state.
+ */
+function incoming_tweaks_clear_entry_date_while_temp(NodeInterface $node): void {
+  if (
+    !$node->hasField('moderation_state') ||
+    $node->get('moderation_state')->isEmpty() ||
+    !$node->hasField('field_entry_date')
+  ) {
+    return;
+  }
+
+  $current_state = (string) $node->get('moderation_state')->value;
+  if ($current_state !== 'temp') {
+    return;
+  }
+
+  if (!$node->get('field_entry_date')->isEmpty()) {
+    $node->set('field_entry_date', []);
   }
 }
 
@@ -924,7 +1132,17 @@ function incoming_tweaks_set_primary_flag(NodeInterface $node): void {
 function incoming_tweaks_ensure_title(NodeInterface $node): void {
   $title = trim((string) $node->label());
   if ($title === '') {
-    $node->setTitle(t('Untitled incoming'));
+    $node->setTitle(t('Χωρίς REF ID'));
+  }
+}
+
+/**
+ * Ensures a safe non-null storage title for temp nodes.
+ */
+function incoming_tweaks_ensure_storage_title(NodeInterface $node): void {
+  $title = trim((string) $node->label());
+  if ($title === '') {
+    $node->setTitle('Χωρίς REF ID');
   }
 }
 
@@ -1033,6 +1251,9 @@ function incoming_tweaks_remove_primary_from_newly_related(NodeInterface $node):
 
   foreach ($related_nodes as $related) {
     if (!$related instanceof NodeInterface || !$related->hasField('field_primary')) {
+      continue;
+    }
+    if ((int) $related->id() === (int) $node->id()) {
       continue;
     }
 
@@ -1149,7 +1370,10 @@ function incoming_tweaks_collect_related_incoming_ids(NodeInterface $node): arra
  * Adds a self-reference to field_related_incoming when available.
  */
 function incoming_tweaks_add_self_related_incoming(NodeInterface $node): void {
-  if (!$node->hasField('field_related_incoming')) {
+  if (
+    !$node->hasField('field_related_incoming') ||
+    !incoming_tweaks_has_primary_document_file($node)
+  ) {
     return;
   }
 
@@ -1170,6 +1394,153 @@ function incoming_tweaks_add_self_related_incoming(NodeInterface $node): void {
 }
 
 /**
+ * Returns TRUE when incoming has at least one real file in field_documents.
+ */
+function incoming_tweaks_has_primary_document_file(NodeInterface $node): bool {
+  if (!$node->hasField('field_documents') || $node->get('field_documents')->isEmpty()) {
+    return FALSE;
+  }
+
+  foreach ($node->get('field_documents')->referencedEntities() as $paragraph) {
+    if (
+      $paragraph instanceof \Drupal\paragraphs\ParagraphInterface &&
+      $paragraph->hasField('field_files') &&
+      !$paragraph->get('field_files')->isEmpty()
+    ) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Removes self-related link when there is no real primary document file.
+ */
+function incoming_tweaks_remove_self_related_without_primary_document(NodeInterface $node): void {
+  if (
+    !$node->hasField('field_related_incoming') ||
+    incoming_tweaks_has_primary_document_file($node)
+  ) {
+    return;
+  }
+
+  $self_id = (int) ($node->id() ?? 0);
+  if ($self_id <= 0) {
+    return;
+  }
+
+  $filtered = [];
+  foreach ($node->get('field_related_incoming') as $item) {
+    $target_id = (int) ($item->target_id ?? 0);
+    if ($target_id > 0 && $target_id !== $self_id) {
+      $filtered[] = ['target_id' => $target_id];
+    }
+  }
+
+  if (count($filtered) !== $node->get('field_related_incoming')->count()) {
+    $node->set('field_related_incoming', $filtered);
+  }
+}
+
+/**
+ * Removes related incoming references that do not contain a real file.
+ */
+function incoming_tweaks_remove_related_without_primary_document(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming') || $node->get('field_related_incoming')->isEmpty()) {
+    return;
+  }
+
+  $self_id = (int) ($node->id() ?? 0);
+  $related_ids = incoming_tweaks_collect_related_incoming_ids($node);
+  if ($related_ids === []) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $related_nodes = $storage->loadMultiple($related_ids);
+
+  $filtered = [];
+  foreach ($related_ids as $related_id) {
+    if ($related_id === $self_id) {
+      if (incoming_tweaks_has_primary_document_file($node)) {
+        $filtered[] = ['target_id' => $related_id];
+      }
+      continue;
+    }
+
+    $related = $related_nodes[$related_id] ?? NULL;
+    if (!$related instanceof NodeInterface) {
+      continue;
+    }
+
+    if (incoming_tweaks_has_primary_document_file($related)) {
+      $filtered[] = ['target_id' => $related_id];
+    }
+  }
+
+  if (count($filtered) !== $node->get('field_related_incoming')->count()) {
+    $node->set('field_related_incoming', $filtered);
+  }
+}
+
+/**
+ * Ensures all non-self related incoming nodes are marked non-primary.
+ */
+function incoming_tweaks_force_non_primary_for_related(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming') || $node->get('field_related_incoming')->isEmpty()) {
+    return;
+  }
+
+  $self_id = (int) ($node->id() ?? 0);
+  $related_ids = array_values(array_filter(
+    incoming_tweaks_collect_related_incoming_ids($node),
+    static fn (int $id): bool => $id > 0 && $id !== $self_id
+  ));
+  if ($related_ids === []) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $related_nodes = $storage->loadMultiple($related_ids);
+
+  foreach ($related_nodes as $related) {
+    if (
+      !$related instanceof NodeInterface ||
+      !$related->hasField('field_primary') ||
+      (string) ($related->get('field_primary')->value ?? '') === '0'
+    ) {
+      continue;
+    }
+
+    $related->set('field_primary', 0);
+    $related->setNewRevision(FALSE);
+    $related->save();
+  }
+}
+
+/**
+ * Ensures self-related link exists when a real primary document exists.
+ */
+function incoming_tweaks_ensure_self_related_when_primary_document_exists(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming')) {
+    return;
+  }
+
+  if (!incoming_tweaks_has_primary_document_file($node)) {
+    return;
+  }
+
+  if (!$node->get('field_related_incoming')->isEmpty()) {
+    return;
+  }
+
+  incoming_tweaks_add_self_related_incoming($node);
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for nodes.
  */
 function incoming_tweaks_node_insert(NodeInterface $node): void {
@@ -1177,8 +1548,35 @@ function incoming_tweaks_node_insert(NodeInterface $node): void {
     return;
   }
 
+  if (!$node->hasField('moderation_state') || $node->get('moderation_state')->isEmpty()) {
+    return;
+  }
+
+  if ((string) $node->get('moderation_state')->value !== 'draft') {
+    return;
+  }
+
+  $needs_save = FALSE;
+  $before_related = incoming_tweaks_collect_related_incoming_ids($node);
   incoming_tweaks_add_self_related_incoming($node);
-  incoming_tweaks_assign_reference_id($node);
+  $after_related = incoming_tweaks_collect_related_incoming_ids($node);
+  if ($after_related !== $before_related) {
+    $needs_save = TRUE;
+  }
+
+  if (incoming_tweaks_populate_field_ref_id($node)) {
+    $reference = (string) $node->get('field_ref_id')->value;
+    if ($reference !== '' && $node->label() !== $reference) {
+      $node->setTitle($reference);
+    }
+    $needs_save = TRUE;
+  }
+
+  if ($needs_save) {
+    // Avoid creating a revision just for automation-only values.
+    $node->setNewRevision(FALSE);
+    $node->save();
+  }
 }
 
 /**

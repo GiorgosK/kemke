@@ -88,7 +88,10 @@ final class IncomingChangeStateForm extends FormBase {
     $stateConfigurations = $typePlugin->getConfiguration()['states'] ?? [];
     $stateOptions = $this->buildStateOptions($typePlugin->getStates(), $stateConfigurations);
     $currentState = $activeNode->get('moderation_state')->value ?? '';
-    $currentStateLabel = $stateOptions[$currentState] ?? $currentState;
+    if ($this->shouldHideStateFromCurrentUser($currentState)) {
+      throw new AccessDeniedHttpException();
+    }
+    $currentStateLabel = $stateOptions[$currentState] ?? $this->t('Not set');
     $lastState = $stateOptions ? array_key_last($stateOptions) : '';
 
     $form['current_state'] = [
@@ -138,6 +141,11 @@ final class IncomingChangeStateForm extends FormBase {
     parent::validateForm($form, $form_state);
 
     $selectedState = (string) $form_state->getValue('new_state');
+    if ($this->shouldHideStateFromCurrentUser($selectedState)) {
+      $form_state->setErrorByName('new_state', $this->t('Select a valid state.'));
+      return;
+    }
+
     $options = $form['new_state']['#options'] ?? [];
     if ($selectedState === '' || !isset($options[$selectedState])) {
       $form_state->setErrorByName('new_state', $this->t('Select a valid state.'));
@@ -206,6 +214,9 @@ final class IncomingChangeStateForm extends FormBase {
   private function buildStateOptions(array $states, array $configurations): array {
     $sortable = [];
     foreach ($states as $stateId => $state) {
+      if ($this->shouldHideStateFromCurrentUser((string) $stateId)) {
+        continue;
+      }
       $sortable[] = [
         'id' => $stateId,
         'label' => $state->label(),
@@ -223,6 +234,13 @@ final class IncomingChangeStateForm extends FormBase {
     }
 
     return $options;
+  }
+
+  /**
+   * Hides AMKE-only moderation states from non-AMKE users.
+   */
+  private function shouldHideStateFromCurrentUser(string $stateId): bool {
+    return $stateId === 'temp' && !$this->currentUser()->hasRole('amke_user');
   }
 
 }

@@ -15,6 +15,9 @@ settings:
       value: processing
       label: 'Υπό επεξεργασία'
     -
+      value: temp
+      label: Πρόχειρο
+    -
       value: issues
       label: 'Με εκκρεμότητες'
     -

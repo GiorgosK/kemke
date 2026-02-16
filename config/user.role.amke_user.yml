@@ -28,6 +28,8 @@ permissions:
   - 'edit own incoming content'
   - 'use incoming_processing transition issues_to_check'
   - 'use incoming_processing transition stay_pending_issues'
+  - 'use incoming_processing transition stay_temp'
+  - 'use incoming_processing transition temp_to_draft'
   - 'use text format full_html'
   - 'view any incoming content'
   - 'view own incoming content'

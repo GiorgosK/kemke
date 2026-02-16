@@ -36,6 +36,11 @@ type_settings:
       weight: 5
       published: true
       default_revision: true
+    temp:
+      label: Πρόχειρο
+      weight: -9
+      published: true
+      default_revision: true
     under_processing:
       label: 'Υπό επεξεργασία'
       weight: -1
@@ -109,12 +114,24 @@ type_settings:
         - published
       to: published
       weight: -8
+    stay_temp:
+      label: 'Αποθήκευση Πρόχειρου'
+      from:
+        - temp
+      to: temp
+      weight: -12
     stay_under_processing:
       label: Αποθήκευση
       from:
         - under_processing
       to: under_processing
       weight: -2
+    temp_to_draft:
+      label: 'Αποστολή προς ΚΕΜΚΕ'
+      from:
+        - temp
+      to: draft
+      weight: 1
   entity_types:
     node:
       - incoming

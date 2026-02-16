@@ -689,7 +689,10 @@ display:
           admin_label: ''
           plugin_id: list_field
           operator: or
-          value: {  }
+          value:
+            processing: processing
+            issues: issues
+            published: published
           group: 1
           exposed: true
           expose:
@@ -783,7 +786,7 @@ display:
             field_documents: field_documents
             field_plan_signed: field_plan_signed
             operations: operations
-          default: field_entry_date
+          default: ''
           info:
             title:
               sortable: true
@@ -1440,9 +1443,10 @@ display:
           admin_label: ''
           plugin_id: list_field
           operator: not
-          value: {  }
+          value:
+            temp: temp
           group: 1
-          exposed: true
+          exposed: false
           expose:
             operator_id: field_amke_status_value_1_op
             label: Kατάσταση
@@ -2158,9 +2162,10 @@ display:
           admin_label: ''
           plugin_id: list_field
           operator: not
-          value: {  }
+          value:
+            temp: temp
           group: 1
-          exposed: true
+          exposed: false
           expose:
             operator_id: field_amke_status_value_1_op
             label: Kατάσταση
@@ -2379,7 +2384,7 @@ display:
           admin_label: ''
           plugin_id: views_year_filters_date_year
           operator: '='
-          value: '2025'
+          value: ''
           group: 1
           exposed: true
           expose:
@@ -2424,6 +2429,7 @@ display:
           operator: or
           value:
             processing: processing
+            temp: temp
             issues: issues
           group: 1
           exposed: true

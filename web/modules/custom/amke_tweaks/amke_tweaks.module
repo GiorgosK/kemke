@@ -14,6 +14,10 @@ use Drupal\user\Entity\User;
  * Hide grouped elements for AMKE users on node forms.
  */
 function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
+  if (amke_tweaks_is_inline_ief_node_form($form)) {
+    return;
+  }
+
   $form_object = $form_state->getFormObject();
   $entity = $form_object?->getEntity();
   if (!$form_object || !$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
@@ -22,8 +26,10 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
 
   $account = \Drupal::currentUser();
   $state = $entity->hasField('moderation_state') ? $entity->get('moderation_state')->value : NULL;
-  $is_draft = ($state === 'draft' || $state === NULL || $state === '');
-  $allow_protocol_number_sender = $entity->isNew() && $is_draft;
+  $has_primary_document_file = amke_tweaks_has_primary_document_file($entity);
+  $is_draft = in_array($state, ['temp', 'draft', NULL, ''], TRUE);
+  $allow_protocol_number_sender = ($entity->isNew() && $is_draft)
+    || (!$entity->isNew() && $state === 'temp' && !$has_primary_document_file);
   if ($account->hasRole('amke_user')) {
     // AMKE users: keep the original field restrictions.
     $keep_fields_edit_form = [
@@ -47,6 +53,23 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     if (!$allow_protocol_number_sender) {
       $keep_fields = array_values(array_diff($keep_fields, ['field_protocol_number_sender']));
     }
+    if ($state === 'temp') {
+      if (!$has_primary_document_file) {
+        if (!in_array('field_documents', $keep_fields, TRUE)) {
+          $keep_fields[] = 'field_documents';
+        }
+        if (!in_array('field_protocol_number_sender', $keep_fields, TRUE)) {
+          $keep_fields[] = 'field_protocol_number_sender';
+        }
+        $keep_fields = array_values(array_diff($keep_fields, ['field_related_incoming']));
+      }
+      else {
+        $keep_fields = array_values(array_diff($keep_fields, ['field_documents', 'field_protocol_number_sender']));
+        if (!in_array('field_related_incoming', $keep_fields, TRUE)) {
+          $keep_fields[] = 'field_related_incoming';
+        }
+      }
+    }
     $keep_always = ['actions'];
 
     foreach ($form as $key => $element) {
@@ -60,12 +83,24 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       }
     }
 
-    // AMKE users can view but not modify subject on existing incoming items.
-    if (!$entity->isNew() && isset($form['field_subject'])) {
+    // AMKE users can edit subject while incoming is in temp state.
+    if (!$entity->isNew() && isset($form['field_subject']) && $state !== 'temp') {
       amke_tweaks_render_subject_read_only($form, $entity);
     }
 
     amke_tweaks_limit_documents_widget($form);
+    if (
+      $state === 'temp' &&
+      !$entity->isNew() &&
+      !$has_primary_document_file
+    ) {
+      if (isset($form['field_documents']['widget']['add_more'])) {
+        $form['field_documents']['widget']['add_more']['#access'] = TRUE;
+      }
+      if (isset($form['field_documents']['add_more'])) {
+        $form['field_documents']['add_more']['#access'] = TRUE;
+      }
+    }
 
     if (amke_tweaks_should_hide_fullness_check($entity)) {
       $form['#after_build'][] = 'amke_tweaks_hide_fullness_check_button_after_build';
@@ -75,31 +110,121 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     if ($form_object->getEntity()->isNew()) {
       $form['#validate'][] = 'amke_tweaks_incoming_new_validate';
     }
+    $form['#validate'][] = 'amke_tweaks_incoming_ief_transition_validate';
 
     // Auto-fill legal entity from the user's profile on submit.
     $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
 
     if (isset($form['actions']['submit'])) {
-      $form['actions']['submit']['#value'] = t('Αποστολή στην ΚΕΜΚΕ');
+      $form['actions']['submit']['#value'] = t('Αποστολή προς ΚΕΜΚΕ');
+    }
+
+    if (($entity->isNew() || $state === 'temp') && isset($form['actions'])) {
+      amke_tweaks_relabel_temp_workflow_action($form['actions']);
+    }
+
+    if ($state === 'temp') {
+      if (isset($form['group_remarks'])) {
+        $form['group_remarks']['#access'] = FALSE;
+      }
+      if (isset($form['edit_group_remarks'])) {
+        $form['edit_group_remarks']['#access'] = FALSE;
+      }
+      if (isset($form['field_remarks'])) {
+        $form['field_remarks']['#access'] = FALSE;
+      }
     }
     return;
   }
 
   // Non-AMKE users: show documents on add, hide related; swap on edit.
   $is_new = $entity->isNew();
+  $has_primary_document_file = amke_tweaks_has_primary_document_file($entity);
   if (isset($form['field_documents'])) {
-    $form['field_documents']['#access'] = $is_new ? TRUE : FALSE;
+    $form['field_documents']['#access'] = $is_new || (!$is_new && !$has_primary_document_file);
     amke_tweaks_limit_documents_widget($form);
+    if (!$is_new && !$has_primary_document_file) {
+      if (isset($form['field_documents']['widget']['add_more'])) {
+        $form['field_documents']['widget']['add_more']['#access'] = TRUE;
+      }
+      if (isset($form['field_documents']['add_more'])) {
+        $form['field_documents']['add_more']['#access'] = TRUE;
+      }
+    }
   }
   if (isset($form['field_protocol_number_sender'])) {
     $form['field_protocol_number_sender']['#access'] = $allow_protocol_number_sender || $account->hasRole('administrator');
   }
   if (isset($form['field_related_incoming'])) {
-    $form['field_related_incoming']['#access'] = $is_new ? FALSE : TRUE;
+    $form['field_related_incoming']['#access'] = !$is_new && $has_primary_document_file;
   }
 
   // Auto-fill legal entity from the user's profile on submit.
   $form['#submit'][] = 'amke_tweaks_autofill_legal_entity';
+}
+
+/**
+ * Initializes new AMKE incoming nodes in the temp state.
+ */
+function amke_tweaks_entity_create(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  $account = \Drupal::currentUser();
+  if (!$account->hasRole('amke_user')) {
+    return;
+  }
+
+  // Only force temp on the main incoming add form, never on nested IEF forms.
+  if (!amke_tweaks_is_main_incoming_add_request() || amke_tweaks_is_ief_request()) {
+    return;
+  }
+
+  if ($entity->hasField('moderation_state')) {
+    $state = $entity->get('moderation_state')->value ?? '';
+    if ($state === '' || $state === 'draft') {
+      $entity->set('moderation_state', 'temp');
+    }
+  }
+}
+
+/**
+ * Submit handler: keep new AMKE incoming in temp.
+ */
+function amke_tweaks_set_new_incoming_temp_submit(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || !$entity->isNew() || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (\Drupal::currentUser()->hasRole('amke_user') && $entity->hasField('moderation_state')) {
+    $entity->set('moderation_state', 'temp');
+  }
+}
+
+/**
+ * Submit handler: send new AMKE incoming to KEMKE (draft).
+ */
+function amke_tweaks_set_new_incoming_draft_submit(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || !$entity->isNew() || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (\Drupal::currentUser()->hasRole('amke_user') && $entity->hasField('moderation_state')) {
+    $entity->set('moderation_state', 'draft');
+  }
 }
 
 /**
@@ -239,11 +364,20 @@ function amke_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
+  $current_state = $entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()
+    ? (string) $entity->get('moderation_state')->value
+    : '';
+  $previous_state = ($entity->original instanceof NodeInterface && $entity->original->hasField('moderation_state') && !$entity->original->get('moderation_state')->isEmpty())
+    ? (string) $entity->original->get('moderation_state')->value
+    : '';
+  $is_temp_edit_context = $current_state === 'temp' || ($previous_state === 'temp' && $current_state === 'draft');
+
   // For AMKE users, autofill legal entity from their profile when missing.
   $account = \Drupal::currentUser();
   if (
     $account->hasRole('amke_user') &&
     !$entity->isNew() &&
+    !$is_temp_edit_context &&
     $entity->hasField('field_subject') &&
     $entity->original instanceof NodeInterface &&
     $entity->original->hasField('field_subject')
@@ -262,12 +396,25 @@ function amke_tweaks_entity_presave(EntityInterface $entity): void {
     return;
   }
 
+  if (
+    $account->hasRole('amke_user') &&
+    $entity->isNew() &&
+    amke_tweaks_is_main_incoming_add_request() &&
+    !amke_tweaks_is_ief_request()
+  ) {
+    $state = $entity->get('moderation_state')->value ?? '';
+    if ($state === '') {
+      $entity->set('moderation_state', 'temp');
+    }
+  }
+
   $state = $entity->get('moderation_state')->value;
   if ($state === NULL || $state === '') {
     return;
   }
 
   $map = [
+    'temp' => 'temp',                // Πρόχειρο -> Πρόχειρο
     'draft' => 'processing',           // Προς χρέωση -> Υπό επεξεργασία
     'fullness_check' => 'processing',  // Έλεγχος πληρότητας -> Υπό επεξεργασία
     'pending_issues' => 'issues', // Με εκκρεμότητες -> Με εκκρεμότητες
@@ -308,6 +455,64 @@ function amke_tweaks_incoming_new_validate(array &$form, FormStateInterface $for
     $text = (string) $message;
     // Skip the transition access violation.
     if (stripos($text, 'transition') !== FALSE) {
+      continue;
+    }
+    $cleaned[$name] = $message;
+  }
+
+  if (count($cleaned) !== count($errors)) {
+    $form_state->clearErrors();
+    foreach ($cleaned as $name => $message) {
+      $form_state->setErrorByName($name, $message);
+    }
+  }
+}
+
+/**
+ * Remove moderation transition-access errors during IEF nested interactions.
+ */
+function amke_tweaks_incoming_ief_transition_validate(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  $entity = $form_object?->getEntity();
+  $account = \Drupal::currentUser();
+
+  if (
+    !$entity instanceof NodeInterface ||
+    $entity->bundle() !== 'incoming' ||
+    !$account->hasRole('amke_user')
+  ) {
+    return;
+  }
+
+  $trigger = $form_state->getTriggeringElement();
+  $trigger_name = (string) ($trigger['#name'] ?? '');
+  if ($trigger_name === '') {
+    $trigger_name = (string) \Drupal::request()->request->get('_triggering_element_name', '');
+  }
+
+  $has_ief_context = str_starts_with($trigger_name, 'ief-')
+    || isset($form['field_related_incoming']['form'])
+    || isset($form['field_documents']['widget']['add_more'])
+    || isset($form['field_related_incoming']['widget']['actions']);
+
+  if (!$has_ief_context) {
+    return;
+  }
+
+  $errors = $form_state->getErrors();
+  if (!$errors) {
+    return;
+  }
+
+  $cleaned = [];
+  foreach ($errors as $name => $message) {
+    $text = mb_strtolower((string) $message);
+    $is_transition_error = str_contains($text, 'transition')
+      || str_contains($text, 'μετάβα')
+      || str_contains($text, 'access to transition')
+      || str_contains($text, 'state transition');
+
+    if ($is_transition_error) {
       continue;
     }
     $cleaned[$name] = $message;
@@ -470,4 +675,86 @@ function amke_tweaks_render_subject_read_only(array &$form, NodeInterface $entit
     '#text' => (string) $subject->value,
     '#format' => (string) ($subject->format ?? 'full_html'),
   ];
+}
+
+/**
+ * Detects inline entity forms to avoid altering nested IEF incoming forms.
+ */
+function amke_tweaks_is_inline_ief_node_form(array $form): bool {
+  return !empty($form['#ief_id']) || !empty($form['#inline_entity_form']);
+}
+
+/**
+ * Detects current request as an inline entity form (IEF) submission.
+ */
+function amke_tweaks_is_ief_request(): bool {
+  $request = \Drupal::request();
+  $trigger_name = (string) $request->request->get('_triggering_element_name', '');
+  if ($trigger_name !== '' && str_starts_with($trigger_name, 'ief-')) {
+    return TRUE;
+  }
+
+  $op = (string) $request->request->get('op', '');
+  return $op !== '' && str_contains($op, 'Δημιουργία');
+}
+
+/**
+ * Detects the main add-incoming request (not nested IEF subforms).
+ */
+function amke_tweaks_is_main_incoming_add_request(): bool {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  return in_array($route_name, ['node.add', 'entity.node.add_form'], TRUE);
+}
+
+/**
+ * Relabels the temp workflow action button for AMKE edit forms.
+ */
+function amke_tweaks_relabel_temp_workflow_action(array &$actions): void {
+  foreach (\Drupal\Core\Render\Element::children($actions) as $key) {
+    if (!isset($actions[$key]) || !is_array($actions[$key])) {
+      continue;
+    }
+    amke_tweaks_relabel_temp_workflow_action($actions[$key]);
+  }
+
+  $classes = $actions['#attributes']['class'] ?? [];
+  if (!is_array($classes)) {
+    $classes = [];
+  }
+
+  $matches = in_array('workflow-buttons-stay_temp', $classes, TRUE)
+    || (($actions['#attributes']['data-drupal-selector'] ?? '') === 'edit-moderation-state-temp')
+    || (($actions['#id'] ?? '') === 'edit-moderation-state-temp');
+
+  if (!$matches) {
+    return;
+  }
+
+  if (isset($actions['#value'])) {
+    $actions['#value'] = t('Αποθήκευση πρόχειρο');
+  }
+  if (isset($actions['#title'])) {
+    $actions['#title'] = t('Αποθήκευση πρόχειρο');
+  }
+}
+
+/**
+ * Checks whether incoming already has a primary uploaded file in documents.
+ */
+function amke_tweaks_has_primary_document_file(NodeInterface $entity): bool {
+  if (!$entity->hasField('field_documents') || $entity->get('field_documents')->isEmpty()) {
+    return FALSE;
+  }
+
+  foreach ($entity->get('field_documents')->referencedEntities() as $paragraph) {
+    if (
+      $paragraph instanceof \Drupal\paragraphs\ParagraphInterface &&
+      $paragraph->hasField('field_files') &&
+      !$paragraph->get('field_files')->isEmpty()
+    ) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
