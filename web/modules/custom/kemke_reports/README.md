@@ -42,10 +42,9 @@ For standard objectives (everything except objective 4/5 special branch):
 
 When called with `objective_4` or `objective_5`, the function uses a dedicated path:
 
-1. Required subtype:
-   - objective 4 -> subtype `59`
-   - objective 5 -> subtype `61`
-   - if subtype does not match => `FALSE`
+1. Subtype is already constrained by objective filters:
+   - objective 4 filter uses subtype `59`
+   - objective 5 filter uses subtype `61`
 2. Require `field_completion_date`.
    - if missing => `FALSE`
 3. If extension is enabled (`field_extension = 1`):

@@ -291,7 +291,6 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
       'on_time_field' => NULL,
       'calculation' => [
         'mode' => 'after_completion',
-        'required_subtype' => 59,
         'start_date_field' => ['field_completion_date'],
         'completion_fields' => ['field_completion_date'],
         'checks' => [
@@ -316,7 +315,6 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_5'),
       'calculation' => [
         'mode' => 'after_completion',
-        'required_subtype' => 61,
         'start_date_field' => ['field_completion_date'],
         'completion_fields' => ['field_completion_date'],
         'checks' => [
@@ -443,12 +441,6 @@ function kemke_reports_evaluate_objective_on_time(NodeInterface $node, string $o
   }
 
   $calculation = $definition['calculation'];
-  $required_subtype = $calculation['required_subtype'] ?? NULL;
-  if ($required_subtype !== NULL) {
-    if ((int) ($node->get('field_incoming_subtype')->target_id ?? 0) !== (int) $required_subtype) {
-      return FALSE;
-    }
-  }
 
   $completion_fields = (array) ($calculation['completion_fields'] ?? []);
   if (empty($completion_fields)) {
