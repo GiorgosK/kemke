@@ -292,24 +292,14 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
     'objective_4' => [
       'filters' => [
         'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
+        'required_non_empty_fields' => ['field_completion_date'],
         'field_incoming_subtype' => 59, // Έκθεση Δαπανών SARI
       ],
       'on_time_field' => NULL,
-      'calculation' => [
-        'mode' => 'after_completion',
-        'start_date_field' => ['field_completion_date'],
-        'completion_fields' => ['field_completion_date'],
-        'checks' => [
-          [
-            'field' => 'field_extension_date',
-            'comparison' => '>',
-            'requires' => 'field_extension',
-          ],
-          [
-            'field' => 'field_subtype_date',
-            'comparison' => '>',
-          ],
-        ],
+      'report_expected_documents' => 1,
+      'report_fields' => [
+        'total' => 'field_total_cases',
+        'on_time' => 'field_on_time_cases',
       ],
     ],
     'objective_5' => [
@@ -383,6 +373,123 @@ function kemke_reports_incoming_recalculate_on_time(array $objective_keys, int $
   }
 
   return $updated_by_objective;
+}
+
+/**
+ * Returns report metrics for objectives that use aggregated report fields.
+ *
+ * @return array{
+ *   ids: array,
+ *   found_count: int,
+ *   expected_count: int,
+ *   total: int,
+ *   on_time: int,
+ *   percentage: float
+ * }
+ */
+function kemke_reports_get_objective_report_metrics(int $year, string $objective_key, string $state = 'published'): array {
+  $definition = kemke_reports_get_objective_calculation_definition($objective_key);
+  $filters = $definition['filters'] ?? [];
+  $ids = kemke_reports_incoming_get_ids_for($year, $filters, $state);
+  $found_count = count($ids);
+  $expected_count = (int) ($definition['report_expected_documents'] ?? 0);
+
+  $result = [
+    'ids' => $ids,
+    'found_count' => $found_count,
+    'expected_count' => $expected_count,
+    'total' => 0,
+    'on_time' => 0,
+    'percentage' => 0.0,
+  ];
+
+  $report_fields = $definition['report_fields'] ?? [];
+  if (empty($report_fields) || !is_array($report_fields)) {
+    return $result;
+  }
+
+  if ($expected_count > 0 && $found_count !== $expected_count) {
+    return $result;
+  }
+
+  if ($found_count === 0) {
+    return $result;
+  }
+
+  $node = \Drupal::entityTypeManager()->getStorage('node')->load((int) reset($ids));
+  if (!$node instanceof NodeInterface) {
+    return $result;
+  }
+
+  $total_field = (string) ($report_fields['total'] ?? '');
+  $on_time_field = (string) ($report_fields['on_time'] ?? '');
+  if ($total_field === '' || $on_time_field === '') {
+    return $result;
+  }
+
+  $result['on_time'] = (int) ($node->get($on_time_field)->value ?? 0);
+  $result['total'] = (int) ($node->get($total_field)->value ?? 0);
+  if ($result['total'] > 0 && $result['on_time'] > 0) {
+    $result['percentage'] = ($result['on_time'] / $result['total']) * 100;
+  }
+
+  return $result;
+}
+
+/**
+ * Returns objective metrics for both node-level and report-field objectives.
+ *
+ * @return array{
+ *   ids: array,
+ *   on_time_ids: array,
+ *   found_count: int,
+ *   expected_count: int,
+ *   total: int,
+ *   on_time: int,
+ *   percentage: float
+ * }
+ */
+function kemke_reports_get_objective_metrics(int $year, string $objective_key, string $state = 'published'): array {
+  $definition = kemke_reports_get_objective_calculation_definition($objective_key);
+  $filters = $definition['filters'] ?? [];
+  $on_time_field = (string) ($definition['on_time_field'] ?? '');
+  $expected_count = (int) ($definition['report_expected_documents'] ?? 0);
+
+  $result = [
+    'ids' => [],
+    'on_time_ids' => [],
+    'found_count' => 0,
+    'expected_count' => $expected_count,
+    'total' => 0,
+    'on_time' => 0,
+    'percentage' => 0.0,
+  ];
+
+  if (!empty($definition['report_fields']) && is_array($definition['report_fields'])) {
+    $report = kemke_reports_get_objective_report_metrics($year, $objective_key, $state);
+    $result['ids'] = $report['ids'];
+    $result['found_count'] = (int) $report['found_count'];
+    $result['expected_count'] = (int) $report['expected_count'];
+    $result['total'] = (int) $report['total'];
+    $result['on_time'] = (int) $report['on_time'];
+    $result['percentage'] = (float) $report['percentage'];
+    return $result;
+  }
+
+  $result['ids'] = kemke_reports_incoming_get_ids_for($year, $filters, $state);
+  $result['found_count'] = count($result['ids']);
+  $result['total'] = kemke_reports_incoming_get_number_for($year, $filters, $state);
+
+  if ($on_time_field !== '') {
+    $result['on_time'] = kemke_reports_incoming_get_on_time_for($year, $filters, $state, $objective_key);
+    $result['on_time_ids'] = kemke_reports_incoming_get_ids_for($year, $filters + [$on_time_field . '.value' => 'yes'], $state);
+  }
+
+  if ($result['total'] > 0) {
+    $result['percentage'] = ($result['on_time'] / $result['total']) * 100;
+  }
+
+  return $result;
 }
 
 /**

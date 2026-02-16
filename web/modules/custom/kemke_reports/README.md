@@ -38,22 +38,26 @@ For standard objectives (everything except objective 4/5 special branch):
 4. Compare dates:
    - On time if `completion_date <= deadline`.
 
-## Special logic (Objectives 4 and 5 branch)
+## Special logic (Objective 5)
 
-When called with `objective_4` or `objective_5`, the function uses a dedicated path:
+Objective 5 uses an `after_completion` path:
 
-1. Subtype is already constrained by objective filters:
-   - objective 4 filter uses subtype `59`
-   - objective 5 filter uses subtype `61`
-2. Require `field_completion_date`.
-   - if missing => `FALSE`
-3. If extension is enabled (`field_extension = 1`):
-   - if `field_extension_date` exists and `field_extension_date > completion_date` => `TRUE`
-4. Otherwise fallback to subtype date:
-   - `field_subtype_date > completion_date` => `TRUE`
-   - else => `FALSE`
+1. Completion is `field_completion_date`.
+2. If extension is enabled (`field_extension = 1`) and `field_extension_date > completion_date` => `TRUE`.
+3. Otherwise, if `field_subtype_date > completion_date` => `TRUE`.
+4. Else => `FALSE`.
 
-Again, comparison is strict (`>`), so equal dates are not on time.
+Comparison is strict (`>`), so equal dates are not on time.
+
+## Objective 4
+
+Objective 4 is report-only in this module:
+
+- It is filtered by incoming type/subtype (`59`).
+- It reads aggregate values from fields:
+  - `field_total_cases`
+  - `field_on_time_cases`
+- It does not run node-level on-time checks in `kemke_reports_evaluate_objective_on_time()`.
 
 ## Objective-specific recalculation in current form
 

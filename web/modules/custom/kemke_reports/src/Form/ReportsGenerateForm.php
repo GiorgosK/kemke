@@ -74,11 +74,7 @@ class ReportsGenerateForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $year = (int) $form_state->getValue('year');
-    $objective_1_filters = kemke_reports_get_objective_filters('objective_1');
-    $objective_2_filters = kemke_reports_get_objective_filters('objective_2');
-    $objective_3_filters = kemke_reports_get_objective_filters('objective_3');
-    $objective_4_filters = kemke_reports_get_objective_filters('objective_4');
-    $objective_5_filters = kemke_reports_get_objective_filters('objective_5');
+    $objective_keys = ['objective_1', 'objective_2', 'objective_3', 'objective_4', 'objective_5'];
 
     // Recalculate on-time values for the selected report year.
     kemke_reports_incoming_recalculate_on_time(
@@ -87,132 +83,64 @@ class ReportsGenerateForm extends FormBase {
       TRUE
     );
 
-    $objective_1_total = kemke_reports_incoming_get_number_for($year, $objective_1_filters);
-    $objective_1_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_1_filters, 'published', 'objective_1');
-    $objective_1_ids = kemke_reports_incoming_get_ids_for($year, $objective_1_filters);
-    $objective_1_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_1_filters + ['field_on_time_obj1.value' => 'yes']);
-    $objective_1_percentage = $objective_1_total > 0 ? ($objective_1_on_time / $objective_1_total) * 100 : 0.0;
-    $objective_2_total = kemke_reports_incoming_get_number_for($year, $objective_2_filters);
-    $objective_2_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_2_filters, 'published', 'objective_2');
-    $objective_2_ids = kemke_reports_incoming_get_ids_for($year, $objective_2_filters);
-    $objective_2_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_2_filters + ['field_on_time_obj2.value' => 'yes']);
-    $objective_2_percentage = $objective_2_total > 0 ? ($objective_2_on_time / $objective_2_total) * 100 : 0.0;
-    $objective_3_total = kemke_reports_incoming_get_number_for($year, $objective_3_filters);
-    $objective_3_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_3_filters, 'published', 'objective_3');
-    $objective_3_ids = kemke_reports_incoming_get_ids_for($year, $objective_3_filters);
-    $objective_3_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_3_filters + ['field_on_time_obj3.value' => 'yes']);
-    $objective_3_percentage = $objective_3_total > 0 ? ($objective_3_on_time / $objective_3_total) * 100 : 0.0;
+    $metrics_by_objective = [];
+    foreach ($objective_keys as $objective_key) {
+      $metrics_by_objective[$objective_key] = kemke_reports_get_objective_metrics($year, $objective_key);
+    }
+
+    $objective_4_metrics = $metrics_by_objective['objective_4'];
     $objective_4_warning = NULL;
-    $objective_4_on_time = 0;
-    $objective_4_total = 0;
-    $objective_4_percentage = 0.0;
-    $objective_4_ids = kemke_reports_incoming_get_ids_for($year, $objective_4_filters);
-    if (count($objective_4_ids) !== 1) {
-      $objective_4_warning = $this->t('Waiting for 1 document but found @count', [
-        '@count' => count($objective_4_ids),
+    $expected_count = (int) $objective_4_metrics['expected_count'];
+    if ($expected_count > 0 && $objective_4_metrics['found_count'] !== $expected_count) {
+      $objective_4_warning = $this->t('Waiting for @expected document(s) but found @count', [
+        '@expected' => $expected_count,
+        '@count' => $objective_4_metrics['found_count'],
       ]);
     }
-    else {
-      $node = \Drupal::entityTypeManager()->getStorage('node')->load(reset($objective_4_ids));
-      if ($node) {
-        $objective_4_on_time = (int) ($node->get('field_on_time_cases')->value ?? 0);
-        $objective_4_total = (int) ($node->get('field_total_cases')->value ?? 0);
-        if ($objective_4_total > 0 && $objective_4_on_time > 0) {
-          $objective_4_percentage = ($objective_4_on_time / $objective_4_total) * 100;
-        }
-      }
-    }
-    $objective_5_total = kemke_reports_incoming_get_number_for($year, $objective_5_filters);
-    $objective_5_on_time = kemke_reports_incoming_get_on_time_for($year, $objective_5_filters, 'published', 'objective_5');
-    $objective_5_ids = kemke_reports_incoming_get_ids_for($year, $objective_5_filters);
-    $objective_5_on_time_ids = kemke_reports_incoming_get_ids_for($year, $objective_5_filters + ['field_on_time_obj5.value' => 'yes']);
-    $objective_5_percentage = $objective_5_total > 0 ? ($objective_5_on_time / $objective_5_total) * 100 : 0.0;
     $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
     $seminar_percentage = $seminar_counts['total'] > 0
       ? ($seminar_counts['with_seminar'] / $seminar_counts['total']) * 100
       : 0.0;
 
     $config = \Drupal::config('kemke_reports.settings');
-    $objective_1 = [
-      'name' => $config->get('objective_1.name') ?? '',
-      'description' => $config->get('objective_1.description') ?? '',
-      'title' => $config->get('objective_1.title') ?? '',
-      'percentage' => (float) ($config->get('objective_1.percentage') ?? 90),
-      'deadline_days_for_report' => (int) ($config->get('objective_1.deadline_days_for_report') ?? 0),
-      'deadline_days_default' => (int) ($config->get('objective_1.deadline_days_default') ?? 0),
-    ];
-    $objective_2 = [
-      'name' => $config->get('objective_2.name') ?? '',
-      'description' => $config->get('objective_2.description') ?? '',
-      'title' => $config->get('objective_2.title') ?? '',
-      'percentage' => (float) ($config->get('objective_2.percentage') ?? 90),
-      'deadline_days_for_report' => (int) ($config->get('objective_2.deadline_days_for_report') ?? 0),
-      'deadline_days_default' => (int) ($config->get('objective_2.deadline_days_default') ?? 0),
-    ];
-    $objective_3 = [
-      'name' => $config->get('objective_3.name') ?? '',
-      'description' => $config->get('objective_3.description') ?? '',
-      'title' => $config->get('objective_3.title') ?? '',
-      'percentage' => (float) ($config->get('objective_3.percentage') ?? 90),
-      'deadline_days_for_report' => (int) ($config->get('objective_3.deadline_days_for_report') ?? 0),
-      'deadline_days_default' => (int) ($config->get('objective_3.deadline_days_default') ?? 0),
-    ];
-    $objective_4 = [
-      'name' => $config->get('objective_4.name') ?? '',
-      'description' => $config->get('objective_4.description') ?? '',
-      'title' => $config->get('objective_4.title') ?? '',
-      'percentage' => (float) ($config->get('objective_4.percentage') ?? 90),
-    ];
-    $objective_5 = [
-      'name' => $config->get('objective_5.name') ?? '',
-      'description' => $config->get('objective_5.description') ?? '',
-      'title' => $config->get('objective_5.title') ?? '',
-      'percentage' => (float) ($config->get('objective_5.percentage') ?? 90),
-    ];
-    $objective_6 = [
-      'name' => $config->get('objective_6.name') ?? '',
-      'description' => $config->get('objective_6.description') ?? '',
-      'title' => $config->get('objective_6.title') ?? '',
-      'percentage' => (float) ($config->get('objective_6.percentage') ?? 30),
-    ];
+    $objective_config = [];
+    foreach (['objective_1', 'objective_2', 'objective_3', 'objective_4', 'objective_5', 'objective_6'] as $objective_key) {
+      $objective_config[$objective_key] = [
+        'name' => $config->get($objective_key . '.name') ?? '',
+        'description' => $config->get($objective_key . '.description') ?? '',
+        'title' => $config->get($objective_key . '.title') ?? '',
+        'percentage' => (float) ($config->get($objective_key . '.percentage') ?? ($objective_key === 'objective_6' ? 30 : 90)),
+      ];
 
-    $this->tempStore->set('last_result', [
-      'year' => $year,
-      'objective_1_total' => $objective_1_total,
-      'objective_1_on_time' => $objective_1_on_time,
-      'objective_1_ids' => $objective_1_ids,
-      'objective_1_on_time_ids' => $objective_1_on_time_ids,
-      'objective_1_percentage' => $objective_1_percentage,
-      'objective_1' => $objective_1,
-      'objective_2_total' => $objective_2_total,
-      'objective_2_on_time' => $objective_2_on_time,
-      'objective_2_ids' => $objective_2_ids,
-      'objective_2_on_time_ids' => $objective_2_on_time_ids,
-      'objective_2_percentage' => $objective_2_percentage,
-      'objective_2' => $objective_2,
-      'objective_3_total' => $objective_3_total,
-      'objective_3_on_time' => $objective_3_on_time,
-      'objective_3_ids' => $objective_3_ids,
-      'objective_3_on_time_ids' => $objective_3_on_time_ids,
-      'objective_3_percentage' => $objective_3_percentage,
-      'objective_3' => $objective_3,
-      'objective_4_total' => $objective_4_total,
-      'objective_4_on_time' => $objective_4_on_time,
-      'objective_4_percentage' => $objective_4_percentage,
-      'objective_4' => $objective_4,
-      'objective_4_warning' => $objective_4_warning,
-      'objective_5_total' => $objective_5_total,
-      'objective_5_on_time' => $objective_5_on_time,
-      'objective_5_ids' => $objective_5_ids,
-      'objective_5_on_time_ids' => $objective_5_on_time_ids,
-      'objective_5_percentage' => $objective_5_percentage,
-      'objective_5' => $objective_5,
-      'seminar_total_users' => $seminar_counts['total'],
-      'seminar_users' => $seminar_counts['with_seminar'],
-      'seminar_percentage' => $seminar_percentage,
-      'objective_6' => $objective_6,
-      'generated' => $this->time->getCurrentTime(),
-    ]);
+      if (in_array($objective_key, ['objective_1', 'objective_2', 'objective_3'], TRUE)) {
+        $objective_config[$objective_key]['deadline_days_for_report'] = (int) ($config->get($objective_key . '.deadline_days_for_report') ?? 0);
+        $objective_config[$objective_key]['deadline_days_default'] = (int) ($config->get($objective_key . '.deadline_days_default') ?? 0);
+      }
+    }
+
+    $result = ['year' => $year];
+    foreach (['objective_1', 'objective_2', 'objective_3', 'objective_5'] as $objective_key) {
+      $metrics = $metrics_by_objective[$objective_key];
+      $result[$objective_key . '_total'] = (int) $metrics['total'];
+      $result[$objective_key . '_on_time'] = (int) $metrics['on_time'];
+      $result[$objective_key . '_ids'] = $metrics['ids'];
+      $result[$objective_key . '_on_time_ids'] = $metrics['on_time_ids'];
+      $result[$objective_key . '_percentage'] = (float) $metrics['percentage'];
+      $result[$objective_key] = $objective_config[$objective_key];
+    }
+
+    $result['objective_4_total'] = (int) $objective_4_metrics['total'];
+    $result['objective_4_on_time'] = (int) $objective_4_metrics['on_time'];
+    $result['objective_4_percentage'] = (float) $objective_4_metrics['percentage'];
+    $result['objective_4'] = $objective_config['objective_4'];
+    $result['objective_4_warning'] = $objective_4_warning;
+    $result['seminar_total_users'] = $seminar_counts['total'];
+    $result['seminar_users'] = $seminar_counts['with_seminar'];
+    $result['seminar_percentage'] = $seminar_percentage;
+    $result['objective_6'] = $objective_config['objective_6'];
+    $result['generated'] = $this->time->getCurrentTime();
+
+    $this->tempStore->set('last_result', $result);
 
     $form_state->setRedirect('kemke_reports.results');
   }
