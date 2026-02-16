@@ -144,7 +144,7 @@ function activities_mods_incoming_build_title(NodeInterface $node): string {
   }
 
   $fallback = trim((string) $node->label());
-  return $fallback !== '' ? $fallback : (string) t('Untitled incoming');
+  return $fallback !== '' ? $fallback : (string) t('Χωρίς REF ID');
 }
 
 /**

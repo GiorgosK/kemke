@@ -196,7 +196,7 @@ function _incoming_notifications_send_notifications(string $key, EntityInterface
     $title = activities_mods_incoming_build_title($entity);
   }
   if ($title === '') {
-    $title = t('Untitled incoming');
+    $title = t('Χωρίς REF ID');
   }
   $subject_text = $title;
   if ($entity->hasField('field_subject') && !$entity->get('field_subject')->isEmpty()) {
