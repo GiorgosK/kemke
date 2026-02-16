@@ -257,12 +257,24 @@
         rules: [
           {
             type: 'hideIf',
-            display: 'none',
             valueNot: [ruleIncTypeEE],
           },
         ],
       },
     ],
+    IncTypeEEHideUnrelatedFields: [
+      {
+        selector: [
+          '#edit-field-fullness-check-date-wrapper',
+        ],
+        rules: [
+          {
+            type: 'hideIf',
+            valueIs: [ruleIncTypeEE],
+          },
+        ],
+      },
+    ],    
     TabPlanVis: [
       {
         selector: [
@@ -387,15 +399,6 @@
         },],
       },
     ],
-    SubtypeDateVis: [
-      {
-        selector: '.field--name-field-subtype-date',
-        rules: [{
-            type: 'hideIf',
-            valueNot: [ruleSubtypeAnaktisiChecked],
-        },],
-      },
-    ],
     ExtensionDateVis: [
       {
         selector: '.field--name-field-extension-date',
@@ -481,6 +484,7 @@
       ...ruleSets.baseFullness,
       ...ruleSets.baseForSignature,
       ...ruleSets.TabEEVis,
+      ...ruleSets.IncTypeEEHideUnrelatedFields,
       ...ruleSets.TabPlanVis,
       ...ruleSets.baseForCompleted,
       ...ruleSets.OpinionRefIdDisabled,
@@ -492,7 +496,6 @@
       ...ruleSets.GroupReportCasesVis,
       ...ruleSets.GroupExtensionVis,
       ...ruleSets.RequestedDeadlineDateVis,
-      ...ruleSets.SubtypeDateVis,
       ...ruleSets.SubtypeAnaktisiVis,
       ...ruleSets.SubtypeSariVis, 
       ...ruleSets.NoActionDatesVis,
@@ -1209,6 +1212,8 @@
     applyDisabled(selector, rule);
   };
 
+  let visibilityRuleIdCounter = 0;
+
   const applyVisibility = (selector, rule) => {
     const el = document.querySelector(selector);
     const hasConditions =
@@ -1221,7 +1226,19 @@
     if (!el || !hasConditions) {
       return;
     }
-    el.style.display = shouldHideByRequirements(rule) ? rule.display || 'none' : '';
+    if (!rule.__ifvVisibilityRuleId) {
+      rule.__ifvVisibilityRuleId = ++visibilityRuleIdCounter;
+    }
+
+    const shouldHide = shouldHideByRequirements(rule);
+    const hideAttrName = `data-ifv-hide-${rule.__ifvVisibilityRuleId}`;
+    el.setAttribute(hideAttrName, shouldHide ? '1' : '0');
+
+    const hiddenByAnyRule = Array.from(el.attributes).some((attr) =>
+      attr.name.startsWith('data-ifv-hide-') && attr.value === '1'
+    );
+
+    el.style.display = hiddenByAnyRule ? rule.display || 'none' : '';
   };
 
   const attachVisibilityHandler = (selector, rule) => {

@@ -302,7 +302,6 @@ third_party_settings:
     group_subtype:
       children:
         - field_incoming_subtype
-        - field_subtype_date
         - group_report_cases
       label: 'Υποκατηγορία εγγράφου'
       region: content
@@ -503,7 +502,7 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 3
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -852,12 +851,6 @@ content:
       rows: 3
       placeholder: ''
     third_party_settings: {  }
-  field_subtype_date:
-    type: datetime_default
-    weight: 6
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_supervisor:
     type: select2_entity_reference
     weight: 12
@@ -932,41 +925,41 @@ content:
     third_party_settings: {  }
   moderation_state:
     type: workflow_buttons
-    weight: 6
+    weight: 5
     region: content
     settings:
       show_current_state: false
     third_party_settings: {  }
   path:
     type: path
-    weight: 7
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 4
+    weight: 3
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 8
+    weight: 7
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 5
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 2
+    weight: 1
     region: content
     settings:
       match_operator: CONTAINS
@@ -980,4 +973,5 @@ hidden:
   field_legal_deadline_ext: true
   field_legal_deadline_original: true
   field_primary: true
+  field_subtype_date: true
   title: true
