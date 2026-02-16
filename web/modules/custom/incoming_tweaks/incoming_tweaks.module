@@ -747,6 +747,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     incoming_tweaks_ensure_title($entity);
   }
   incoming_tweaks_clear_entry_date_while_temp($entity);
+  incoming_tweaks_strip_empty_related_incoming_items($entity);
   incoming_tweaks_remove_self_related_without_primary_document($entity);
   if ($state === 'temp') {
     // Temp items must remain primary so they are visible in /amke.
@@ -780,6 +781,32 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
       }
     }
     incoming_tweaks_add_self_related_incoming($entity);
+  }
+}
+
+/**
+ * Removes placeholder/empty related incoming items (no target_id).
+ */
+function incoming_tweaks_strip_empty_related_incoming_items(NodeInterface $node): void {
+  if (!$node->hasField('field_related_incoming')) {
+    return;
+  }
+
+  $current_items = $node->get('field_related_incoming')->getValue();
+  if ($current_items === []) {
+    return;
+  }
+
+  $filtered = [];
+  foreach ($current_items as $item) {
+    $target_id = (int) ($item['target_id'] ?? 0);
+    if ($target_id > 0) {
+      $filtered[] = ['target_id' => $target_id];
+    }
+  }
+
+  if (count($filtered) !== count($current_items)) {
+    $node->set('field_related_incoming', $filtered);
   }
 }
 
