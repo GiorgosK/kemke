@@ -775,10 +775,10 @@ function field_non_empty_lock_get_node_field_map() {
       //   'hide_if_new' => TRUE,
       //   'is_empty_callback' => 'field_non_empty_lock_boolean_false_is_empty',
       // ],
-      'field_entry_date' => [
-        'hide_if_empty' => TRUE,
-        'hide_if_new' => TRUE,
-      ],
+      // 'field_entry_date' => [
+      //   'hide_if_empty' => TRUE,
+      //   'hide_if_new' => TRUE,
+      // ],
       'field_plan_dt_api_response' => [
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
