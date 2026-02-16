@@ -229,10 +229,10 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
           // ['config_days' => 'deadline_days_for_report'],
 
           // If extension is enabled, use the extension legal deadline.
-          [
-            'field' => 'field_extension_date',
-            'requires' => 'field_extension',
-          ],
+          // [
+          //   'field' => 'field_extension_date',
+          //   'requires' => 'field_extension',
+          // ],
           // Otherwise use the regular legal deadline field.
           [
             'field' => 'field_legal_deadline',
@@ -255,10 +255,6 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'comparison' => '<=',
         'deadline_fields' => [
           [
-            'field' => 'field_extension_date',
-            'requires' => 'field_extension',
-          ],
-          [
             'field' => 'field_legal_deadline',
           ],
         ],
@@ -279,10 +275,6 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'completion_fields' => ['field_signature_rejection_date'],
         'comparison' => '<=',
         'deadline_fields' => [
-          [
-            'field' => 'field_legal_deadline_ext',
-            'requires' => 'field_extension',
-          ],
           [
             'field' => 'field_legal_deadline',
           ],
@@ -310,17 +302,16 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
       ],
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_5'),
       'calculation' => [
-        'mode' => 'after_completion',
+        'mode' => 'deadline',
         'completion_fields' => ['field_completion_date'],
-        'checks' => [
+        'comparison' => '<=',
+        'deadline_fields' => [
           [
             'field' => 'field_extension_date',
-            'comparison' => '>',
             'requires' => 'field_extension',
           ],
           [
-            'field' => 'field_subtype_date',
-            'comparison' => '>',
+            'field' => 'field_legal_deadline',
           ],
         ],
       ],

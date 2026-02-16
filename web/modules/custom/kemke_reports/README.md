@@ -25,57 +25,77 @@ If not recalculated yet, items may remain `not_calculated` (depending on form op
 - Objective 3 -> `field_on_time_obj3`
 - Objective 5 -> `field_on_time_obj5`
 
-## General logic (Objectives 1, 2, 3)
+## Objective definitions (current)
 
-For standard objectives (everything except objective 4/5 special branch):
+### Objective 1
 
-1. Read completion date (objective definition `completion_fields`, in order).
-   - If missing => `FALSE`.
-2. Build deadline by checking `deadline_fields` in order.
-   - `field` entries use the corresponding date field directly.
-   - `config_days` entries are optional and only used if explicitly included in the objective definition.
-3. If no deadline found => `FALSE`.
-4. Compare dates:
-   - On time if `completion_date <= deadline`.
+- Filters:
+  - `field_incoming_type = Γνωμοδότηση`
+  - `required_non_empty_fields = [field_completion_date]`
+  - `field_incoming_subtype <> 60` (including null)
+- Calculation:
+  - mode: `deadline`
+  - completion: `field_completion_date`
+  - deadline fields (priority): `field_legal_deadline`
+  - comparison: `completion <= deadline`
+  - optional `config_days` entries are currently commented out in definition
 
-## Special logic (Objective 5)
+### Objective 2
 
-Objective 5 uses an `after_completion` path:
+- Filters:
+  - `field_incoming_type IN [Άποψη, Γνωμοδότηση]`
+  - `required_non_empty_fields = [field_completion_date]`
+  - `field_incoming_subtype = 60`
+- Calculation:
+  - mode: `deadline`
+  - completion: `field_completion_date`
+  - deadline fields (priority): `field_legal_deadline`
+  - comparison: `completion <= deadline`
 
-1. Completion is `field_completion_date`.
-2. If extension is enabled (`field_extension = 1`) and `field_extension_date > completion_date` => `TRUE`.
-3. Otherwise, if `field_subtype_date > completion_date` => `TRUE`.
-4. Else => `FALSE`.
+### Objective 3
 
-Comparison is strict (`>`), so equal dates are not on time.
+- Filters:
+  - `field_incoming_type IN [Γνωστοποίηση, Κοινοποίηση]`
+  - `required_non_empty_fields = [field_signature_rejection_date]`
+  - `field_signature_rejection <> ''`
+- Calculation:
+  - mode: `deadline`
+  - completion: `field_signature_rejection_date`
+  - deadline fields (priority): `field_legal_deadline`
+  - comparison: `completion <= deadline`
 
-## Objective 4
+### Objective 4
 
 Objective 4 is report-only in this module:
 
-- It is filtered by incoming type/subtype (`59`).
+- Filters:
+  - `field_incoming_type IN [Επικοινωνία με ΕΕ]`
+  - `required_non_empty_fields = [field_completion_date]`
+  - `field_incoming_subtype = 59`
+- No node-level on-time calculation (`on_time_field = NULL`).
+- Uses report metrics definition:
+  - `report_expected_documents = 1`
 - It reads aggregate values from fields:
   - `field_total_cases`
   - `field_on_time_cases`
-- It does not run node-level on-time checks in `kemke_reports_evaluate_objective_on_time()`.
 
-## Objective-specific recalculation in current form
+### Objective 5
 
-Current objective definitions use these completion fields:
+- Filters:
+  - `field_incoming_type IN [Επικοινωνία με ΕΕ]`
+  - `required_non_empty_fields = [field_completion_date]`
+  - `field_incoming_subtype = 61`
+- Calculation:
+  - mode: `deadline`
+  - completion: `field_completion_date`
+  - deadline fields (priority): `field_extension_date` (requires `field_extension`), then `field_legal_deadline`
+  - comparison: `completion <= deadline`
 
-- Objective 1: completion = `field_completion_date`
-- Objective 2: completion = `field_completion_date`
-- Objective 3: completion = `field_signature_rejection_date`
-- Objective 5: uses special branch (internally checks `field_completion_date` and `field_subtype_date`/`field_extension_date`)
+## Generic evaluation rules
 
-## Practical cases (what users should expect)
-
-- Missing completion date -> **Not on time**.
-- Missing all deadline sources -> **Not on time**.
-- Completion exactly on deadline date -> **On time**.
-- Objective 5 item with wrong subtype -> **Not on time**.
-- Objective 5 with valid extension date after completion -> **On time**.
-- Objective 3 uses signature rejection date as completion date, not the generic completion date.
+- If completion is missing => not on time.
+- If no deadline can be resolved (for `deadline` mode) => not on time.
+- For `deadline` mode, equality is on time (`<=`).
 
 ## Notes
 
