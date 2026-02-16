@@ -5627,7 +5627,7 @@ display:
           plugin_id: moderation_state_filter
           operator: 'not in'
           value:
-            incoming_processing-published: incoming_processing-published
+            incoming_processing-temp: incoming_processing-temp
           group: 1
           exposed: false
           expose:
@@ -5639,6 +5639,47 @@ display:
             operator_limit_selection: false
             operator_list: {  }
             identifier: no_state
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        moderation_state_2:
+          id: moderation_state_2
+          table: node_field_data
+          field: moderation_state
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          plugin_id: moderation_state_filter
+          operator: 'not in'
+          value:
+            incoming_processing-published: incoming_processing-published
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: ''
+            description: ''
+            use_operator: false
+            operator: ''
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: ''
             required: false
             remember: false
             multiple: false
@@ -7368,7 +7409,13 @@ display:
           entity_type: node
           plugin_id: moderation_state_filter
           operator: in
-          value: {  }
+          value:
+            incoming_processing-draft: incoming_processing-draft
+            incoming_processing-fullness_check: incoming_processing-fullness_check
+            incoming_processing-pending_issues: incoming_processing-pending_issues
+            incoming_processing-under_processing: incoming_processing-under_processing
+            incoming_processing-for_signature: incoming_processing-for_signature
+            incoming_processing-published: incoming_processing-published
           group: 1
           exposed: true
           expose:
@@ -7385,7 +7432,7 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            reduce: false
+            reduce: true
           is_grouped: false
           group_info:
             label: ''
@@ -7533,6 +7580,47 @@ display:
           reference_arguments: ''
           hide_empty_filter: true
           minimum_input_length: 0
+        moderation_state_1:
+          id: moderation_state_1
+          table: node_field_data
+          field: moderation_state
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          plugin_id: moderation_state_filter
+          operator: 'not in'
+          value:
+            incoming_processing-temp: incoming_processing-temp
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: ''
+            description: ''
+            use_operator: false
+            operator: ''
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: ''
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
       filter_groups:
         operator: AND
         groups:
