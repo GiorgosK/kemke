@@ -602,6 +602,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_set_initial_legal_deadline($entity, $baseline);
   incoming_tweaks_recalculate_deadline_on_state_transition($entity);
   incoming_tweaks_recalculate_deadline_on_type_change($entity);
+  incoming_tweaks_recalculate_deadline_on_ee_start_and_days_change($entity);
   incoming_tweaks_set_completion_date_on_publish($entity);
   incoming_tweaks_set_transition_revision_log($entity);
 
@@ -775,6 +776,60 @@ function incoming_tweaks_recalculate_deadline_on_type_change(NodeInterface $node
     ? kemke_reports_get_deadline_days_default_for_incoming($node)
     : 20;
   $deadline = greek_holidays_calculate_date_after($start, $deadline_days)
+    ->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+
+  $node->set('field_legal_deadline', ['value' => $deadline]);
+}
+
+/**
+ * Recalculates legal deadline for EE when start date and working days change.
+ */
+function incoming_tweaks_recalculate_deadline_on_ee_start_and_days_change(NodeInterface $node): void {
+  if (
+    $node->isNew() ||
+    !$node->original instanceof EntityInterface ||
+    !$node->hasField('field_incoming_type') ||
+    !$node->hasField('field_working_days') ||
+    !$node->hasField('field_start_date') ||
+    !$node->hasField('field_legal_deadline') ||
+    $node->get('field_incoming_type')->isEmpty() ||
+    $node->get('field_working_days')->isEmpty() ||
+    $node->get('field_start_date')->isEmpty()
+  ) {
+    return;
+  }
+
+  $incoming_type = (int) ($node->get('field_incoming_type')->target_id ?? 0);
+  if ($incoming_type !== 2) {
+    return;
+  }
+
+  $old_working_days = (int) ($node->original->get('field_working_days')->value ?? 0);
+  $new_working_days = (int) ($node->get('field_working_days')->value ?? 0);
+  $old_start_date = (string) ($node->original->get('field_start_date')->value ?? '');
+  $new_start_date = (string) ($node->get('field_start_date')->value ?? '');
+
+  if ($old_working_days === $new_working_days && $old_start_date === $new_start_date) {
+    return;
+  }
+
+  try {
+    $start_date = DrupalDateTime::createFromFormat(
+      DateTimeItemInterface::DATE_STORAGE_FORMAT,
+      $new_start_date,
+      new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE)
+    );
+  }
+  catch (\Exception $exception) {
+    return;
+  }
+
+  if (!$start_date) {
+    return;
+  }
+  $start_date->setTime(0, 0, 0);
+
+  $deadline = greek_holidays_calculate_date_after($start_date, $new_working_days)
     ->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
 
   $node->set('field_legal_deadline', ['value' => $deadline]);
