@@ -169,8 +169,13 @@ function kemke_reports_apply_incoming_filters(QueryInterface $query, array $cond
     }
   }
 
-  if (!empty($conditions['field_completion_date_not_empty'])) {
-    $query->exists('field_completion_date');
+  if (!empty($conditions['required_non_empty_fields']) && is_array($conditions['required_non_empty_fields'])) {
+    foreach ($conditions['required_non_empty_fields'] as $required_field) {
+      if (!is_string($required_field) || $required_field === '') {
+        continue;
+      }
+      $query->exists($required_field);
+    }
   }
 
   if ($state !== '') {
@@ -203,7 +208,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
     'objective_1' => [
       'filters' => [
         'field_incoming_type' => 'Γνωμοδότηση',
-        'field_completion_date_not_empty' => TRUE,
+        'required_non_empty_fields' => ['field_completion_date'],
         'field_incoming_subtype' => [
           'operator' => '<>',
           'value' => 60, // Αίτημα από ιεραρχία
@@ -238,7 +243,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
     'objective_2' => [
       'filters' => [
         'field_incoming_type' => ['Άποψη', 'Γνωμοδότηση'],
-        'field_completion_date_not_empty' => TRUE,
+        'required_non_empty_fields' => ['field_completion_date'],
         'field_incoming_subtype' => 60, // Αίτημα από ιεραρχία
       ],
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_2'),
@@ -261,6 +266,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
     'objective_3' => [
       'filters' => [
         'field_incoming_type' => ['Γνωστοποίηση', 'Κοινοποίηση'],
+        'required_non_empty_fields' => ['field_signature_rejection_date'],
         'field_signature_rejection' => [
           'operator' => '<>',
           'value' => '',
@@ -309,7 +315,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
     'objective_5' => [
       'filters' => [
         'field_incoming_type' => ['Επικοινωνία με ΕΕ'],
-        'field_completion_date_not_empty' => TRUE,
+        'required_non_empty_fields' => ['field_completion_date'],
         'field_incoming_subtype' => 61, // Ανάκτηση
       ],
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_5'),
