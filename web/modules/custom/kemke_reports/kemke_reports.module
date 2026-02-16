@@ -211,7 +211,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'required_non_empty_fields' => ['field_completion_date'],
         'field_incoming_subtype' => [
           'operator' => '<>',
-          'value' => 60, // Αίτημα από ιεραρχία
+          'value' => 60, // Όχι Αίτημα από ιεραρχία
           'include_null' => TRUE,
         ],
       ],
