@@ -294,7 +294,7 @@
         selector: '#edit-group-subtype',
         rules: [{
             type: 'hideIf',
-            valueNotAND: [ruleIncTypeEE],
+            valueNotAND: [ruleIncTypeEE, ruleIncTypeOpinion],
         },],
       },
     ],
