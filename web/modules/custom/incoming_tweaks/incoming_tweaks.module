@@ -729,7 +729,6 @@ function incoming_tweaks_recalculate_deadline_on_state_transition(NodeInterface 
 
     $node->set('field_fullness_check_date', ['value' => $today_formatted]);
     $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
-    $node->set('field_legal_deadline_ext', ['value' => $deadline_formatted]);
   }
 }
 
@@ -779,7 +778,6 @@ function incoming_tweaks_recalculate_deadline_on_type_change(NodeInterface $node
     ->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
 
   $node->set('field_legal_deadline', ['value' => $deadline]);
-  $node->set('field_legal_deadline_ext', ['value' => $deadline]);
 }
 
 /**
