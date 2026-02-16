@@ -8,3 +8,5 @@ save_draft:
     - core/drupal
     - core/once
     - core/drupalSettings
+    - core/drupal.ajax
+    - core/jquery

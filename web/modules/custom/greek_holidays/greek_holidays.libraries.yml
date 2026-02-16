@@ -1,5 +1,4 @@
 date_calculator_popup:
-  version: 1.x
   css:
     component:
       css/date-calculator-popup.css: {}

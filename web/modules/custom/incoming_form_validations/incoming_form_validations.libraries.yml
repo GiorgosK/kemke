@@ -1,6 +1,7 @@
 incoming_form_validations:
-  version: 1.x
   js:
     js/incoming_form_validations.js: {}
   dependencies:
     - core/drupal
+    - core/drupalSettings
+    - core/jquery
