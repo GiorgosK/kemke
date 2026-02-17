@@ -76,6 +76,7 @@ third_party_settings:
     group_status:
       children:
         - group_document_type
+        - field_entry_date
         - field_fullness_check_date
         - field_completion_date
         - field_legal_deadline
@@ -154,7 +155,6 @@ third_party_settings:
       children:
         - langcode
         - field_ref_id
-        - field_entry_date
         - field_protocol_number_doc
         - field_sender
         - field_protocol_number_sender
@@ -374,7 +374,7 @@ third_party_settings:
       label: 'Τύπος εγγράφου'
       region: content
       parent_name: group_status
-      weight: 22
+      weight: 4
       format_type: html_element
       format_settings:
         classes: full-width-flexbox
@@ -396,7 +396,7 @@ third_party_settings:
       label: Various
       region: content
       parent_name: group_status
-      weight: 27
+      weight: 9
       format_type: html_element
       format_settings:
         classes: full-width-flexbox
@@ -470,7 +470,7 @@ third_party_settings:
       label: Εμπρόθεσμο
       region: content
       parent_name: group_status
-      weight: 30
+      weight: 12
       format_type: fieldset
       format_settings:
         classes: ''
@@ -483,7 +483,7 @@ third_party_settings:
       children:
         - field_start_date
         - field_working_days
-      label: 'ΕΕ  Κοινοποιήση Προκοινοποιήση'
+      label: 'Έναρξη εργάσιμες'
       region: content
       parent_name: group_document_type
       weight: 26
@@ -550,7 +550,7 @@ content:
     third_party_settings: {  }
   field_completion_date:
     type: datetime_default
-    weight: 24
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -581,8 +581,8 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_entry_date:
-    type: datetime_default
-    weight: 3
+    type: datetime_optional_time_widget
+    weight: 5
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -595,13 +595,13 @@ content:
     third_party_settings: {  }
   field_extension_date:
     type: datetime_default
-    weight: 8
+    weight: 9
     region: content
     settings: {  }
     third_party_settings: {  }
   field_fullness_check_date:
     type: datetime_default
-    weight: 23
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -619,13 +619,13 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 29
+    weight: 11
     region: content
     settings: {  }
     third_party_settings: {  }
   field_legal_deadline:
     type: datetime_default
-    weight: 25
+    weight: 8
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -727,13 +727,13 @@ content:
     third_party_settings: {  }
   field_protocol_date:
     type: datetime_optional_time_widget
-    weight: 7
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
   field_protocol_number_doc:
     type: string_textfield
-    weight: 4
+    weight: 3
     region: content
     settings:
       size: 60
@@ -741,7 +741,7 @@ content:
     third_party_settings: {  }
   field_protocol_number_sender:
     type: string_textfield
-    weight: 6
+    weight: 5
     region: content
     settings:
       size: 60
@@ -796,7 +796,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
-    weight: 28
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -819,7 +819,7 @@ content:
       conditional_fields: {  }
   field_sender:
     type: string_textfield
-    weight: 5
+    weight: 4
     region: content
     settings:
       size: 60
@@ -889,7 +889,7 @@ content:
     third_party_settings: {  }
   field_total_cases:
     type: string_textfield
-    weight: 9
+    weight: 10
     region: content
     settings:
       size: 60
