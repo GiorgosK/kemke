@@ -445,8 +445,14 @@ class ReportsResultsController extends ControllerBase {
     $calculated = (float) ($result['objective_4_percentage'] ?? 0);
     $total = (int) ($result['objective_4_total'] ?? 0);
     $on_time = (int) ($result['objective_4_on_time'] ?? 0);
+    $objective_4_ids = array_values(array_map('intval', (array) ($result['objective_4_ids'] ?? [])));
+    $objective_4_id = $objective_4_ids[0] ?? NULL;
+    $admin_debug_tags = [];
+    if ($objective_4_id !== NULL) {
+      $admin_debug_tags[] = sprintf('[ID: %d]', $objective_4_id);
+    }
 
-    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated, [], [], $admin_debug_tags);
   }
 
   /**
@@ -516,8 +522,13 @@ class ReportsResultsController extends ControllerBase {
     $calculated = (float) ($result['seminar_percentage'] ?? 0);
     $total = (int) ($result['seminar_total_users'] ?? 0);
     $with_seminar = (int) ($result['seminar_users'] ?? 0);
+    $seminar_user_ids = array_values(array_map('intval', (array) ($result['seminar_user_ids'] ?? [])));
+    $admin_debug_tags = [];
+    if (!empty($seminar_user_ids)) {
+      $admin_debug_tags[] = sprintf('[users: %s]', implode(', ', array_map('strval', $seminar_user_ids)));
+    }
 
-    return $this->format_row($name, $description, NULL, $with_seminar, $total, $target, $calculated);
+    return $this->format_row($name, $description, NULL, $with_seminar, $total, $target, $calculated, [], [], $admin_debug_tags);
   }
 
   /**
@@ -539,7 +550,7 @@ class ReportsResultsController extends ControllerBase {
   /**
    * Formats a report table row.
    */
-  private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated, array $on_time_ids = [], array $total_ids = []): array {
+  private function format_row($name, $description, ?int $deadline, int $on_time, int $total, float $target, float $calculated, array $on_time_ids = [], array $total_ids = [], array $admin_debug_tags = []): array {
     $meets_target = $calculated >= $target;
     $color = $meets_target ? 'green' : 'red';
     $calculated_formatted = number_format($calculated, 2);
@@ -555,6 +566,9 @@ class ReportsResultsController extends ControllerBase {
       }
       if (!empty($total_ids)) {
         $absolute_achievement_label .= sprintf(' [total:%s]', implode(',', array_map('strval', $total_ids)));
+      }
+      if (!empty($admin_debug_tags)) {
+        $absolute_achievement_label .= ' ' . implode(' ', array_map('strval', $admin_debug_tags));
       }
     }
 

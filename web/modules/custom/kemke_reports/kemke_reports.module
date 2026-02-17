@@ -796,6 +796,7 @@ function kemke_reports_get_seminar_users_for_year(int $year, array $excluded_rol
     return [
       'total' => 0,
       'with_seminar' => 0,
+      'with_seminar_uids' => [],
     ];
   }
 
@@ -807,6 +808,7 @@ function kemke_reports_get_seminar_users_for_year(int $year, array $excluded_rol
 
   $total = 0;
   $with_seminar = 0;
+  $with_seminar_uids = [];
 
   foreach ($user_storage->loadMultiple($uids) as $user) {
     if (!$user instanceof UserInterface) {
@@ -880,11 +882,16 @@ function kemke_reports_get_seminar_users_for_year(int $year, array $excluded_rol
 
     if ($found) {
       $with_seminar++;
+      $with_seminar_uids[] = (int) $user->id();
     }
   }
+
+  $with_seminar_uids = array_values(array_unique($with_seminar_uids));
+  sort($with_seminar_uids);
 
   return [
     'total' => $total,
     'with_seminar' => $with_seminar,
+    'with_seminar_uids' => $with_seminar_uids,
   ];
 }

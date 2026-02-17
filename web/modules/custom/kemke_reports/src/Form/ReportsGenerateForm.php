@@ -132,10 +132,12 @@ class ReportsGenerateForm extends FormBase {
     $result['objective_4_total'] = (int) $objective_4_metrics['total'];
     $result['objective_4_on_time'] = (int) $objective_4_metrics['on_time'];
     $result['objective_4_percentage'] = (float) $objective_4_metrics['percentage'];
+    $result['objective_4_ids'] = $objective_4_metrics['ids'];
     $result['objective_4'] = $objective_config['objective_4'];
     $result['objective_4_warning'] = $objective_4_warning;
     $result['seminar_total_users'] = $seminar_counts['total'];
     $result['seminar_users'] = $seminar_counts['with_seminar'];
+    $result['seminar_user_ids'] = $seminar_counts['with_seminar_uids'] ?? [];
     $result['seminar_percentage'] = $seminar_percentage;
     $result['objective_6'] = $objective_config['objective_6'];
     $result['generated'] = $this->time->getCurrentTime();
