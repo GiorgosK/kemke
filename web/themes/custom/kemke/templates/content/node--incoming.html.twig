@@ -71,6 +71,9 @@
   ]
 %}
 {{ attach_library('kemke/node') }}
+{% if page and view_mode == 'full' %}
+  {{ attach_library('kemke/incoming-print') }}
+{% endif %}
 <article{{ attributes.addClass(classes) }}>
 
   {{ title_prefix }}
@@ -81,8 +84,15 @@
   {% endif %}
   {{ title_suffix }}
 
-  <div{{ content_attributes.addClass('node__content') }}>
+  <div{{ content_attributes.addClass('node__content', 'kemke-incoming-print-root') }}>
     {{ content }}
   </div>
+
+  {% if page and view_mode == 'full' %}
+    <div class="kemke-incoming-print-actions">
+      <button type="button" class="govgr-btn kemke-incoming-print-button">
+      </button>
+    </div>
+  {% endif %}
 
 </article>

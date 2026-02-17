@@ -84,6 +84,18 @@ node:
     component:
       css/components/node.css:
         weight: -10
+
+incoming-print:
+  version: VERSION
+  css:
+    component:
+      css/components/incoming-print.css:
+        weight: -10
+  js:
+    js/incoming-print.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
 progress:
   version: VERSION
   css:
