@@ -112,7 +112,7 @@ function incoming_related_field_form_alter(array &$form, FormStateInterface $for
 
   incoming_related_field_update_button_label($form, $selector, $name, $label);
 
-  $label = 'Συσχέτηση αρχείου';
+  $label = 'Συσχέτιση αρχείου';
   $selector = 'edit-field-related-incoming-actions-ief-add-existing';
   $name = 'ief-field_related_incoming-form-add-existing';
   incoming_related_field_update_button_label($form, $selector, $name, $label);
