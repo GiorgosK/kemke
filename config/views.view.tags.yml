@@ -188,6 +188,10 @@ display:
     display_plugin: entity_reference
     position: 1
     display_options:
+      pager:
+        type: none
+        options:
+          offset: 0
       style:
         type: entity_reference
         options:

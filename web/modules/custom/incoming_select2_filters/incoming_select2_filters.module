@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\taxonomy\TermStorageInterface;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -12,14 +13,8 @@ function incoming_select2_filters_form_views_exposed_form_alter(array &$form, Fo
     return;
   }
 
-  // Target the "incoming" view only. Adjust $allowed_displays or $filters if
-  // you add more displays or filters later.
+  // Target the "incoming" view only.
   if ($view->id() !== 'incoming') {
-    return;
-  }
-
-  $allowed_displays = ['page_1', 'default', 'page'];
-  if (!in_array($view->current_display, $allowed_displays, TRUE)) {
     return;
   }
 
@@ -27,6 +22,9 @@ function incoming_select2_filters_form_views_exposed_form_alter(array &$form, Fo
   $filters = [
     'field_case_result_target_id',
     'case', // Fallback if filter machine name differs.
+    'field_tags_target_id',
+    'field_tags_target_id_entityreference_filter_select2',
+    'tags', // Exposed identifier used by multiple incoming displays.
   ];
 
   foreach ($filters as $filter_key) {
@@ -45,10 +43,81 @@ function incoming_select2_filters_form_views_exposed_form_alter(array &$form, Fo
     $element['#type'] = 'select2';
     $element['#attributes']['class'][] = 'select2-widget';
 
+    if (in_array($filter_key, ['field_tags_target_id', 'field_tags_target_id_entityreference_filter_select2', 'tags'], TRUE)) {
+      incoming_select2_filters_apply_tags_hierarchy_labels($element['#options']);
+    }
+
     // Improve UX: allow clearing and set placeholder from the empty option.
     $element['#select2']['allowClear'] = TRUE;
     if (!empty($element['#empty_option'])) {
       $element['#select2']['placeholder'] = $element['#empty_option'];
     }
   }
+}
+
+/**
+ * Prefixes tags filter option labels to reflect term depth.
+ *
+ * @param array<string|int, mixed> $options
+ *   Select options keyed by term ID.
+ */
+function incoming_select2_filters_apply_tags_hierarchy_labels(array &$options): void {
+  $depthMap = incoming_select2_filters_get_tags_depth_map();
+  if ($depthMap === []) {
+    return;
+  }
+
+  foreach ($options as $key => &$label) {
+    if (!is_scalar($label)) {
+      continue;
+    }
+    if (!is_numeric((string) $key)) {
+      continue;
+    }
+
+    $tid = (int) $key;
+    if ($tid <= 0 || !isset($depthMap[$tid])) {
+      continue;
+    }
+
+    $depth = max(0, (int) $depthMap[$tid]);
+    if ($depth === 0) {
+      continue;
+    }
+
+    $prefix = str_repeat('  ', $depth) . '› ';
+    $label = $prefix . (string) $label;
+  }
+  unset($label);
+}
+
+/**
+ * Builds a map of tags term ID => hierarchy depth.
+ *
+ * @return array<int, int>
+ *   Depth indexed by term ID.
+ */
+function incoming_select2_filters_get_tags_depth_map(): array {
+  static $depthMap = NULL;
+
+  if (is_array($depthMap)) {
+    return $depthMap;
+  }
+
+  $depthMap = [];
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  if (!$storage instanceof TermStorageInterface) {
+    return $depthMap;
+  }
+
+  $tree = $storage->loadTree('tags', 0, NULL, FALSE);
+  foreach ($tree as $item) {
+    $tid = (int) ($item->tid ?? 0);
+    if ($tid <= 0) {
+      continue;
+    }
+    $depthMap[$tid] = (int) ($item->depth ?? 0);
+  }
+
+  return $depthMap;
 }

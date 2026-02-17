@@ -85,6 +85,16 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
       }
     }
 
+    if (
+      $exposed
+      && $this->view->id() === 'incoming'
+      && $identifier === 'tags'
+      && isset($form['value']['#options'])
+      && is_array($form['value']['#options'])
+    ) {
+      $this->applyHierarchyPrefixes($form['value']['#options'], 'tags');
+    }
+
     // Entityreference_filter uses "All" as the empty sentinel for single,
     // non-required exposed filters. Ensure it exists in options to pass
     // allowed-values validation.
@@ -120,6 +130,8 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
         $form['value']['#select2']['width'] = '100%';
         $form['value']['#select2']['allowClear'] = !$is_required;
         $form['value']['#select2']['minimumInputLength'] = max(0, (int) ($this->options['minimum_input_length'] ?? 0));
+        $form['value']['#select2']['dropdownAutoWidth'] = TRUE;
+        $form['value']['#select2']['dropdownCssClass'] = 'views-entity-reference-select2-dropdown';
 
         if (!empty($form['value']['#multiple'])) {
           $form['value']['#select2']['closeOnSelect'] = FALSE;
@@ -139,6 +151,49 @@ class ViewsEntityReferenceSelect2 extends EntityReferenceFilterViewResult {
     if (!$exposed && isset($form['reference_display']['#description'])) {
       $form['reference_display']['#description'] .= '<p>' . $this->t('Searchable fields and displayed labels are controlled by the selected Entity Reference display (its filters, search settings, and row style output).') . '</p>';
     }
+  }
+
+  /**
+   * Adds visible hierarchy prefixes to taxonomy options.
+   *
+   * @param array<string|int, mixed> $options
+   *   Select options keyed by term ID.
+   * @param string $vocabulary
+   *   Vocabulary machine name.
+   */
+  protected function applyHierarchyPrefixes(array &$options, string $vocabulary): void {
+    $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+    if (!method_exists($storage, 'loadTree')) {
+      return;
+    }
+
+    $depthByTid = [];
+    foreach ($storage->loadTree($vocabulary, 0, NULL, FALSE) as $item) {
+      $tid = (int) ($item->tid ?? 0);
+      if ($tid <= 0) {
+        continue;
+      }
+      $depthByTid[$tid] = (int) ($item->depth ?? 0);
+    }
+
+    if ($depthByTid === []) {
+      return;
+    }
+
+    foreach ($options as $key => &$label) {
+      if (!is_scalar($label) || !is_numeric((string) $key)) {
+        continue;
+      }
+
+      $tid = (int) $key;
+      $depth = (int) ($depthByTid[$tid] ?? 0);
+      if ($depth <= 0) {
+        continue;
+      }
+
+      $label = str_repeat('- ', $depth) . (string) $label;
+    }
+    unset($label);
   }
 
 }

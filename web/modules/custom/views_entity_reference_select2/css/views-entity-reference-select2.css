@@ -7,3 +7,41 @@ select.views-entity-reference-select2-preinit:not(.select2-hidden-accessible) {
 select.views-entity-reference-select2 + .select2-container {
   min-width: 200px;
 }
+
+/* Make the opened results panel wider than the control when needed. */
+.select2-container--default .select2-dropdown.views-entity-reference-select2-dropdown {
+  min-width: 420px;
+  width: max(420px, 130%) !important;
+}
+
+/* Keep search text visible in inline search field across theme overrides. */
+.select2-container--default .select2-search--inline .select2-search__field {
+  color: #111 !important;
+  caret-color: #111 !important;
+  opacity: 1 !important;
+  background-color: transparent !important;
+}
+
+/* Keep typed text visible in multi-select search even with theme overrides. */
+.select2-container--default .select2-selection--multiple {
+  min-height: 42px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-search--inline {
+  position: relative;
+  z-index: 2;
+}
+
+.select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
+  width: auto !important;
+  min-width: 10ch;
+  max-width: 100%;
+  line-height: 1.4;
+}
