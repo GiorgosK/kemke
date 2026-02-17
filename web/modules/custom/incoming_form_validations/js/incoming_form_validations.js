@@ -316,6 +316,15 @@
         },],
       },
     ],
+    IncTypeOpinionVis: [
+      {
+        selector: '#edit-field-interim-deadline-wrapper',
+        rules: [{
+            type: 'hideIf',
+            valueIs: [ruleIncTypeOpinion],
+        },],
+      },
+    ],    
     SubtypeAnaktisiVis: [
       {
         selector: '.form-item-field-incoming-subtype-61',
@@ -492,6 +501,7 @@
       ...ruleSets.EditGroupSubtypeVis,
       ...ruleSets.EditGroupEEnotiVis,
       ...ruleSets.SubtypeHierarchyVis,
+      ...ruleSets.IncTypeOpinionVis,
       ...ruleSets.GroupSignatureRejecionVis,
       ...ruleSets.GroupReportCasesVis,
       ...ruleSets.GroupExtensionVis,
