@@ -21,7 +21,7 @@
     {
       selector: '#edit-field-incoming-type',
       type: 'select',
-      value: ['9', '2', '5', '42', '8', '9', '_none'],
+      value: ['2', '5', '42', '8', '9', '_none'],
     };
   const ruleIncTypeEE = 
     {
@@ -77,7 +77,12 @@
       type: 'select',
       value: ['42'], // Προκοινοποιήση
     };
-
+  const ruleIncTypeOther = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['9'], // Λοιπές υποθέσεις
+    };
   const ruleButtonUndeprocessingStay = 
     {
       selector: '#edit-moderation-state-under-processing',
@@ -275,7 +280,7 @@
         ],
       },
     ],
-    IncTypeEEHideUnrelatedFields: [
+    IncTypeEEHide: [
       {
         selector: [
           '#edit-field-fullness-check-date-wrapper',
@@ -351,6 +356,19 @@
         },],
       },
     ],    
+    IncTypeOtherHide: [
+      {
+        selector: [
+          '#edit-field-interim-deadline-wrapper',
+          '#edit-field-requested-deadline-wrapper',
+        ],
+        rules: [{
+            type: 'hideIf',
+            valueIsOR: [ruleIncTypeOther],
+        },],
+      },
+    ],    
+
     SubtypeAnaktisiVis: [
       {
         selector: '.form-item-field-incoming-subtype-61',
@@ -421,7 +439,7 @@
         selector: '#edit-group-extension',
         rules: [{
             type: 'hideIf',
-            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE],
+            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE,ruleIncTypeOther],
         },],
       },
     ],
@@ -519,7 +537,8 @@
       ...ruleSets.baseFullness,
       ...ruleSets.baseForSignature,
       ...ruleSets.TabEEVis,
-      ...ruleSets.IncTypeEEHideUnrelatedFields,
+      ...ruleSets.IncTypeEEHide,
+      ...ruleSets.IncTypeOtherHide,
       ...ruleSets.TabPlanVis,
       ...ruleSets.baseForCompleted,
       ...ruleSets.OpinionRefIdDisabled,
