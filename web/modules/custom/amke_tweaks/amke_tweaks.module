@@ -35,7 +35,6 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     $keep_fields_edit_form = [
       'field_ref_id',
       // 'field_documents',
-      'field_entry_date',
       'field_protocol_number_sender',
       'field_subject',
       'field_remarks',
@@ -81,6 +80,9 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
           unset($form[$key]);
         }
       }
+    }
+    if (isset($form['field_entry_date'])) {
+      $form['field_entry_date']['#access'] = FALSE;
     }
 
     // AMKE users can edit subject while incoming is in temp state.
@@ -293,11 +295,12 @@ function amke_tweaks_field_group_form_process_build_alter(array &$element, FormS
   }
 
   $group_changes = [
-    'field_entry_date' => 'group_general',
     'field_protocol_number_sender' => 'group_files',
   ];
   foreach ($group_changes as $key => $group) {
-    $element[$key]['#group'] = $group;
+    if (isset($element[$key])) {
+      $element[$key]['#group'] = $group;
+    }
   }
 }
 
