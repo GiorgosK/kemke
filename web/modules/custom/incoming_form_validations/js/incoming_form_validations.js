@@ -65,6 +65,19 @@
       type: 'select',
       value: ['2','5','42'], // ΕΕ, Κοινοποιήση και Προκοινοποιήση
     };
+  const ruleIncTypeKoinop = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['5'], // Κοινοποιήση
+    };
+  const ruleIncTypeProKoinop = 
+    {
+      selector: '#edit-field-incoming-type',
+      type: 'select',
+      value: ['42'], // Προκοινοποιήση
+    };
+
   const ruleButtonUndeprocessingStay = 
     {
       selector: '#edit-moderation-state-under-processing',
@@ -303,7 +316,7 @@
         selector: '#edit-group-ee-noti',
         rules: [{
             type: 'hideIf',
-            valueNot: [ruleIncTypeEEKoinopProKoinop],
+            valueNot: [ruleIncTypeEE],
         },],
       },
     ],
@@ -321,7 +334,20 @@
         selector: '#edit-field-interim-deadline-wrapper',
         rules: [{
             type: 'hideIf',
-            valueIs: [ruleIncTypeOpinion],
+            valueIsOR: [ruleIncTypeOpinion, ruleIncTypeKoinopGnostop],
+        },],
+      },
+    ],    
+    IncTypeProKoinopHide: [
+      {
+        selector: [
+          '#edit-field-interim-deadline-wrapper',
+          '#edit-field-fullness-check-date-wrapper',
+          '#edit-field-legal-deadline-wrapper',
+        ],
+        rules: [{
+            type: 'hideIf',
+            valueIsOR: [ruleIncTypeProKoinop],
         },],
       },
     ],    
@@ -395,7 +421,7 @@
         selector: '#edit-group-extension',
         rules: [{
             type: 'hideIf',
-            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE,ruleIncTypeEEKoinopProKoinop],
+            valueNotAND: [ruleSubtypeAnaktisiChecked,ruleIncTypeEE],
         },],
       },
     ],
@@ -404,7 +430,7 @@
         selector: '.field--name-field-requested-deadline',
         rules: [{
             type: 'hideIf',
-            valueIs: [ruleIncTypeEEKoinopProKoinop],
+            valueIsOR: [ruleIncTypeEE,ruleIncTypeKoinop],
         },],
       },
     ],
@@ -498,6 +524,7 @@
       ...ruleSets.baseForCompleted,
       ...ruleSets.OpinionRefIdDisabled,
       ...ruleSets.OpinionRefIdVis,
+      ...ruleSets.IncTypeProKoinopHide,
       ...ruleSets.EditGroupSubtypeVis,
       ...ruleSets.EditGroupEEnotiVis,
       ...ruleSets.SubtypeHierarchyVis,
