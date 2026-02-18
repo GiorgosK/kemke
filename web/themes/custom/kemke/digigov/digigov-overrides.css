@@ -59,11 +59,17 @@
   margin-left: 3rem;
 }
 
+
 .views-exposed-form .govgr-btn,
 .views-exposed-form .govgr-field {
   position: relative;
   margin-bottom: 0px;
   max-width: 250px;
+}
+
+.views-exposed-form .form-item-tags {
+  max-width: none;
+  min-width: 250px;
 }
 
 .views-exposed-form .form--inline {
