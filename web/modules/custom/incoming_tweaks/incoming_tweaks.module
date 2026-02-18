@@ -14,6 +14,8 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\file\Entity\File;
 use Drupal\node\NodeInterface;
 
+const INCOMING_TWEAKS_UNTITLED_PLACEHOLDER = 'Χωρίς REF ID';
+
 /**
  * Implements hook_form_BASE_FORM_ID_alter() for node forms.
  */
@@ -740,12 +742,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
     : '';
   $primary_missing = $entity->hasField('field_primary') && $entity->get('field_primary')->isEmpty();
 
-  if ($state === 'temp') {
-    incoming_tweaks_ensure_storage_title($entity);
-  }
-  else {
-    incoming_tweaks_ensure_title($entity);
-  }
+  incoming_tweaks_ensure_title($entity);
   incoming_tweaks_clear_entry_date_while_temp($entity);
   incoming_tweaks_strip_empty_related_incoming_items($entity);
   incoming_tweaks_remove_self_related_without_primary_document($entity);
@@ -773,13 +770,12 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_sync_related_legal_entities($entity);
   incoming_tweaks_ensure_self_related_when_primary_document_exists($entity);
 
+  if ($state === 'draft') {
+    incoming_tweaks_populate_field_ref_id($entity);
+    incoming_tweaks_sync_title_from_ref_id($entity);
+  }
+
   if ($entered_draft) {
-    if (incoming_tweaks_populate_field_ref_id($entity)) {
-      $reference = (string) $entity->get('field_ref_id')->value;
-      if ($reference !== '') {
-        $entity->setTitle($reference);
-      }
-    }
     incoming_tweaks_add_self_related_incoming($entity);
   }
 }
@@ -1158,18 +1154,30 @@ function incoming_tweaks_set_primary_flag(NodeInterface $node): void {
 function incoming_tweaks_ensure_title(NodeInterface $node): void {
   $title = trim((string) $node->label());
   if ($title === '') {
-    $node->setTitle(t('Χωρίς REF ID'));
+    $node->setTitle(INCOMING_TWEAKS_UNTITLED_PLACEHOLDER);
   }
 }
 
 /**
- * Ensures a safe non-null storage title for temp nodes.
+ * Syncs node title from field_ref_id when title is empty or placeholder.
  */
-function incoming_tweaks_ensure_storage_title(NodeInterface $node): void {
-  $title = trim((string) $node->label());
-  if ($title === '') {
-    $node->setTitle('Χωρίς REF ID');
+function incoming_tweaks_sync_title_from_ref_id(NodeInterface $node): bool {
+  if (!$node->hasField('field_ref_id') || $node->get('field_ref_id')->isEmpty()) {
+    return FALSE;
   }
+
+  $reference = trim((string) $node->get('field_ref_id')->value);
+  if ($reference === '') {
+    return FALSE;
+  }
+
+  $title = trim((string) $node->label());
+  if ($title === '' || $title === INCOMING_TWEAKS_UNTITLED_PLACEHOLDER) {
+    $node->setTitle($reference);
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -1603,10 +1611,9 @@ function incoming_tweaks_node_insert(NodeInterface $node): void {
   }
 
   if (incoming_tweaks_populate_field_ref_id($node)) {
-    $reference = (string) $node->get('field_ref_id')->value;
-    if ($reference !== '' && $node->label() !== $reference) {
-      $node->setTitle($reference);
-    }
+    $needs_save = TRUE;
+  }
+  if (incoming_tweaks_sync_title_from_ref_id($node)) {
     $needs_save = TRUE;
   }
 
@@ -1924,12 +1931,9 @@ function incoming_tweaks_is_signatures_status_complete(?string $status): bool {
  */
 function incoming_tweaks_assign_reference_id(NodeInterface $node): void {
   $updated = incoming_tweaks_populate_field_ref_id($node);
-
-  if ($updated) {
-    $reference = (string) $node->get('field_ref_id')->value;
-    if ($reference !== '' && $node->label() !== $reference) {
-      $node->setTitle($reference);
-    }
+  $title_updated = incoming_tweaks_sync_title_from_ref_id($node);
+  if (!$updated && !$title_updated) {
+    return;
   }
 
   // Avoid creating a revision just for the auto-generated values.
@@ -1946,7 +1950,7 @@ function incoming_tweaks_populate_field_ref_id(NodeInterface $node): bool {
   }
 
   $node->set('field_ref_id', incoming_tweaks_generate_reference_id($node));
- return TRUE;
+  return TRUE;
 }
 
 /**
