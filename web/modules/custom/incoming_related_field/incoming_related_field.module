@@ -960,12 +960,15 @@ function incoming_related_field_send_file_to_side(FileInterface $file, array $op
     throw new RuntimeException('Stamped file is not available yet.');
   }
 
+  $generated_filename = $client->extractValueByPath($doc, 'Document.GeneratedFile.FileName');
+  $generated_filename = incoming_related_field_prepare_docutracks_filename($generated_filename, $document_id, $generated_file_id);
+
   $stamped_file = incoming_related_field_download_docutracks_file(
     $client,
     $generated_file_id,
     $document_id,
     $jar,
-    incoming_related_field_build_stamped_filename($file)
+    $generated_filename
   );
 
   return [
@@ -1256,17 +1259,6 @@ function incoming_related_field_build_doc_title(FileInterface $file, array $cont
   }
 
   return $title;
-}
-
-/**
- * Build a filename for the stamped file.
- */
-function incoming_related_field_build_stamped_filename(FileInterface $file): string {
-  $base = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-  $extension = pathinfo($file->getFilename(), PATHINFO_EXTENSION);
-  $suffix = 'stamped';
-  $extension = $extension !== '' ? '.' . $extension : '.pdf';
-  return $base . '-' . $suffix . $extension;
 }
 
 /**
