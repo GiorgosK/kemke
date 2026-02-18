@@ -22,8 +22,6 @@ dependencies:
     - field.field.node.incoming.field_incoming_type
     - field.field.node.incoming.field_interim_deadline
     - field.field.node.incoming.field_legal_deadline
-    - field.field.node.incoming.field_legal_deadline_ext
-    - field.field.node.incoming.field_legal_deadline_original
     - field.field.node.incoming.field_legal_entity
     - field.field.node.incoming.field_notes
     - field.field.node.incoming.field_on_time_cases
@@ -52,7 +50,6 @@ dependencies:
     - field.field.node.incoming.field_signature_rejection_date
     - field.field.node.incoming.field_start_date
     - field.field.node.incoming.field_subject
-    - field.field.node.incoming.field_subtype_date
     - field.field.node.incoming.field_supervisor
     - field.field.node.incoming.field_taa_project
     - field.field.node.incoming.field_tags
@@ -138,8 +135,6 @@ hidden:
   field_incoming_type: true
   field_interim_deadline: true
   field_legal_deadline: true
-  field_legal_deadline_ext: true
-  field_legal_deadline_original: true
   field_legal_entity: true
   field_notes: true
   field_on_time_cases: true
@@ -164,7 +159,6 @@ hidden:
   field_signature_rejection: true
   field_signature_rejection_date: true
   field_start_date: true
-  field_subtype_date: true
   field_supervisor: true
   field_taa_project: true
   field_tags: true
