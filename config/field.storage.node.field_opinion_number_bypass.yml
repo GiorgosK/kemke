@@ -1,0 +1,19 @@
+uuid: 7f064c3f-80ce-4178-929e-7097db581825
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_opinion_number_bypass
+field_name: field_opinion_number_bypass
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,19 @@
+uuid: 0a61f517-48ed-4cc8-abb0-634976ba89bd
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_opinion_number_bypass
+    - node.type.incoming
+id: node.incoming.field_opinion_number_bypass
+field_name: field_opinion_number_bypass
+entity_type: node
+bundle: incoming
+label: 'Αιτιολογία παράκαμψης'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

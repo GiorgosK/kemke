@@ -29,6 +29,7 @@ dependencies:
     - field.field.node.incoming.field_on_time_obj3
     - field.field.node.incoming.field_on_time_obj5
     - field.field.node.incoming.field_operators
+    - field.field.node.incoming.field_opinion_number_bypass
     - field.field.node.incoming.field_opinion_ref_id
     - field.field.node.incoming.field_plan
     - field.field.node.incoming.field_plan_dt_api_response
@@ -349,6 +350,7 @@ third_party_settings:
       children:
         - field_incoming_type
         - field_opinion_ref_id
+        - field_opinion_number_bypass
       label: 'Είδος εγγράφου'
       region: content
       parent_name: group_document_type
@@ -685,6 +687,14 @@ content:
       autocomplete: false
       match_operator: CONTAINS
       match_limit: 10
+    third_party_settings: {  }
+  field_opinion_number_bypass:
+    type: string_textarea
+    weight: 7
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
     third_party_settings: {  }
   field_opinion_ref_id:
     type: string_textfield

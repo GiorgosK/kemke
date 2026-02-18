@@ -10,6 +10,8 @@ use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\Html;
 
+const OPINION_REF_ID_TWEAKS_BYPASS_MIN_LENGTH = 10;
+
 /**
  * Builds the opinion reference ID, e.g. "ΓΝ1-2026".
  */
@@ -107,6 +109,7 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
   }
 
   $form['#attached']['library'][] = 'core/drupal.ajax';
+  $form['#attached']['library'][] = 'core/drupal.states';
   $form['#attached']['library'][] = 'opinion_ref_id_tweaks/opinion_ref_id_tweaks';
 
   $field = &$form['field_opinion_ref_id']['widget'][0]['value'];
@@ -132,14 +135,26 @@ function opinion_ref_id_tweaks_form_alter(array &$form, FormStateInterface $form
     ' <a href="' . Html::escape($opinions_url) . '" target="_blank" rel="noopener noreferrer">Όλες οι Γνωμοδοτήσεις</a>';
 
   $form['field_opinion_ref_id']['widget'][0]['#attributes']['class'][] = 'container-inline';
+  $bypass_default = opinion_ref_id_tweaks_default_bypass_checkbox_value($form_state);
   $form['field_opinion_ref_id']['widget'][0]['opinion_ref_id_bypass_check'] = [
     '#type' => 'checkbox',
     '#title' => t('Παράκαμψη ελέγχου'),
-    '#default_value' => 0,
+    '#default_value' => $bypass_default ? 1 : 0,
     '#prefix' => $controls_prefix,
     '#suffix' => '</div>',
     '#weight' => 20,
   ];
+
+  if (isset($form['field_opinion_number_bypass']) && is_array($form['field_opinion_number_bypass'])) {
+    $form['field_opinion_number_bypass']['#states'] = [
+      'visible' => [
+        ':input[name="field_opinion_ref_id[0][opinion_ref_id_bypass_check]"]' => ['checked' => TRUE],
+      ],
+      'required' => [
+        ':input[name="field_opinion_ref_id[0][opinion_ref_id_bypass_check]"]' => ['checked' => TRUE],
+      ],
+    ];
+  }
 
   $form['#after_build'][] = 'opinion_ref_id_tweaks_after_build_fix_missing_parents';
   $form['#validate'][] = 'opinion_ref_id_tweaks_incoming_validate';
@@ -222,6 +237,16 @@ function opinion_ref_id_tweaks_incoming_validate(array &$form, FormStateInterfac
   }
 
   $bypass = opinion_ref_id_tweaks_form_state_has_bypass_flag($form_state);
+  $bypass_reason = opinion_ref_id_tweaks_extract_bypass_reason_from_form_state($form_state);
+
+  if ($bypass) {
+    if (mb_strlen($bypass_reason) < OPINION_REF_ID_TWEAKS_BYPASS_MIN_LENGTH) {
+      $form_state->setErrorByName('field_opinion_number_bypass][0][value', t('Η αιτιολόγηση παράκαμψης πρέπει να έχει τουλάχιστον @min χαρακτήρες.', [
+        '@min' => OPINION_REF_ID_TWEAKS_BYPASS_MIN_LENGTH,
+      ]));
+      return;
+    }
+  }
 
   if (!$bypass && opinion_ref_id_tweaks_is_opinion_incoming($form_state, $entity)) {
     $expected_next = opinion_ref_id_tweaks_generate_reference_id();
@@ -291,6 +316,13 @@ function opinion_ref_id_tweaks_entity_presave(EntityInterface $entity): void {
   }
 
   $bypass = opinion_ref_id_tweaks_request_has_bypass_flag();
+  $bypass_reason = opinion_ref_id_tweaks_extract_bypass_reason_from_request();
+
+  if ($bypass && mb_strlen($bypass_reason) < OPINION_REF_ID_TWEAKS_BYPASS_MIN_LENGTH) {
+    throw new EntityStorageException((string) t('Η αιτιολόγηση παράκαμψης πρέπει να έχει τουλάχιστον @min χαρακτήρες.', [
+      '@min' => OPINION_REF_ID_TWEAKS_BYPASS_MIN_LENGTH,
+    ]));
+  }
 
   if (!$entity->hasField('field_incoming_type') || $entity->get('field_incoming_type')->isEmpty() || (int) $entity->get('field_incoming_type')->target_id !== 3) {
     return;
@@ -410,4 +442,65 @@ function opinion_ref_id_tweaks_should_validate_changed_value(?EntityInterface $e
   }
 
   return $new_value !== $original_value;
+}
+
+/**
+ * Resolve default value for the bypass checkbox on form build/rebuild.
+ */
+function opinion_ref_id_tweaks_default_bypass_checkbox_value(FormStateInterface $form_state): bool {
+  if (opinion_ref_id_tweaks_form_state_has_bypass_flag($form_state)) {
+    return TRUE;
+  }
+
+  $reason = opinion_ref_id_tweaks_extract_bypass_reason_from_form_state($form_state);
+  if ($reason !== '') {
+    return TRUE;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if ($form_object && method_exists($form_object, 'getEntity')) {
+    $entity = $form_object->getEntity();
+    if (
+      $entity instanceof EntityInterface
+      && $entity->hasField('field_opinion_number_bypass')
+      && !$entity->get('field_opinion_number_bypass')->isEmpty()
+    ) {
+      $existing = trim((string) ($entity->get('field_opinion_number_bypass')->value ?? ''));
+      if ($existing !== '') {
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Return bypass reason from submitted form values.
+ */
+function opinion_ref_id_tweaks_extract_bypass_reason_from_form_state(FormStateInterface $form_state): string {
+  $value = $form_state->getValue(['field_opinion_number_bypass', 0, 'value']);
+  if (!is_string($value)) {
+    return '';
+  }
+
+  return trim($value);
+}
+
+/**
+ * Return bypass reason from current HTTP request payload.
+ */
+function opinion_ref_id_tweaks_extract_bypass_reason_from_request(): string {
+  $request = \Drupal::requestStack()->getCurrentRequest();
+  if (!$request) {
+    return '';
+  }
+
+  $field_values = $request->request->all('field_opinion_number_bypass');
+  if (!is_array($field_values) || !isset($field_values[0]) || !is_array($field_values[0])) {
+    return '';
+  }
+
+  $value = $field_values[0]['value'] ?? '';
+  return is_string($value) ? trim($value) : '';
 }
