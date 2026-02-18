@@ -141,7 +141,10 @@ final class PlanInitialManager {
       return ['success' => FALSE, 'error' => 'GeneratedFile.Id not found.'];
     }
 
-    $file = $this->client->downloadAndAttachFile((int) $file_id, (int) $document_id, $node, 'field_plan_signed', $jar, NULL, TRUE);
+    $generated_filename = $this->client->extractValueByPath($doc, 'Document.GeneratedFile.FileName');
+    $generated_filename = is_string($generated_filename) && trim($generated_filename) !== '' ? trim($generated_filename) : NULL;
+
+    $file = $this->client->downloadAndAttachFile((int) $file_id, (int) $document_id, $node, 'field_plan_signed', $jar, NULL, TRUE, $generated_filename);
     return ['success' => TRUE, 'error' => NULL, 'file' => $file];
   }
 

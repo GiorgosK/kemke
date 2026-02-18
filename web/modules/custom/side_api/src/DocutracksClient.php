@@ -410,18 +410,28 @@ final class DocutracksClient {
     string $fieldName,
     CookieJar $jar,
     ?string $baseUrl = null,
-    bool $forceSigned = self::DEFAULT_FORCE_SIGNED
+    bool $forceSigned = self::DEFAULT_FORCE_SIGNED,
+    ?string $filename = NULL
   ): FileInterface {
     if (!$node->hasField($fieldName)) {
       throw new RuntimeException(sprintf('Field %s does not exist on node %d', $fieldName, $node->id()));
     }
 
     $bytes = $this->requestFileBytes($fileId, $documentId, $jar, $baseUrl, $forceSigned);
-    $filename = sprintf('docutracks-%d-%d.pdf', $documentId, $fileId);
-    $uri = 'public://docutracks/' . $filename;
-
+    if (is_string($filename)) {
+      $filename = trim($filename);
+    }
+    if (!is_string($filename) || $filename === '') {
+      $filename = sprintf('docutracks-%d-%d.pdf', $documentId, $fileId);
+    }
     /** @var \Drupal\Core\File\FileSystemInterface $fileSystem */
     $fileSystem = \Drupal::service('file_system');
+    $filename = $fileSystem->basename($filename);
+    if ($filename === '') {
+      $filename = sprintf('docutracks-%d-%d.pdf', $documentId, $fileId);
+    }
+    $uri = 'public://docutracks/' . $filename;
+
     $dir = dirname($uri);
     if (!$fileSystem->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
       throw new RuntimeException(sprintf('Destination directory %s is not writable or could not be created.', $dir));
