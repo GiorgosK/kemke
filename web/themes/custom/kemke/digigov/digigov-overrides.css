@@ -87,125 +87,25 @@
   margin-bottom: 10px;
 }
 
-/* Match Select2 exposed widgets with govgr select controls. */
-.views-exposed-form {
-  --kemke-exposed-control-height: calc(1.5rem + 1rem + 4px);
-}
-
-.views-exposed-form .govgr-field .select2-container {
-  width: 100% !important;
-  max-width: 100%;
+/* Select2 exposed filters: border-only styling to match other controls. */
+.views-exposed-form .govgr-field .select2-container--default {
+  height: 41px;
 }
 
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--single,
 .views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple {
-  width: 100%;
-  height: var(--kemke-exposed-control-height);
-  min-height: var(--kemke-exposed-control-height);
   border: 2px solid rgba(var(--color-base-content-rgb), 1);
-  background-color: rgba(var(--color-base-100-rgb), 1);
   border-radius: 0;
-  font-size: 1rem;
-  line-height: 1.5rem;
-  text-indent: 2px;
-  box-sizing: border-box;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--single {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: .5rem;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple {
-  padding: .25rem .5rem;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__rendered {
-  position: static;
-  top: auto;
-  transform: none;
-  display: flex !important;
-  align-items: center !important;
-  height: 100% !important;
-  margin: 0 !important;
-  line-height: 1.5rem !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 3rem !important;
-  box-sizing: border-box;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__arrow {
-  height: calc(var(--kemke-exposed-control-height) - 4px);
-  right: .25rem;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--single .select2-selection__clear {
-  position: absolute;
-  right: 1.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  margin: 0;
-  padding: 0 .25rem;
-  line-height: 1;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-  display: flex;
-  gap: .25rem;
-  align-items: center;
-  height: calc(var(--kemke-exposed-control-height) - 4px - .5rem);
-  min-height: calc(var(--kemke-exposed-control-height) - 4px - .5rem);
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-search--inline {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  max-width: 100%;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-search--inline .select2-search__field {
-  display: block;
-  margin-top: 0;
-  margin-bottom: 0;
-  height: 1.5rem;
-  min-height: 1.5rem;
-  padding: 0 !important;
-  line-height: 1.5rem;
-  width: auto !important;
-  min-width: 6ch;
-  max-width: 100%;
-  overflow: hidden;
-  resize: none;
-  vertical-align: top;
-}
-
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple .select2-selection__choice {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-/* Placeholder has inconsistent vertical positioning in inline multi-select2. */
-.views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple .select2-search__field::placeholder {
-  color: transparent;
+  height: 100%;
+  line-height: 1.6;
 }
 
 .views-exposed-form .govgr-field .select2-container--default.select2-container--focus .select2-selection--single,
 .views-exposed-form .govgr-field .select2-container--default.select2-container--focus .select2-selection--multiple,
 .views-exposed-form .govgr-field .select2-container--default.select2-container--open .select2-selection--single,
 .views-exposed-form .govgr-field .select2-container--default.select2-container--open .select2-selection--multiple {
-  outline: 4px solid var(--color-focus);
-  outline-offset: 0;
-  box-shadow: inset 0 0 0 2px;
+  border-color: rgba(var(--color-base-content-rgb), 1);
 }
-
 
 .diff-revisions .govgr-radios__input {
   scale: 0.5;
