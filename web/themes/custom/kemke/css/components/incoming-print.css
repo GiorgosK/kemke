@@ -4,18 +4,20 @@
   margin: 1.25rem 0 0;
 }
 
-.kemke-incoming-print-button {
-  margin: 0;
+.kemke-incoming-print-actions .views-data-export-feed {
+  display: inline-flex;
+  align-items: center;
 }
 
-.kemke-incoming-print-button::before {
-  content: "";
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  margin-inline-end: 0.5rem;
-  background: url("../../images/icons/pdf.svg") center/contain no-repeat;
-  vertical-align: text-bottom;
+.kemke-incoming-print-actions .feed-icon {
+  display: block;
+  width: 48px;
+  height: 48px;
+  background-size: 48px 48px;
+}
+
+.kemke-incoming-print-actions .pdf-feed .feed-icon {
+  background-image: url("../../images/icons/pdf.svg") !important;
 }
 
 @media print {
@@ -70,16 +72,50 @@
     display: block !important;
   }
 
-  .node--type-incoming.node--view-mode-full .node__content .horizontal-tabs-list,
-  .node--type-incoming.node--view-mode-full .node__content [data-horizontal-tabs-list],
-  .node--type-incoming.node--view-mode-full .node__content .horizontal-tabs-active-tab,
-  .node--type-incoming.node--view-mode-full .node__content .kemke-incoming-print-actions {
+  .node--type-incoming.node--view-mode-full .node__content .kemke-incoming-print-actions,
+  .horizontal-tabs-list,
+  [data-horizontal-tabs-list],
+  .horizontal-tabs-list *,
+  .horizontal-tab-button,
+  [data-horizontaltabbutton] {
     display: none !important;
   }
 
   /* Keep only top-level "Γενικά" and "Απάντηση" sections in print. */
-  .node--type-incoming.node--view-mode-full .node__content > .field-group-tabs-wrapper > [data-horizontal-tabs] > [data-horizontal-tabs-panes] > details:not(#edit-group-general):not(#edit-group-anwer) {
+  .node--type-incoming.node--view-mode-full .node__content > .field-group-tabs-wrapper > [data-horizontal-tabs] > [data-horizontal-tabs-panes] > details:not(#edit-group-general):not(#edit-group-anwer):not(#edit-group-status) {
     display: none !important;
+  }
+
+  /* Also keep "Κατάσταση", but print only "Φορέας" from that tab. */
+  .node--type-incoming.node--view-mode-full .node__content > .field-group-tabs-wrapper > [data-horizontal-tabs] > [data-horizontal-tabs-panes] > details#edit-group-status {
+    display: block !important;
+  }
+
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > .details-wrapper > * {
+    display: none !important;
+  }
+
+  /* Hide the "Κατάσταση" section heading in print. */
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > summary {
+    display: none !important;
+  }
+
+  /* Hide the "Απάντηση" section heading in print. */
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-anwer > summary {
+    display: none !important;
+  }
+
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > .details-wrapper > .field--name-field-legal-entity {
+    display: flex !important;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > .details-wrapper > .field--name-field-legal-entity .field__label,
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > .details-wrapper > .field--name-field-legal-entity .field__items,
+  .node--type-incoming.node--view-mode-full .node__content details#edit-group-status > .details-wrapper > .field--name-field-legal-entity .field__item {
+    display: inline !important;
+    margin: 0 !important;
   }
 
   /* Remove tab section border line. */

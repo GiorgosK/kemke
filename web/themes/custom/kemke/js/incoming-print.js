@@ -3,8 +3,9 @@
 
   Drupal.behaviors.kemkeIncomingPrint = {
     attach: function (context) {
-      once('kemke-incoming-print', '.kemke-incoming-print-button', context).forEach(function (button) {
-        button.addEventListener('click', function () {
+      once('kemke-incoming-print', '.kemke-incoming-print-link', context).forEach(function (link) {
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
           window.print();
         });
       });

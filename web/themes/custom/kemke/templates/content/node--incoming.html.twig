@@ -90,8 +90,11 @@
 
   {% if page and view_mode == 'full' %}
     <div class="kemke-incoming-print-actions">
-      <button type="button" class="govgr-btn kemke-incoming-print-button">
-      </button>
+      <div class="pdf-feed views-data-export-feed views-data-export-feed--incoming-print">
+        <a href="#" class="feed-icon kemke-incoming-print-link" aria-label="{{ 'Print page as PDF'|t }}" title="{{ 'Print page as PDF'|t }}">
+          <span class="visually-hidden">{{ 'Print page as PDF'|t }}</span>
+        </a>
+      </div>
     </div>
   {% endif %}
 
