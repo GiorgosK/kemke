@@ -3,9 +3,12 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.storage.node.field_answer
+    - field.storage.node.field_answer_files
     - field.storage.node.field_basic_operator
     - field.storage.node.field_case
     - field.storage.node.field_completion_date
+    - field.storage.node.field_dt_docid
     - field.storage.node.field_entry_date
     - field.storage.node.field_extension_date
     - field.storage.node.field_fullness_check_date
@@ -15,6 +18,7 @@ dependencies:
     - field.storage.node.field_legal_entity
     - field.storage.node.field_operators
     - field.storage.node.field_opinion_ref_id
+    - field.storage.node.field_plan
     - field.storage.node.field_priority
     - field.storage.node.field_protocol_date
     - field.storage.node.field_protocol_number_doc
@@ -22,9 +26,11 @@ dependencies:
     - field.storage.node.field_requested_deadline
     - field.storage.node.field_sender
     - field.storage.node.field_signature_rejection_date
+    - field.storage.node.field_start_date
     - field.storage.node.field_subject
-    - field.storage.node.field_subtype_date
     - field.storage.node.field_supervisor
+    - field.storage.node.field_tags
+    - field.storage.node.field_working_days
     - node.type.incoming
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.incoming_type
@@ -42,6 +48,7 @@ dependencies:
     - content_moderation
     - datetime
     - entityreference_filter
+    - file
     - node
     - pdf_serialization
     - rest
@@ -1987,6 +1994,69 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
+        field_tags:
+          id: field_tags
+          table: node__field_tags
+          field: field_tags
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Λέξεις κλειδιά'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         field_supervisor:
           id: field_supervisor
           table: node__field_supervisor
@@ -2428,70 +2498,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_subtype_date:
-          id: field_subtype_date
-          table: node__field_subtype_date
-          field: field_subtype_date
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: field
-          label: 'Ημερομηνία υποκατηγορίας έγγραφου'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: datetime_default
-          settings:
-            timezone_override: ''
-            format_type: greek_date
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
         field_completion_date:
           id: field_completion_date
           table: node__field_completion_date
@@ -2885,6 +2891,383 @@ display:
           admin_label: ''
           plugin_id: field
           label: 'Αριθμός γνωμοδότησης'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: string
+          settings:
+            link_to_entity: false
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_working_days:
+          id: field_working_days
+          table: node__field_working_days
+          field: field_working_days
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Αριθμός εργάσιμων ημερών '
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: number_integer
+          settings:
+            thousand_separator: ''
+            prefix_suffix: true
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_start_date:
+          id: field_start_date
+          table: node__field_start_date
+          field: field_start_date
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Ημερομηνία έναρξης'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: datetime_default
+          settings:
+            timezone_override: ''
+            format_type: greek_date
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_plan:
+          id: field_plan
+          table: node__field_plan
+          field: field_plan
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: Σχέδιο
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: file_url_plain
+          settings: {  }
+          group_column: ''
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_answer:
+          id: field_answer
+          table: node__field_answer
+          field: field_answer
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: απάντηση
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: text_default
+          settings: {  }
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_answer_files:
+          id: field_answer_files
+          table: node__field_answer_files
+          field: field_answer_files
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'αρχεία απάντησης'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: file_url_plain
+          settings: {  }
+          group_column: ''
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_dt_docid:
+          id: field_dt_docid
+          table: node__field_dt_docid
+          field: field_dt_docid
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Docutracks DocId'
           exclude: false
           alter:
             alter_text: false
@@ -3402,51 +3785,6 @@ display:
           hierarchy: false
           limit: true
           error_message: true
-        field_tags_target_id:
-          id: field_tags_target_id
-          table: node__field_tags
-          field: field_tags_target_id
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: taxonomy_index_tid
-          operator: and
-          value: {  }
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_tags_target_id_op
-            label: 'Λέξεις κλειδιά'
-            description: ''
-            use_operator: false
-            operator: field_tags_target_id_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: tags
-            required: false
-            remember: false
-            multiple: true
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          reduce_duplicates: false
-          vid: tags
-          type: textfield
-          hierarchy: false
-          limit: true
-          error_message: true
         field_entry_date_value:
           id: field_entry_date_value
           table: node__field_entry_date
@@ -3532,6 +3870,51 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
+          table: node__field_tags
+          field: field_tags_target_id_entityreference_filter_select2
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: views_entity_reference_select2
+          operator: or
+          value: null
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
+            label: 'Λέξεις κλειδιά'
+            description: ''
+            use_operator: false
+            operator: field_tags_target_id_entityreference_filter_select2_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: tags
+            required: false
+            remember: false
+            multiple: true
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          type: select
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
@@ -3586,9 +3969,12 @@ display:
         - 'user.node_grants:view'
         - user.permissions
       tags:
+        - 'config:field.storage.node.field_answer'
+        - 'config:field.storage.node.field_answer_files'
         - 'config:field.storage.node.field_basic_operator'
         - 'config:field.storage.node.field_case'
         - 'config:field.storage.node.field_completion_date'
+        - 'config:field.storage.node.field_dt_docid'
         - 'config:field.storage.node.field_entry_date'
         - 'config:field.storage.node.field_extension_date'
         - 'config:field.storage.node.field_fullness_check_date'
@@ -3598,6 +3984,7 @@ display:
         - 'config:field.storage.node.field_legal_entity'
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_opinion_ref_id'
+        - 'config:field.storage.node.field_plan'
         - 'config:field.storage.node.field_priority'
         - 'config:field.storage.node.field_protocol_date'
         - 'config:field.storage.node.field_protocol_number_doc'
@@ -3605,10 +3992,13 @@ display:
         - 'config:field.storage.node.field_requested_deadline'
         - 'config:field.storage.node.field_sender'
         - 'config:field.storage.node.field_signature_rejection_date'
+        - 'config:field.storage.node.field_start_date'
         - 'config:field.storage.node.field_subject'
-        - 'config:field.storage.node.field_subtype_date'
         - 'config:field.storage.node.field_supervisor'
+        - 'config:field.storage.node.field_tags'
+        - 'config:field.storage.node.field_working_days'
         - 'config:workflow_list'
+        - taxonomy_term_list
         - user_list
   data_export_2:
     id: data_export_2
@@ -7962,6 +8352,54 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
+            description: ''
+            use_operator: false
+            operator: field_ref_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: refid
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -8329,51 +8767,6 @@ display:
           hierarchy: false
           limit: true
           error_message: true
-        field_tags_target_id_entityreference_filter_select2:
-          id: field_tags_target_id_entityreference_filter_select2
-          table: node__field_tags
-          field: field_tags_target_id_entityreference_filter_select2
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: views_entity_reference_select2
-          operator: or
-          value: null
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_tags_target_id_entityreference_filter_select2_op
-            label: 'Λέξεις κλειδιά'
-            description: ''
-            use_operator: false
-            operator: field_tags_target_id_entityreference_filter_select2_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: tags
-            required: false
-            remember: false
-            multiple: true
-            remember_roles:
-              authenticated: authenticated
-            reduce: false
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          reduce_duplicates: false
-          type: select
-          reference_display: 'tags:entity_reference_1'
-          reference_arguments: ''
-          hide_empty_filter: true
-          minimum_input_length: 0
         field_entry_date_value:
           id: field_entry_date_value
           table: node__field_entry_date
@@ -8419,30 +8812,30 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           type: date
-        field_tags_target_id:
-          id: field_tags_target_id
+        field_tags_target_id_entityreference_filter_select2:
+          id: field_tags_target_id_entityreference_filter_select2
           table: node__field_tags
-          field: field_tags_target_id
+          field: field_tags_target_id_entityreference_filter_select2
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: taxonomy_index_tid
+          plugin_id: views_entity_reference_select2
           operator: or
-          value: {  }
+          value: null
           group: 1
           exposed: true
           expose:
-            operator_id: field_tags_target_id_op
+            operator_id: field_tags_target_id_entityreference_filter_select2_op
             label: 'Λέξεις κλειδιά'
             description: ''
             use_operator: false
-            operator: field_tags_target_id_op
+            operator: field_tags_target_id_entityreference_filter_select2_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: tags
             required: false
             remember: false
-            multiple: false
+            multiple: true
             remember_roles:
               authenticated: authenticated
             reduce: false
@@ -8459,59 +8852,11 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-          vid: tags
           type: select
-          hierarchy: true
-          limit: true
-          error_message: true
-        field_ref_id_value:
-          id: field_ref_id_value
-          table: node__field_ref_id
-          field: field_ref_id_value
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: string
-          operator: contains
-          value: ''
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_ref_id_value_op
-            label: 'Ref ID'
-            description: ''
-            use_operator: false
-            operator: field_ref_id_value_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: refid
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            placeholder: ''
-            autocomplete_filter: 0
-            autocomplete_min_chars: '0'
-            autocomplete_items: '10'
-            autocomplete_field: ''
-            autocomplete_raw_suggestion: 1
-            autocomplete_raw_dropdown: 1
-            autocomplete_dependent: 0
-            autocomplete_contextual: 0
-            autocomplete_autosubmit: 0
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
+          reference_display: 'tags:entity_reference_1'
+          reference_arguments: ''
+          hide_empty_filter: true
+          minimum_input_length: 0
       filter_groups:
         operator: AND
         groups:
