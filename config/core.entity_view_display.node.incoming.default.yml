@@ -115,6 +115,7 @@ third_party_settings:
         - group_signature_rejection
         - field_legal_entity
         - field_priority
+        - field_start_date
         - field_requested_deadline
         - field_interim_deadline
         - field_legal_deadline
@@ -140,7 +141,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 18
+      weight: 19
       format_type: details
       format_settings:
         classes: ''
@@ -219,7 +220,7 @@ third_party_settings:
       label: EE
       parent_name: group_tabs
       region: content
-      weight: 19
+      weight: 20
       format_type: tab
       format_settings:
         classes: ''
@@ -251,7 +252,7 @@ third_party_settings:
       label: API
       parent_name: group_tabs
       region: content
-      weight: 20
+      weight: 21
       format_type: tab
       format_settings:
         classes: ''
@@ -266,7 +267,7 @@ third_party_settings:
       label: 'Ακριβες Αντίγραφο'
       parent_name: group_tabs
       region: content
-      weight: 17
+      weight: 18
       format_type: tab
       format_settings:
         classes: ''
@@ -294,7 +295,6 @@ third_party_settings:
     group_subtype:
       children:
         - field_incoming_subtype
-        - field_subtype_date
       label: ' Υποκατηγορία εγγράφου'
       parent_name: group_status
       region: content
@@ -343,7 +343,7 @@ third_party_settings:
       label: Απάντηση
       parent_name: group_anwer
       region: content
-      weight: 17
+      weight: 18
       format_type: tabs
       format_settings:
         classes: ''
@@ -522,7 +522,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 22
+    weight: 21
     region: content
   field_notes:
     type: basic_string
@@ -585,7 +585,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 23
+    weight: 22
     region: content
   field_ref_id:
     type: string
@@ -630,7 +630,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 22
+    weight: 27
     region: content
   field_sani_user:
     type: string
@@ -638,7 +638,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 21
+    weight: 26
     region: content
   field_sender:
     type: string
@@ -671,7 +671,7 @@ content:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 36
+    weight: 23
     region: content
   field_subject:
     type: text_default
@@ -695,7 +695,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 23
+    weight: 28
     region: content
   field_tags:
     type: entity_reference_label
@@ -703,7 +703,7 @@ content:
     settings:
       link: true
     third_party_settings: {  }
-    weight: 17
+    weight: 18
     region: content
   field_thematic_unit:
     type: string
@@ -711,7 +711,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 24
+    weight: 29
     region: content
   field_total_cases:
     type: string
@@ -727,7 +727,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 26
+    weight: 30
     region: content
   field_working_days:
     type: number_integer
@@ -736,7 +736,7 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 27
+    weight: 31
     region: content
 hidden:
   content_moderation_control: true
