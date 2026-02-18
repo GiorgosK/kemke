@@ -933,7 +933,6 @@ function incoming_tweaks_set_initial_legal_deadline(NodeInterface $node, DrupalD
     $deadline = greek_holidays_calculate_date_after($baseline, $deadline_days);
     $deadline_formatted = $deadline->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
     $node->set('field_legal_deadline', ['value' => $deadline_formatted]);
-    $node->set('field_legal_deadline_original', ['value' => $deadline_formatted]);
   }
 }
 

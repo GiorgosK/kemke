@@ -16,8 +16,8 @@ dependencies:
     - field.storage.node.field_operators
     - field.storage.node.field_opinion_ref_id
     - field.storage.node.field_primary
+    - field.storage.node.field_protocol_date
     - field.storage.node.field_related_incoming
-    - field.storage.node.field_subtype_date
     - taxonomy.vocabulary.incoming_type
     - taxonomy.vocabulary.legal_entity
   module:
@@ -827,15 +827,15 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_subtype_date:
-          id: field_subtype_date
-          table: node__field_subtype_date
-          field: field_subtype_date
+        field_protocol_date:
+          id: field_protocol_date
+          table: node__field_protocol_date
+          field: field_protocol_date
           relationship: none
           group_type: group
           admin_label: ''
           plugin_id: field
-          label: 'Ημερομηνία υποκατηγορίας έγγραφου'
+          label: 'Ημερομηνία Πρωτοκόλλησης'
           exclude: false
           alter:
             alter_text: false
@@ -880,7 +880,7 @@ display:
           type: datetime_default
           settings:
             timezone_override: ''
-            format_type: greek_date
+            format_type: medium
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -2143,8 +2143,8 @@ display:
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_opinion_ref_id'
         - 'config:field.storage.node.field_primary'
+        - 'config:field.storage.node.field_protocol_date'
         - 'config:field.storage.node.field_related_incoming'
-        - 'config:field.storage.node.field_subtype_date'
   page_1:
     id: page_1
     display_title: Σελίδα
@@ -2190,5 +2190,5 @@ display:
         - 'config:field.storage.node.field_operators'
         - 'config:field.storage.node.field_opinion_ref_id'
         - 'config:field.storage.node.field_primary'
+        - 'config:field.storage.node.field_protocol_date'
         - 'config:field.storage.node.field_related_incoming'
-        - 'config:field.storage.node.field_subtype_date'
