@@ -1172,7 +1172,8 @@ function incoming_tweaks_sync_title_from_ref_id(NodeInterface $node): bool {
   }
 
   $title = trim((string) $node->label());
-  if ($title === '' || $title === INCOMING_TWEAKS_UNTITLED_PLACEHOLDER) {
+  $legacy_incoming = mb_strtolower($title) === 'incoming';
+  if ($title === '' || $title === INCOMING_TWEAKS_UNTITLED_PLACEHOLDER || $legacy_incoming) {
     $node->setTitle($reference);
     return TRUE;
   }

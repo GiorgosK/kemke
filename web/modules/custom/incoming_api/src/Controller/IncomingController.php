@@ -573,6 +573,13 @@ final class IncomingController extends ControllerBase {
       return $payload['title'];
     }
 
+    if (\defined('INCOMING_TWEAKS_UNTITLED_PLACEHOLDER')) {
+      $placeholder = \constant('INCOMING_TWEAKS_UNTITLED_PLACEHOLDER');
+      if (is_string($placeholder) && trim($placeholder) !== '') {
+        return $placeholder;
+      }
+    }
+
     return 'Incoming';
   }
 
