@@ -271,8 +271,23 @@
             type: 'hideIf',
             valueNot: [ruleIncTypePlan],
             requires: {
-              // Apply this hide rule everywhere except draft + no_action.
-              valueNotOR: [ruleDocStatusDraft, ruleIncTypeNoAction],
+              // Keep base behavior outside draft only.
+              valueNot: [ruleDocStatusDraft],
+            },
+          },
+        ],
+      },
+    ],
+    DraftNoActionPublishedVis: [
+      {
+        selector: '#edit-moderation-state-published',
+        rules: [
+          {
+            // In draft, only "No Action" should expose the completed button.
+            type: 'hideIf',
+            valueNot: [ruleIncTypeNoAction],
+            requires: {
+              valueIs: [ruleDocStatusDraft],
             },
           },
         ],
@@ -550,6 +565,7 @@
       ...ruleSets.IncTypeOtherHide,
       ...ruleSets.TabPlanVis,
       ...ruleSets.baseForCompleted,
+      ...ruleSets.DraftNoActionPublishedVis,
       ...ruleSets.OpinionRefIdDisabled,
       ...ruleSets.OpinionRefIdVis,
       ...ruleSets.IncTypeProKoinopHide,
