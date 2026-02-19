@@ -89,6 +89,11 @@
       type: 'input',
       value: 'Αποθήκευση',
     };
+  const ruleDocStatusDraft =
+    {
+      selector: '[doc-status="draft"]',
+      type: 'exists',
+    };
   const ruleDocStatusUnderProcessing =
     {
       selector: '[doc-status="under_processing"]',
@@ -265,10 +270,14 @@
           {
             type: 'hideIf',
             valueNot: [ruleIncTypePlan],
+            requires: {
+              // Apply this hide rule everywhere except draft + no_action.
+              valueNotOR: [ruleDocStatusDraft, ruleIncTypeNoAction],
+            },
           },
         ],
       },
-    ],    
+    ],
     TabEEVis: [
       {
         selector: '.horizontal-tab-button-7',
@@ -1204,6 +1213,26 @@
     if (!el || !hasConditions) {
       return;
     }
+    if (rule.requires && !shouldHideByRequirements(rule.requires)) {
+      const isLink = el.tagName === 'A';
+      if (isLink) {
+        const originalTabindex = el.dataset.ifvOriginalTabindex ?? '';
+        if (originalTabindex === '') {
+          el.removeAttribute('tabindex');
+        }
+        else {
+          el.setAttribute('tabindex', originalTabindex);
+        }
+        delete el.dataset.ifvOriginalTabindex;
+        el.style.pointerEvents = '';
+      }
+      else {
+        el.removeAttribute('disabled');
+      }
+      el.setAttribute('aria-disabled', 'false');
+      (rule.toggleclasses || []).forEach((cls) => el.classList.remove(cls));
+      return;
+    }
     const shouldDisable = shouldHideByRequirements(rule);
     const isLink = el.tagName === 'A';
     if (shouldDisable) {
@@ -1244,6 +1273,7 @@
       ...(rule.valueIsOR || []),
       ...(rule.valueIsAND || []),
       ...(rule.valueIs || []),
+      ...getRequirementWatchers(rule.requires),
     ];
     if (!watchers.length) {
       return;
@@ -1282,6 +1312,18 @@
     if (!el || !hasConditions) {
       return;
     }
+    if (rule.requires && !shouldHideByRequirements(rule.requires)) {
+      if (!rule.__ifvVisibilityRuleId) {
+        rule.__ifvVisibilityRuleId = ++visibilityRuleIdCounter;
+      }
+      const hideAttrName = `data-ifv-hide-${rule.__ifvVisibilityRuleId}`;
+      el.setAttribute(hideAttrName, '0');
+      const hiddenByAnyRule = Array.from(el.attributes).some((attr) =>
+        attr.name.startsWith('data-ifv-hide-') && attr.value === '1'
+      );
+      el.style.display = hiddenByAnyRule ? rule.display || 'none' : '';
+      return;
+    }
     if (!rule.__ifvVisibilityRuleId) {
       rule.__ifvVisibilityRuleId = ++visibilityRuleIdCounter;
     }
@@ -1305,6 +1347,7 @@
       ...(rule.valueIsOR || []),
       ...(rule.valueIsAND || []),
       ...(rule.valueIs || []),
+      ...getRequirementWatchers(rule.requires),
     ];
     if (!watchers.length) {
       return;

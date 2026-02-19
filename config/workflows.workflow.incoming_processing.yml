@@ -50,6 +50,7 @@ type_settings:
     completed:
       label: Αρχειοθέτηση
       from:
+        - draft
         - for_signature
         - under_processing
       to: published
