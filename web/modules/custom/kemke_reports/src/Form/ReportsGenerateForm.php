@@ -92,10 +92,16 @@ class ReportsGenerateForm extends FormBase {
     $objective_4_warning = NULL;
     $expected_count = (int) $objective_4_metrics['expected_count'];
     if ($expected_count > 0 && $objective_4_metrics['found_count'] !== $expected_count) {
+      $objective_4_ids = array_values(array_map('intval', (array) ($objective_4_metrics['ids'] ?? [])));
       $objective_4_warning = $this->t('Waiting for @expected document(s) but found @count', [
         '@expected' => $expected_count,
         '@count' => $objective_4_metrics['found_count'],
       ]);
+      if (!empty($objective_4_ids)) {
+        $objective_4_warning .= ' ' . $this->t('IDs: @ids', [
+          '@ids' => implode(', ', array_map('strval', $objective_4_ids)),
+        ]);
+      }
     }
     $seminar_counts = kemke_reports_get_seminar_users_for_year($year);
     $seminar_percentage = $seminar_counts['total'] > 0

@@ -446,10 +446,9 @@ class ReportsResultsController extends ControllerBase {
     $total = (int) ($result['objective_4_total'] ?? 0);
     $on_time = (int) ($result['objective_4_on_time'] ?? 0);
     $objective_4_ids = array_values(array_map('intval', (array) ($result['objective_4_ids'] ?? [])));
-    $objective_4_id = $objective_4_ids[0] ?? NULL;
     $admin_debug_tags = [];
-    if ($objective_4_id !== NULL) {
-      $admin_debug_tags[] = sprintf('[ID: %d]', $objective_4_id);
+    if (!empty($objective_4_ids)) {
+      $admin_debug_tags[] = sprintf('[IDs: %s]', implode(', ', array_map('strval', $objective_4_ids)));
     }
 
     return $this->format_row($name, $description, NULL, $on_time, $total, $target, $calculated, [], [], $admin_debug_tags);
