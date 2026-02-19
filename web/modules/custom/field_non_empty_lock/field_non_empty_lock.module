@@ -118,7 +118,7 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
     if (empty($field_config['skip_field_check']) && !$node->hasField($field_name)) {
       continue;
     }
-    if (field_non_empty_lock_lock_always_for_current_user($field_config)) {
+    if (field_non_empty_lock_lock_for_current_user($field_config, $node->isNew())) {
       field_non_empty_lock_disable_widget_from_config($form, $field_config);
       continue;
     }
@@ -135,10 +135,10 @@ function field_non_empty_lock_lock_node_fields(array &$form, FormStateInterface 
     if (!$field_has_value) {
       continue;
     }
-    $has_lock_always_roles = !empty($field_config['lock_always_roles']) && is_array($field_config['lock_always_roles']);
+    $has_role_lock_rules = field_non_empty_lock_has_role_lock_rules($field_config);
     $lock_if_has_value = array_key_exists('lock_if_has_value', $field_config)
       ? !empty($field_config['lock_if_has_value'])
-      : !$has_lock_always_roles;
+      : !$has_role_lock_rules;
     if (!$lock_if_has_value) {
       continue;
     }
@@ -180,7 +180,7 @@ function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface 
     if (empty($field_config['skip_field_check']) && !$term->hasField($field_name)) {
       continue;
     }
-    if (field_non_empty_lock_lock_always_for_current_user($field_config)) {
+    if (field_non_empty_lock_lock_for_current_user($field_config, $term->isNew())) {
       field_non_empty_lock_disable_widget_from_config($form, $field_config);
       continue;
     }
@@ -197,10 +197,10 @@ function field_non_empty_lock_lock_term_fields(array &$form, FormStateInterface 
     if (!$field_has_value) {
       continue;
     }
-    $has_lock_always_roles = !empty($field_config['lock_always_roles']) && is_array($field_config['lock_always_roles']);
+    $has_role_lock_rules = field_non_empty_lock_has_role_lock_rules($field_config);
     $lock_if_has_value = array_key_exists('lock_if_has_value', $field_config)
       ? !empty($field_config['lock_if_has_value'])
-      : !$has_lock_always_roles;
+      : !$has_role_lock_rules;
     if (!$lock_if_has_value) {
       continue;
     }
@@ -550,23 +550,57 @@ function field_non_empty_lock_normalize_field_definition($field_key, $field_defi
     'hide_if_empty' => FALSE,
     'hide_if_new' => FALSE,
     'lock_always_roles' => [],
+    'lock_edit_roles' => [],
+    'lock_new_roles' => [],
   ];
 
   return $field_definition;
 }
 
 /**
- * Determines whether a field should always be locked for current user's role.
+ * Determines whether a field should be locked for the current user's role.
  */
-function field_non_empty_lock_lock_always_for_current_user(array $field_config): bool {
-  if (empty($field_config['lock_always_roles']) || !is_array($field_config['lock_always_roles'])) {
+function field_non_empty_lock_lock_for_current_user(array $field_config, bool $is_new): bool {
+  if (field_non_empty_lock_user_has_any_role($field_config['lock_always_roles'] ?? [])) {
+    return TRUE;
+  }
+
+  if ($is_new && field_non_empty_lock_user_has_any_role($field_config['lock_new_roles'] ?? [])) {
+    return TRUE;
+  }
+
+  if (!$is_new && field_non_empty_lock_user_has_any_role($field_config['lock_edit_roles'] ?? [])) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Checks whether the current user has at least one role from a list.
+ */
+function field_non_empty_lock_user_has_any_role($roles): bool {
+  if (empty($roles) || !is_array($roles)) {
     return FALSE;
   }
 
   $account = \Drupal::currentUser();
   $user_roles = $account->getRoles();
-  foreach ($field_config['lock_always_roles'] as $role) {
+  foreach ($roles as $role) {
     if (in_array($role, $user_roles, TRUE)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Determines whether a field has any role-based lock rule configured.
+ */
+function field_non_empty_lock_has_role_lock_rules(array $field_config): bool {
+  foreach (['lock_always_roles', 'lock_edit_roles', 'lock_new_roles'] as $key) {
+    if (!empty($field_config[$key]) && is_array($field_config[$key])) {
       return TRUE;
     }
   }
@@ -752,7 +786,8 @@ function field_non_empty_lock_get_node_field_map() {
         'hide_if_new' => TRUE,
       ],
       'field_subject' => [
-        'lock_always_roles' => ['director_supervisor', 'department_supervisor', 'operator'],
+        'lock_always_roles' => ['director_supervisor', 'department_supervisor'],
+        'lock_edit_roles' => ['operator'],
       ],
       'field_supervisor' => [
         'lock_always_roles' => ['department_supervisor', 'operator'],
