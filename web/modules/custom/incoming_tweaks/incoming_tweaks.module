@@ -27,6 +27,10 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
   if ($is_incoming_form) {
     $form['#after_build'][] = 'incoming_tweaks_after_build_set_remarks_add_more_label';
     $form['#after_build'][] = 'incoming_tweaks_after_build_add_related_incoming_ief_overrides';
+    if (!in_array('amke_user', $current_user->getRoles(), TRUE)) {
+      $form['#after_build'][] = 'incoming_tweaks_after_build_rename_issues_to_check_button';
+      incoming_tweaks_rename_issues_to_check_button($form);
+    }
     $form['#attached']['library'][] = 'incoming_tweaks/protocol_conflict_bypass';
     \Drupal::service('greek_holidays.form_date_calculator_attacher')->attachToFormFields($form, [
       'field_legal_deadline',
@@ -162,6 +166,37 @@ function incoming_tweaks_after_build_set_remarks_add_more_label(array $form, For
 function incoming_tweaks_after_build_add_related_incoming_ief_overrides(array $form, FormStateInterface $form_state): array {
   incoming_tweaks_add_related_incoming_ief_override_buttons($form, $form_state);
   return $form;
+}
+
+/**
+ * After-build guard to keep issues-to-check transition label overridden.
+ */
+function incoming_tweaks_after_build_rename_issues_to_check_button(array $form, FormStateInterface $form_state): array {
+  if (!in_array('amke_user', \Drupal::currentUser()->getRoles(), TRUE)) {
+    incoming_tweaks_rename_issues_to_check_button($form);
+  }
+
+  return $form;
+}
+
+/**
+ * Renames the "issues_to_check" workflow submit button for non-amke users.
+ */
+function incoming_tweaks_rename_issues_to_check_button(array &$element): void {
+  $matches_selector = (($element['#id'] ?? NULL) === 'edit-moderation-state-fullness-check')
+    || (($element['#name'] ?? NULL) === 'moderation_state_fullness_check');
+  $classes = $element['#attributes']['class'] ?? [];
+  $matches_class = is_array($classes) && in_array('workflow-buttons-issues_to_check', $classes, TRUE);
+
+  if ($matches_selector || $matches_class) {
+    $element['#value'] = t('Ολοκλήρωση λήψης απαντήσεων');
+  }
+
+  foreach (Element::children($element) as $child) {
+    if (isset($element[$child]) && is_array($element[$child])) {
+      incoming_tweaks_rename_issues_to_check_button($element[$child]);
+    }
+  }
 }
 
 /**
