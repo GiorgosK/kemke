@@ -11,6 +11,10 @@ services:
       - '@entity_type.manager'
     tags:
       - { name: event_subscriber }
+  incoming_tweaks.response_content_type_guard_subscriber:
+    class: Drupal\incoming_tweaks\EventSubscriber\ResponseContentTypeGuardSubscriber
+    tags:
+      - { name: event_subscriber }
   logger.channel.incoming_tweaks:
     class: Drupal\Core\Logger\LoggerChannel
     arguments: ['incoming_tweaks']
