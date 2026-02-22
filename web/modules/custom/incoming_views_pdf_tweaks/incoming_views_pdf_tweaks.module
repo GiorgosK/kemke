@@ -5,13 +5,27 @@
  * Hooks for Incoming Views PDF Tweaks.
  */
 
-use Drupal\views\ViewExecutable;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_views_pre_build().
+ *
+ * Kept intentionally empty for backward-compatible hook discovery.
+ */
+function incoming_views_pdf_tweaks_views_pre_build(ViewExecutable $view): void {}
+
+/**
+ * Implements hook_views_pre_view().
+ *
+ * Kept intentionally empty for backward-compatible hook discovery.
+ */
+function incoming_views_pdf_tweaks_views_pre_view(ViewExecutable $view, string $display_id, array &$args): void {}
 
 /**
  * Implements hook_views_pre_render().
  */
-function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
+function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view): void {
   if (!in_array($view->id(), ['incoming', 'incoming_amke'], TRUE)) {
     return;
   }
@@ -32,12 +46,6 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
     && $view->display_handler->getPluginId() === 'data_export'
   ) {
     $from_display = (string) ($query['from_display'] ?? '');
-
-    // Never pass multiple values in no_state: Views builds OR with <> and the
-    // condition becomes ineffective. We always exclude temp through no_state.
-    if ($from_display !== 'page_5') {
-      $query['no_state'] = 'incoming_processing-temp';
-    }
 
     if ($from_display === 'page_1' && empty($query['state'])) {
       $defaults = incoming_views_pdf_tweaks_default_states_for_display($view, 'page_1');
@@ -81,7 +89,7 @@ function incoming_views_pdf_tweaks_views_pre_render(ViewExecutable $view) {
 /**
  * Implements hook_views_post_build().
  */
-function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view) {
+function incoming_views_pdf_tweaks_views_post_build(ViewExecutable $view): void {
   if (
     $view->id() === 'incoming'
     && in_array($view->current_display, ['page_1', 'page_4', 'page_5'], TRUE)
@@ -125,7 +133,7 @@ function incoming_views_pdf_tweaks_adjust_incoming_export_links(ViewExecutable $
     }
     else {
       $existing['from_display'] = $view->current_display;
-      $existing['no_state'] = 'incoming_processing-temp';
+      unset($existing['no_state']);
       unset($existing['from_completed']);
 
       if (empty($existing['state']) || $existing['state'] === 'All') {
@@ -237,7 +245,7 @@ function incoming_views_pdf_tweaks_default_states_for_display(ViewExecutable $vi
 /**
  * Implements hook_theme().
  */
-function incoming_views_pdf_tweaks_theme() {
+function incoming_views_pdf_tweaks_theme(): array {
   $path = \Drupal::service('extension.list.module')
     ->getPath('incoming_views_pdf_tweaks');
   return [
