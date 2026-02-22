@@ -1,0 +1,6 @@
+services:
+  incoming_views_pdf_tweaks.commands:
+    class: Drupal\incoming_views_pdf_tweaks\Commands\IncomingViewsPdfTweaksCommands
+    tags:
+      - { name: drush.command }
+
