@@ -86,6 +86,30 @@ function incoming_remarks_entity_presave(EntityInterface $entity) {
       }
     }
   }
+
+  // Submitted remarks are immutable: restore locked fields on updates.
+  if (
+    !$entity->isNew() &&
+    isset($entity->original) &&
+    $entity->original instanceof ParagraphInterface &&
+    !incoming_remarks_comment_is_empty($entity->original)
+  ) {
+    incoming_remarks_restore_locked_remark_fields($entity, $entity->original);
+  }
+}
+
+/**
+ * Restores immutable remark fields from original values.
+ */
+function incoming_remarks_restore_locked_remark_fields(ParagraphInterface $entity, ParagraphInterface $original): void {
+  $field_map = incoming_remarks_get_paragraph_field_map();
+  $locked_fields = $field_map['remark'] ?? [];
+  foreach ($locked_fields as $field_name) {
+    if (!$entity->hasField($field_name) || !$original->hasField($field_name)) {
+      continue;
+    }
+    $entity->set($field_name, $original->get($field_name)->getValue());
+  }
 }
 
 /**
@@ -312,7 +336,7 @@ function incoming_remarks_lock_embedded_paragraph_fields(array &$form, FormState
 /**
  * Prefills legal entity widget defaults for new remark IEF subforms.
  */
-function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, NodeInterface $host_node): void {
+function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, NodeInterface $host_node, ?int $delta = NULL): void {
   $paragraph = $subform['#entity'] ?? NULL;
   $bundle_hint = $subform['#paragraph_bundle'] ?? $subform['#paragraph_type'] ?? NULL;
   if ($paragraph instanceof ParagraphInterface && $paragraph->bundle() !== 'remark') {
@@ -321,7 +345,22 @@ function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, No
   if (!$paragraph instanceof ParagraphInterface && $bundle_hint && $bundle_hint !== 'remark') {
     return;
   }
+
+  // Never prefill existing saved remark rows.
   if ($paragraph instanceof ParagraphInterface && !$paragraph->isNew()) {
+    return;
+  }
+  if (
+    !$paragraph instanceof ParagraphInterface &&
+    $delta !== NULL &&
+    $host_node->hasField('field_remarks')
+  ) {
+    $item = $host_node->get('field_remarks')->get($delta);
+    if ($item && !$item->isEmpty()) {
+      return;
+    }
+  }
+  if (!$paragraph instanceof ParagraphInterface && $delta === NULL) {
     return;
   }
   if (!isset($subform['field_legal_entity'])) {
@@ -348,10 +387,8 @@ function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, No
       }
       if (isset($terms[$delta])) {
         $subform['field_legal_entity']['widget'][$delta]['target_id']['#default_value'] = $terms[$delta];
-        $subform['field_legal_entity']['widget'][$delta]['target_id']['#value'] = $terms[$delta];
         if (isset($subform['field_legal_entity']['widget'][$delta]['target_id']['#type']) && $subform['field_legal_entity']['widget'][$delta]['target_id']['#type'] === 'select') {
           $subform['field_legal_entity']['widget'][$delta]['target_id']['#default_value'] = (string) $terms[$delta]->id();
-          $subform['field_legal_entity']['widget'][$delta]['target_id']['#value'] = (string) $terms[$delta]->id();
         }
       }
     }
@@ -363,7 +400,6 @@ function incoming_remarks_prefill_remark_legal_entity_widget(array &$subform, No
     && !empty($terms[0])
   ) {
     $subform['field_legal_entity']['widget'][0]['target_id']['#default_value'] = $terms[0];
-    $subform['field_legal_entity']['widget'][0]['target_id']['#value'] = $terms[0];
   }
 }
 
@@ -831,7 +867,10 @@ function incoming_remarks_customize_paragraph_widget(array &$form, FormStateInte
       }
       if ($bundle) {
         if ($bundle === 'remark') {
-          incoming_remarks_prefill_remark_legal_entity_widget($element['subform'], $entity);
+          // Prefill legal entity only for newly-added remarks by non-AMKE users.
+          if (!\Drupal::currentUser()->hasRole('amke_user')) {
+            incoming_remarks_prefill_remark_legal_entity_widget($element['subform'], $entity, is_numeric($delta) ? (int) $delta : NULL);
+          }
         }
         incoming_remarks_hide_paragraph_fields($element['subform'], $bundle);
         if ($bundle === 'remark' && \Drupal::currentUser()->hasRole('amke_user')) {
@@ -993,6 +1032,7 @@ function incoming_remarks_has_render_content($value): bool {
 function incoming_remarks_apply_paragraph_field_locks(array &$subform, ParagraphInterface $paragraph, array $fields) {
   $hidden_fields_map = incoming_remarks_get_paragraph_hidden_field_map();
   $hidden_fields = $hidden_fields_map[$paragraph->bundle()] ?? [];
+  $is_existing_remark = $paragraph->bundle() === 'remark' && !$paragraph->isNew();
 
   foreach ($fields as $field_name) {
     if (!$paragraph->hasField($field_name)) {
@@ -1005,7 +1045,10 @@ function incoming_remarks_apply_paragraph_field_locks(array &$subform, Paragraph
     $paragraph_field = $paragraph->get($field_name);
     $field_is_empty = $paragraph_field->isEmpty();
 
-    if (in_array($field_name, $hidden_fields, TRUE)) {
+    if ($is_existing_remark) {
+      $subform[$field_name]['#access'] = FALSE;
+    }
+    elseif (in_array($field_name, $hidden_fields, TRUE)) {
       $subform[$field_name]['#access'] = FALSE;
     }
     elseif (
