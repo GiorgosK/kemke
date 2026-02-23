@@ -32,12 +32,14 @@ function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $
       incoming_tweaks_rename_issues_to_check_button($form);
     }
     $form['#attached']['library'][] = 'incoming_tweaks/protocol_conflict_bypass';
-    \Drupal::service('greek_holidays.form_date_calculator_attacher')->attachToFormFields($form, [
-      'field_legal_deadline',
-      'field_extension_date',
-      'field_requested_deadline',
-      'field_interim_deadline',
-    ]);
+    if (!in_array('amke_user', $current_user->getRoles(), TRUE)) {
+      \Drupal::service('greek_holidays.form_date_calculator_attacher')->attachToFormFields($form, [
+        'field_legal_deadline',
+        'field_extension_date',
+        'field_requested_deadline',
+        'field_interim_deadline',
+      ]);
+    }
     $form['incoming_tweaks_bypass_protocol_conflict'] = [
       '#type' => 'hidden',
       '#value' => '0',
