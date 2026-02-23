@@ -37,6 +37,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       // 'field_documents',
       'field_protocol_number_sender',
       'field_subject',
+      'field_interim_deadline',
       'field_remarks',
       'field_related_incoming',
       // 'field_attachments',
@@ -47,6 +48,7 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       'field_documents',
       'field_protocol_number_sender',
       'field_subject',
+      'field_interim_deadline',
     ];
     $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
     if (!$allow_protocol_number_sender) {
@@ -84,11 +86,18 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
     if (isset($form['field_entry_date'])) {
       $form['field_entry_date']['#access'] = FALSE;
     }
+    if (isset($form['field_interim_deadline']) && is_array($form['field_interim_deadline'])) {
+      $form['field_interim_deadline']['#title'] = t('Προθεσμία απάντησης');
+      if (isset($form['field_interim_deadline']['widget'][0]['value'])) {
+        $form['field_interim_deadline']['widget'][0]['value']['#title'] = t('Προθεσμία απάντησης');
+      }
+    }
 
     // AMKE users can edit subject while incoming is in temp state.
     if (!$entity->isNew() && isset($form['field_subject']) && $state !== 'temp') {
       amke_tweaks_render_subject_read_only($form, $entity);
     }
+    $form['#after_build'][] = 'amke_tweaks_force_subject_last_after_build';
 
     amke_tweaks_limit_documents_widget($form);
     if (
@@ -254,6 +263,24 @@ function amke_tweaks_hide_fullness_check_button_after_build(array $form, FormSta
 }
 
 /**
+ * Forces subject to render last and as a full-width row for AMKE forms.
+ */
+function amke_tweaks_force_subject_last_after_build(array $form, FormStateInterface $form_state): array {
+  if (!isset($form['field_subject']) || !is_array($form['field_subject'])) {
+    return $form;
+  }
+
+  $form['field_subject']['#weight'] = 9999;
+  $form['field_subject']['#attributes']['class'][] = 'amke-subject-full-row';
+
+  $style = (string) ($form['field_subject']['#attributes']['style'] ?? '');
+  $force_style = 'clear: both; width: 100%; max-width: 100%; flex: 0 0 100%;';
+  $form['field_subject']['#attributes']['style'] = trim($style . ' ' . $force_style);
+
+  return $form;
+}
+
+/**
  * Check whether the "Προς ΚΕΜΚΕ" transition should be hidden.
  */
 function amke_tweaks_should_hide_fullness_check(NodeInterface $entity): bool {
@@ -296,6 +323,7 @@ function amke_tweaks_field_group_form_process_build_alter(array &$element, FormS
 
   $group_changes = [
     'field_protocol_number_sender' => 'group_files',
+    'field_interim_deadline' => 'group_general',
   ];
   foreach ($group_changes as $key => $group) {
     if (isset($element[$key])) {
