@@ -320,13 +320,13 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1 = $this->configFactory()->getEditable('kemke_reports.settings')
+    $editable_config = $this->configFactory()->getEditable('kemke_reports.settings')
       ->set('objective_1.name', $objective_1_name)
       ->set('objective_1.description', $objective_1_description)
       ->set('objective_1.title', $objective_1_title)
       ->set('objective_1.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
-      $objective_1
+      $editable_config
         ->set('objective_1.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
         ->set('objective_1.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
     }
@@ -346,13 +346,13 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1
+    $editable_config
       ->set('objective_2.name', $objective_2_name)
       ->set('objective_2.description', $objective_2_description)
       ->set('objective_2.title', $objective_2_title)
       ->set('objective_2.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
-      $objective_1
+      $editable_config
         ->set('objective_2.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
         ->set('objective_2.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
     }
@@ -372,13 +372,13 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1
+    $editable_config
       ->set('objective_3.name', $objective_3_name)
       ->set('objective_3.description', $objective_3_description)
       ->set('objective_3.title', $objective_3_title)
       ->set('objective_3.percentage', (float) ($values['percentage'] ?? 90));
     if ($is_admin) {
-      $objective_1
+      $editable_config
         ->set('objective_3.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
         ->set('objective_3.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
     }
@@ -398,7 +398,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1
+    $editable_config
       ->set('objective_4.name', $objective_4_name)
       ->set('objective_4.description', $objective_4_description)
       ->set('objective_4.title', $objective_4_title)
@@ -419,7 +419,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1
+    $editable_config
       ->set('objective_5.name', $objective_5_name)
       ->set('objective_5.description', $objective_5_description)
       ->set('objective_5.title', $objective_5_title)
@@ -440,7 +440,7 @@ class ObjectiveConfigForm extends ConfigFormBase {
         '@roles' => implode(',', $this->currentUser()->getRoles()),
       ]);
     }
-    $objective_1
+    $editable_config
       ->set('objective_6.name', $objective_6_name)
       ->set('objective_6.description', $objective_6_description)
       ->set('objective_6.title', $objective_6_title)
