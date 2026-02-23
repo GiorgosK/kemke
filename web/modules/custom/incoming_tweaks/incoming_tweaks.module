@@ -2398,3 +2398,44 @@ function incoming_tweaks_page_alter(array &$page): void {
     \Drupal::messenger()->deleteByType(MessengerInterface::TYPE_STATUS);
   }
 }
+
+/**
+ * Adds deterministic classes to incoming field-group panes for tab targeting.
+ */
+function incoming_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object || !method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  incoming_tweaks_add_group_trigger_classes($element);
+}
+
+/**
+ * Recursively adds per-group trigger classes based on group wrapper IDs.
+ */
+function incoming_tweaks_add_group_trigger_classes(array &$element): void {
+  if (isset($element['#id']) && is_string($element['#id']) && str_starts_with($element['#id'], 'edit-group-')) {
+    $base = preg_replace('/^edit-/', '', $element['#id']);
+    if (is_string($base) && $base !== '') {
+      $class = str_replace('_', '-', $base) . '-trigger-wrapper';
+      if (!isset($element['#attributes']['class']) || !is_array($element['#attributes']['class'])) {
+        $element['#attributes']['class'] = [];
+      }
+      if (!in_array($class, $element['#attributes']['class'], TRUE)) {
+        $element['#attributes']['class'][] = $class;
+      }
+    }
+  }
+
+  foreach (Element::children($element) as $child) {
+    if (isset($element[$child]) && is_array($element[$child])) {
+      incoming_tweaks_add_group_trigger_classes($element[$child]);
+    }
+  }
+}
