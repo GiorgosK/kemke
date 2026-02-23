@@ -296,7 +296,7 @@
     ],
     TabEEVis: [
       {
-        selector: '.horizontal-tab-button-7',
+        selector: '.group-ee-trigger-wrapper',
         rules: [
           {
             type: 'hideIf',
@@ -321,8 +321,8 @@
     TabPlanVis: [
       {
         selector: [
-          '.horizontal-tab-button-5',
-          '.horizontal-tab-button-6'
+          '.group-answer-trigger-wrapper',
+          '.group-ccopy-trigger-wrapper'
         ],
         rules: [
           {
