@@ -450,6 +450,20 @@
         },],
       },
     ],
+    IncTypeKoinopGnostopHide: [
+      {
+        selector: [
+          '.group-ccopy-trigger-wrapper',
+          '.group-plan-trigger-wrapper'
+        ],
+        rules: [
+          {
+            type: 'hideIf',
+            valueIs: [ruleIncTypeKoinopGnostop],
+          },
+        ],
+      },
+    ],    
     GroupReportCasesVis: [
       {
         selector: '#edit-group-report-cases',
@@ -575,6 +589,7 @@
       ...ruleSets.SubtypeHierarchyVis,
       ...ruleSets.IncTypeOpinionVis,
       ...ruleSets.GroupSignatureRejectionVis,
+      ...ruleSets.IncTypeKoinopGnostopHide,
       ...ruleSets.GroupReportCasesVis,
       ...ruleSets.GroupExtensionVis,
       ...ruleSets.RequestedDeadlineDateVis,
