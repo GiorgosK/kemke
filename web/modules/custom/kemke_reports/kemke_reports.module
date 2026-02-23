@@ -220,13 +220,13 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
         'mode' => 'deadline',
         // Needed only when `config_days` entries are enabled in `deadline_fields`
         // (e.g. `deadline_days_for_report` / `deadline_days_default`).
-        // 'start_date_field' => ['field_fullness_check_date'],
+        'start_date_field' => ['field_fullness_check_date'],
         'completion_fields' => ['field_completion_date'],
         'comparison' => '<=',
         'deadline_fields' => [
           // Optional: use configured days from start date.
           // Uncomment to include in on-time calculation order.
-          // ['config_days' => 'deadline_days_for_report'],
+          ['config_days' => 'deadline_days_for_report'],
 
           // If extension is enabled, use the extension legal deadline.
           // [
@@ -234,9 +234,7 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
           //   'requires' => 'field_extension',
           // ],
           // Otherwise use the regular legal deadline field.
-          [
-            'field' => 'field_legal_deadline',
-          ],
+          ['field' => 'field_legal_deadline'],
           // Optional fallback: default configured days from start date.
           // ['config_days' => 'deadline_days_default'],
         ],
@@ -251,12 +249,12 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_2'),
       'calculation' => [
         'mode' => 'deadline',
+        'start_date_field' => ['field_fullness_check_date'],
         'completion_fields' => ['field_completion_date'],
         'comparison' => '<=',
         'deadline_fields' => [
-          [
-            'field' => 'field_legal_deadline',
-          ],
+          ['config_days' => 'deadline_days_for_report'],
+          ['field' => 'field_legal_deadline'],
         ],
       ],
     ],
@@ -272,12 +270,12 @@ function kemke_reports_get_objective_calculation_definition(string $objective_ke
       'on_time_field' => kemke_reports_get_on_time_field_for_objective('objective_3'),
       'calculation' => [
         'mode' => 'deadline',
+        'start_date_field' => ['field_fullness_check_date'],
         'completion_fields' => ['field_signature_rejection_date'],
         'comparison' => '<=',
         'deadline_fields' => [
-          [
-            'field' => 'field_legal_deadline',
-          ],
+          ['config_days' => 'deadline_days_for_report'],
+          ['field' => 'field_legal_deadline'],
         ],
       ],
     ],
