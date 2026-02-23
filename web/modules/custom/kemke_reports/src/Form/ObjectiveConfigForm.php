@@ -29,7 +29,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config('kemke_reports.settings');
-    $is_admin = $this->currentUser()->hasRole('administrator');
 
     $form['objectives_tabs'] = [
       '#type' => 'horizontal_tabs',
@@ -64,7 +63,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_1.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_1']['deadline_days_for_report'] = [
@@ -73,7 +71,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_1.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_1']['description'] = [
@@ -116,7 +113,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_2.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_2']['deadline_days_for_report'] = [
@@ -125,7 +121,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_2.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_2']['description'] = [
@@ -168,7 +163,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_3.deadline_days_default') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_3']['deadline_days_for_report'] = [
@@ -177,7 +171,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('objective_3.deadline_days_for_report') ?? 20,
       '#min' => 0,
       '#step' => 1,
-      '#access' => $is_admin,
     ];
 
     $form['objective_3']['description'] = [
@@ -302,7 +295,6 @@ class ObjectiveConfigForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     parent::submitForm($form, $form_state);
-    $is_admin = $this->currentUser()->hasRole('administrator');
     $config = $this->config('kemke_reports.settings');
 
     $values = $form_state->getValue('objective_1') ?? [];
@@ -325,11 +317,9 @@ class ObjectiveConfigForm extends ConfigFormBase {
       ->set('objective_1.description', $objective_1_description)
       ->set('objective_1.title', $objective_1_title)
       ->set('objective_1.percentage', (float) ($values['percentage'] ?? 90));
-    if ($is_admin) {
-      $editable_config
-        ->set('objective_1.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
-        ->set('objective_1.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
-    }
+    $editable_config
+      ->set('objective_1.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
+      ->set('objective_1.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
 
     $values = $form_state->getValue('objective_2') ?? [];
     $objective_2_name = $values['name'] ?? '';
@@ -351,11 +341,9 @@ class ObjectiveConfigForm extends ConfigFormBase {
       ->set('objective_2.description', $objective_2_description)
       ->set('objective_2.title', $objective_2_title)
       ->set('objective_2.percentage', (float) ($values['percentage'] ?? 90));
-    if ($is_admin) {
-      $editable_config
-        ->set('objective_2.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
-        ->set('objective_2.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
-    }
+    $editable_config
+      ->set('objective_2.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
+      ->set('objective_2.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
 
     $values = $form_state->getValue('objective_3') ?? [];
     $objective_3_name = $values['name'] ?? '';
@@ -377,11 +365,9 @@ class ObjectiveConfigForm extends ConfigFormBase {
       ->set('objective_3.description', $objective_3_description)
       ->set('objective_3.title', $objective_3_title)
       ->set('objective_3.percentage', (float) ($values['percentage'] ?? 90));
-    if ($is_admin) {
-      $editable_config
-        ->set('objective_3.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
-        ->set('objective_3.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
-    }
+    $editable_config
+      ->set('objective_3.deadline_days_default', (int) ($values['deadline_days_default'] ?? 20))
+      ->set('objective_3.deadline_days_for_report', (int) ($values['deadline_days_for_report'] ?? 20));
 
     $values = $form_state->getValue('objective_4') ?? [];
     $objective_4_name = $values['name'] ?? '';
