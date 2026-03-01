@@ -38,8 +38,8 @@ function amke_access_incoming_by_ref_entity_access(EntityInterface $entity, $ope
     $base->addCacheableDependency($user);
   }
 
-  // Allow if user authored the node.
-  if ((int) $entity->getOwnerId() === (int) $account->id()) {
+  // Owner is allowed only when legal entity is not set on the incoming node.
+  if ((int) $entity->getOwnerId() === (int) $account->id() && !$node_legal_entities && !$node_blanket) {
     return AccessResult::allowed()->cachePerUser()->addCacheableDependency($entity);
   }
 
@@ -69,7 +69,9 @@ function amke_access_incoming_by_ref_entity_access(EntityInterface $entity, $ope
 }
 
 /**
- * Restrict AMKE users' Views queries to own or matching legal entity.
+ * Restrict AMKE users' Views queries to legal-entity matches.
+ *
+ * Owner rows are included only when incoming has no legal entity set.
  */
 function amke_access_incoming_by_ref_views_query_alter(ViewExecutable $view, Sql $query): void {
   // Only alter node-based views for incoming content.
@@ -101,7 +103,17 @@ function amke_access_incoming_by_ref_views_query_alter(ViewExecutable $view, Sql
   $args = [
     ':amke_uid' => (int) $account->id(),
   ];
-  $parts = ["node_field_data.uid = :amke_uid"];
+  $parts = [];
+
+  $parts[] = "(
+    node_field_data.uid = :amke_uid
+    AND NOT EXISTS (
+      SELECT 1
+      FROM {node__field_legal_entity} fle_owner
+      WHERE fle_owner.entity_id = node_field_data.nid
+        AND fle_owner.deleted = 0
+    )
+  )";
 
   if ($user_legal_entities) {
     $placeholders = [];

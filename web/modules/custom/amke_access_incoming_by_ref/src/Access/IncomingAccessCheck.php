@@ -57,9 +57,9 @@ class IncomingAccessCheck {
       $result->addCacheableDependency($user);
     }
 
-    // Allow if same owner.
-    if ((int) $node->getOwnerId() === (int) $account->id()) {
-      return AccessResult::allowed()->cachePerUser()->addCacheableDependency($node);
+    // Owner is allowed only when legal entity is not set on the incoming node.
+    if ((int) $node->getOwnerId() === (int) $account->id() && !$node_legal_entities && !$node_blanket) {
+      return $result;
     }
 
     if (!$node_legal_entities && !$node_blanket) {
