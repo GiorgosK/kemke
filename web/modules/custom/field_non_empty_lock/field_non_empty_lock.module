@@ -785,6 +785,9 @@ function field_non_empty_lock_get_node_field_map() {
         'hide_if_empty' => TRUE,
         'hide_if_new' => TRUE,
       ],
+      'field_interim_deadline' => [
+        'lock_edit_roles' => ['amke_user'],
+      ],
       'field_subject' => [
         'lock_always_roles' => ['director_supervisor', 'department_supervisor'],
         'lock_edit_roles' => ['operator'],
