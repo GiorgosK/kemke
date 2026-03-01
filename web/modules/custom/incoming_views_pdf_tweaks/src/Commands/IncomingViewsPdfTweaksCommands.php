@@ -93,7 +93,7 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
   ): void {
     $view_id = (string) ($options['view'] ?? 'incoming');
     $scenario_count = max(1, (int) ($options['scenarios'] ?? 3));
-    $displays = $this->detectIncomingPageDisplays($view_id);
+    $displays = $this->detectPageDisplaysForView($view_id);
 
     if ($displays === []) {
       $this->logger()->error(sprintf('No incoming page displays found in view "%s".', $view_id));
@@ -262,28 +262,80 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
   /**
    * Reproduces incoming export link semantics for query transformation.
    */
-  private function buildIncomingExportQuery(string $source_display, array $source_query): array {
+  private function buildExportQueryForView(string $view_id, string $source_display, array $source_query): array {
     $query = $this->normalizeSourceQuery($source_query);
 
-    if ($source_display === 'page_5') {
-      $query['from_display'] = 'page_5';
-      $query['state'] = 'incoming_processing-published';
-      $query['from_completed'] = '1';
+    if ($view_id === 'incoming') {
+      if ($source_display === 'page_5') {
+        $query['from_display'] = 'page_5';
+        $query['state'] = 'incoming_processing-published';
+        $query['from_completed'] = '1';
+        unset($query['no_state']);
+        return $query;
+      }
+
+      $query['from_display'] = $source_display;
+      unset($query['from_completed']);
       unset($query['no_state']);
+
+      if (
+        $source_display === 'page_1'
+        && (empty($query['state']) || $query['state'] === 'All')
+      ) {
+        $defaults = $this->defaultStatesForDisplay('incoming', $source_display);
+        if ($defaults !== []) {
+          $query['state'] = $defaults;
+        }
+      }
+
       return $query;
     }
 
-    $query['from_display'] = $source_display;
-    unset($query['from_completed']);
-    unset($query['no_state']);
+    if ($view_id === 'incoming_amke') {
+      if (!isset($query['status']) && isset($query['field_amke_status_value'])) {
+        $query['status'] = $query['field_amke_status_value'];
+        unset($query['field_amke_status_value']);
+      }
 
-    if (
-      $source_display === 'page_1'
-      && (empty($query['state']) || $query['state'] === 'All')
-    ) {
-      $defaults = $this->defaultStatesForDisplay('incoming', $source_display);
-      if ($defaults !== []) {
-        $query['state'] = $defaults;
+      $explicit_status_all = $this->statusMeansAll($query['status'] ?? NULL);
+
+      if (isset($query['status'])) {
+        if ($query['status'] === 'All') {
+          unset($query['status']);
+        }
+        elseif (is_array($query['status'])) {
+          $values = array_values(array_filter($query['status'], static fn($v): bool => $v !== '' && $v !== 'All'));
+          if ($values === []) {
+            unset($query['status']);
+          }
+          else {
+            $query['status'] = $values;
+          }
+        }
+      }
+
+      if (!isset($query['status'])) {
+        $default = NULL;
+        if (!($source_display === 'page_2' && $explicit_status_all)) {
+          $default = $this->defaultFilterValueForDisplay($view_id, $source_display, 'status');
+        }
+        if ($default !== NULL && $source_display === 'page_1') {
+          $query['status'] = is_array($default) ? array_values($default) : $default;
+        }
+        elseif ($default !== NULL && $source_display === 'page_2') {
+          if (is_array($default)) {
+            $values = array_values($default);
+            if (isset($values[0]) && $values[0] !== '') {
+              $query['status'] = (string) $values[0];
+            }
+          }
+          elseif ($default !== '') {
+            $query['status'] = $default;
+          }
+        }
+        elseif ($source_display === 'page_3') {
+          $query['status'] = 'published';
+        }
       }
     }
 
@@ -339,7 +391,7 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
         continue;
       }
 
-      $export_query = $this->buildIncomingExportQuery($source_display, $source_query);
+      $export_query = $this->buildExportQueryForView($view_id, $source_display, $source_query);
       $export_stats = $this->runViewStats($view_id, $export_display, $export_query);
 
       if ($export_stats === NULL) {
@@ -374,12 +426,18 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
    *
    * @return array<string, string>
    */
-  private function detectIncomingPageDisplays(string $view_id): array {
+  private function detectPageDisplaysForView(string $view_id): array {
     $pages = [];
     $view = Views::getView($view_id);
     if (!$view instanceof ViewExecutable) {
       return $pages;
     }
+
+    $path_prefix = match ($view_id) {
+      'incoming' => 'incoming',
+      'incoming_amke' => 'amke',
+      default => '',
+    };
 
     $displays = (array) $view->storage->get('display');
     foreach ($displays as $display_id => $display) {
@@ -387,7 +445,10 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
         continue;
       }
       $path = (string) ($display['display_options']['path'] ?? '');
-      if ($path === '' || !str_starts_with($path, 'incoming') || str_contains($path, '%')) {
+      if ($path === '' || str_contains($path, '%')) {
+        continue;
+      }
+      if ($path_prefix !== '' && !str_starts_with($path, $path_prefix)) {
         continue;
       }
       $pages[$display_id] = $path;
@@ -524,8 +585,11 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
       return $fragments;
     }
 
-    $display = $view->storage->getDisplay($display_id);
-    $filters = $display['display_options']['filters'] ?? [];
+    $view->destroy();
+    if (!$view->setDisplay($display_id)) {
+      return $fragments;
+    }
+    $filters = $view->display_handler?->getOption('filters') ?? [];
     if (!is_array($filters)) {
       return $fragments;
     }
@@ -614,6 +678,35 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
         return NULL;
       }
       return [$identifier => $value];
+    }
+
+    if ($plugin_id === 'list_field') {
+      $values = array_keys((array) ($filter['value'] ?? []));
+      $values = array_values(array_filter($values, static fn($v): bool => $v !== '' && $v !== 'All'));
+      if ($values === []) {
+        $table = (string) ($filter['table'] ?? '');
+        $column = (string) ($filter['field'] ?? '');
+        if ($table === '' || $column === '') {
+          return NULL;
+        }
+        $values = $this->loadDistinctColumnValues($table, $column, $multiple ? 2 : 1);
+      }
+      if ($values === []) {
+        return NULL;
+      }
+      return [$identifier => $multiple ? array_slice($values, 0, 2) : (string) $values[0]];
+    }
+
+    if ($plugin_id === 'views_year_filters_date_year') {
+      $configured = (string) ($filter['value'] ?? '');
+      if ($configured !== '' && is_numeric($configured)) {
+        return [$identifier => $configured];
+      }
+      $year_min = (string) ($filter['year_min'] ?? '');
+      if ($year_min !== '' && is_numeric($year_min)) {
+        return [$identifier => $year_min];
+      }
+      return [$identifier => (string) date('Y')];
     }
 
     return NULL;
@@ -712,6 +805,28 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
   }
 
   /**
+   * Loads distinct non-empty values for a table column.
+   *
+   * @return array<int, string>
+   */
+  private function loadDistinctColumnValues(string $table, string $column, int $limit): array {
+    try {
+      $query = \Drupal::database()->select($table, 'f')
+        ->fields('f', [$column])
+        ->distinct()
+        ->isNotNull($column)
+        ->condition($column, '', '<>')
+        ->range(0, max(1, $limit))
+        ->orderBy($column, 'ASC');
+      $values = $query->execute()->fetchCol();
+      return array_values(array_map('strval', array_filter($values, static fn($v): bool => trim((string) $v) !== '')));
+    }
+    catch (\Throwable) {
+      return [];
+    }
+  }
+
+  /**
    * Finds one export row by label.
    */
   private function findExportRow(array $rows, string $label): array {
@@ -753,6 +868,58 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
     }
 
     return [];
+  }
+
+  /**
+   * Reads default value for an exposed filter identifier on a display.
+   *
+   * @return mixed
+   *   Scalar/array default value or NULL when not configured.
+   */
+  private function defaultFilterValueForDisplay(string $view_id, string $display_id, string $identifier) {
+    $view = Views::getView($view_id);
+    if (!$view instanceof ViewExecutable) {
+      return NULL;
+    }
+
+    foreach ([$display_id, 'default'] as $candidate) {
+      $display = $view->storage->getDisplay($candidate);
+      $filters = $display['display_options']['filters'] ?? [];
+      foreach ($filters as $filter) {
+        if (
+          !empty($filter['exposed'])
+          && (($filter['expose']['identifier'] ?? '') === $identifier)
+        ) {
+          return $filter['value'] ?? NULL;
+        }
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * True when an AMKE status query value represents explicit "All".
+   */
+  private function statusMeansAll($status): bool {
+    if ($status === 'All') {
+      return TRUE;
+    }
+    if (!is_array($status)) {
+      return FALSE;
+    }
+
+    $values = array_values(array_filter($status, static fn($v): bool => $v !== ''));
+    if ($values === []) {
+      return FALSE;
+    }
+
+    foreach ($values as $value) {
+      if ($value !== 'All') {
+        return FALSE;
+      }
+    }
+    return TRUE;
   }
 
 }

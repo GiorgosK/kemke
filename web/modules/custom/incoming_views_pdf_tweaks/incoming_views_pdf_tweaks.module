@@ -176,12 +176,47 @@ function incoming_views_pdf_tweaks_adjust_incoming_amke_export_links(ViewExecuta
       unset($existing['field_amke_status_value']);
     }
 
+    $explicit_status_all = incoming_views_pdf_tweaks_status_means_all($existing['status'] ?? NULL);
+
+    // "All" should behave like no explicit status selection.
+    if (isset($existing['status'])) {
+      if ($existing['status'] === 'All') {
+        unset($existing['status']);
+      }
+      elseif (is_array($existing['status'])) {
+        $status_values = array_values(array_filter($existing['status'], static fn($v): bool => $v !== '' && $v !== 'All'));
+        if ($status_values === []) {
+          unset($existing['status']);
+        }
+        else {
+          $existing['status'] = $status_values;
+        }
+      }
+    }
+
     // Preserve display-specific status defaults when not explicitly provided.
     if (!isset($existing['status'])) {
-      if ($view->current_display === 'page_1') {
+      // On /amke/all explicit "All" should include all statuses.
+      if ($view->current_display === 'page_2' && $explicit_status_all) {
+        $status_default = NULL;
+      }
+      else {
         $status_default = incoming_views_pdf_tweaks_filter_default_value($view, 'status');
-        if ($status_default !== NULL) {
-          $existing['status'] = is_array($status_default) ? array_values($status_default) : $status_default;
+      }
+      if ($status_default !== NULL && $view->current_display === 'page_1') {
+        // "Έγγραφα": keep the configured multi-status baseline.
+        $existing['status'] = is_array($status_default) ? array_values($status_default) : $status_default;
+      }
+      elseif ($status_default !== NULL && $view->current_display === 'page_2') {
+        // "Ολα τα Έγγραφα": mirror the page's effective baseline (single status).
+        if (is_array($status_default)) {
+          $values = array_values($status_default);
+          if (isset($values[0]) && $values[0] !== '') {
+            $existing['status'] = (string) $values[0];
+          }
+        }
+        elseif ($status_default !== '') {
+          $existing['status'] = $status_default;
         }
       }
       elseif ($view->current_display === 'page_3') {
@@ -194,6 +229,33 @@ function incoming_views_pdf_tweaks_adjust_incoming_amke_export_links(ViewExecuta
       . ($query_string !== '' ? '?' . $query_string : '')
       . (!empty($parsed['fragment']) ? '#' . $parsed['fragment'] : '');
   }
+}
+
+/**
+ * True when an AMKE status query value represents explicit "All".
+ *
+ * @param mixed $status
+ *   Raw status query value.
+ */
+function incoming_views_pdf_tweaks_status_means_all($status): bool {
+  if ($status === 'All') {
+    return TRUE;
+  }
+  if (!is_array($status)) {
+    return FALSE;
+  }
+
+  $values = array_values(array_filter($status, static fn($v): bool => $v !== ''));
+  if ($values === []) {
+    return FALSE;
+  }
+
+  foreach ($values as $value) {
+    if ($value !== 'All') {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
 
 /**
