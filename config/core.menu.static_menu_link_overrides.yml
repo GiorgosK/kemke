@@ -14,11 +14,11 @@ definitions:
     expanded: false
     enabled: false
   user__logout:
-    weight: -43
     menu_name: account
     parent: ''
-    enabled: true
+    weight: -43
     expanded: false
+    enabled: true
   standard__front_page:
     menu_name: main
     parent: ''
@@ -26,38 +26,38 @@ definitions:
     expanded: false
     enabled: false
   'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__priority':
-    enabled: false
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.priority'
-    expanded: false
     weight: 3
-  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__tags':
+    expanded: false
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__tags':
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.tags'
     weight: 3
     expanded: false
-  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_type':
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_type':
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.incoming_type'
     weight: 3
     expanded: false
-  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_subtype':
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__incoming_subtype':
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.incoming_subtype'
     weight: 3
     expanded: false
-  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__case':
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__case':
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.case'
     weight: 3
     expanded: false
-  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__legal_entity':
     enabled: false
+  'admin_toolbar_tools__extra_links:entity__entity_permissions_form__taxonomy_term__default__legal_entity':
     menu_name: admin
     parent: 'admin_toolbar_tools.extra_links:entity.taxonomy_vocabulary.overview_form.legal_entity'
     weight: 3
     expanded: false
+    enabled: false
