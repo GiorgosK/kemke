@@ -70,3 +70,17 @@
   drush users_tweaks:users-sync-dt
   drush users_tweaks:users-sync-dt --force
   ```
+
+## views export Checks
+
+should produce no mismatch
+
+```
+ddev drush icex --view=incoming_amke --display=page_1 --query='sub=&year=2025&status=All'
+
+ddev drush icex --view=incoming_amke --display=page_2 --query='sub=&year=2025&status=All&entry[min][date]=&entry[max][date]='
+
+ddev drush icext --view=incoming_amke --scenarios=7
+
+ddev drush icext --scenarios=15
+```
