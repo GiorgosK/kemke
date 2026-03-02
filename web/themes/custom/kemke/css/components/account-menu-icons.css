@@ -31,6 +31,10 @@
   background-image: url(../../images/icons/incoming-h2.svg);
 }
 
+.kemke-account-menu .kemke-menu-icon--repository {
+  background-image: url(../../images/icons/repository-h2.svg);
+}
+
 .kemke-account-menu .kemke-menu-icon--login {
   background-image: url(../../images/icons/login-h2.svg);
 }

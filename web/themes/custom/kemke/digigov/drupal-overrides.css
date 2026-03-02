@@ -212,20 +212,26 @@ body.user-notifications table.govgr-table-simple > tbody > tr > td:nth-child(4),
 }
 
 /* views date filter */ 
+#edit-repo-date-wrapper .fieldset-wrapper,
 #edit-entry-wrapper .fieldset-wrapper {
   display: flex;
 }
+#edit-repo-date-wrapper .fieldset-legend,
 #edit-entry-wrapper .fieldset-legend {
   font-size: 1.1875rem;
 }
+#edit-repo-date-wrapper .label,
 #edit-entry-wrapper .label {
   display: none;
 }
+#edit-repo-date-wrapper #edit-repo-date-min:after,
 #edit-entry-wrapper #edit-entry-min:after {
   content: '-';
   margin: 5px;
   font-size: 22px;
 }
+#edit-repo-date-wrapper #edit-entry-max > div,
+#edit-repo-date-wrapper #edit-entry-min > div,
 #edit-entry-wrapper #edit-entry-max > div,
 #edit-entry-wrapper #edit-entry-min > div {
   width: 165px;
