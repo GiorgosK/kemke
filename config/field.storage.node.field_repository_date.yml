@@ -1,0 +1,20 @@
+uuid: de1c7c3f-a9aa-4c0f-808e-c07595f0bac6
+langcode: el
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+id: node.field_repository_date
+field_name: field_repository_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

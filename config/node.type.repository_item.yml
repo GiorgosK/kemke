@@ -1,0 +1,11 @@
+uuid: 0270fd22-6079-4f32-ae44-29c381558263
+langcode: el
+status: true
+dependencies: {  }
+name: Αποθετήριο
+type: repository_item
+description: 'Στοιχεία αποθετηρίου με αρχεία και κατηγοριοποίηση.'
+help: null
+new_revision: true
+preview_mode: 0
+display_submitted: false

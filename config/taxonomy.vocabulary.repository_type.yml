@@ -1,0 +1,9 @@
+uuid: 3f2ef8f1-82fe-4410-ac27-2844b07f839e
+langcode: el
+status: true
+dependencies: {  }
+name: 'Τύπος αποθετηρίου'
+vid: repository_type
+description: 'Κατηγορίες για τα στοιχεία του αποθετηρίου.'
+weight: 0
+new_revision: false

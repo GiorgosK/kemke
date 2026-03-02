@@ -1,0 +1,59 @@
+uuid: ec7b9a1c-ebb7-4bfe-a08f-dc7f9036f4ef
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.field.node.repository_item.field_repository_date
+    - field.field.node.repository_item.field_repository_description
+    - field.field.node.repository_item.field_repository_files
+    - field.field.node.repository_item.field_repository_type
+    - node.type.repository_item
+  module:
+    - datetime
+    - file
+    - text
+    - user
+id: node.repository_item.default
+targetEntityType: node
+bundle: repository_item
+mode: default
+content:
+  field_repository_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: short
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_repository_description:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_repository_files:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_repository_type:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true

@@ -1,0 +1,23 @@
+uuid: e312ad5b-6a1d-4b31-adf2-361bde457e6b
+langcode: el
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_repository_files
+field_name: field_repository_files
+entity_type: node
+type: file
+settings:
+  target_type: file
+  display_field: false
+  display_default: false
+  uri_scheme: public
+module: file
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

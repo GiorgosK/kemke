@@ -1,0 +1,21 @@
+uuid: 9ceb2cbc-3843-444a-b6c8-01cd2494fe73
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_repository_date
+    - node.type.repository_item
+  module:
+    - datetime
+id: node.repository_item.field_repository_date
+field_name: field_repository_date
+entity_type: node
+bundle: repository_item
+label: Ημερομηνία
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime
