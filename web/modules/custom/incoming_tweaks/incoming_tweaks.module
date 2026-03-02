@@ -207,22 +207,18 @@ function incoming_tweaks_should_rename_issues_to_check_button(FormStateInterface
 }
 
 /**
- * Renames the "issues_to_check" workflow submit button for non-amke users.
+ * Renames the "issues_to_check" option label for non-amke users.
+ *
+ * This updates the moderation widget options before workflow_buttons renders
+ * action submits, instead of mutating submit elements after build.
  */
-function incoming_tweaks_rename_issues_to_check_button(array &$element): void {
-  $matches_selector = (($element['#id'] ?? NULL) === 'edit-moderation-state-fullness-check')
-    || (($element['#name'] ?? NULL) === 'moderation_state_fullness_check');
-  $classes = $element['#attributes']['class'] ?? [];
-  $matches_class = is_array($classes) && in_array('workflow-buttons-issues_to_check', $classes, TRUE);
-
-  if ($matches_selector || $matches_class) {
-    $element['#value'] = t('Ολοκλήρωση λήψης απαντήσεων');
-  }
-
-  foreach (Element::children($element) as $child) {
-    if (isset($element[$child]) && is_array($element[$child])) {
-      incoming_tweaks_rename_issues_to_check_button($element[$child]);
-    }
+function incoming_tweaks_rename_issues_to_check_button(array &$form): void {
+  if (
+    isset($form['moderation_state']['widget'][0]['#options'])
+    && is_array($form['moderation_state']['widget'][0]['#options'])
+    && array_key_exists('fullness_check', $form['moderation_state']['widget'][0]['#options'])
+  ) {
+    $form['moderation_state']['widget'][0]['#options']['fullness_check'] = t('Ολοκλήρωση λήψης απαντήσεων');
   }
 }
 
@@ -700,7 +696,13 @@ function incoming_tweaks_drop_empty_related_ief_on_parent_save_validate(array &$
 
   $cleaned = [];
   foreach ($errors as $name => $message) {
-    if (incoming_tweaks_is_transition_error_message((string) $message)) {
+    // Drop only stale errors that belong to the removed IEF subform payload.
+    // Keep moderation transition errors visible so failed transitions do not
+    // silently reload without feedback.
+    if (
+      str_starts_with((string) $name, 'field_related_incoming][form')
+      || str_starts_with((string) $name, 'field_related_incoming][widget][form')
+    ) {
       continue;
     }
     $cleaned[$name] = $message;
