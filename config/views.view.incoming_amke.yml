@@ -6,10 +6,12 @@ dependencies:
     - field.storage.node.field_amke_status
     - field.storage.node.field_documents
     - field.storage.node.field_entry_date
+    - field.storage.node.field_incoming_type
     - field.storage.node.field_interim_deadline
     - field.storage.node.field_plan_signed
     - field.storage.node.field_subject
     - node.type.incoming
+    - taxonomy.vocabulary.incoming_type
     - user.role.amke_user
   module:
     - datetime
@@ -20,10 +22,10 @@ dependencies:
     - pdf_serialization
     - rest
     - serialization
+    - taxonomy
     - text
     - user
     - views_data_export
-    - views_year_filters
     - xls_serialization
 id: incoming_amke
 label: 'Incoming amke'
@@ -160,6 +162,69 @@ display:
           settings:
             trim_length: 300
           group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_incoming_type:
+          id: field_incoming_type
+          table: node__field_incoming_type
+          field: field_incoming_type
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Είδος εγγράφου'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
           group_columns: {  }
           group_rows: true
           delta_limit: 0
@@ -559,8 +624,8 @@ display:
         type: basic
         options:
           submit_button: Φίλτρο
-          reset_button: false
-          reset_button_label: Reset
+          reset_button: true
+          reset_button_label: 'Εκκαθάριση φίλτρων'
           exposed_sorts_label: 'Sort by'
           expose_sort_order: true
           sort_asc_label: Asc
@@ -654,6 +719,54 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
+            description: ''
+            use_operator: false
+            operator: field_ref_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: refid
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -702,73 +815,27 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: '2025'
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
-            description: ''
-            use_operator: false
-            operator: field_entry_date_value_year_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: year
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          year_min: 2025
-          year_max: current
-        field_amke_status_value:
-          id: field_amke_status_value
-          table: node__field_amke_status
-          field: field_amke_status_value
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: list_field
+          plugin_id: taxonomy_index_tid
           operator: or
-          value:
-            processing: processing
-            issues: issues
-            published: published
+          value: {  }
           group: 1
           exposed: true
           expose:
-            operator_id: field_amke_status_value_op
-            label: Kατάσταση
+            operator_id: field_incoming_type_target_id_op
+            label: 'Είδος εγγράφου'
             description: ''
             use_operator: false
-            operator: field_amke_status_value_op
+            operator: field_incoming_type_target_id_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: status
+            identifier: type
             required: false
             remember: false
             multiple: false
@@ -788,6 +855,11 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
         field_entry_date_value:
           id: field_entry_date_value
           table: node__field_entry_date
@@ -833,6 +905,46 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           type: date
+        field_amke_status_value:
+          id: field_amke_status_value
+          table: node__field_amke_status
+          field: field_amke_status_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_amke_status_value_op
+            label: Kατάσταση
+            description: ''
+            use_operator: false
+            operator: field_amke_status_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: status
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
       filter_groups:
         operator: AND
         groups:
@@ -930,6 +1042,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
@@ -1068,6 +1181,69 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
+        field_incoming_type:
+          id: field_incoming_type
+          table: node__field_incoming_type
+          field: field_incoming_type
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Είδος εγγράφου'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         field_entry_date:
           id: field_entry_date
           table: node__field_entry_date
@@ -1433,6 +1609,54 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
+            description: ''
+            use_operator: false
+            operator: field_ref_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: refid
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -1481,35 +1705,33 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: '2025'
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
           group: 1
           exposed: true
           expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
+            operator_id: field_incoming_type_target_id_op
+            label: 'Είδος εγγράφου'
             description: ''
             use_operator: false
-            operator: field_entry_date_value_year_op
+            operator: field_incoming_type_target_id_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: year
+            identifier: type
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
+            reduce: false
           is_grouped: false
           group_info:
             label: ''
@@ -1522,8 +1744,57 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          year_min: 2025
-          year_max: current
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
         field_amke_status_value:
           id: field_amke_status_value
           table: node__field_amke_status
@@ -1605,51 +1876,6 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
-        field_entry_date_value:
-          id: field_entry_date_value
-          table: node__field_entry_date
-          field: field_entry_date_value
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: datetime
-          operator: between
-          value:
-            min: ''
-            max: ''
-            value: ''
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_entry_date_value_op
-            label: 'Ημερομηνία εισόδου'
-            description: ''
-            use_operator: false
-            operator: field_entry_date_value_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: entry
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            min_placeholder: null
-            max_placeholder: null
-            placeholder: null
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          type: date
       filter_groups:
         operator: AND
         groups:
@@ -1714,6 +1940,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
@@ -1852,6 +2079,69 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
+        field_incoming_type:
+          id: field_incoming_type
+          table: node__field_incoming_type
+          field: field_incoming_type
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Είδος εγγράφου'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         field_entry_date:
           id: field_entry_date
           table: node__field_entry_date
@@ -1861,6 +2151,70 @@ display:
           admin_label: ''
           plugin_id: field
           label: 'Ημερομηνία εισόδου'
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: datetime_default
+          settings:
+            timezone_override: ''
+            format_type: greek_date
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_interim_deadline:
+          id: field_interim_deadline
+          table: node__field_interim_deadline
+          field: field_interim_deadline
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: 'Προθεσμία απάντησης'
           exclude: false
           alter:
             alter_text: false
@@ -2104,70 +2458,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_interim_deadline:
-          id: field_interim_deadline
-          table: node__field_interim_deadline
-          field: field_interim_deadline
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: field
-          label: 'Προθεσμία απάντησης'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: datetime_default
-          settings:
-            timezone_override: ''
-            format_type: greek_date
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
       filters:
         type:
           id: type
@@ -2205,6 +2495,54 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
+            description: ''
+            use_operator: false
+            operator: field_ref_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: refid
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
           is_grouped: false
           group_info:
             label: ''
@@ -2265,49 +2603,6 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
-          relationship: none
-          group_type: group
-          admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: '2025'
-          group: 1
-          exposed: true
-          expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
-            description: ''
-            use_operator: false
-            operator: field_entry_date_value_year_op
-            operator_limit_selection: false
-            operator_list: {  }
-            identifier: year
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          year_min: 2025
-          year_max: current
         field_amke_status_value:
           id: field_amke_status_value
           table: node__field_amke_status
@@ -2389,6 +2684,96 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           reduce_duplicates: false
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_incoming_type_target_id_op
+            label: 'Είδος εγγράφου'
+            description: ''
+            use_operator: false
+            operator: field_incoming_type_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: type
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
       filter_groups:
         operator: AND
         groups:
@@ -2459,6 +2844,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
@@ -2523,6 +2909,54 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
+            description: ''
+            use_operator: false
+            operator: field_ref_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: refid
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -2571,35 +3005,33 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
           group: 1
           exposed: true
           expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
+            operator_id: field_incoming_type_target_id_op
+            label: 'Είδος εγγράφου'
             description: ''
             use_operator: false
-            operator: field_entry_date_value_year_op
+            operator: field_incoming_type_target_id_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: year
+            identifier: type
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
+            reduce: false
           is_grouped: false
           group_info:
             label: ''
@@ -2612,8 +3044,12 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          year_min: 2025
-          year_max: current
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
         field_amke_status_value:
           id: field_amke_status_value
           table: node__field_amke_status
@@ -2737,6 +3173,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
@@ -2774,6 +3211,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
@@ -2832,34 +3270,42 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_amke_status_value:
-          id: field_amke_status_value
-          table: node__field_amke_status
-          field: field_amke_status_value
+        field_ref_id_value:
+          id: field_ref_id_value
+          table: node__field_ref_id
+          field: field_ref_id_value
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: list_field
-          operator: or
-          value:
-            published: published
+          plugin_id: string
+          operator: contains
+          value: ''
           group: 1
           exposed: true
           expose:
-            operator_id: field_amke_status_value_op
-            label: Kατάσταση
+            operator_id: field_ref_id_value_op
+            label: 'Ref ID'
             description: ''
             use_operator: false
-            operator: field_amke_status_value_op
+            operator: field_ref_id_value_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: status
+            identifier: refid
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
-            reduce: false
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: ''
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
           is_grouped: false
           group_info:
             label: ''
@@ -2872,7 +3318,6 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          reduce_duplicates: false
         field_subject_value:
           id: field_subject_value
           table: node__field_subject
@@ -2921,35 +3366,33 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        field_entry_date_value_year:
-          id: field_entry_date_value_year
-          table: node__field_entry_date
-          field: field_entry_date_value_year
+        field_incoming_type_target_id:
+          id: field_incoming_type_target_id
+          table: node__field_incoming_type
+          field: field_incoming_type_target_id
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: views_year_filters_date_year
-          operator: '='
-          value: '2025'
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
           group: 1
           exposed: true
           expose:
-            operator_id: field_entry_date_value_year_op
-            label: 'Ημερομηνία εισόδου'
+            operator_id: field_incoming_type_target_id_op
+            label: 'Είδος εγγράφου'
             description: ''
             use_operator: false
-            operator: field_entry_date_value_year_op
+            operator: field_incoming_type_target_id_op
             operator_limit_selection: false
             operator_list: {  }
-            identifier: year
+            identifier: type
             required: false
             remember: false
             multiple: false
             remember_roles:
               authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
-            placeholder: ''
+            reduce: false
           is_grouped: false
           group_info:
             label: ''
@@ -2962,8 +3405,98 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-          year_min: 2025
-          year_max: current
+          reduce_duplicates: false
+          vid: incoming_type
+          type: select
+          hierarchy: false
+          limit: true
+          error_message: true
+        field_entry_date_value:
+          id: field_entry_date_value
+          table: node__field_entry_date
+          field: field_entry_date_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: datetime
+          operator: between
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_entry_date_value_op
+            label: 'Ημερομηνία εισόδου'
+            description: ''
+            use_operator: false
+            operator: field_entry_date_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: entry
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            min_placeholder: null
+            max_placeholder: null
+            placeholder: null
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          type: date
+        field_amke_status_value:
+          id: field_amke_status_value
+          table: node__field_amke_status
+          field: field_amke_status_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value:
+            published: published
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_amke_status_value_op
+            label: Kατάσταση
+            description: ''
+            use_operator: false
+            operator: field_amke_status_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: status
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
       filter_groups:
         operator: AND
         groups:
@@ -2997,6 +3530,7 @@ display:
         - 'config:field.storage.node.field_amke_status'
         - 'config:field.storage.node.field_documents'
         - 'config:field.storage.node.field_entry_date'
+        - 'config:field.storage.node.field_incoming_type'
         - 'config:field.storage.node.field_interim_deadline'
         - 'config:field.storage.node.field_plan_signed'
         - 'config:field.storage.node.field_subject'
