@@ -608,10 +608,6 @@ final class IncomingController extends ControllerBase {
         $node->set($fieldName, $payload[$fieldName]);
       }
     }
-
-    if (isset($payload['field_working_days']) && $payload['field_working_days'] !== NULL && $payload['field_working_days'] !== '') {
-      $node->set('field_working_days', (int) $payload['field_working_days']);
-    }
   }
 
   /**
