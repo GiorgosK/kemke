@@ -52,7 +52,7 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: '{{ title }} -  {{ edit_node }}'
+            text: '{{ title }}   {{ edit_node }}'
             make_link: false
             path: ''
             absolute: false
