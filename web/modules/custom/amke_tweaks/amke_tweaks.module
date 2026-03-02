@@ -48,7 +48,6 @@ function amke_tweaks_form_node_form_alter(array &$form, FormStateInterface $form
       'field_documents',
       'field_protocol_number_sender',
       'field_subject',
-      'field_interim_deadline',
     ];
     $keep_fields = $entity->isNew() ? $keep_fields_new_form : $keep_fields_edit_form;
     if (!$allow_protocol_number_sender) {
@@ -385,6 +384,33 @@ function amke_tweaks_entity_view_alter(array &$build, EntityInterface $entity, E
   }
 
   amke_tweaks_hide_incoming_plan_group($build);
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function amke_tweaks_preprocess_field(array &$variables): void {
+  $element = $variables['element'] ?? NULL;
+  if (!is_array($element)) {
+    return;
+  }
+
+  if (($element['#field_name'] ?? '') !== 'field_interim_deadline') {
+    return;
+  }
+
+  $entity = $element['#object'] ?? NULL;
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming') {
+    return;
+  }
+
+  if (!\Drupal::currentUser()->hasRole('amke_user')) {
+    return;
+  }
+
+  $label = t('Προθεσμία απάντησης');
+  $variables['label'] = $label;
+  $variables['element']['#title'] = $label;
 }
 
 /**
