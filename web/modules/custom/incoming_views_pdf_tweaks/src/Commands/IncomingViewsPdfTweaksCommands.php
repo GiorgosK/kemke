@@ -20,30 +20,42 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
    * @command incoming:compare-exports
    * @aliases icex
    * @option view Views machine name. Defaults to incoming.
-   * @option display Source display id (e.g. page_1, page_4, page_5).
+   * @option display Source display id (e.g. page_1, page_4, page_5). If omitted,
+   *   runs against all detected page displays for the view.
    * @option url Source URL path (e.g. /incoming, /incoming/all, /incoming/completed).
    * @option query Query string (without leading ?), e.g. "state[0]=incoming_processing-draft".
    */
   public function compareExports(
     array $options = [
       'view' => 'incoming',
-      'display' => 'page_1',
+      'display' => '',
       'url' => '',
       'query' => '',
     ]
   ): void {
     $view_id = (string) ($options['view'] ?? 'incoming');
-    $source_display = (string) ($options['display'] ?? 'page_1');
+    $source_display = trim((string) ($options['display'] ?? ''));
     $source_url = trim((string) ($options['url'] ?? ''));
     $query_string = (string) ($options['query'] ?? '');
 
+    $target_displays = [];
     if ($source_url !== '') {
       $resolved_display = $this->resolveDisplayFromUrl($view_id, $source_url);
       if ($resolved_display === NULL) {
         $this->logger()->error(sprintf('Could not map URL "%s" to a page display in view "%s".', $source_url, $view_id));
         return;
       }
-      $source_display = $resolved_display;
+      $target_displays = [$resolved_display => trim((string) parse_url($source_url, PHP_URL_PATH), '/')];
+    }
+    elseif ($source_display !== '') {
+      $target_displays = [$source_display => ''];
+    }
+    else {
+      $target_displays = $this->detectPageDisplaysForView($view_id);
+      if ($target_displays === []) {
+        $this->logger()->error(sprintf('No page displays found in view "%s".', $view_id));
+        return;
+      }
     }
 
     $source_query = [];
@@ -52,29 +64,35 @@ final class IncomingViewsPdfTweaksCommands extends DrushCommands {
     }
     $source_query = $this->normalizeSourceQuery($source_query);
 
-    $comparison = $this->computeComparison($view_id, $source_display, $source_query);
-    if ($comparison === NULL) {
-      $this->logger()->error(sprintf('Unable to execute %s:%s.', $view_id, $source_display));
-      return;
-    }
+    foreach ($target_displays as $display_id => $path) {
+      $comparison = $this->computeComparison($view_id, $display_id, $source_query);
+      if ($comparison === NULL) {
+        $this->logger()->error(sprintf('Unable to execute %s:%s.', $view_id, $display_id));
+        continue;
+      }
 
-    $this->output()->writeln(sprintf('Source: %s:%s', $view_id, $source_display));
-    if ($source_url !== '') {
-      $this->output()->writeln(sprintf('Source URL: %s', $source_url));
-    }
-    $this->output()->writeln('Source query: ' . ($query_string !== '' ? UrlHelper::buildQuery($source_query) : '(none)'));
-    $this->output()->writeln(sprintf('Source rows: visible=%d total=%d', $comparison['source_visible'], $comparison['source_total']));
+      $this->output()->writeln(sprintf('Source: %s:%s', $view_id, $display_id));
+      if ($source_url !== '') {
+        $this->output()->writeln(sprintf('Source URL: %s', $source_url));
+      }
+      elseif ($path !== '') {
+        $this->output()->writeln(sprintf('Source path: /%s', $path));
+      }
+      $this->output()->writeln('Source query: ' . ($query_string !== '' ? UrlHelper::buildQuery($source_query) : '(none)'));
+      $this->output()->writeln(sprintf('Source rows: visible=%d total=%d', $comparison['source_visible'], $comparison['source_total']));
 
-    $this->io()->table(
-      ['Export', 'Display', 'Rows(v/t)', 'Delta(total)', 'Effective Query'],
-      array_map(static fn(array $r): array => [
-        $r['export'],
-        $r['display'],
-        $r['rows'],
-        $r['delta'],
-        $r['query'],
-      ], $comparison['rows'])
-    );
+      $this->io()->table(
+        ['Export', 'Display', 'Rows(v/t)', 'Delta(total)', 'Effective Query'],
+        array_map(static fn(array $r): array => [
+          $r['export'],
+          $r['display'],
+          $r['rows'],
+          $r['delta'],
+          $r['query'],
+        ], $comparison['rows'])
+      );
+      $this->output()->writeln('');
+    }
   }
 
   /**
