@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.full_html
     - node.type.incoming
+    - node.type.repository_item
     - taxonomy.vocabulary.case
     - workflows.workflow.incoming_processing
   module:
@@ -30,8 +31,11 @@ permissions:
   - 'access user profiles'
   - 'change own username'
   - 'create incoming content'
+  - 'create repository_item content'
   - 'create terms in case'
+  - 'delete any repository_item content'
   - 'edit any incoming content'
+  - 'edit any repository_item content'
   - 'edit own field_notifications'
   - 'edit terms in case'
   - 'use incoming_processing transition completed'
@@ -47,6 +51,7 @@ permissions:
   - 'use incoming_processing transition stay_under_processing'
   - 'use text format full_html'
   - 'view any incoming content'
+  - 'view any repository_item content'
   - 'view any unpublished content'
   - 'view latest version'
   - 'view own unpublished content'

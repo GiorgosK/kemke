@@ -32,5 +32,5 @@ permissions:
   - 'use incoming_processing transition temp_to_draft'
   - 'use text format full_html'
   - 'view any incoming content'
+  - 'view any repository_item content'
   - 'view own incoming content'
-  - 'view own unpublished content'

@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.full_html
     - node.type.incoming
+    - node.type.repository_item
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.incoming_subtype
     - taxonomy.vocabulary.incoming_type
@@ -50,14 +51,17 @@ permissions:
   - 'change own username'
   - 'change to arbitary state'
   - 'create incoming content'
+  - 'create repository_item content'
   - 'create terms in case'
   - 'create terms in incoming_subtype'
   - 'create terms in incoming_type'
   - 'create terms in legal_entity'
   - 'create terms in priority'
   - 'create terms in tags'
+  - 'delete any repository_item content'
   - 'delete terms in case'
   - 'edit any incoming content'
+  - 'edit any repository_item content'
   - 'edit field_notifications'
   - 'edit field_serial_number'
   - 'edit field_temporary_disabled'
@@ -83,6 +87,7 @@ permissions:
   - 'use incoming_processing transition stay_under_processing'
   - 'use text format full_html'
   - 'view any incoming content'
+  - 'view any repository_item content'
   - 'view any unpublished content'
   - 'view incoming revisions'
   - 'view latest version'

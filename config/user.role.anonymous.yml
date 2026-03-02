@@ -20,3 +20,4 @@ permissions:
   - 'search content'
   - 'use text format restricted_html'
   - 'view any page content'
+  - 'view any repository_item content'
