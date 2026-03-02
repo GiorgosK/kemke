@@ -32,17 +32,14 @@ display:
     display_options:
       title: Αποθετήριο
       fields:
-        field_repository_type:
-          id: field_repository_type
-          table: node__field_repository_type
-          field: field_repository_type
+        edit_node:
+          id: edit_node
+          table: node
+          field: edit_node
           relationship: none
-          plugin_id: field
-          label: 'Τύπος αποθετηρίου'
+          plugin_id: entity_link_edit
+          label: ''
           exclude: true
-          type: entity_reference_label
-          settings:
-            link: false
         title:
           id: title
           table: node_field_data
@@ -50,9 +47,24 @@ display:
           relationship: none
           plugin_id: field
           label: Τίτλος
+          alter:
+            alter_text: true
+            text: '{{ title }} {{ edit_node }}'
+            html: true
           type: string
           settings:
             link_to_entity: true
+        field_repository_type:
+          id: field_repository_type
+          table: node__field_repository_type
+          field: field_repository_type
+          relationship: none
+          plugin_id: field
+          label: 'Τύπος αποθετηρίου'
+          exclude: false
+          type: entity_reference_label
+          settings:
+            link: false
         field_repository_date:
           id: field_repository_date
           table: node__field_repository_date
@@ -60,10 +72,11 @@ display:
           relationship: none
           plugin_id: field
           label: Ημερομηνία
+          element_class: repository-date-nowrap
           type: datetime_default
           settings:
             timezone_override: ''
-            format_type: short
+            format_type: greek_date
         field_repository_description:
           id: field_repository_description
           table: node__field_repository_description
@@ -227,16 +240,58 @@ display:
             placeholder: null
           type: date
       style:
-        type: default
+        type: table
         options:
-          grouping:
-            -
-              field: field_repository_type
-              rendered: true
-              rendered_strip: false
+          grouping: {  }
           row_class: ''
           default_row_class: true
-          uses_fields: false
+          columns:
+            field_repository_type: field_repository_type
+            title: title
+            field_repository_date: field_repository_date
+            field_repository_description: field_repository_description
+            field_repository_files: field_repository_files
+          default: field_repository_date
+          info:
+            field_repository_type:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            title:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_repository_date:
+              sortable: true
+              default_sort_order: desc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_repository_description:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_repository_files:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          override: true
+          sticky: false
+          summary: ''
+          empty_table: false
       row:
         type: fields
         options:
@@ -253,7 +308,20 @@ display:
           replica: false
           query_tags: {  }
       relationships: {  }
-      header: {  }
+      header:
+        area:
+          id: area
+          table: views
+          field: area
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text
+          empty: false
+          content:
+            value: '<a href="/node/add/repository_item" class="button js-form-submit form-submit govgr-btn govgr-btn-secondary">προσθήκη στο αποθετήριο</a>'
+            format: full_html
+          tokenize: false
       footer: {  }
       display_extenders: {  }
     cache_metadata:
