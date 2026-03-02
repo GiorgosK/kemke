@@ -12,6 +12,7 @@ dependencies:
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
+    - field.field.node.incoming.field_days_from_fullness_check
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_dt_docid
     - field.field.node.incoming.field_entry_date
@@ -93,6 +94,7 @@ third_party_settings:
       children:
         - field_ref_id
         - field_entry_date
+        - field_interim_deadline
         - field_subject
         - field_amke_status
       label: Γενικά
@@ -113,7 +115,7 @@ third_party_settings:
       label: Παρατηρήσεις
       parent_name: group_tabs
       region: content
-      weight: 24
+      weight: 25
       format_type: tab
       format_settings:
         classes: ''
@@ -145,7 +147,7 @@ third_party_settings:
       label: Σχέδιο
       parent_name: group_tabs
       region: content
-      weight: 22
+      weight: 23
       format_type: tab
       format_settings:
         classes: ''
@@ -160,7 +162,7 @@ third_party_settings:
       label: 'Ακριβες Αντίγραφο'
       parent_name: group_tabs
       region: content
-      weight: 23
+      weight: 24
       format_type: tab
       format_settings:
         classes: ''
@@ -179,7 +181,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 5
+    weight: 4
     region: content
   field_attachments:
     type: file_default
@@ -206,6 +208,15 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 1
+    region: content
+  field_interim_deadline:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: greek_date
+    third_party_settings: {  }
+    weight: 2
     region: content
   field_plan:
     type: file_default
@@ -256,7 +267,7 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 2
+    weight: 3
     region: content
 hidden:
   content_moderation_control: true
@@ -266,13 +277,13 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_days_from_fullness_check: true
   field_dt_docid: true
   field_extension: true
   field_extension_date: true
   field_fullness_check_date: true
   field_incoming_subtype: true
   field_incoming_type: true
-  field_interim_deadline: true
   field_legal_deadline: true
   field_legal_entity: true
   field_notes: true

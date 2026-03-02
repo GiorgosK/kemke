@@ -12,6 +12,7 @@ dependencies:
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
+    - field.field.node.incoming.field_days_from_fullness_check
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_dt_docid
     - field.field.node.incoming.field_entry_date
@@ -151,6 +152,7 @@ hidden:
   field_basic_operator: true
   field_case: true
   field_completion_date: true
+  field_days_from_fullness_check: true
   field_dt_docid: true
   field_extension: true
   field_extension_date: true

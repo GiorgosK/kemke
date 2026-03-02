@@ -11,6 +11,7 @@ dependencies:
     - field.field.node.incoming.field_basic_operator
     - field.field.node.incoming.field_case
     - field.field.node.incoming.field_completion_date
+    - field.field.node.incoming.field_days_from_fullness_check
     - field.field.node.incoming.field_documents
     - field.field.node.incoming.field_dt_docid
     - field.field.node.incoming.field_entry_date
@@ -124,6 +125,7 @@ third_party_settings:
         - field_legal_deadline
         - field_fullness_check_date
         - field_completion_date
+        - field_days_from_fullness_check
       label: Κατάσταση
       parent_name: group_tabs
       region: content
@@ -439,6 +441,15 @@ content:
       format_type: greek_date_with_day
     third_party_settings: {  }
     weight: 30
+    region: content
+  field_days_from_fullness_check:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 31
     region: content
   field_dt_docid:
     type: string

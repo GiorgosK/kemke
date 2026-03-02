@@ -1,0 +1,23 @@
+uuid: 67e7bba9-d027-4f37-b5bb-326f6f2fd0da
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_days_from_fullness_check
+    - node.type.incoming
+id: node.incoming.field_days_from_fullness_check
+field_name: field_days_from_fullness_check
+entity_type: node
+bundle: incoming
+label: 'Ημέρες εργασίας απο πληρότητα'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

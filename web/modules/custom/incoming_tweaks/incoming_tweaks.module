@@ -1159,6 +1159,31 @@ function incoming_tweaks_set_completion_date_on_publish(NodeInterface $node): vo
     $node->set('field_completion_date', [
       'value' => $completion_date->format(DateTimeItemInterface::DATE_STORAGE_FORMAT),
     ]);
+
+    if (
+      $node->hasField('field_days_from_fullness_check') &&
+      $node->hasField('field_fullness_check_date') &&
+      !$node->get('field_fullness_check_date')->isEmpty()
+    ) {
+      $fullness_check_value = (string) ($node->get('field_fullness_check_date')->first()->getValue()['value'] ?? '');
+      if ($fullness_check_value !== '') {
+        try {
+          $fullness_check_date = DrupalDateTime::createFromFormat(
+            DateTimeItemInterface::DATE_STORAGE_FORMAT,
+            $fullness_check_value,
+            new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE)
+          );
+          if ($fullness_check_date) {
+            $fullness_check_date->setTime(0, 0, 0);
+            $working_days = greek_holidays_calculate_days_between($fullness_check_date, $completion_date);
+            $node->set('field_days_from_fullness_check', ['value' => $working_days]);
+          }
+        }
+        catch (\Exception $exception) {
+          // Keep publish transition resilient when date parsing fails.
+        }
+      }
+    }
   }
 }
 
