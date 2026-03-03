@@ -38,8 +38,10 @@ final class DocutracksClient {
   private const LIVE_APP_PASS = '';
 
   private const DEFAULT_FORCE_SIGNED = FALSE;
-  // Default timeout used by the client; callers can override per request.
+  // Default timeout used by most client requests; callers can override.
   private const DEFAULT_TIMEOUT = 60.0;
+  // Login can be slower on live/test SIDE environments.
+  private const LOGIN_TIMEOUT = 90.0;
   private const STUB_PDF_BASE64 = 'JVBERi0xLjQKMSAwIG9iajw8Pj4KZW5kb2JqCnRyYWlsZXI8PD4+CiUlRU9GCg==';
 
   public function __construct(private readonly ClientInterface $httpClient) {
@@ -54,7 +56,7 @@ final class DocutracksClient {
     ?string $adminPass = null,
     ?string $appUser = null,
     ?string $appPass = null,
-    float $timeout = self::DEFAULT_TIMEOUT,
+    float $timeout = self::LOGIN_TIMEOUT,
     int $maxAttempts = 2,
     float $retryDelaySeconds = 2.0
   ): CookieJar {
