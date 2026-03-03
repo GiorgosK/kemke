@@ -832,6 +832,7 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   incoming_tweaks_force_non_primary_for_related($entity);
   incoming_tweaks_restore_primary_for_removed_related($entity);
   incoming_tweaks_sync_related_legal_entities($entity);
+  incoming_tweaks_sync_contact_legal_entity_from_incoming($entity);
   incoming_tweaks_ensure_self_related_when_primary_document_exists($entity);
 
   if (in_array($state, ['draft', 'fullness_check'], TRUE)) {
@@ -842,6 +843,74 @@ function incoming_tweaks_entity_presave(EntityInterface $entity): void {
   if ($entered_draft) {
     incoming_tweaks_add_self_related_incoming($entity);
   }
+}
+
+/**
+ * Syncs incoming legal entity to matching contact by sender (when empty).
+ */
+function incoming_tweaks_sync_contact_legal_entity_from_incoming(NodeInterface $node): void {
+  if (!$node->hasField('field_legal_entity') || $node->get('field_legal_entity')->isEmpty()) {
+    return;
+  }
+
+  // If incoming legal entity is not a single value, stop immediately.
+  $incoming_legal_values = $node->get('field_legal_entity')->getValue();
+  if (count($incoming_legal_values) !== 1) {
+    return;
+  }
+
+  // Skip when legal entity did not change on this edit.
+  if ($node->original instanceof NodeInterface && $node->original->hasField('field_legal_entity')) {
+    $original_values = $node->original->get('field_legal_entity')->getValue();
+    if (
+      count($original_values) === 1 &&
+      (int) ($original_values[0]['target_id'] ?? 0) === (int) ($incoming_legal_values[0]['target_id'] ?? 0)
+    ) {
+      return;
+    }
+  }
+
+  if (!$node->hasField('field_sender') || $node->get('field_sender')->isEmpty()) {
+    return;
+  }
+
+  $target_id = (int) ($incoming_legal_values[0]['target_id'] ?? 0);
+  if ($target_id <= 0) {
+    return;
+  }
+
+  $sender = trim((string) ($node->get('field_sender')->value ?? ''));
+  if ($sender === '') {
+    return;
+  }
+
+  $contact_ids = \Drupal::entityQuery('node')
+    ->accessCheck(FALSE)
+    ->condition('type', 'contact')
+    ->condition('field_dt_lastname', $sender)
+    ->range(0, 2)
+    ->execute();
+
+  // Abort when there is none or more than one matching contact.
+  if (count($contact_ids) !== 1) {
+    return;
+  }
+
+  $contact_id = (int) reset($contact_ids);
+  /** @var \Drupal\node\NodeInterface|null $contact */
+  $contact = \Drupal::entityTypeManager()->getStorage('node')->load($contact_id);
+  if (!$contact instanceof NodeInterface || !$contact->hasField('field_legal_entity')) {
+    return;
+  }
+
+  // Never overwrite an already populated contact legal entity.
+  if (!$contact->get('field_legal_entity')->isEmpty()) {
+    return;
+  }
+
+  // Keep contact legal entity as single value even if storage allows multiple.
+  $contact->set('field_legal_entity', [['target_id' => $target_id]]);
+  $contact->save();
 }
 
 /**
