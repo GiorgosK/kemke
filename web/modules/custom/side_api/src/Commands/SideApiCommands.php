@@ -204,6 +204,10 @@ final class SideApiCommands extends DrushCommands {
   /**
    * Check whether SIDE connection is available.
    *
+   * Examples:
+   *   drush side:connect
+   *   drush side:connect --probe-user=intraway --probe-timeout=30
+   *
    * @command side:connect
    * @aliases connect,sdc
    * @option probe-user Username used for post-login probe request (default intraway).
@@ -281,6 +285,10 @@ final class SideApiCommands extends DrushCommands {
   /**
    * Diagnose protocol lookup payload shape and key fields.
    *
+   * Examples:
+   *   drush side:diag-protocol --protocol="Π.Η-41" --year=2026 --document-type=1
+   *   drush side:diag-protocol --protocol="72 ΕΙ 2026" --year=2026 --document-type=1 --include-raw=1
+   *
    * @command side:diag-protocol
    * @aliases sddp
    * @option protocol Protocol text (required).
@@ -321,6 +329,10 @@ final class SideApiCommands extends DrushCommands {
 
   /**
    * Diagnose document payload shape and key fields by document id.
+   *
+   * Examples:
+   *   drush side:diag-doc --id=22289014
+   *   drush side:diag-doc --id=22289014 --include-raw=1
    *
    * @command side:diag-doc
    * @aliases sddd
