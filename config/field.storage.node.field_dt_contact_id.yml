@@ -1,0 +1,20 @@
+uuid: 263e5141-b3a7-4919-bbf8-2a27d180cd05
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_dt_contact_id
+field_name: field_dt_contact_id
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

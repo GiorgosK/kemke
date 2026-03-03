@@ -1,0 +1,27 @@
+uuid: 7d43a6b5-373f-4af3-ba39-110f50b6a2b8
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_dt_env
+field_name: field_dt_env
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: production
+      label: Παραγωγικό
+    -
+      value: test
+      label: Τεστ
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

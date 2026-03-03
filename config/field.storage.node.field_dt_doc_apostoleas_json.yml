@@ -1,0 +1,19 @@
+uuid: 790e9fa8-f4d1-4bf9-ab84-9cc1bbcae74d
+langcode: el
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_dt_doc_apostoleas_json
+field_name: field_dt_doc_apostoleas_json
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

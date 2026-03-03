@@ -1,0 +1,73 @@
+uuid: 6a104939-f533-4d98-b197-caf5038f3973
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.field.node.contact.field_dt_contact_id
+    - field.field.node.contact.field_dt_doc_apostoleas_json
+    - field.field.node.contact.field_dt_email
+    - field.field.node.contact.field_dt_env
+    - field.field.node.contact.field_dt_lastname
+    - field.field.node.contact.field_legal_entity
+    - node.type.contact
+  module:
+    - options
+    - user
+id: node.contact.default
+targetEntityType: node
+bundle: contact
+mode: default
+content:
+  field_dt_contact_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_dt_doc_apostoleas_json:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_dt_email:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_dt_env:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_dt_lastname:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_legal_entity:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 6
+    region: content
+hidden:
+  langcode: true

@@ -1,0 +1,18 @@
+uuid: 3505a62b-508b-490e-b691-a07845b94fa7
+langcode: el
+status: true
+dependencies:
+  config:
+    - node.type.contact
+id: node.contact.title
+field_name: title
+entity_type: node
+bundle: contact
+label: Όνομα
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

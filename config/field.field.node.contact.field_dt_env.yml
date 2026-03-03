@@ -1,0 +1,23 @@
+uuid: ff3b40c6-a7ac-4626-8a48-ab84a75c8180
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_dt_env
+    - node.type.contact
+  module:
+    - options
+id: node.contact.field_dt_env
+field_name: field_dt_env
+entity_type: node
+bundle: contact
+label: Περιβάλλον
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: production
+default_value_callback: ''
+settings: {  }
+field_type: list_string

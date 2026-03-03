@@ -1,0 +1,643 @@
+uuid: 2eeb9f26-30ad-4f61-95c1-a053329f14dc
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_dt_contact_id
+    - field.storage.node.field_dt_email
+    - field.storage.node.field_dt_env
+    - field.storage.node.field_dt_lastname
+    - field.storage.node.field_legal_entity
+    - node.type.contact
+    - taxonomy.vocabulary.legal_entity
+  module:
+    - node
+    - options
+    - taxonomy
+    - user
+id: contacts
+label: Contacts
+module: views
+description: 'Contacts listing with exposed filters.'
+tag: ''
+base_table: node_field_data
+base_field: nid
+display:
+  default:
+    id: default
+    display_title: Default
+    display_plugin: default
+    position: 0
+    display_options:
+      title: Contacts
+      fields:
+        created:
+          id: created
+          table: node_field_data
+          field: created
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: created
+          plugin_id: field
+          label: Εισαγωγή
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: timestamp
+          settings:
+            date_format: greek_date
+            custom_date_format: ''
+            timezone: ''
+            tooltip:
+              date_format: long
+              custom_date_format: ''
+            time_diff:
+              enabled: false
+              future_format: '@interval hence'
+              past_format: '@interval ago'
+              granularity: 2
+              refresh: 60
+              description: ''
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_dt_contact_id:
+          id: field_dt_contact_id
+          table: node__field_dt_contact_id
+          field: field_dt_contact_id
+          relationship: none
+          plugin_id: field
+          label: 'Docutracks ID'
+          type: number_integer
+          settings:
+            thousand_separator: ''
+            prefix_suffix: true
+        title:
+          id: title
+          table: node_field_data
+          field: title
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: title
+          plugin_id: field
+          label: Όνομα
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: string
+          settings:
+            link_to_entity: false
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_dt_lastname:
+          id: field_dt_lastname
+          table: node__field_dt_lastname
+          field: field_dt_lastname
+          relationship: none
+          plugin_id: field
+          label: Επωνυμία
+          type: string
+          settings:
+            link_to_entity: false
+        field_legal_entity:
+          id: field_legal_entity
+          table: node__field_legal_entity
+          field: field_legal_entity
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: Φορέας
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_dt_email:
+          id: field_dt_email
+          table: node__field_dt_email
+          field: field_dt_email
+          relationship: none
+          plugin_id: field
+          label: Email
+          type: basic_string
+          settings: {  }
+        field_dt_env:
+          id: field_dt_env
+          table: node__field_dt_env
+          field: field_dt_env
+          relationship: none
+          plugin_id: field
+          label: Περιβάλλον
+          type: list_default
+          settings: {  }
+        edit_node:
+          id: edit_node
+          table: node
+          field: edit_node
+          relationship: none
+          plugin_id: entity_link_edit
+          label: Επεξεργασία
+      pager:
+        type: full
+        options:
+          offset: 0
+          pagination_heading_level: h4
+          items_per_page: 50
+          total_pages: null
+          id: 0
+          tags:
+            next: ››
+            previous: ‹‹
+            first: '« Πρώτο'
+            last: 'Τελευταίο »'
+      exposed_form:
+        type: basic
+        options:
+          submit_button: Αναζήτηση
+          reset_button: true
+          reset_button_label: Επαναφορά
+          exposed_sorts_label: 'Ταξινόμηση κατά'
+          expose_sort_order: true
+          sort_asc_label: Αύξ
+          sort_desc_label: Φθί
+      access:
+        type: perm
+        options:
+          perm: 'access content'
+      cache:
+        type: tag
+        options: {  }
+      empty: {  }
+      sorts:
+        field_dt_contact_id_value:
+          id: field_dt_contact_id_value
+          table: node__field_dt_contact_id
+          field: field_dt_contact_id_value
+          plugin_id: standard
+          order: ASC
+      arguments: {  }
+      filters:
+        status:
+          id: status
+          table: node_field_data
+          field: status
+          entity_type: node
+          entity_field: status
+          plugin_id: boolean
+          value: '1'
+          group: 1
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            contact: contact
+          group: 1
+        field_dt_contact_id_value:
+          id: field_dt_contact_id_value
+          table: node__field_dt_contact_id
+          field: field_dt_contact_id_value
+          plugin_id: numeric
+          operator: '='
+          value:
+            min: ''
+            max: ''
+            value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_dt_contact_id_value_op
+            label: 'Docutracks ID'
+            identifier: docutracks_id
+            required: false
+        title:
+          id: title
+          table: node_field_data
+          field: title
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: title
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: title_op
+            label: Όνομα
+            description: ''
+            use_operator: false
+            operator: title_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: title
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 1
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: title
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_dt_lastname_value:
+          id: field_dt_lastname_value
+          table: node__field_dt_lastname
+          field: field_dt_lastname_value
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_dt_lastname_value_op
+            label: Επωνυμία
+            identifier: lastname
+            required: false
+        field_legal_entity_target_id:
+          id: field_legal_entity_target_id
+          table: node__field_legal_entity
+          field: field_legal_entity_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: taxonomy_index_tid
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_legal_entity_target_id_op
+            label: Φορέας
+            description: ''
+            use_operator: false
+            operator: field_legal_entity_target_id_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: legal
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+          vid: legal_entity
+          type: select
+          hierarchy: true
+          limit: true
+          error_message: true
+        field_dt_email_value:
+          id: field_dt_email_value
+          table: node__field_dt_email
+          field: field_dt_email_value
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_dt_email_value_op
+            label: Email
+            identifier: email
+            required: false
+        field_dt_doc_apostoleas_json_value:
+          id: field_dt_doc_apostoleas_json_value
+          table: node__field_dt_doc_apostoleas_json
+          field: field_dt_doc_apostoleas_json_value
+          plugin_id: string
+          operator: contains
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_dt_doc_apostoleas_json_value_op
+            label: 'Αποστολέας JSON'
+            identifier: apostoleas_json
+            required: false
+        field_dt_env_value:
+          id: field_dt_env_value
+          table: node__field_dt_env
+          field: field_dt_env_value
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_dt_env_value_op
+            label: Περιβάλλον
+            identifier: env
+            required: false
+            multiple: false
+      filter_groups:
+        operator: AND
+        groups:
+          1: AND
+      style:
+        type: table
+        options:
+          grouping: {  }
+          row_class: ''
+          default_row_class: true
+          columns:
+            created: created
+            field_dt_contact_id: field_dt_contact_id
+            field_dt_lastname: field_dt_lastname
+            field_legal_entity: field_legal_entity
+            field_dt_email: field_dt_email
+            field_dt_env: field_dt_env
+            edit_node: edit_node
+          default: created
+          info:
+            created:
+              sortable: true
+              default_sort_order: desc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_dt_contact_id:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_dt_lastname:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_legal_entity:
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_dt_email:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_dt_env:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            edit_node:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          override: true
+          sticky: false
+          summary: ''
+          empty_table: false
+          caption: ''
+          description: ''
+          class: ''
+      row:
+        type: fields
+        options:
+          default_field_elements: true
+          inline: {  }
+          separator: ''
+          hide_empty: false
+      query:
+        type: views_query
+        options:
+          query_comment: ''
+          disable_sql_rewrite: false
+          distinct: false
+          replica: false
+          query_tags: {  }
+      relationships: {  }
+      header: {  }
+      footer: {  }
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - 'user.node_grants:view'
+        - user.permissions
+      tags:
+        - 'config:field.storage.node.field_dt_contact_id'
+        - 'config:field.storage.node.field_dt_email'
+        - 'config:field.storage.node.field_dt_env'
+        - 'config:field.storage.node.field_dt_lastname'
+        - 'config:field.storage.node.field_legal_entity'
+  page_1:
+    id: page_1
+    display_title: Page
+    display_plugin: page
+    position: 1
+    display_options:
+      display_extenders: {  }
+      path: contacts
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - 'user.node_grants:view'
+        - user.permissions
+      tags:
+        - 'config:field.storage.node.field_dt_contact_id'
+        - 'config:field.storage.node.field_dt_email'
+        - 'config:field.storage.node.field_dt_env'
+        - 'config:field.storage.node.field_dt_lastname'
+        - 'config:field.storage.node.field_legal_entity'

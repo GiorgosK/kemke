@@ -1,0 +1,23 @@
+uuid: 7c2ebba5-e1dc-4075-be22-7fa51ccccb73
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_dt_contact_id
+    - node.type.contact
+id: node.contact.field_dt_contact_id
+field_name: field_dt_contact_id
+entity_type: node
+bundle: contact
+label: 'Docutracks ID (integer)'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
