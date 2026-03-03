@@ -869,7 +869,8 @@ final class IncomingController extends ControllerBase {
     }
 
     $apostoleas = $this->extractApostoleasFromAssignment($assignment);
-    $node->set('field_sender', (string) ($apostoleas['Eponimia'] ?? ''));
+    $sender = (string) ($apostoleas['Eponimia'] ?? '');
+    $node->set('field_sender', $this->truncateNodeFieldValue($node, 'field_sender', $sender));
 
     $this->syncDocutracksApostoleasContact($assignment);
     $this->syncIncomingLegalEntityFromContact($node, $assignment);
@@ -943,6 +944,7 @@ final class IncomingController extends ControllerBase {
     if ($title === '') {
       $title = 'Contact ' . $contactId;
     }
+    $title = $this->truncateNodeBundleFieldValue('contact', 'title', $title);
 
     $values = [
       'type' => 'contact',
@@ -955,7 +957,7 @@ final class IncomingController extends ControllerBase {
     ];
 
     if (isset($apostoleas['Eponimia']) && is_scalar($apostoleas['Eponimia'])) {
-      $values['field_dt_lastname'] = trim((string) $apostoleas['Eponimia']);
+      $values['field_dt_lastname'] = $this->truncateNodeBundleFieldValue('contact', 'field_dt_lastname', (string) $apostoleas['Eponimia']);
     }
     if (isset($apostoleas['Email']) && is_scalar($apostoleas['Email'])) {
       $candidateEmail = trim((string) $apostoleas['Email']);
@@ -1006,6 +1008,58 @@ final class IncomingController extends ControllerBase {
     }
 
     return $apostoleas;
+  }
+
+  /**
+   * Truncates a value to a node field max length, when such limit exists.
+   */
+  private function truncateNodeFieldValue(NodeInterface $node, string $fieldName, string $value): string {
+    $value = trim($value);
+    if ($value === '' || !$node->hasField($fieldName)) {
+      return $value;
+    }
+
+    $max = (int) ($node->getFieldDefinition($fieldName)->getSetting('max_length') ?? 0);
+    return $this->truncateToLength($value, $max);
+  }
+
+  /**
+   * Truncates a value using node bundle field settings max_length.
+   */
+  private function truncateNodeBundleFieldValue(string $bundle, string $fieldName, string $value): string {
+    $value = trim($value);
+    if ($value === '') {
+      return $value;
+    }
+
+    $definitions = $this->entityFieldManager->getFieldDefinitions('node', $bundle);
+    if (!isset($definitions[$fieldName])) {
+      return $value;
+    }
+
+    $max = (int) ($definitions[$fieldName]->getSetting('max_length') ?? 0);
+    return $this->truncateToLength($value, $max);
+  }
+
+  /**
+   * Truncates a string to max length using multibyte-safe functions when available.
+   */
+  private function truncateToLength(string $value, int $maxLength): string {
+    if ($maxLength <= 0 || $value === '') {
+      return $value;
+    }
+
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+      if (mb_strlen($value) <= $maxLength) {
+        return $value;
+      }
+      return mb_substr($value, 0, $maxLength);
+    }
+
+    if (strlen($value) <= $maxLength) {
+      return $value;
+    }
+    return substr($value, 0, $maxLength);
   }
 
   /**
