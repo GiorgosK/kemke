@@ -857,7 +857,7 @@ final class IncomingController extends ControllerBase {
     }
 
     try {
-      $assignment = $this->docutracksClient->resolveIncomingOperatorAssignmentsByProtocol($protocolText, $protocolYear, 1);
+      $assignment = $this->docutracksClient->resolveIncomingOperatorAssignmentsByProtocol($protocolText, $protocolYear, NULL);
     }
     catch (\Throwable $exception) {
       $this->getLogger('incoming_api')->warning('Unable to resolve Docutracks assignees for protocol @protocol/@year: @message', [

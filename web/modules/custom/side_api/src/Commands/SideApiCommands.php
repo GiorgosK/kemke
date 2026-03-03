@@ -23,12 +23,16 @@ final class SideApiCommands extends DrushCommands {
    * @aliases sdf
    * @option protocol Protocol text (e.g. "ΥΠΠΟΤ/Π.Η/1351/17").
    * @option year Protocol year (e.g. 2017).
-   * @option document-type Document type id (default 1).
+   * @option document-type Document type id (optional).
    */
-  public function fetch(?int $docId = NULL, array $options = ['protocol' => '', 'year' => 0, 'document-type' => 1]): void {
+  public function fetch(?int $docId = NULL, array $options = ['protocol' => '', 'year' => 0, 'document-type' => '']): void {
     $protocolText = trim((string) ($options['protocol'] ?? ''));
     $protocolYear = (int) ($options['year'] ?? 0);
-    $documentTypeId = (int) ($options['document-type'] ?? 1);
+    $rawDocumentType = trim((string) ($options['document-type'] ?? ''));
+    $documentTypeId = $rawDocumentType === '' ? NULL : (int) $rawDocumentType;
+    if ($documentTypeId !== NULL && $documentTypeId <= 0) {
+      $documentTypeId = NULL;
+    }
 
     $jar = $this->client->loginToDocutracks();
     if ($protocolText !== '') {
@@ -286,20 +290,24 @@ final class SideApiCommands extends DrushCommands {
    * Diagnose protocol lookup payload shape and key fields.
    *
    * Examples:
-   *   drush side:diag-protocol --protocol="Π.Η-41" --year=2026 --document-type=1
+   *   drush side:diag-protocol --protocol="Π.Η-41" --year=2026
    *   drush side:diag-protocol --protocol="72 ΕΙ 2026" --year=2026 --document-type=1 --include-raw=1
    *
    * @command side:diag-protocol
    * @aliases sddp
    * @option protocol Protocol text (required).
    * @option year Protocol year (required).
-   * @option document-type Document type id (default 1).
+   * @option document-type Document type id (optional).
    * @option include-raw Include full raw payload in output (0/1).
    */
-  public function diagnoseProtocol(array $options = ['protocol' => '', 'year' => 0, 'document-type' => 1, 'include-raw' => 0]): void {
+  public function diagnoseProtocol(array $options = ['protocol' => '', 'year' => 0, 'document-type' => '', 'include-raw' => 0]): void {
     $protocolText = trim((string) ($options['protocol'] ?? ''));
     $protocolYear = (int) ($options['year'] ?? 0);
-    $documentTypeId = (int) ($options['document-type'] ?? 1);
+    $rawDocumentType = trim((string) ($options['document-type'] ?? ''));
+    $documentTypeId = $rawDocumentType === '' ? NULL : (int) $rawDocumentType;
+    if ($documentTypeId !== NULL && $documentTypeId <= 0) {
+      $documentTypeId = NULL;
+    }
     $includeRaw = filter_var((string) ($options['include-raw'] ?? '0'), FILTER_VALIDATE_BOOL);
 
     if ($protocolText === '' || $protocolYear <= 0) {

@@ -340,7 +340,7 @@ final class DocutracksClient {
   public function fetchDocumentByProtocol(
     string $protocolText,
     int $protocolYear,
-    int $documentTypeId,
+    ?int $documentTypeId,
     CookieJar $jar,
     ?string $baseUrl = null
   ): array {
@@ -358,9 +358,11 @@ final class DocutracksClient {
       'Protocol' => [
         'ProtocolText' => $protocolText,
         'ProtocolYear' => $protocolYear,
-        'DocumentTypeId' => $documentTypeId,
       ],
     ];
+    if ($documentTypeId !== NULL) {
+      $payload['Protocol']['DocumentTypeId'] = $documentTypeId;
+    }
 
     try {
       $response = $this->httpClient->request('POST', $baseUrl . '/services/document/get', [
@@ -1459,7 +1461,7 @@ final class DocutracksClient {
    *   matched_extra_ids:array<int, string>
    * }
    */
-  public function resolveIncomingOperatorAssignmentsByProtocol(string $protocolText, int $protocolYear, int $documentTypeId = 1): array {
+  public function resolveIncomingOperatorAssignmentsByProtocol(string $protocolText, int $protocolYear, ?int $documentTypeId = NULL): array {
     if (trim($protocolText) === '' || $protocolYear <= 0) {
       throw new RuntimeException('Protocol text and year are required for Docutracks protocol lookup.');
     }
