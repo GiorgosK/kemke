@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - filter.format.full_html
+    - node.type.contact
     - node.type.incoming
     - node.type.repository_item
     - taxonomy.vocabulary.case
@@ -51,6 +52,7 @@ permissions:
   - 'can view users activity'
   - 'change own username'
   - 'change to arbitary state'
+  - 'create contact content'
   - 'create incoming content'
   - 'create repository_item content'
   - 'create terms in case'
@@ -60,8 +62,10 @@ permissions:
   - 'create terms in priority'
   - 'create terms in repository_type'
   - 'create terms in tags'
+  - 'delete any contact content'
   - 'delete any repository_item content'
   - 'delete terms in case'
+  - 'edit any contact content'
   - 'edit any incoming content'
   - 'edit any repository_item content'
   - 'edit field_notifications'
