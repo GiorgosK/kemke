@@ -957,7 +957,10 @@ final class IncomingController extends ControllerBase {
       $values['field_dt_lastname'] = trim((string) $apostoleas['Eponimia']);
     }
     if (isset($apostoleas['Email']) && is_scalar($apostoleas['Email'])) {
-      $values['field_dt_email'] = trim((string) $apostoleas['Email']);
+      $candidateEmail = trim((string) $apostoleas['Email']);
+      if ($candidateEmail !== '' && filter_var($candidateEmail, \FILTER_VALIDATE_EMAIL) !== FALSE) {
+        $values['field_dt_email'] = $candidateEmail;
+      }
     }
 
     try {
