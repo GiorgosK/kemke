@@ -279,6 +279,82 @@ final class SideApiCommands extends DrushCommands {
   }
 
   /**
+   * Diagnose protocol lookup payload shape and key fields.
+   *
+   * @command side:diag-protocol
+   * @aliases sddp
+   * @option protocol Protocol text (required).
+   * @option year Protocol year (required).
+   * @option document-type Document type id (default 1).
+   * @option include-raw Include full raw payload in output (0/1).
+   */
+  public function diagnoseProtocol(array $options = ['protocol' => '', 'year' => 0, 'document-type' => 1, 'include-raw' => 0]): void {
+    $protocolText = trim((string) ($options['protocol'] ?? ''));
+    $protocolYear = (int) ($options['year'] ?? 0);
+    $documentTypeId = (int) ($options['document-type'] ?? 1);
+    $includeRaw = filter_var((string) ($options['include-raw'] ?? '0'), FILTER_VALIDATE_BOOL);
+
+    if ($protocolText === '' || $protocolYear <= 0) {
+      throw new \InvalidArgumentException('--protocol and --year are required.');
+    }
+
+    $started = microtime(TRUE);
+    $jar = $this->client->loginToDocutracks();
+    $doc = $this->client->fetchDocumentByProtocol($protocolText, $protocolYear, $documentTypeId, $jar);
+
+    $result = [
+      'input' => [
+        'protocol' => $protocolText,
+        'year' => $protocolYear,
+        'document_type' => $documentTypeId,
+      ],
+      'elapsed_seconds' => round(microtime(TRUE) - $started, 3),
+      'summary' => $this->buildDocumentDiagnostics($doc),
+    ];
+
+    if ($includeRaw) {
+      $result['raw'] = $doc;
+    }
+
+    $this->output()->writeln(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
+  /**
+   * Diagnose document payload shape and key fields by document id.
+   *
+   * @command side:diag-doc
+   * @aliases sddd
+   * @option id Docutracks document id (required).
+   * @option include-raw Include full raw payload in output (0/1).
+   */
+  public function diagnoseDocument(array $options = ['id' => 0, 'include-raw' => 0]): void {
+    $docId = (int) ($options['id'] ?? 0);
+    $includeRaw = filter_var((string) ($options['include-raw'] ?? '0'), FILTER_VALIDATE_BOOL);
+
+    if ($docId <= 0) {
+      throw new \InvalidArgumentException('--id is required and must be > 0.');
+    }
+
+    $started = microtime(TRUE);
+    $jar = $this->client->loginToDocutracks();
+    $doc = $this->client->fetchDocument((string) $docId, $jar);
+
+    $result = [
+      'input' => [
+        'id' => $docId,
+      ],
+      'elapsed_seconds' => round(microtime(TRUE) - $started, 3),
+      'summary' => $this->buildDocumentDiagnostics($doc),
+    ];
+
+    if ($includeRaw) {
+      $result['raw'] = $doc;
+    }
+
+    $this->output()->writeln(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+  }
+
+  /**
    * Flatten users from /organization/getGroupWithUsers payload.
    *
    * @return array<int, array{Id:int, DisplayName:string}>
@@ -344,6 +420,61 @@ final class SideApiCommands extends DrushCommands {
     }
 
     return $users;
+  }
+
+  /**
+   * Build structured diagnostics for Docutracks document payloads.
+   */
+  private function buildDocumentDiagnostics(array $doc): array {
+    $document = [];
+    if (isset($doc['Document']) && is_array($doc['Document'])) {
+      $document = $doc['Document'];
+    }
+
+    $apostoleas = [];
+    if (isset($document['Apostoleas']) && is_array($document['Apostoleas'])) {
+      $apostoleas = $document['Apostoleas'];
+    }
+
+    $copies = [];
+    if (isset($document['DocumentCopies']) && is_array($document['DocumentCopies'])) {
+      $copies = $document['DocumentCopies'];
+    }
+
+    $copyStats = [];
+    foreach ($copies as $index => $copy) {
+      if (!is_array($copy)) {
+        continue;
+      }
+      $extraCount = 0;
+      if (isset($copy['ExtraAssignees']) && is_array($copy['ExtraAssignees'])) {
+        $extraCount = count($copy['ExtraAssignees']);
+      }
+      $copyStats[] = [
+        'index' => $index,
+        'has_main_assignee' => isset($copy['MainAssignee']) && is_array($copy['MainAssignee']),
+        'extra_assignees_count' => $extraCount,
+      ];
+    }
+
+    return [
+      'top_level_keys' => array_keys($doc),
+      'document_present' => isset($doc['Document']) && is_array($doc['Document']),
+      'document_keys' => array_keys($document),
+      'document_id' => $document['Id'] ?? NULL,
+      'document_reference' => $doc['DocumentReference'] ?? NULL,
+      'apostoleas_present' => isset($document['Apostoleas']) && is_array($document['Apostoleas']),
+      'apostoleas_keys' => array_keys($apostoleas),
+      'apostoleas_id' => $apostoleas['Id'] ?? NULL,
+      'apostoleas_name' => $apostoleas['Name'] ?? NULL,
+      'apostoleas_eponimia' => $apostoleas['Eponimia'] ?? NULL,
+      'apostoleas_email' => $apostoleas['Email'] ?? NULL,
+      'document_copies_present' => isset($document['DocumentCopies']) && is_array($document['DocumentCopies']),
+      'document_copies_count' => count($copies),
+      'document_copies_stats' => $copyStats,
+      'success_flag' => $doc['Success'] ?? NULL,
+      'error_message' => $doc['ErrorMessage'] ?? ($doc['Message'] ?? NULL),
+    ];
   }
 
 }
