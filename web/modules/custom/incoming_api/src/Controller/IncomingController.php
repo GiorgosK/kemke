@@ -868,6 +868,8 @@ final class IncomingController extends ControllerBase {
       return;
     }
 
+    $this->syncDocutracksApostoleasContact($assignment);
+
     $resolvedDocId = trim((string) ($assignment['docutracks_id'] ?? ''));
     if ($resolvedDocId !== '' && $resolvedDocId !== '0' && $node->hasField('field_dt_docid')) {
       $node->set('field_dt_docid', $resolvedDocId);
@@ -885,6 +887,118 @@ final class IncomingController extends ControllerBase {
       }
       $node->set('field_operators', $items);
     }
+  }
+
+  /**
+   * Syncs Document.Apostoleas to contact content type when missing.
+   */
+  private function syncDocutracksApostoleasContact(array $assignment): void {
+    $nodeType = $this->entityTypeManager->getStorage('node_type')->load('contact');
+    if ($nodeType === NULL) {
+      return;
+    }
+
+    $contactFields = $this->entityFieldManager->getFieldDefinitions('node', 'contact');
+    if (!isset($contactFields['field_dt_contact_id'])) {
+      return;
+    }
+
+    $apostoleas = $this->extractApostoleasFromAssignment($assignment);
+    if ($apostoleas === NULL) {
+      return;
+    }
+
+    $rawId = $apostoleas['Id'] ?? NULL;
+    if (!is_scalar($rawId) || !is_numeric((string) $rawId)) {
+      return;
+    }
+    $contactId = (int) $rawId;
+    if ($contactId <= 0) {
+      return;
+    }
+
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $existingIds = $nodeStorage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'contact')
+      ->condition('field_dt_contact_id', $contactId)
+      ->range(0, 1)
+      ->execute();
+
+    if (!empty($existingIds)) {
+      return;
+    }
+
+    $title = '';
+    if (isset($apostoleas['Name']) && is_scalar($apostoleas['Name'])) {
+      $title = trim((string) $apostoleas['Name']);
+    }
+    if ($title === '' && isset($apostoleas['Eponimia']) && is_scalar($apostoleas['Eponimia'])) {
+      $title = trim((string) $apostoleas['Eponimia']);
+    }
+    if ($title === '') {
+      $title = 'Contact ' . $contactId;
+    }
+
+    $values = [
+      'type' => 'contact',
+      'title' => $title,
+      'status' => NodeInterface::PUBLISHED,
+      'uid' => (int) $this->currentUser->id(),
+      'field_dt_contact_id' => $contactId,
+      'field_dt_env' => 'production',
+      'field_dt_doc_apostoleas_json' => json_encode($apostoleas, \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES) ?: '{}',
+    ];
+
+    if (isset($apostoleas['Eponimia']) && is_scalar($apostoleas['Eponimia'])) {
+      $values['field_dt_lastname'] = trim((string) $apostoleas['Eponimia']);
+    }
+    if (isset($apostoleas['Email']) && is_scalar($apostoleas['Email'])) {
+      $values['field_dt_email'] = trim((string) $apostoleas['Email']);
+    }
+
+    try {
+      /** @var \Drupal\node\NodeInterface $contact */
+      $contact = $nodeStorage->create($values);
+      $contact->save();
+    }
+    catch (\Throwable $exception) {
+      $this->getLogger('incoming_api')->warning('Unable to create contact from Docutracks Apostoleas Id @id: @message', [
+        '@id' => (string) $contactId,
+        '@message' => $exception->getMessage(),
+      ]);
+    }
+  }
+
+  /**
+   * Extracts Document.Apostoleas from assignment payload.
+   */
+  private function extractApostoleasFromAssignment(array $assignment): ?array {
+    $document = $assignment['Document'] ?? NULL;
+    if (is_object($document)) {
+      $document = (array) $document;
+    }
+    if (!is_array($document)) {
+      return NULL;
+    }
+
+    $apostoleas = $document['Apostoleas'] ?? $document['apostoleas'] ?? NULL;
+    if (is_object($apostoleas)) {
+      $apostoleas = (array) $apostoleas;
+    }
+    if (!is_array($apostoleas)) {
+      return NULL;
+    }
+
+    if (array_is_list($apostoleas) && isset($apostoleas[0])) {
+      $first = $apostoleas[0];
+      if (is_object($first)) {
+        $first = (array) $first;
+      }
+      return is_array($first) ? $first : NULL;
+    }
+
+    return $apostoleas;
   }
 
   /**

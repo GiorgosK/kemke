@@ -1428,6 +1428,7 @@ final class DocutracksClient {
    *
    * @return array{
    *   docutracks_id:string,
+   *   Document:array<string, mixed>,
    *   main_assignee_docutracks_ids:array<int, string>,
    *   extra_assignee_docutracks_ids:array<int, string>,
    *   basic_operator_uid:?int,
@@ -1447,6 +1448,7 @@ final class DocutracksClient {
    *
    * @return array{
    *   docutracks_id:string,
+   *   Document:array<string, mixed>,
    *   main_assignee_docutracks_ids:array<int, string>,
    *   extra_assignee_docutracks_ids:array<int, string>,
    *   basic_operator_uid:?int,
@@ -1507,8 +1509,14 @@ final class DocutracksClient {
     }
     $operators_uids = array_values($operators_uids);
 
+    $document_payload = [];
+    if (isset($doc['Document']) && is_array($doc['Document'])) {
+      $document_payload = $doc['Document'];
+    }
+
     return [
       'docutracks_id' => $docutracksId,
+      'Document' => $document_payload,
       'main_assignee_docutracks_ids' => $main_ids,
       'extra_assignee_docutracks_ids' => $extra_ids,
       'basic_operator_uid' => $basic_operator_uid,
