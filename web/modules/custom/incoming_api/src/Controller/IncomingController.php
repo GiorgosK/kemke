@@ -1092,24 +1092,28 @@ final class IncomingController extends ControllerBase {
   }
 
   /**
-   * Extract protocol year from entry date.
+   * Extract protocol year from protocol date, with entry date fallback.
    */
   private function extractEntryYear(NodeInterface $node): int {
-    if (!$node->hasField('field_entry_date') || $node->get('field_entry_date')->isEmpty()) {
-      return 0;
+    foreach (['field_protocol_date', 'field_entry_date'] as $field_name) {
+      if (!$node->hasField($field_name) || $node->get($field_name)->isEmpty()) {
+        continue;
+      }
+
+      $value = (string) ($node->get($field_name)->value ?? '');
+      if ($value === '') {
+        continue;
+      }
+
+      try {
+        return (int) (new \DateTime($value))->format('Y');
+      }
+      catch (\Throwable) {
+        continue;
+      }
     }
 
-    $value = (string) ($node->get('field_entry_date')->value ?? '');
-    if ($value === '') {
-      return 0;
-    }
-
-    try {
-      return (int) (new \DateTime($value))->format('Y');
-    }
-    catch (\Throwable) {
-      return 0;
-    }
+    return 0;
   }
 
   /**
