@@ -872,6 +872,7 @@ final class IncomingController extends ControllerBase {
     $node->set('field_sender', (string) ($apostoleas['Eponimia'] ?? ''));
 
     $this->syncDocutracksApostoleasContact($assignment);
+    $this->syncIncomingLegalEntityFromContact($node, $assignment);
 
     $resolvedDocId = trim((string) ($assignment['docutracks_id'] ?? ''));
     if ($resolvedDocId !== '' && $resolvedDocId !== '0' && $node->hasField('field_dt_docid')) {
@@ -1005,6 +1006,56 @@ final class IncomingController extends ControllerBase {
     }
 
     return $apostoleas;
+  }
+
+  /**
+   * Sync incoming legal entity from contact matched by Apostoleas.Id.
+   */
+  private function syncIncomingLegalEntityFromContact(NodeInterface $node, array $assignment): void {
+    if (
+      !$node->hasField('field_legal_entity') ||
+      !$node->get('field_legal_entity')->isEmpty()
+    ) {
+      return;
+    }
+
+    $apostoleas = $this->extractApostoleasFromAssignment($assignment);
+    if ($apostoleas === NULL) {
+      return;
+    }
+
+    $rawId = $apostoleas['Id'] ?? NULL;
+    if (!is_scalar($rawId) || !is_numeric((string) $rawId)) {
+      return;
+    }
+    $contactId = (int) $rawId;
+    if ($contactId <= 0) {
+      return;
+    }
+
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $contactIds = $nodeStorage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'contact')
+      ->condition('field_dt_contact_id', $contactId)
+      ->range(0, 1)
+      ->execute();
+
+    if (empty($contactIds)) {
+      return;
+    }
+
+    /** @var \Drupal\node\NodeInterface|null $contact */
+    $contact = $nodeStorage->load((int) reset($contactIds));
+    if (!$contact instanceof NodeInterface || !$contact->hasField('field_legal_entity')) {
+      return;
+    }
+
+    if ($contact->get('field_legal_entity')->isEmpty()) {
+      return;
+    }
+
+    $node->set('field_legal_entity', $contact->get('field_legal_entity')->getValue());
   }
 
   /**
