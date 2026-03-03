@@ -41,7 +41,7 @@ final class DocutracksClient {
   // Default timeout used by most client requests; callers can override.
   private const DEFAULT_TIMEOUT = 60.0;
   // Login can be slower on live/test SIDE environments.
-  private const LOGIN_TIMEOUT = 90.0;
+  private const LOGIN_TIMEOUT = 60.0;
   private const STUB_PDF_BASE64 = 'JVBERi0xLjQKMSAwIG9iajw8Pj4KZW5kb2JqCnRyYWlsZXI8PD4+CiUlRU9GCg==';
 
   public function __construct(private readonly ClientInterface $httpClient) {
