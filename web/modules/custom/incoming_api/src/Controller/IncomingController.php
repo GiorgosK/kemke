@@ -868,6 +868,9 @@ final class IncomingController extends ControllerBase {
       return;
     }
 
+    $apostoleas = $this->extractApostoleasFromAssignment($assignment);
+    $node->set('field_sender', (string) ($apostoleas['Eponimia'] ?? ''));
+
     $this->syncDocutracksApostoleasContact($assignment);
 
     $resolvedDocId = trim((string) ($assignment['docutracks_id'] ?? ''));
