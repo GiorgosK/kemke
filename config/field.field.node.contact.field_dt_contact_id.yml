@@ -9,7 +9,7 @@ id: node.contact.field_dt_contact_id
 field_name: field_dt_contact_id
 entity_type: node
 bundle: contact
-label: 'Docutracks ID (integer)'
+label: 'Docutracks ID'
 description: ''
 required: false
 translatable: false

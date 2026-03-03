@@ -9,7 +9,7 @@ id: node.contact.field_dt_lastname
 field_name: field_dt_lastname
 entity_type: node
 bundle: contact
-label: 'Επωνυμία (text)'
+label: Επωνυμία
 description: ''
 required: false
 translatable: false

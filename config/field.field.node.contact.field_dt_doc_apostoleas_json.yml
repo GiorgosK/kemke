@@ -9,7 +9,7 @@ id: node.contact.field_dt_doc_apostoleas_json
 field_name: field_dt_doc_apostoleas_json
 entity_type: node
 bundle: contact
-label: 'Αποστολέας JSON (long text no html)'
+label: JSON
 description: ''
 required: false
 translatable: false
