@@ -38,25 +38,9 @@ function incoming_tweaks_update_9001(): void {
  * Increase max length for sender and contact lastname fields.
  */
 function incoming_tweaks_update_9002(): void {
-  $fields = [
-    'field_sender',
-    'field_dt_lastname',
-  ];
-
-  foreach ($fields as $field_name) {
-    $storage = FieldStorageConfig::loadByName('node', $field_name);
-    if (!$storage || $storage->getType() !== 'string') {
-      continue;
-    }
-
-    $current_length = (int) ($storage->getSetting('max_length') ?? 255);
-    if ($current_length >= 1024) {
-      continue;
-    }
-
-    $storage->setSetting('max_length', 1024);
-    $storage->save();
-  }
+  // Keep this update as a no-op for environments where it is still pending.
+  // Changing string field storage through entity save can fail when data exists.
+  // Follow-up updates 9008 and 9010 perform the migration safely.
 }
 
 /**
