@@ -227,7 +227,7 @@ final class ChunkUploadManager {
    * Removes temporary files and metadata for the upload.
    */
   private function cleanupUpload(string $uploadId, array $metadata): void {
-    if (!empty($metadata['path'])) {
+    if (!empty($metadata['path']) && @file_exists((string) $metadata['path'])) {
       try {
         $this->fileSystem->unlink($metadata['path']);
       }
