@@ -11,6 +11,7 @@ dependencies:
     - taxonomy.vocabulary.incoming_type
     - taxonomy.vocabulary.legal_entity
     - taxonomy.vocabulary.priority
+    - taxonomy.vocabulary.repository_type
     - taxonomy.vocabulary.tags
     - workflows.workflow.incoming_processing
   module:
@@ -57,6 +58,7 @@ permissions:
   - 'create terms in incoming_type'
   - 'create terms in legal_entity'
   - 'create terms in priority'
+  - 'create terms in repository_type'
   - 'create terms in tags'
   - 'delete any repository_item content'
   - 'delete terms in case'
@@ -71,6 +73,7 @@ permissions:
   - 'edit terms in incoming_type'
   - 'edit terms in legal_entity'
   - 'edit terms in priority'
+  - 'edit terms in repository_type'
   - 'edit terms in tags'
   - 'setup reports'
   - 'use incoming_processing transition completed'

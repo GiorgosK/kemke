@@ -8,6 +8,7 @@ dependencies:
     - node.type.repository_item
     - taxonomy.vocabulary.case
     - taxonomy.vocabulary.legal_entity
+    - taxonomy.vocabulary.repository_type
     - workflows.workflow.incoming_processing
   module:
     - activities_mods
@@ -38,6 +39,7 @@ permissions:
   - 'create repository_item content'
   - 'create terms in case'
   - 'create terms in legal_entity'
+  - 'create terms in repository_type'
   - 'delete any repository_item content'
   - 'edit any incoming content'
   - 'edit any repository_item content'
@@ -45,6 +47,7 @@ permissions:
   - 'edit own field_notifications'
   - 'edit terms in case'
   - 'edit terms in legal_entity'
+  - 'edit terms in repository_type'
   - 'use incoming_processing transition completed'
   - 'use incoming_processing transition for_signature'
   - 'use incoming_processing transition fullness_approved'
