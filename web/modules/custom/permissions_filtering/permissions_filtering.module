@@ -86,21 +86,6 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     'Views UI',
     'Views Bulk Edit',
     'Workflows',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
   ];
   
   // remove
@@ -189,30 +174,57 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     // Node (plus dynamic content type permissions).
     'node' => [
       'access content',
-      'bypass node access',
+      'access content overview',
       'administer content types',
       'administer nodes',
-      'access content overview',
-      'view own unpublished content',
-      // 'view all revisions',
-      'revert all revisions',
-      'delete all revisions',
+      'bypass node access',
+
+      //'create contact content',
       'create incoming content',
       'create page content',
+      //'create repository_item content',
+
+      'delete all revisions',
+
+      //'delete any contact content',
       'delete any incoming content',
       'delete any page content',
+      //'delete any repository_item content',
+
+      'delete contact revisions',
       'delete incoming revisions',
+      'delete page revisions',
+      'delete repository_item revisions',
+
+      'delete own contact content',
       'delete own incoming content',
       'delete own page content',
-      'delete page revisions',
+      'delete own repository_item content',
+
+      //'edit any contact content',
       'edit any incoming content',
       'edit any page content',
+      //'edit any repository_item content',
+
+      'edit own contact content',
       'edit own incoming content',
       'edit own page content',
+      'edit own repository_item content',
+
+      'revert all revisions',
+
+      'revert contact revisions',
       'revert incoming revisions',
       'revert page revisions',
+      'revert repository_item revisions',
+
+      'view all revisions',
+      'view own unpublished content',
+
+      'view contact revisions',
       'view incoming revisions',
       'view page revisions',
+      'view repository_item revisions',
     ],
     'node_view_permissions' => [
       // 'view any incoming content',
