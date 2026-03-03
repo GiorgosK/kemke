@@ -155,9 +155,9 @@ third_party_settings:
         - langcode
         - field_ref_id
         - field_protocol_number_doc
-        - field_sender
         - field_protocol_number_sender
         - field_protocol_date
+        - field_sender
         - field_subject
         - field_notes
       label: Γενικά
@@ -641,7 +641,7 @@ content:
     third_party_settings: {  }
   field_notes:
     type: string_textarea
-    weight: 9
+    weight: 8
     region: content
     settings:
       rows: 5
@@ -735,7 +735,7 @@ content:
     third_party_settings: {  }
   field_protocol_date:
     type: datetime_optional_time_widget
-    weight: 6
+    weight: 5
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -749,7 +749,7 @@ content:
     third_party_settings: {  }
   field_protocol_number_sender:
     type: string_textfield
-    weight: 5
+    weight: 4
     region: content
     settings:
       size: 60
@@ -827,7 +827,7 @@ content:
       conditional_fields: {  }
   field_sender:
     type: string_textfield
-    weight: 4
+    weight: 6
     region: content
     settings:
       size: 60
@@ -853,7 +853,7 @@ content:
     third_party_settings: {  }
   field_subject:
     type: text_textarea
-    weight: 8
+    weight: 7
     region: content
     settings:
       rows: 3

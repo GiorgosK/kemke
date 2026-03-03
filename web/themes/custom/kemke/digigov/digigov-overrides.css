@@ -217,6 +217,9 @@ pre {
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference {
   width: 250px;
 }
+[class*="node-incoming-"] .details-wrapper .field--type-string.field--name-field-sender {
+  width: 100%;
+}
 
 #user-form .details-wrapper .form-type-number,
 #user-form .details-wrapper .field--type-string,

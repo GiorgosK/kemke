@@ -34,3 +34,98 @@ function incoming_tweaks_update_9001(): void {
   }
 }
 
+/**
+ * Increase max length for sender and contact lastname fields.
+ */
+function incoming_tweaks_update_9002(): void {
+  $fields = [
+    'field_sender',
+    'field_dt_lastname',
+  ];
+
+  foreach ($fields as $field_name) {
+    $storage = FieldStorageConfig::loadByName('node', $field_name);
+    if (!$storage || $storage->getType() !== 'string') {
+      continue;
+    }
+
+    $current_length = (int) ($storage->getSetting('max_length') ?? 255);
+    if ($current_length >= 1024) {
+      continue;
+    }
+
+    $storage->setSetting('max_length', 1024);
+    $storage->save();
+  }
+}
+
+/**
+ * Increase sender/contact lastname storage columns and config to 1024 chars.
+ */
+function incoming_tweaks_update_9008(): void {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+
+  $column_map = [
+    'node__field_sender' => 'field_sender_value',
+    'node_revision__field_sender' => 'field_sender_value',
+    'node__field_dt_lastname' => 'field_dt_lastname_value',
+    'node_revision__field_dt_lastname' => 'field_dt_lastname_value',
+  ];
+
+  $varchar_1024 = [
+    'description' => 'Updated by incoming_tweaks_update_9008().',
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => FALSE,
+  ];
+
+  foreach ($column_map as $table => $column) {
+    if (!$schema->tableExists($table) || !$schema->fieldExists($table, $column)) {
+      continue;
+    }
+    $schema->changeField($table, $column, $column, $varchar_1024);
+  }
+
+}
+
+/**
+ * Align active field storage config max_length with updated SQL columns.
+ */
+function incoming_tweaks_update_9009(): void {
+  $config_factory = \Drupal::configFactory();
+
+  foreach (['field_sender', 'field_dt_lastname'] as $field_name) {
+    $config_name = "field.storage.node.$field_name";
+    $editable = $config_factory->getEditable($config_name);
+    if ($editable->isNew()) {
+      continue;
+    }
+    $editable->set('settings.max_length', 1024)->save(TRUE);
+  }
+}
+
+/**
+ * Force active max_length values for sender/contact lastname to 1024.
+ */
+function incoming_tweaks_update_9010(): void {
+  $config_storage = \Drupal::service('config.storage');
+  $config_factory = \Drupal::configFactory();
+
+  foreach (['field_sender', 'field_dt_lastname'] as $field_name) {
+    $config_name = "field.storage.node.$field_name";
+    $data = $config_storage->read($config_name);
+    if (!is_array($data)) {
+      continue;
+    }
+
+    $current = (int) ($data['settings']['max_length'] ?? 255);
+    if ($current >= 1024) {
+      continue;
+    }
+
+    $data['settings']['max_length'] = 1024;
+    $config_storage->write($config_name, $data);
+    $config_factory->reset($config_name);
+  }
+}
