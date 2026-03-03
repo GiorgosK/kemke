@@ -195,7 +195,9 @@ $incomingPayload_simple = [
   'subject' => 'θέμα εισερχομένου ' . $random,  
   'assignees' => 'Ονομα Επώνυμο' . $random . '& Ονομα Επώνυμο' . $random,
   'protocol_date' => '2026-01-09T08:18:30',
-  'protocol_number_doc' => 'Π.Η-41',
+  //'protocol_number_doc' => 'Π.Η-41', // test
+  'protocol_number_doc' => '72 ΕΙ 2026', // live
+  //'protocol_number_doc' => '76 ΕΞ 2026',
   'protocol_number_sender' => 'SENDER PROTOCOL-' . $random,
   'documents' => [
     [
