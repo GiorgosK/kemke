@@ -512,7 +512,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'access content'
+          perm: 'view any contact content'
       cache:
         type: tag
         options: {  }

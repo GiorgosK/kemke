@@ -8,6 +8,7 @@ dependencies:
     - field_permissions
     - file
     - filter
+    - node_view_permissions
     - search
     - shortcut
 _core:
@@ -21,6 +22,7 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'use text format basic_html'
+  - 'view any contact content'
   - 'view field_notifications'
   - 'view field_serial_number'
   - 'view field_temporary_disabled'
