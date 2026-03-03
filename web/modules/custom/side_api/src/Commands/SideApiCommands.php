@@ -206,14 +206,75 @@ final class SideApiCommands extends DrushCommands {
    *
    * @command side:connect
    * @aliases connect,sdc
+   * @option probe-user Username used for post-login probe request (default intraway).
+   * @option probe-timeout Timeout in seconds for probe request (default 30).
    */
-  public function connect(): void {
+  public function connect(array $options = ['probe-user' => 'intraway', 'probe-timeout' => 30]): void {
+    $probeUser = trim((string) ($options['probe-user'] ?? 'intraway'));
+    $probeTimeout = (float) ($options['probe-timeout'] ?? 30);
+    if ($probeTimeout <= 0) {
+      $probeTimeout = 30.0;
+    }
+
+    $started = microtime(TRUE);
+
     try {
-      $this->client->loginToDocutracks();
-      $this->logger()->success('SIDE connection successful.');
+      $loginStarted = microtime(TRUE);
+      $jar = $this->client->loginToDocutracks();
+      $loginElapsed = microtime(TRUE) - $loginStarted;
+
+      $probeStarted = microtime(TRUE);
+      $probe = $this->client->fetchUserByUsername($probeUser, $jar, timeout: $probeTimeout);
+      $probeElapsed = microtime(TRUE) - $probeStarted;
+      $totalElapsed = microtime(TRUE) - $started;
+
+      $this->logger()->success(sprintf(
+        'SIDE connection successful. login=%.3fs probe=%.3fs total=%.3fs',
+        $loginElapsed,
+        $probeElapsed,
+        $totalElapsed
+      ));
+
+      $this->output()->writeln(json_encode([
+        'login_elapsed_seconds' => round($loginElapsed, 3),
+        'probe_elapsed_seconds' => round($probeElapsed, 3),
+        'total_elapsed_seconds' => round($totalElapsed, 3),
+        'probe_user' => $probeUser,
+        'probe_timeout' => $probeTimeout,
+        'probe_response_keys' => array_slice(array_keys($probe), 0, 20),
+      ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     catch (\Throwable $e) {
-      throw new \RuntimeException(sprintf('SIDE connection failed: %s', $e->getMessage()), 0, $e);
+      $totalElapsed = microtime(TRUE) - $started;
+      $previous = $e->getPrevious();
+
+      $details = [
+        'total_elapsed_seconds' => round($totalElapsed, 3),
+        'exception_class' => get_class($e),
+        'exception_code' => $e->getCode(),
+        'exception_message' => $e->getMessage(),
+      ];
+
+      if ($previous) {
+        $details['previous_exception_class'] = get_class($previous);
+        $details['previous_exception_code'] = $previous->getCode();
+        $details['previous_exception_message'] = $previous->getMessage();
+      }
+
+      $this->logger()->error('SIDE connection failed diagnostics: @details', [
+        '@details' => json_encode($details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+      ]);
+
+      throw new \RuntimeException(
+        sprintf(
+          'SIDE connection failed after %.3fs. %s (%s)',
+          $totalElapsed,
+          $e->getMessage(),
+          get_class($e)
+        ),
+        0,
+        $e
+      );
     }
   }
 
