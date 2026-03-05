@@ -56,3 +56,5 @@ tests/playwright/test.spec.js-snapshots
 tests/playwright/test-results
 tests/playwright/playwright-report
 tests/playwright/.state
+
+/private
