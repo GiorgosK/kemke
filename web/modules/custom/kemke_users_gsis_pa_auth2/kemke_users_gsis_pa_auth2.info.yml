@@ -1,0 +1,9 @@
+name: 'KEMKE Users GSIS PA Auth2'
+type: module
+description: 'Glue logic for GSIS PA OAuth2 login, user matching and local OAuth2 mock server.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:user
+  - drupal:oauth2_client
+  - drupal:kemke_gsis_pa_oauth2_client

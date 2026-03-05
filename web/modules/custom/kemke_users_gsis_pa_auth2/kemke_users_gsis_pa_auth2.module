@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Site\Settings;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_form.
+ */
+function kemke_users_gsis_pa_auth2_form_user_login_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $settings = Settings::get('kemke_users_gsis_pa_auth2', []);
+  if (is_array($settings) && array_key_exists('enabled', $settings) && !$settings['enabled']) {
+    return;
+  }
+
+  $query = [];
+  $destination = (string) \Drupal::request()->query->get('destination', '');
+  if ($destination !== '' && $destination[0] === '/') {
+    $query['destination'] = $destination;
+  }
+
+  $form['actions']['gsis_pa_login'] = [
+    '#type' => 'link',
+    '#title' => t('Εισαγωγή με κωδικούς δημόσιας διοίκησης'),
+    '#url' => Url::fromRoute('kemke_users_gsis_pa_auth2.login', [], ['query' => $query]),
+    '#attributes' => ['class' => ['button', 'button--secondary']],
+    '#weight' => 25,
+  ];
+}

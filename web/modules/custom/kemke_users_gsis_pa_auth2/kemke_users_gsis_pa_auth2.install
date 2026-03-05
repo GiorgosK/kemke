@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Ensure GSIS user info field exists.
+ */
+function _kemke_users_gsis_pa_auth2_ensure_gsis_info_field(): void {
+  if (!FieldStorageConfig::loadByName('user', 'field_gsis_info')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_gsis_info',
+      'entity_type' => 'user',
+      'type' => 'string_long',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_gsis_info')) {
+    FieldConfig::create([
+      'field_name' => 'field_gsis_info',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'GSIS info',
+      'required' => FALSE,
+      'translatable' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function kemke_users_gsis_pa_auth2_install(): void {
+  _kemke_users_gsis_pa_auth2_ensure_gsis_info_field();
+}
+
+/**
+ * Add field_gsis_info on existing installations.
+ */
+function kemke_users_gsis_pa_auth2_update_11001(): void {
+  _kemke_users_gsis_pa_auth2_ensure_gsis_info_field();
+}
+

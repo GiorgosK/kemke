@@ -1,0 +1,50 @@
+kemke_users_gsis_pa_auth2.login:
+  path: '/auth/gsis-pa/login'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\KemkeGsisPaAuthController::login'
+    _title: 'Εισαγωγή με κωδικούς δημόσιας διοίκησης'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+kemke_users_gsis_pa_auth2.finalize:
+  path: '/auth/gsis-pa/finalize'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\KemkeGsisPaAuthController::finalize'
+    _title: 'Finalize GSIS PA login'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+kemke_users_gsis_pa_auth2.mock_authorize:
+  path: '/mock/gsis-pa/oauth/authorize'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\KemkeGsisPaAuthController::mockAuthorize'
+    _title: 'Mock OAuth authorize'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+kemke_users_gsis_pa_auth2.mock_token:
+  path: '/mock/gsis-pa/oauth/token'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\KemkeGsisPaAuthController::mockToken'
+    _title: 'Mock OAuth token'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+kemke_users_gsis_pa_auth2.mock_userinfo:
+  path: '/mock/gsis-pa/userinfo'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\KemkeGsisPaAuthController::mockUserinfo'
+    _title: 'Mock OAuth userinfo'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'

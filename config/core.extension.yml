@@ -66,6 +66,7 @@ module:
   kemke_gsis_pa_oauth2_client: 0
   kemke_manuals: 0
   kemke_reports: 0
+  kemke_users_gsis_pa_auth2: 0
   language: 0
   link: 0
   locale: 0

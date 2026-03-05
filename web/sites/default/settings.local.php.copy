@@ -16,4 +16,31 @@ $databases['default']['default'] = array (
 
 $settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
 
+// Toggle local mock OAuth2 server for GSIS PA testing.
+// Set TRUE/FALSE directly here. If NULL, env var GSIS_PA_USE_MOCK=1 is used.
+$use_gsis_pa_mock = TRUE;
+//$use_gsis_pa_mock = FALSE;
+//$use_gsis_pa_mock = NULL;
+if ($use_gsis_pa_mock === NULL) {
+  $use_gsis_pa_mock = getenv('GSIS_PA_USE_MOCK') === '1';
+}
+$base_url = 'https://kemke.ddev.site';
 
+$settings['kemke_gsis_pa_oauth2_client'] = [
+  'authorization_uri' => $use_gsis_pa_mock
+    ? $base_url . '/mock/gsis-pa/oauth/authorize'
+    : 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
+  'token_uri' => $use_gsis_pa_mock
+    ? $base_url . '/mock/gsis-pa/oauth/token'
+    : 'https://test.gsis.gr/oauth2servergov/oauth/token',
+  'resource_owner_uri' => $use_gsis_pa_mock
+    ? $base_url . '/mock/gsis-pa/userinfo?format=xml'
+    : 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  'scopes' => ['read'],
+];
+
+$settings['kemke_users_gsis_pa_auth2'] = [
+  'enabled' => TRUE,
+  'allow_user_creation' => FALSE,
+  'default_roles' => ['operator'],
+];
