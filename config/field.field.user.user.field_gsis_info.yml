@@ -1,0 +1,20 @@
+uuid: 39d3c983-b203-436f-8348-5918e983d4a0
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_gsis_info
+  module:
+    - user
+id: user.user.field_gsis_info
+field_name: field_gsis_info
+entity_type: user
+bundle: user
+label: 'Πληροφορίες χρήστη'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

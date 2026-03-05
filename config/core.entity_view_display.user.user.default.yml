@@ -10,6 +10,7 @@ dependencies:
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
+    - field.field.user.user.field_gsis_info
     - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
@@ -33,6 +34,7 @@ third_party_settings:
         - group_absenses
         - group_log
         - group_docutracks
+        - group_ggps
       label: tabs
       parent_name: ''
       region: content
@@ -73,7 +75,7 @@ third_party_settings:
       label: docutracks
       parent_name: group_tabs
       region: content
-      weight: 12
+      weight: 10
       format_type: tab
       format_settings:
         classes: ''
@@ -88,7 +90,7 @@ third_party_settings:
       label: 'Αλλαγές καστάστασης'
       parent_name: group_tabs
       region: content
-      weight: 11
+      weight: 9
       format_type: tab
       format_settings:
         classes: ''
@@ -103,7 +105,22 @@ third_party_settings:
       label: Άδειες
       parent_name: group_tabs
       region: content
-      weight: 9
+      weight: 8
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+    group_ggps:
+      children:
+        - field_gsis_info
+      label: ΓΓΠΣ
+      parent_name: group_tabs
+      region: content
+      weight: 11
       format_type: tab
       format_settings:
         classes: ''
@@ -175,6 +192,13 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 2
+    region: content
+  field_gsis_info:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
     region: content
   field_last_name:
     type: string

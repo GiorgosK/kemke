@@ -1,0 +1,19 @@
+uuid: 148f8d31-db06-4d3d-b690-30cfdbe8f2db
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_gsis_info
+field_name: field_gsis_info
+entity_type: user
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

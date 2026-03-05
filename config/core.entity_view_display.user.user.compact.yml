@@ -11,6 +11,7 @@ dependencies:
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
     - field.field.user.user.field_first_name
+    - field.field.user.user.field_gsis_info
     - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
@@ -53,6 +54,7 @@ hidden:
   field_docutracks_id: true
   field_docutracks_json: true
   field_docutracks_username: true
+  field_gsis_info: true
   field_last_access_change: true
   field_last_password_reset: true
   field_legal_entity: true
