@@ -76,6 +76,7 @@ module:
   node: 0
   node_view_permissions: 0
   notify_widget: 0
+  oauth2_client: 0
   operators_reference_view: 0
   opinion_ref_id_tweaks: 0
   options: 0

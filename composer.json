@@ -43,6 +43,7 @@
         "drupal/nocurrent_pass": "^2.0",
         "drupal/node_view_permissions": "^2.0",
         "drupal/notify_widget": "^1.0",
+        "drupal/oauth2_client": "^4.1",
         "drupal/paragraphs": "^1.19",
         "drupal/password_policy": "^4.0",
         "drupal/pdf_serialization": "^2.2",
@@ -81,7 +82,10 @@
             "php-tuf/composer-integration": true,
             "phpstan/extension-installer": true
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "audit": {
+            "block-insecure": true
+        }
     },
     "extra": {
         "drupal-scaffold": {
