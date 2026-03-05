@@ -1,0 +1,12 @@
+uuid: 355fc24e-1ff2-4d7b-aa9a-0be19aa81788
+langcode: el
+status: true
+dependencies:
+  module:
+    - kemke_gsis_pa_oauth2_client
+id: kemke_gsis_pa
+label: 'KEMKE GSIS PA OAuth2'
+description: ''
+oauth2_client_plugin_id: kemke_gsis_pa
+credential_provider: oauth2_client
+credential_storage_key: 355fc24e-1ff2-4d7b-aa9a-0be19aa81788

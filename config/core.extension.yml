@@ -63,6 +63,7 @@ module:
   inline_entity_form: 0
   jquery_ui: 0
   kemke_breadcrumbs: 0
+  kemke_gsis_pa_oauth2_client: 0
   kemke_manuals: 0
   kemke_reports: 0
   language: 0
