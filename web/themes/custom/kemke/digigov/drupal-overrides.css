@@ -240,7 +240,7 @@ body.user-notifications table.govgr-table-simple > tbody > tr > td:nth-child(4),
 .region-content .user-pass,
 .region-content .user-login-form {
   display: block;
-  width: 400px;
+  width: 500px;
   margin: 0 auto;
 }
 
