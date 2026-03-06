@@ -12,6 +12,10 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     return;
   }
 
+  if (isset($form['filters'])) {
+    unset($form['filters']);
+  }
+
   // Users with this permission see full sets, but still respect hidden columns/rows.
   $skip_filtered_sets = $current_user->hasPermission('see all permission sets');
 
