@@ -86,6 +86,9 @@ Use your pilot values there.
 ## GSIS call logging
 
 - All OAuth-related calls are logged to a dedicated file (not watchdog): `private://gsis-pa/oauth-calls.log`
+- Each entry is stored as pretty-printed JSON for easier inspection
+- Every entry includes at least: `call_id`, `timestamp`, `user_ip`, current Drupal user info, and event context
+- GSIS identity details are logged under `context.gsis_user` when available
 - Admin report route: `/admin/reports/gsis-pa-oauth-calls`
 - Download full log route: `/admin/reports/gsis-pa-oauth-calls/download`
 - Old records are auto-pruned (default retention: 30 days)

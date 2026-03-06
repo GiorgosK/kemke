@@ -1,7 +1,7 @@
 services:
   kemke_gsis_pa_oauth2_client.call_logger:
     class: Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger
-    arguments: ['@file_system', '@logger.channel.oauth2_client', '@state']
+    arguments: ['@file_system', '@logger.channel.oauth2_client', '@state', '@request_stack', '@current_user']
 
   kemke_gsis_pa_oauth2_client.logging_http_client:
     class: Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaLoggingHttpClient

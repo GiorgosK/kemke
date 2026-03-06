@@ -84,6 +84,7 @@ final class GsisPaAuthCodeClient extends Oauth2ClientPluginBase implements Oauth
     catch (AuthCodeRedirect $redirect) {
       $target = $redirect->getResponse()->headers->get('Location');
       $this->callLogger->log('authorize_redirect', [
+        'client_id' => $this->getClientId(),
         'authorization_uri' => $this->getAuthorizationUri(),
         'redirect_uri' => $this->getRedirectUri(),
         'target' => is_string($target) ? $target : '',
@@ -92,6 +93,7 @@ final class GsisPaAuthCodeClient extends Oauth2ClientPluginBase implements Oauth
     }
     catch (\Throwable $throwable) {
       $this->callLogger->log('oauth_get_access_token_error', [
+        'client_id' => $this->getClientId(),
         'authorization_uri' => $this->getAuthorizationUri(),
         'token_uri' => $this->getTokenUri(),
         'error' => $throwable->getMessage(),
