@@ -86,3 +86,39 @@ ddev drush icext --view=incoming_amke --scenarios=7
 
 ddev drush icext --scenarios=15
 ```
+
+## gsis_pa_auth
+
+Get key
+```
+$ drush cget oauth2_client.oauth2_client.kemke_gsis_pa --format=yaml
+
+uuid: 355fc24e-1ff2-4d7b-aa9a-0be19aa81788
+langcode: el
+status: true
+dependencies:
+  module:
+    - kemke_gsis_pa_oauth2_client
+id: kemke_gsis_pa
+label: 'KEMKE GSIS PA OAuth2'
+description: ''
+oauth2_client_plugin_id: kemke_gsis_pa
+credential_provider: oauth2_client
+credential_storage_key: 355fc24e-1ff2-4d7b-aa9a-0be19aa81788
+```
+
+Set credentials
+```
+$ drush php:eval '$key = "355fc24e-1ff2-4d7b-aa9a-0be19aa81788"; \Drupal::state()->set($key, ["client_id" => "THVRZH42954", "client_secret" => "Kemke2025!!"]); echo "ok\n";'
+ok
+```
+
+
+```
+$ drush php:eval '$client = \Drupal::service("oauth2_client.service")->getClient("kemke_gsis_pa"); var_export(["client_id" => $client->getClientId(), "client_secret_len" => strlen($client->getClientSecret())]);'
+
+array (
+  'client_id' => 'THVRZH42954',
+  'client_secret_len' => 11,
+)-
+```
