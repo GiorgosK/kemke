@@ -8,6 +8,7 @@ libraries:
   - core/normalize
   - kemke/digigov
   - kemke/account-menu-icons
+  - kemke/admin-toolbar
 libraries-extend:
   user/drupal.user:
     - kemke/user

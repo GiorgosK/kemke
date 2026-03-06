@@ -117,6 +117,13 @@ account-menu-icons:
       css/components/account-menu-icons.css:
         weight: -10
 
+admin-toolbar:
+  version: VERSION
+  css:
+    component:
+      css/admin/admin-toolbar.css:
+        weight: 10
+
 drupal.tablesort:
   version: VERSION
   css:
