@@ -16,26 +16,41 @@ $databases['default']['default'] = array (
 
 $settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
 
-// Toggle local mock OAuth2 server for GSIS PA testing.
-// Set TRUE/FALSE directly here. If NULL, env var GSIS_PA_USE_MOCK=1 is used.
-$use_gsis_pa_mock = TRUE;
-//$use_gsis_pa_mock = FALSE;
-//$use_gsis_pa_mock = NULL;
-if ($use_gsis_pa_mock === NULL) {
-  $use_gsis_pa_mock = getenv('GSIS_PA_USE_MOCK') === '1';
+// GSIS PA environment selector: mock | test | live.
+// If NULL, env var GSIS_PA_ENVIRONMENT is used.
+$gsis_pa_environment = 'mock';
+//$gsis_pa_environment = 'test';
+//$gsis_pa_environment = 'live';
+//$gsis_pa_environment = NULL;
+if ($gsis_pa_environment === NULL) {
+  $gsis_pa_environment = strtolower(trim((string) getenv('GSIS_PA_ENVIRONMENT')));
 }
+$gsis_pa_environment = in_array($gsis_pa_environment, ['mock', 'test', 'live'], TRUE) ? $gsis_pa_environment : 'test';
 $base_url = 'https://kemke.ddev.site';
+$gsis_pa_live_authorization_uri = getenv('GSIS_PA_LIVE_AUTHORIZATION_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/authorize';
+$gsis_pa_live_token_uri = getenv('GSIS_PA_LIVE_TOKEN_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/token';
+$gsis_pa_live_resource_uri = getenv('GSIS_PA_LIVE_RESOURCE_URI') ?: 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml';
 
 $settings['kemke_gsis_pa_oauth2_client'] = [
-  'authorization_uri' => $use_gsis_pa_mock
-    ? $base_url . '/mock/gsis-pa/oauth/authorize'
-    : 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
-  'token_uri' => $use_gsis_pa_mock
-    ? $base_url . '/mock/gsis-pa/oauth/token'
-    : 'https://test.gsis.gr/oauth2servergov/oauth/token',
-  'resource_owner_uri' => $use_gsis_pa_mock
-    ? $base_url . '/mock/gsis-pa/userinfo?format=xml'
-    : 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  'environment' => $gsis_pa_environment,
+  'authorization_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/authorize',
+    'live' => $gsis_pa_live_authorization_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
+  },
+  'token_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/token',
+    'live' => $gsis_pa_live_token_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/token',
+  },
+  'resource_owner_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/userinfo?format=xml',
+    'live' => $gsis_pa_live_resource_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  },
+  'call_log_path' => 'private://gsis-pa/oauth-calls.log',
+  'call_log_retention_days' => 30,
+  'call_log_prune_interval_seconds' => 86400,
   'scopes' => ['read'],
 ];
 

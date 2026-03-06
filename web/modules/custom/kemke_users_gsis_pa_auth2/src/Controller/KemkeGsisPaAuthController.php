@@ -12,6 +12,7 @@ use Drupal\Core\Site\Settings;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
+use Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger;
 use Drupal\oauth2_client\Service\Oauth2ClientServiceInterface;
 use Drupal\user\Entity\User;
 use GuzzleHttp\ClientInterface;
@@ -35,6 +36,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     private readonly MessengerInterface $messengerService,
     private readonly AccountProxyInterface $currentAccount,
     private readonly StateInterface $state,
+    private readonly GsisPaCallLogger $callLogger,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -45,6 +47,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       $container->get('messenger'),
       $container->get('current_user'),
       $container->get('state'),
+      $container->get('kemke_gsis_pa_oauth2_client.call_logger'),
     );
   }
 
@@ -69,6 +72,13 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     // Force a fresh auth flow for deterministic testing.
     $this->oauth2ClientService->clearAccessToken(self::OAUTH_PLUGIN_ID);
+    $client = $this->oauth2ClientService->getClient(self::OAUTH_PLUGIN_ID);
+    $this->callLogger->log('login_start', [
+      'authorization_uri' => $client->getAuthorizationUri(),
+      'redirect_uri' => $client->getRedirectUri(),
+      'scopes' => $client->getScopes(),
+      'is_authenticated' => $this->currentAccount->isAuthenticated(),
+    ]);
 
     // For authorization_code this triggers a redirect by throwing
     // AuthCodeRedirect, handled by Drupal's kernel.
@@ -90,6 +100,9 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     $client = $this->oauth2ClientService->getClient(self::OAUTH_PLUGIN_ID);
     $userinfo_url = $client->getResourceUri();
+    $this->callLogger->log('userinfo_request_start', [
+      'url' => $userinfo_url,
+    ]);
 
     try {
       $response = $this->httpClient->request('GET', $userinfo_url, [
@@ -99,8 +112,16 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         ],
         'timeout' => 20,
       ]);
+      $this->callLogger->log('userinfo_request_success', [
+        'url' => $userinfo_url,
+        'status_code' => $response->getStatusCode(),
+      ]);
     }
     catch (\Throwable $throwable) {
+      $this->callLogger->log('userinfo_request_error', [
+        'url' => $userinfo_url,
+        'error' => $throwable->getMessage(),
+      ]);
       $this->getLogger('kemke_users_gsis_pa_auth2')->error('Userinfo request failed: @message', ['@message' => $throwable->getMessage()]);
       $this->messengerService->addError($this->t('GSIS login failed while fetching user info.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
@@ -127,6 +148,9 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     ];
 
     if ($details['username'] === NULL) {
+      $this->callLogger->log('finalize_missing_username', [
+        'afm' => $details['afm'],
+      ]);
       $this->messengerService->addError($this->t('GSIS login failed: USERNAME missing from response.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -148,14 +172,28 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     if ($user === NULL) {
       if ($match_result['reason'] === 'afm_mismatch') {
+        $this->callLogger->log('match_failed_afm_mismatch', [
+          'username' => $details['username'],
+          'afm' => $details['afm'],
+        ]);
         $this->messengerService->addError($this->t('Login denied: the AFM returned by GSIS does not match our records.'));
         return new RedirectResponse(Url::fromRoute('user.login')->toString());
       }
+      $this->callLogger->log('match_failed_no_local_user', [
+        'username' => $details['username'],
+        'first_name' => $details['first_name'],
+        'last_name' => $details['last_name'],
+        'afm' => $details['afm'],
+      ]);
       $this->messengerService->addError($this->t('No matching local user account was found for GSIS username @username.', ['@username' => $details['username']]));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
 
     if (!$user->isActive()) {
+      $this->callLogger->log('match_blocked_user', [
+        'uid' => $user->id(),
+        'username' => $user->getAccountName(),
+      ]);
       $this->messengerService->addError($this->t('Your local account is blocked. Contact an administrator.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -164,6 +202,11 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     $user->save();
 
     user_login_finalize($user);
+    $this->callLogger->log('login_success', [
+      'uid' => $user->id(),
+      'username' => $user->getAccountName(),
+      'matched_by' => $match_result['reason'],
+    ]);
 
     $request = $this->requestStack->getCurrentRequest();
     $destination = '/incoming';

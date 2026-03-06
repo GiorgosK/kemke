@@ -2,6 +2,11 @@
 
 Glue module for GSIS Public Administration login with `oauth2_client`.
 
+Supports three endpoint environments through `settings.local.php`:
+- `mock`
+- `test`
+- `live`
+
 ## What this module does
 
 - Adds login entrypoint: `/auth/gsis-pa/login`
@@ -39,10 +44,27 @@ Mock authorize supports query params:
 ## settings.local.php example
 
 ```php
+$gsis_pa_environment = 'mock'; // mock | test | live
+$base_url = 'https://kemke.ddev.site';
+
 $settings['kemke_gsis_pa_oauth2_client'] = [
-  'authorization_uri' => 'https://kemke.ddev.site/mock/gsis-pa/oauth/authorize',
-  'token_uri' => 'https://kemke.ddev.site/mock/gsis-pa/oauth/token',
-  'resource_owner_uri' => 'https://kemke.ddev.site/mock/gsis-pa/userinfo?format=xml',
+  'environment' => $gsis_pa_environment,
+  'authorization_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/authorize',
+    'live' => 'https://www1.gsis.gr/oauth2servergov/oauth/authorize',
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
+  },
+  'token_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/token',
+    'live' => 'https://www1.gsis.gr/oauth2servergov/oauth/token',
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/token',
+  },
+  'resource_owner_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/userinfo?format=xml',
+    'live' => 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml',
+    default => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  },
+  'call_log_path' => 'private://gsis-pa/oauth-calls.log',
   'scopes' => ['read'],
 ];
 
@@ -60,6 +82,20 @@ Set OAuth2 client id/secret in:
 `/admin/config/system/oauth2-client/kemke_gsis_pa/edit`
 
 Use your pilot values there.
+
+## GSIS call logging
+
+- All OAuth-related calls are logged to a dedicated file (not watchdog): `private://gsis-pa/oauth-calls.log`
+- Admin report route: `/admin/reports/gsis-pa-oauth-calls`
+- Download full log route: `/admin/reports/gsis-pa-oauth-calls/download`
+- Old records are auto-pruned (default retention: 30 days)
+- Log path can be changed with:
+
+```php
+$settings['kemke_gsis_pa_oauth2_client']['call_log_path'] = 'private://gsis-pa/oauth-calls.log';
+$settings['kemke_gsis_pa_oauth2_client']['call_log_retention_days'] = 30;
+$settings['kemke_gsis_pa_oauth2_client']['call_log_prune_interval_seconds'] = 86400;
+```
 
 ## Debugging With HTTPie
 

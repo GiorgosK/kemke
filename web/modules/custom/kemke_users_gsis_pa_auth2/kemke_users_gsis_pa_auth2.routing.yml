@@ -48,3 +48,19 @@ kemke_users_gsis_pa_auth2.mock_userinfo:
     _access: 'TRUE'
   options:
     no_cache: 'TRUE'
+
+kemke_users_gsis_pa_auth2.call_log_report:
+  path: '/admin/reports/gsis-pa-oauth-calls'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\GsisPaCallLogController::report'
+    _title: 'GSIS OAuth calls'
+  requirements:
+    _permission: 'administer site configuration'
+
+kemke_users_gsis_pa_auth2.call_log_download:
+  path: '/admin/reports/gsis-pa-oauth-calls/download'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\GsisPaCallLogController::download'
+    _title: 'Download GSIS OAuth calls'
+  requirements:
+    _permission: 'administer site configuration'

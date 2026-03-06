@@ -10,11 +10,15 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\Core\Url;
+use Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger;
+use Drupal\oauth2_client\Exception\AuthCodeRedirect;
 use Drupal\oauth2_client\Attribute\Oauth2Client;
 use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginAccessInterface;
 use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginBase;
 use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginInterface;
 use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginRedirectInterface;
+use GuzzleHttp\ClientInterface;
+use Drupal\oauth2_client\OwnerCredentials;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -35,10 +39,14 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 final class GsisPaAuthCodeClient extends Oauth2ClientPluginBase implements Oauth2ClientPluginAccessInterface, Oauth2ClientPluginRedirectInterface {
 
   private PrivateTempStore $tempStore;
+  private ClientInterface $loggingHttpClient;
+  private GsisPaCallLogger $callLogger;
 
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): Oauth2ClientPluginInterface {
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
     $instance->tempStore = $container->get('tempstore.private')->get('kemke_users_gsis_pa_auth2');
+    $instance->loggingHttpClient = $container->get('kemke_gsis_pa_oauth2_client.logging_http_client');
+    $instance->callLogger = $container->get('kemke_gsis_pa_oauth2_client.call_logger');
     return $instance;
   }
 
@@ -61,6 +69,35 @@ final class GsisPaAuthCodeClient extends Oauth2ClientPluginBase implements Oauth
 
   public function clearAccessToken(): void {
     $this->tempStore->delete('oauth2_client_access_token-' . $this->getId());
+  }
+
+  public function getCollaborators(): array {
+    $collaborators = parent::getCollaborators();
+    $collaborators['httpClient'] = $this->loggingHttpClient;
+    return $collaborators;
+  }
+
+  public function getAccessToken(?OwnerCredentials $credentials = NULL): ?AccessTokenInterface {
+    try {
+      return parent::getAccessToken($credentials);
+    }
+    catch (AuthCodeRedirect $redirect) {
+      $target = $redirect->getResponse()->headers->get('Location');
+      $this->callLogger->log('authorize_redirect', [
+        'authorization_uri' => $this->getAuthorizationUri(),
+        'redirect_uri' => $this->getRedirectUri(),
+        'target' => is_string($target) ? $target : '',
+      ]);
+      throw $redirect;
+    }
+    catch (\Throwable $throwable) {
+      $this->callLogger->log('oauth_get_access_token_error', [
+        'authorization_uri' => $this->getAuthorizationUri(),
+        'token_uri' => $this->getTokenUri(),
+        'error' => $throwable->getMessage(),
+      ]);
+      throw $throwable;
+    }
   }
 
   public function getAuthorizationUri(): string {
