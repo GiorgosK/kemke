@@ -59,6 +59,16 @@
   ```
   ddev drush users_tweaks:password-set bardikoy_spyridoyla
   ```
+- set password to specific value 
+  ```
+  ddev drush user:password bardikoy_spyridoyla "TempPass1234@#$"
+  ```
+- set one password for all users, or only for included role(s)
+  ```
+  ddev drush users_tweaks:password-role-bulk "TempPass1234@#$"
+  ddev drush users_tweaks:password-role-bulk operator,kemke_admin "TempPass1234@#$"
+  ddev drush users_tweaks:password-role-bulk "TempPass1234@#$" --exclude=api
+  ```
 - turn on or off the password reset (force password change)
   ```
   ddev drush users_tweaks:password-expire-set bardikoy_spyridoyla on

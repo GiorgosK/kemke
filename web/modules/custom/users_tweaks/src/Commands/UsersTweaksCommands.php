@@ -421,6 +421,116 @@ final class UsersTweaksCommands extends DrushCommands {
     ));
   }
 
+  /**
+   * Set the same password for all users, or for included roles only.
+   *
+   * @param string $roles_or_password
+   *   Password when used alone, or comma-separated included role machine names.
+   * @param string|null $password
+   *   Password when included roles are provided.
+   *
+   * @command users_tweaks:password-role-bulk
+   * @aliases utprb
+   * @option exclude Comma-separated role machine names to exclude.
+   */
+  public function bulkSetPasswordByRole(string $roles_or_password, ?string $password = NULL, array $options = ['exclude' => '']): void {
+    $included_role_ids = [];
+    $excluded_role_ids = $this->parseRoleList((string) ($options['exclude'] ?? ''));
+
+    if ($password === NULL) {
+      $password = $roles_or_password;
+    }
+    else {
+      $included_role_ids = $this->parseRoleList($roles_or_password);
+      if ($included_role_ids === []) {
+        $this->logger()->error('Provide at least one included role machine name, or omit the roles argument entirely.');
+        return;
+      }
+      if ($excluded_role_ids !== []) {
+        $this->logger()->error('Use either included roles or --exclude roles, not both in the same command.');
+        return;
+      }
+    }
+
+    if ($password === '') {
+      $this->logger()->error('Password must not be empty.');
+      return;
+    }
+
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $role_storage = $entity_type_manager->getStorage('user_role');
+    $missing_roles = [];
+    foreach (array_unique(array_merge($included_role_ids, $excluded_role_ids)) as $role_id) {
+      if ($role_storage->load($role_id) === NULL) {
+        $missing_roles[] = $role_id;
+      }
+    }
+
+    if ($missing_roles !== []) {
+      $this->logger()->error(sprintf('Unknown role(s): %s', implode(', ', $missing_roles)));
+      return;
+    }
+
+    $user_storage = $entity_type_manager->getStorage('user');
+    $query = $user_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uid', 1, '<>');
+
+    if ($included_role_ids !== []) {
+      $query->condition('roles', $included_role_ids, 'IN');
+    }
+
+    $uids = $query->execute();
+
+    if ($uids === []) {
+      if ($included_role_ids !== []) {
+        $this->logger()->notice(sprintf('No users found for included role(s): %s', implode(', ', $included_role_ids)));
+      }
+      else {
+        $this->logger()->notice('No users found.');
+      }
+      return;
+    }
+
+    $updated = 0;
+    $skipped = 0;
+    $failed = 0;
+    foreach ($user_storage->loadMultiple($uids) as $account) {
+      if (!$account instanceof UserInterface || !method_exists($account, 'setPassword')) {
+        continue;
+      }
+
+      if ($excluded_role_ids !== [] && array_intersect($account->getRoles(), $excluded_role_ids)) {
+        $skipped++;
+        continue;
+      }
+
+      try {
+        $account->setPassword($password);
+        $account->save();
+        $updated++;
+      }
+      catch (\Throwable $throwable) {
+        $failed++;
+        $this->logger()->warning(sprintf(
+          'Failed user uid=%d account=%s: %s',
+          (int) $account->id(),
+          $account->getAccountName(),
+          $throwable->getMessage()
+        ));
+      }
+    }
+
+    $this->logger()->success(sprintf(
+      'Password updated for %d users. Included roles: %s. Excluded roles: %s. Skipped: %d. Failed: %d.',
+      $updated,
+      $included_role_ids === [] ? '[all users]' : implode(', ', $included_role_ids),
+      $excluded_role_ids === [] ? '[none]' : implode(', ', $excluded_role_ids),
+      $skipped,
+      $failed
+    ));
+  }
+
   private function resolveUser(string $value): ?UserInterface {
     $value = trim($value);
     if ($value === '') {
@@ -447,6 +557,13 @@ final class UsersTweaksCommands extends DrushCommands {
       return 0;
     }
     return NULL;
+  }
+
+  /**
+   * @return string[]
+   */
+  private function parseRoleList(string $roles): array {
+    return array_values(array_unique(array_filter(array_map('trim', explode(',', $roles)))));
   }
 
   private function hasPasswordExpirationField(): bool {
