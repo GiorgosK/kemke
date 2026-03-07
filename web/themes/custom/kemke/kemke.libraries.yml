@@ -124,6 +124,13 @@ admin-toolbar:
       css/admin/admin-toolbar.css:
         weight: 10
 
+legal-layout:
+  version: VERSION
+  css:
+    component:
+      css/components/legal-layout.css:
+        weight: -5
+
 drupal.tablesort:
   version: VERSION
   css:

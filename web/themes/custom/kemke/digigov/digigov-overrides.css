@@ -372,3 +372,19 @@ td a:focus,
 td a:hover {
   text-decoration: none;
 }
+
+@media (min-width: 768px) {
+  .govgr-footer {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+.govgr-footer {
+  background-color: transparent;
+}
+.govgr-footer__meta-item {
+  margin-bottom: 0;
+}
+.govgr-footer__licence-description {
+    margin-top: 1rem;
+}

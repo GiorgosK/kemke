@@ -9,6 +9,7 @@ libraries:
   - kemke/digigov
   - kemke/account-menu-icons
   - kemke/admin-toolbar
+  - kemke/legal-layout
 libraries-extend:
   user/drupal.user:
     - kemke/user

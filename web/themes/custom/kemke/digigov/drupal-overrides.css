@@ -248,3 +248,7 @@ body.user-notifications table.govgr-table-simple > tbody > tr > td:nth-child(4),
   max-width: 250px;
   display: none;
 }
+
+.user-login-form.govgr-form {
+  margin-top: 60px;
+}

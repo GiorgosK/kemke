@@ -44,6 +44,15 @@
 #}
 <div class="layout-container">
   <div class="sticky-section">
+    <div class="kemke-legal-banner">
+      <div class="govgr-width-container">
+        <div class="kemke-legal-banner__inner">
+          <img class="kemke-legal-banner__image kemke-legal-banner__image--minfin" src="{{ base_path ~ active_theme_path() }}/images/legal/minfin-logo-gr.png" alt="AML logo" />
+          <img class="kemke-legal-banner__image kemke-legal-banner__image--greece" src="{{ base_path ~ active_theme_path() }}/images/legal/greece-2-0-gr.jpg" alt="Greece 2.0" />
+          <img class="kemke-legal-banner__image kemke-legal-banner__image--eu" src="{{ base_path ~ active_theme_path() }}/images/legal/eu-funded-gr.jpg" alt="Με τη χρηματοδότηση της Ευρωπαϊκής Ένωσης" />
+        </div>
+      </div>
+    </div>
     <header class="govgr-header" role="banner">
       <div class="govgr-header__container">
         <div class="govgr-header__content">
@@ -67,7 +76,7 @@
       {{ page.help }}
     </div>
   </div>  
-  <div class="govgr-layout-wrapper govgr-layout-wrapper__full-height">
+  <div class="govgr-layout-wrapper{{ not is_front ? ' govgr-layout-wrapper__full-height' : '' }}">
     <div class="govgr-width-container">
 
       <div class="govgr-main-wrapper" role="main">
@@ -97,34 +106,28 @@
   </div>  
 
 
-  <footer class="govgr-footer" role="contentinfo">
-    <div class="govgr-width-container">
-      <div class="govgr-footer__meta">
-        <div class="govgr-footer__meta-item govgr-footer__meta-item--grow">
-          <div class="govgr-footer__content">
-            {% if page.footer %}
-              <div class="govgr-pb-7">
-                {{ page.footer }}
+  {% if is_front %}
+    <footer class="govgr-footer kemke-front-footer" role="contentinfo">
+      <div class="govgr-width-container">
+        <div class="govgr-footer__meta">
+          <div class="govgr-footer__meta-item govgr-footer__meta-item--grow">
+            <div class="kemke-front-footer__content">
+              <p class="govgr-footer__licence-description">
+                Η πλατφόρμα αναπτύχθηκε στο πλαίσιο της δράσης «Μεταρρύθμιση για μεγαλύτερη διαφάνεια σε θέματα εταιρικής διακυβέρνησης» του Εθνικού Σχεδίου Ανάκαμψης και Ανθεκτικότητας «Ελλάδα 2.0» με τη χρηματοδότηση της Ευρωπαϊκής Ένωσης – NextGenerationEU.
+              </p>
+              <div class="govgr-footer__content">
+                <p class="govgr-footer__licence-description kemke-front-footer__copyright">
+                  Copyright © {{ "now"|date("Y") }} {{ site_name }}
+                </p>
               </div>
-            {% endif %}
-            <h2 class="govgr-visually-hidden">Σύνδεσμοι</h2>
-            <ul class="govgr-footer__inline-list">
-              <li class="govgr-footer__inline-list-item">
-                <a class="govgr-footer__link" href="/">Αρχική</a>
-              </li>
-            </ul>
-            <p class="govgr-footer__licence-description">
-              Υλοποίηση από το 
-              <a href="#" target="_blank" rel="noreferrer noopener" class="govgr-link">A<span class="govgr-visually-hidden">(ανοίγει σε καινούρια καρτέλα)</span></a> για το
-              <a href="https://mindigital.gr/" target="_blank" rel="noreferrer noopener" class="govgr-link"> Υπουργείο Ψηφιακής Διακυβέρνησης <span class="govgr-visually-hidden">(ανοίγει σε καινούρια καρτέλα)</span></a>
-            </p>
+            </div>
+          </div>
+          <div class="govgr-footer__meta-item">
+            <img class="kemke-front-footer__logo" src="{{ base_path ~ active_theme_path() }}/images/legal/ggpscd-logo.jpg" alt="GGPSCD logo" />
           </div>
         </div>
-        <div class="govgr-footer__meta-item">
-          <img class="govgr-footer__government-logo" src="/themes/custom/kemke/digigov/img/government-logo2.svg" alt="government logo" />
-        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  {% endif %}
 
 </div>{# /.layout-container #}
