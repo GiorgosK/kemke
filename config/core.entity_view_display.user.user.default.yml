@@ -9,6 +9,7 @@ dependencies:
     - field.field.user.user.field_docutracks_id
     - field.field.user.user.field_docutracks_json
     - field.field.user.user.field_docutracks_username
+    - field.field.user.user.field_dt_config
     - field.field.user.user.field_first_name
     - field.field.user.user.field_gsis_info
     - field.field.user.user.field_last_access_change
@@ -240,6 +241,7 @@ content:
     weight: 4
     region: content
 hidden:
+  field_dt_config: true
   field_last_access_change: true
   field_last_password_reset: true
   field_password_expiration: true

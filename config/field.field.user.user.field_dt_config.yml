@@ -1,0 +1,20 @@
+uuid: 17bd673c-385e-45fa-a194-0e806894e8cd
+langcode: el
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_dt_config
+  module:
+    - user
+id: user.user.field_dt_config
+field_name: field_dt_config
+entity_type: user
+bundle: user
+label: 'Docutracks config'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long
