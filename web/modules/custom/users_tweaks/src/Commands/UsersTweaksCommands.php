@@ -258,4 +258,234 @@ final class UsersTweaksCommands extends DrushCommands {
     $this->logger()->success(sprintf('Docutracks sync completed. Updated: %d. Skipped: %d. Failed: %d.', $updated, $skipped, $failed));
   }
 
+  /**
+   * Set field_password_expiration for one user.
+   *
+   * @param string $account_ref
+   *   User id or username.
+   * @param string $value
+   *   One of: on, off, 1, 0, yes, no, true, false.
+   *
+   * @command users_tweaks:password-expire-set
+   * @aliases utpes
+   */
+  public function setPasswordExpiration(string $account_ref, string $value): void {
+    if (!$this->hasPasswordExpirationField()) {
+      $this->logger()->error('Missing field on user entity: field_password_expiration');
+      return;
+    }
+
+    $account = $this->resolveUser($account_ref);
+    if (!$account instanceof UserInterface) {
+      $this->logger()->error(sprintf('Could not resolve user "%s".', $account_ref));
+      return;
+    }
+
+    $parsed_value = $this->parseOnOff($value);
+    if ($parsed_value === NULL) {
+      $this->logger()->error('Value must be one of: on, off, 1, 0, yes, no, true, false.');
+      return;
+    }
+
+    $account->set('field_password_expiration', $parsed_value);
+    $account->save();
+
+    $this->logger()->success(sprintf(
+      'Password expiration set to %d for user %s (%d).',
+      $parsed_value,
+      $account->getAccountName(),
+      (int) $account->id()
+    ));
+  }
+
+  /**
+   * Set field_password_expiration for all users except uid 1.
+   *
+   * @param string $value
+   *   One of: on, off, 1, 0, yes, no, true, false.
+   *
+   * @command users_tweaks:password-expire-bulk
+   * @aliases utpeb
+   */
+  public function bulkSetPasswordExpiration(string $value): void {
+    if (!$this->hasPasswordExpirationField()) {
+      $this->logger()->error('Missing field on user entity: field_password_expiration');
+      return;
+    }
+
+    $parsed_value = $this->parseOnOff($value);
+    if ($parsed_value === NULL) {
+      $this->logger()->error('Value must be one of: on, off, 1, 0, yes, no, true, false.');
+      return;
+    }
+
+    $updated = 0;
+    $failed = 0;
+    foreach ($this->loadNonRootUsers() as $account) {
+      try {
+        $account->set('field_password_expiration', $parsed_value);
+        $account->save();
+        $updated++;
+      }
+      catch (\Throwable $throwable) {
+        $failed++;
+        $this->logger()->warning(sprintf(
+          'Failed user uid=%d account=%s: %s',
+          (int) $account->id(),
+          $account->getAccountName(),
+          $throwable->getMessage()
+        ));
+      }
+    }
+
+    $this->logger()->success(sprintf(
+      'Password expiration set to %d for %d users (excluding uid 1). Failed: %d.',
+      $parsed_value,
+      $updated,
+      $failed
+    ));
+  }
+
+  /**
+   * Set a user's password to match the username.
+   *
+   * @param string $account_ref
+   *   User id or username.
+   *
+   * @command users_tweaks:password-set
+   * @aliases utps
+   */
+  public function setPasswordToUsername(string $account_ref): void {
+    $account = $this->resolveUser($account_ref);
+    if (!$account instanceof UserInterface) {
+      $this->logger()->error(sprintf('Could not resolve user "%s".', $account_ref));
+      return;
+    }
+
+    try {
+      $this->applyPasswordToUsername($account);
+    }
+    catch (\RuntimeException $exception) {
+      $this->logger()->error($exception->getMessage());
+      return;
+    }
+
+    $this->logger()->success(sprintf(
+      'Password set to username for user %s (%d).',
+      $account->getAccountName(),
+      (int) $account->id()
+    ));
+  }
+
+  /**
+   * Set all user passwords to match their usernames, excluding uid 1.
+   *
+   * @command users_tweaks:password-bulk
+   * @aliases utpb
+   */
+  public function bulkSetPasswordsToUsername(): void {
+    $updated = 0;
+    $skipped = 0;
+    $failed = 0;
+
+    foreach ($this->loadNonRootUsers() as $account) {
+      try {
+        $this->applyPasswordToUsername($account);
+        $updated++;
+      }
+      catch (\RuntimeException $exception) {
+        $skipped++;
+        $this->logger()->warning(sprintf(
+          'Skipping user uid=%d account=%s: %s',
+          (int) $account->id(),
+          $account->getAccountName(),
+          $exception->getMessage()
+        ));
+      }
+      catch (\Throwable $throwable) {
+        $failed++;
+        $this->logger()->warning(sprintf(
+          'Failed user uid=%d account=%s: %s',
+          (int) $account->id(),
+          $account->getAccountName(),
+          $throwable->getMessage()
+        ));
+      }
+    }
+
+    $this->logger()->success(sprintf(
+      'Passwords set to usernames for %d users (excluding uid 1). Skipped: %d. Failed: %d.',
+      $updated,
+      $skipped,
+      $failed
+    ));
+  }
+
+  private function resolveUser(string $value): ?UserInterface {
+    $value = trim($value);
+    if ($value === '') {
+      return NULL;
+    }
+
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
+    if (ctype_digit($value)) {
+      $account = $storage->load((int) $value);
+      return $account instanceof UserInterface ? $account : NULL;
+    }
+
+    $accounts = $storage->loadByProperties(['name' => $value]);
+    $account = reset($accounts);
+    return $account instanceof UserInterface ? $account : NULL;
+  }
+
+  private function parseOnOff(string $value): ?int {
+    $value = strtolower(trim($value));
+    if (in_array($value, ['1', 'on', 'yes', 'true'], TRUE)) {
+      return 1;
+    }
+    if (in_array($value, ['0', 'off', 'no', 'false'], TRUE)) {
+      return 0;
+    }
+    return NULL;
+  }
+
+  private function hasPasswordExpirationField(): bool {
+    $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('user', 'user');
+    return isset($field_definitions['field_password_expiration']);
+  }
+
+  private function applyPasswordToUsername(UserInterface $account): void {
+    $username = trim((string) $account->getAccountName());
+    if ($username === '') {
+      throw new \RuntimeException('User has empty username.');
+    }
+
+    if (!method_exists($account, 'setPassword')) {
+      throw new \RuntimeException(sprintf('User %d is not an editable user entity.', (int) $account->id()));
+    }
+
+    $account->setPassword($username);
+    $account->save();
+  }
+
+  /**
+   * @return \Drupal\user\UserInterface[]
+   */
+  private function loadNonRootUsers(): array {
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
+    $uids = $storage->getQuery()
+      ->condition('uid', 1, '<>')
+      ->accessCheck(FALSE)
+      ->execute();
+
+    $users = [];
+    foreach ($storage->loadMultiple($uids) as $account) {
+      if ($account instanceof UserInterface) {
+        $users[] = $account;
+      }
+    }
+
+    return $users;
+  }
+
 }

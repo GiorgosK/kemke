@@ -50,15 +50,20 @@
   ddev drush user-import:csv /var/www/html/artifacts/users.csv --delimiter=, --password='TempPass123'
 
   ```
-- reset all passwords ?   
+- reset all passwords ?
   ```
-  ddev exec php scripts/passwords.php pass:bulk 
-  ddev exec php scripts/passwords.php pass:set bardikoy_spyridoy
+  ddev drush users_tweaks:password-bulk
+  ```
+
+- set user password same as username
+  ```
+  ddev drush users_tweaks:password-set bardikoy_spyridoyla
   ```
 - turn on or off the password reset (force password change)
   ```
-  ddev exec php scripts/passwords.php expire:bulk off
-  ddev exec php scripts/passwords.php expire:bulk on  
+  ddev drush users_tweaks:password-expire-set bardikoy_spyridoyla on
+  ddev drush users_tweaks:password-expire-bulk off
+  ddev drush users_tweaks:password-expire-bulk on
   ```
 - add docutracks username for syncing
 - can use following commands for checking
