@@ -1914,6 +1914,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $payload = $client->prepareRegisterPayload($doc_payload, $main_file_path, $attachment_paths, 'plan');
+    incoming_tweaks_prepend_supervisor_signature($payload, $node);
     $resolved_type = $client->extractValueByPath($payload, 'Document.Type.Id');
     $resolved_kind = $client->extractValueByPath($payload, 'Document.Kind.Id');
     $resolved_created_for = $client->extractValueByPath($payload, 'Document.CreatedForGroup.Id');
@@ -2036,6 +2037,98 @@ function incoming_tweaks_use_default_document_creator(): bool {
 function incoming_tweaks_use_creator_to_sign(): bool {
   $settings = Settings::get('incoming_tweaks', []);
   return is_array($settings) && !empty($settings['document_CreatedBy_to_sign']);
+}
+
+/**
+ * Prepends a supervisor signature when field_dt_config provides one.
+ *
+ * This is best-effort only and never blocks document transfer.
+ *
+ * @param array<string, mixed> $payload
+ *   Docutracks payload to mutate.
+ */
+function incoming_tweaks_prepend_supervisor_signature(array &$payload, NodeInterface $node): void {
+  $supervisor_signature = incoming_tweaks_resolve_supervisor_signature($node);
+  if ($supervisor_signature === NULL) {
+    return;
+  }
+
+  $signatures = $payload['Document']['Signatures'] ?? [];
+  if (!is_array($signatures)) {
+    $signatures = [];
+  }
+
+  $sign_id = $supervisor_signature['sign_id'];
+  $signatures = array_values(array_filter($signatures, static function ($signature) use ($sign_id): bool {
+    if (!is_array($signature)) {
+      return FALSE;
+    }
+
+    $existing_id = $signature['ToSign']['Id'] ?? NULL;
+    return (string) $existing_id !== $sign_id;
+  }));
+
+  array_unshift($signatures, [
+    'ToSign' => ['Id' => $sign_id],
+    'Type' => ['Id' => 1],
+  ]);
+
+  $payload['Document']['Signatures'] = $signatures;
+}
+
+/**
+ * Resolve a supervisor-based signature from field_dt_config.
+ *
+ * @return array{sign_id:string, group_id:?string}|null
+ */
+function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?array {
+  if (!$node->hasField('field_supervisor') || $node->get('field_supervisor')->isEmpty()) {
+    return NULL;
+  }
+
+  $account = $node->get('field_supervisor')->entity;
+  if (!$account instanceof \Drupal\user\UserInterface) {
+    return NULL;
+  }
+
+  if (!$account->hasField('field_dt_config') || $account->get('field_dt_config')->isEmpty()) {
+    return NULL;
+  }
+
+  $decoded = json_decode((string) $account->get('field_dt_config')->value, TRUE);
+  if (!is_array($decoded)) {
+    return NULL;
+  }
+
+  $environment_key = incoming_tweaks_is_side_api_live() ? 'live' : 'test';
+  $department = $decoded['department'][$environment_key] ?? NULL;
+  if (!is_array($department)) {
+    return NULL;
+  }
+
+  $sign_id = $department['id'] ?? $department['groupid'] ?? NULL;
+  if (!is_scalar($sign_id) || trim((string) $sign_id) === '') {
+    return NULL;
+  }
+
+  $group_id = $department['groupid'] ?? NULL;
+
+  return [
+    'sign_id' => trim((string) $sign_id),
+    'group_id' => is_scalar($group_id) && trim((string) $group_id) !== '' ? trim((string) $group_id) : NULL,
+  ];
+}
+
+/**
+ * Read side_api live/test mode from settings.
+ */
+function incoming_tweaks_is_side_api_live(): bool {
+  $settings = Settings::get('side_api', []);
+  if (!is_array($settings) || !array_key_exists('live', $settings)) {
+    return TRUE;
+  }
+
+  return (bool) $settings['live'];
 }
 
 /**
