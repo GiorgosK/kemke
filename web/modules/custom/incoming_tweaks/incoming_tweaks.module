@@ -2028,7 +2028,11 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
  */
 function incoming_tweaks_use_default_document_creator(): bool {
   $settings = Settings::get('incoming_tweaks', []);
-  return is_array($settings) && !empty($settings['document_CreatedBy_default']);
+  if (!is_array($settings) || !array_key_exists('document_CreatedBy_default', $settings)) {
+    return TRUE;
+  }
+
+  return (bool) $settings['document_CreatedBy_default'];
 }
 
 /**
