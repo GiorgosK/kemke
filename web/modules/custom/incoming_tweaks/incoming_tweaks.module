@@ -5,6 +5,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\Render\Markup;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -1873,6 +1874,39 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
 
   $doc_payload = ['Document' => ['Title' => $title]];
 
+  $operator_docutracks = incoming_tweaks_resolve_plan_operator_docutracks($node);
+  if ($operator_docutracks !== NULL) {
+    $use_default_creator = incoming_tweaks_use_default_document_creator();
+
+    if (!$use_default_creator) {
+      $doc_payload['Document']['CreatedBy'] = ['Id' => $operator_docutracks['user_id']];
+      $doc_payload['Document']['CreatedByGroup'] = ['Id' => $operator_docutracks['user_group_id']];
+      $doc_payload['Document']['DocumentCopies'] = [
+        [
+          'CreatedByGroup' => ['Id' => $operator_docutracks['user_group_id']],
+          'OwnedByGroup' => ['Id' => $operator_docutracks['user_group_id']],
+        ],
+      ];
+      $doc_payload['Document']['CreatedForGroup'] = ['Id' => $operator_docutracks['user_group_id']];
+    }
+
+    if (incoming_tweaks_use_creator_to_sign() && !$use_default_creator) {
+      $doc_payload['Document']['Signatures'] = [
+        [
+          'ToSign' => ['Id' => $operator_docutracks['user_id']],
+          'Type' => ['Id' => 1],
+        ],
+      ];
+      $doc_payload['Document']['CoAuthorsWithSignature'] = [
+        [
+          'ToSign' => ['Id' => $operator_docutracks['user_id']],
+          'Type' => ['Id' => 3],
+          'Signator' => ['Id' => $operator_docutracks['user_id']],
+        ],
+      ];
+    }
+  }
+
   // The first request after a long idle period can be slow; give login more time.
   $timeout = 60.0;
 
@@ -1986,6 +2020,95 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
   finally {
     unset($processing[$nid]);
   }
+}
+
+/**
+ * Whether incoming plan sends should keep Docutracks default creator values.
+ */
+function incoming_tweaks_use_default_document_creator(): bool {
+  $settings = Settings::get('incoming_tweaks', []);
+  return is_array($settings) && !empty($settings['document_CreatedBy_default']);
+}
+
+/**
+ * Whether incoming plan sends should include creator-based signature fields.
+ */
+function incoming_tweaks_use_creator_to_sign(): bool {
+  $settings = Settings::get('incoming_tweaks', []);
+  return is_array($settings) && !empty($settings['document_CreatedBy_to_sign']);
+}
+
+/**
+ * Resolve Docutracks creator details from the assigned incoming operator.
+ *
+ * Falls back to NULL so Docutracks client defaults remain in effect.
+ *
+ * @return array{user_id:string, user_group_id:string}|null
+ */
+function incoming_tweaks_resolve_plan_operator_docutracks(NodeInterface $node): ?array {
+  if (!$node->hasField('field_basic_operator') || $node->get('field_basic_operator')->isEmpty()) {
+    return NULL;
+  }
+
+  $account = $node->get('field_basic_operator')->entity;
+  if (!$account instanceof \Drupal\user\UserInterface) {
+    return NULL;
+  }
+
+  if (!$account->hasField('field_docutracks_id') || $account->get('field_docutracks_id')->isEmpty()) {
+    \Drupal::logger('incoming_tweaks')->warning('Incoming @nid plan send: assigned operator @uid has no field_docutracks_id.', [
+      '@nid' => (int) $node->id(),
+      '@uid' => (int) $account->id(),
+    ]);
+    return NULL;
+  }
+
+  $user_id = trim((string) $account->get('field_docutracks_id')->value);
+  if ($user_id === '') {
+    \Drupal::logger('incoming_tweaks')->warning('Incoming @nid plan send: assigned operator @uid has empty field_docutracks_id.', [
+      '@nid' => (int) $node->id(),
+      '@uid' => (int) $account->id(),
+    ]);
+    return NULL;
+  }
+
+  $user_group_id = NULL;
+  if ($account->hasField('field_docutracks_json') && !$account->get('field_docutracks_json')->isEmpty()) {
+    $decoded = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
+    if (is_array($decoded)) {
+      $relations = $decoded['User']['Relations'] ?? NULL;
+      if (is_array($relations)) {
+        foreach ($relations as $relation) {
+          if (!is_array($relation)) {
+            continue;
+          }
+
+          if (array_key_exists('IsAssignable', $relation) && !$relation['IsAssignable']) {
+            continue;
+          }
+
+          $group_id = $relation['Group']['Id'] ?? NULL;
+          if (is_scalar($group_id) && trim((string) $group_id) !== '') {
+            $user_group_id = trim((string) $group_id);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if ($user_group_id === NULL || $user_group_id === '') {
+    \Drupal::logger('incoming_tweaks')->warning('Incoming @nid plan send: assigned operator @uid is missing Docutracks Relations.Group.Id, falling back to defaults.', [
+      '@nid' => (int) $node->id(),
+      '@uid' => (int) $account->id(),
+    ]);
+    return NULL;
+  }
+
+  return [
+    'user_id' => $user_id,
+    'user_group_id' => $user_group_id,
+  ];
 }
 
 /**
