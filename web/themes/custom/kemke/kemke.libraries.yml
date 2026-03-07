@@ -117,6 +117,18 @@ account-menu-icons:
       css/components/account-menu-icons.css:
         weight: -10
 
+password-toggle:
+  version: VERSION
+  css:
+    component:
+      css/components/password-toggle.css:
+        weight: -10
+  js:
+    js/password-toggle.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+
 admin-toolbar:
   version: VERSION
   css:

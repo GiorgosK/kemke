@@ -8,6 +8,7 @@ libraries:
   - core/normalize
   - kemke/digigov
   - kemke/account-menu-icons
+  - kemke/password-toggle
   - kemke/admin-toolbar
   - kemke/legal-layout
 libraries-extend:
