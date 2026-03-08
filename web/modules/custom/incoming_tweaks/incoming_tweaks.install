@@ -113,3 +113,49 @@ function incoming_tweaks_update_9010(): void {
     $config_factory->reset($config_name);
   }
 }
+
+/**
+ * Refresh installed field storage metadata for resized sender/lastname fields.
+ */
+function incoming_tweaks_update_9011(): void {
+  $repository = \Drupal::service('entity.last_installed_schema.repository');
+  $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
+
+  foreach (['field_sender', 'field_dt_lastname'] as $field_name) {
+    if (!isset($definitions[$field_name])) {
+      continue;
+    }
+
+    $repository->setLastInstalledFieldStorageDefinition($definitions[$field_name]);
+  }
+}
+
+/**
+ * Refresh stored SQL field schema snapshots for resized sender/lastname fields.
+ */
+function incoming_tweaks_update_9012(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $storage_reflection = new \ReflectionClass($storage);
+  $get_storage_schema = $storage_reflection->getMethod('getStorageSchema');
+  $get_storage_schema->setAccessible(TRUE);
+  $schema_handler = $get_storage_schema->invoke($storage);
+
+  $schema_reflection = new \ReflectionClass($schema_handler);
+  $get_schema_from_definition = $schema_reflection->getMethod('getSchemaFromStorageDefinition');
+  $get_schema_from_definition->setAccessible(TRUE);
+  $process_field_storage_schema = $schema_reflection->getMethod('processFieldStorageSchema');
+  $process_field_storage_schema->setAccessible(TRUE);
+
+  $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('node');
+  $installed_storage_schema = \Drupal::keyValue('entity.storage_schema.sql');
+
+  foreach (['field_sender', 'field_dt_lastname'] as $field_name) {
+    if (!isset($definitions[$field_name])) {
+      continue;
+    }
+
+    $schema = $get_schema_from_definition->invoke($schema_handler, $definitions[$field_name]);
+    $process_field_storage_schema->invokeArgs($schema_handler, [&$schema]);
+    $installed_storage_schema->set("node.field_schema_data.$field_name", $schema);
+  }
+}
