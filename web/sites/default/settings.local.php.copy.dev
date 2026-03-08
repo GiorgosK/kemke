@@ -1,0 +1,143 @@
+<?php
+
+$config['system.performance']['css']['preprocess'] = FALSE;
+$config['system.performance']['js']['preprocess'] = FALSE;
+
+#$settings['file_temp_path'] = '_tmp';
+
+$settings['file_private_path'] = '../private';
+
+$databases['default']['default'] = array (
+  'database' => 'kemke',
+  'username' => 'kemke',
+  'password' => '5gG@Te%Hf7u4mqoo',
+  'prefix' => '',
+  'host' => 'localhost',
+  'port' => '3306',
+  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+  'driver' => 'mysql',
+  'pdo' => [],
+);
+
+$settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
+
+$settings['side_api']['verify_ssl'] = FALSE;
+$settings['side_api']['dev_hosts'] = ['kemke.ddev.site'];
+#$settings['side_api']['dev_hosts'] = ['kemke.ddev.site','kemke.webx2.com'];
+$settings['side_api']['live_base_url'] = 'https://test-shde-int.gsis.gr';
+$settings['side_api']['live_admin_user'] = 'kemke';
+$settings['side_api']['live_admin_pass'] = '1223456';
+$settings['side_api']['live_app_user'] = 'kemke';
+$settings['side_api']['live_app_pass'] = '123456';
+
+$settings['side_api']['defaults'] = [
+  'created_by' => 14780192,
+  'created_by_group' => 6727922,
+  'owned_by_group' => 6727922,
+  'Apostoleas_Name' => 'KEMKE User',
+  'Apostoleas_NameEmail' => 'kemke@example.com',
+];
+
+$settings['side_api']['type_id'] = 2;
+// New Docutracks: Kind.Id = 50 (Εγγραφο KEMKE). Old Docutracks: Kind.Id = 38 (Δοκιμαστικό).
+$settings['side_api']['kind_id'] = 50;
+$settings['side_api']['plan'] = [
+  'type_id' => 3,
+  // New Docutracks: Kind.Id = 50 (Εγγραφο KEMKE). Old Docutracks: Kind.Id = 38 (Δοκιμαστικό).
+  'kind_id' => 50,
+];
+
+#$settings['incoming_tweaks']['get_plan_unsigned'] = TRUE;
+
+$settings['incoming_tweaks']['document_CreatedBy_to_sign'] = TRUE;
+
+
+// Side API simulation settings for local Docutracks testing.
+$settings['side_api']['simulation'] = FALSE;
+//$settings['side_api']['simulation'] = TRUE;
+
+// This settings take precedence if simulation is TRUE
+$settings['side_api']['registerDocument']['response'] = '{"Success":true,"DocumentReference":25338,"DocumentInfo":{"ProtocolDate":"01/01/0001","GeneratedFileId":"22884","DocumentCopy":"29614"}}';
+$settings['side_api']['fetchDocument']['response'] = '{"Document":{"Id":25338,"GeneratedFile":{"Id":22884},"SignaturesStatus":"1 από 1 υπογραφές"}}';
+//$settings['side_api']['fetchDocument']['response'] = '{"Document":{"Id":25338,"GeneratedFile":{"Id":22884},"SignaturesStatus":"0 από 1 υπογραφές"}}';
+//$settings['side_api']['fileGet']['base64'] = 'JVBERi0xLjQKMSAwIG9iajw8Pj4KZW5kb2JqCnRyYWlsZXI8PD4+CiUlRU9GCg==';
+$settings['side_api']['fileGet']['base64'] = 'JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoK MiAwIG9iago8PC9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagoz IDAgb2JqCjw8L1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUgODQy XQovQ29udGVudHMgNSAwIFIKL1Jlc291cmNlcyA8PC9Qcm9jU2V0IFsvUERGIC9UZXh0XQovRm9u dCA8PC9GMSA0IDAgUj4+Cj4+Cj4+CmVuZG9iago0IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5 cGUgL1R5cGUxCi9OYW1lIC9GMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL01hY1Jv bWFuRW5jb2RpbmcKPj4KZW5kb2JqCjUgMCBvYmoKPDwvTGVuZ3RoIDUzCj4+CnN0cmVhbQpCVAov RjEgMjAgVGYKMjIwIDQwMCBUZAooRHVtbXkgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCnhy ZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZgowMDAwMDAwMDA5IDAwMDAwIG4KMDAwMDAwMDA2MyAw MDAwMCBuCjAwMDAwMDAxMjQgMDAwMDAgbgowMDAwMDAwMjc3IDAwMDAwIG4KMDAwMDAwMDM5MiAw MDAwMCBuCnRyYWlsZXIKPDwvU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTUKJSVF T0YK';
+
+$settings['side_api']['fetchDocument']['generated_file_id'] = 0;
+$settings['side_api']['fetchDocument']['allow_missing_generated_file_id'] = TRUE;
+
+//$settings['docutracks']['get_plan_unsigned'] = TRUE;
+
+$settings['side_polling']['interval'] = 30; // 1 hour 3600 seconds
+
+
+// Skip Docutracks metadata validation for corrected-document fetch.
+$settings['incoming_related_field']['skip_corrected_docid'] = TRUE;
+//$settings['incoming_related_field']['log_docutracks_mapping'] = TRUE;
+
+#$settings['field_non_empty_lock']['disable_lock'] = TRUE;
+$settings['field_non_empty_lock']['disable_lock'] = FALSE;
+
+
+
+
+
+// GSIS PA environment selector: mock | test | live.
+// If NULL, env var GSIS_PA_ENVIRONMENT is used.
+$gsis_pa_environment = 'test';
+//$gsis_pa_environment = 'mock';
+//$gsis_pa_environment = 'live';
+//$gsis_pa_environment = NULL;
+if ($gsis_pa_environment === NULL) {
+  $gsis_pa_environment = strtolower(trim((string) getenv('GSIS_PA_ENVIRONMENT')));
+}
+$gsis_pa_environment = in_array($gsis_pa_environment, ['mock', 'test', 'live'], TRUE) ? $gsis_pa_environment : 'test';
+$base_url = 'https://kemke.ddev.site';
+$gsis_pa_live_authorization_uri = getenv('GSIS_PA_LIVE_AUTHORIZATION_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/authorize';
+$gsis_pa_live_token_uri = getenv('GSIS_PA_LIVE_TOKEN_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/token';
+$gsis_pa_live_resource_uri = getenv('GSIS_PA_LIVE_RESOURCE_URI') ?: 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml';
+
+$settings['kemke_gsis_pa_oauth2_client'] = [
+  'environment' => $gsis_pa_environment,
+  'authorization_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/authorize',
+    'live' => $gsis_pa_live_authorization_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
+  },
+  'token_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/oauth/token',
+    'live' => $gsis_pa_live_token_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/oauth/token',
+  },
+  'resource_owner_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/mock/gsis-pa/userinfo?format=xml',
+    'live' => $gsis_pa_live_resource_uri,
+    default => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  },
+  'call_log_path' => 'private://gsis-pa/oauth-calls.log',
+  'call_log_retention_days' => 30,
+  'call_log_prune_interval_seconds' => 86400,
+  'scopes' => ['read'],
+];
+
+$settings['kemke_users_gsis_pa_auth2'] = [
+  'enabled' => TRUE,
+  'allow_user_creation' => FALSE,
+  'default_roles' => ['operator'],
+];
+
+// GSIS Public Administration OAuth2 (oAuth2.0.PA) pilot configuration.
+$settings['gsis_pa_auth'] = [
+  'enabled' => TRUE,
+  'client_id' => 'THVRZH42954',
+  'client_secret' => 'Kemke2025!!',
+  'authorization_url' => 'https://test.gsis.gr/oauth2servergov/oauth/authorize',
+  'token_url' => 'https://test.gsis.gr/oauth2servergov/oauth/token',
+  'userinfo_url' => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  'scope' => 'read',
+  'auto_create_user' => FALSE,
+];
+$settings['kemke_gsis_pa_oauth2_client']['call_log_retention_days'] = 30;
+$settings['kemke_gsis_pa_oauth2_client']['call_log_prune_interval_seconds'] = 86400;
+
+
