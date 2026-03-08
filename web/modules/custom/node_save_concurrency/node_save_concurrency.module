@@ -1,0 +1,676 @@
+<?php
+
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Form\EnforcedResponseException;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\LocalRedirectResponse;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * @file
+ * Concurrency protection for incoming node edit forms.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming edit forms.
+ */
+function node_save_concurrency_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming' || $entity->isNew()) {
+    return;
+  }
+
+  $form['node_save_concurrency_loaded_revision_id'] = [
+    '#type' => 'hidden',
+    '#value' => (string) $entity->getRevisionId(),
+  ];
+  $form['node_save_concurrency_loaded_changed_time'] = [
+    '#type' => 'hidden',
+    '#value' => (string) $entity->getChangedTime(),
+  ];
+
+  node_save_concurrency_attach_validate_guard($form, 'node_save_concurrency_guard_validate');
+  node_save_concurrency_attach_submit_guard($form, 'node_save_concurrency_guard_submit');
+  node_save_concurrency_attach_conflict_notice($form, $entity);
+}
+
+/**
+ * Ensures the guard runs before core entity validation.
+ */
+function node_save_concurrency_attach_validate_guard(array &$form, string $handler): void {
+  $handlers = $form['#validate'] ?? [];
+  if (!is_array($handlers)) {
+    $handlers = [$handlers];
+  }
+
+  if (!in_array($handler, $handlers, TRUE)) {
+    array_unshift($handlers, $handler);
+  }
+
+  $form['#validate'] = $handlers;
+
+  if (isset($form['actions']) && is_array($form['actions'])) {
+    node_save_concurrency_attach_validate_guard_recursive($form['actions'], $handler);
+  }
+}
+
+/**
+ * Recursively prepends the guard to submit element validate handlers.
+ */
+function node_save_concurrency_attach_validate_guard_recursive(array &$element, string $handler): void {
+  if (($element['#type'] ?? NULL) === 'submit' && array_key_exists('#validate', $element)) {
+    $handlers = $element['#validate'] ?? [];
+    if (!is_array($handlers)) {
+      $handlers = [$handlers];
+    }
+
+    if (!in_array($handler, $handlers, TRUE)) {
+      array_unshift($handlers, $handler);
+    }
+
+    $element['#validate'] = $handlers;
+  }
+
+  foreach (\Drupal\Core\Render\Element::children($element) as $child_key) {
+    if (isset($element[$child_key]) && is_array($element[$child_key])) {
+      node_save_concurrency_attach_validate_guard_recursive($element[$child_key], $handler);
+    }
+  }
+}
+
+/**
+ * Ensures the guard runs after entity build and before save.
+ */
+function node_save_concurrency_attach_submit_guard(array &$form, string $handler): void {
+  if (isset($form['actions']) && is_array($form['actions'])) {
+    node_save_concurrency_attach_submit_guard_recursive($form['actions'], $handler);
+  }
+}
+
+/**
+ * Recursively inserts the guard into submit handlers.
+ */
+function node_save_concurrency_attach_submit_guard_recursive(array &$element, string $handler): void {
+  if (($element['#type'] ?? NULL) === 'submit') {
+    $handlers = $element['#submit'] ?? [];
+    if (!is_array($handlers)) {
+      $handlers = [$handlers];
+    }
+    $element['#submit'] = node_save_concurrency_insert_submit_guard($handlers, $handler);
+  }
+
+  foreach (\Drupal\Core\Render\Element::children($element) as $child_key) {
+    if (isset($element[$child_key]) && is_array($element[$child_key])) {
+      node_save_concurrency_attach_submit_guard_recursive($element[$child_key], $handler);
+    }
+  }
+}
+
+/**
+ * Inserts the guard after ::submitForm and before ::save when possible.
+ *
+ * @param array<int, mixed> $handlers
+ *   Existing submit handlers.
+ *
+ * @return array<int, mixed>
+ *   Updated handlers.
+ */
+function node_save_concurrency_insert_submit_guard(array $handlers, string $handler): array {
+  if (in_array($handler, $handlers, TRUE)) {
+    return $handlers;
+  }
+
+  $submit_index = array_search('::submitForm', $handlers, TRUE);
+  $save_index = array_search('::save', $handlers, TRUE);
+
+  if ($submit_index !== FALSE) {
+    array_splice($handlers, $submit_index + 1, 0, [$handler]);
+    return $handlers;
+  }
+
+  if ($save_index !== FALSE) {
+    array_splice($handlers, $save_index, 0, [$handler]);
+    return $handlers;
+  }
+
+  array_unshift($handlers, $handler);
+  return $handlers;
+}
+
+/**
+ * Stops stale saves during validation before core EntityChanged runs.
+ */
+function node_save_concurrency_guard_validate(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming' || $entity->isNew()) {
+    return;
+  }
+
+  $loaded_revision_id = (int) $form_state->getValue('node_save_concurrency_loaded_revision_id', 0);
+  $loaded_changed_time = (int) $form_state->getValue('node_save_concurrency_loaded_changed_time', 0);
+  if ($loaded_revision_id <= 0) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $latest = $storage->load($entity->id());
+  if (!$latest instanceof NodeInterface) {
+    return;
+  }
+
+  $trigger = $form_state->getTriggeringElement();
+  $submitted = method_exists($form_object, 'buildEntity') ? $form_object->buildEntity($form, $form_state) : $entity;
+  if (!$submitted instanceof NodeInterface) {
+    $submitted = $entity;
+  }
+
+  $has_conflict = node_save_concurrency_has_entity_changed_conflict($latest, $submitted);
+  \Drupal::logger('node_save_concurrency')->notice('validate guard fired: @details', [
+    '@details' => Json::encode([
+      'nid' => (int) $entity->id(),
+      'trigger_name' => is_array($trigger) ? ($trigger['#name'] ?? '') : '',
+      'trigger_type' => is_array($trigger) ? ($trigger['#type'] ?? '') : '',
+      'loaded_revision_id' => $loaded_revision_id,
+      'loaded_changed_time' => $loaded_changed_time,
+      'latest_revision_id' => (int) $latest->getRevisionId(),
+      'latest_changed_time' => (int) $latest->getChangedTime(),
+      'submitted_changed_time' => (int) $submitted->getChangedTime(),
+      'has_conflict' => $has_conflict,
+    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+  ]);
+
+  if (!$has_conflict) {
+    return;
+  }
+
+  $base = $storage->loadRevision($loaded_revision_id);
+  $summary = node_save_concurrency_build_conflict_summary(
+    $base instanceof NodeInterface ? $base : NULL,
+    $latest,
+    $submitted,
+    method_exists($form_object, 'getOperation') ? (string) $form_object->getOperation() : 'default'
+  );
+
+  node_save_concurrency_tempstore()->set(node_save_concurrency_tempstore_key((int) $entity->id()), $summary);
+
+  $query = [];
+  $active_tab = node_save_concurrency_normalize_tab_alias((string) $form_state->getValue('incoming_edit_tweaks_active_tab', ''));
+  if ($active_tab !== '') {
+    $query['tab'] = $active_tab;
+  }
+
+  $url = Url::fromRoute('entity.node.edit_form', ['node' => $entity->id()], $query !== [] ? ['query' => $query] : []);
+  throw new EnforcedResponseException(new LocalRedirectResponse($url->toString()));
+}
+
+/**
+ * Stops stale saves and redirects to a fresh edit form with a summary.
+ */
+function node_save_concurrency_guard_submit(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $submitted = $form_object->getEntity();
+  if (!$submitted instanceof NodeInterface || $submitted->bundle() !== 'incoming' || $submitted->isNew()) {
+    return;
+  }
+
+  $loaded_revision_id = (int) $form_state->getValue('node_save_concurrency_loaded_revision_id', 0);
+  $loaded_changed_time = (int) $form_state->getValue('node_save_concurrency_loaded_changed_time', 0);
+  if ($loaded_revision_id <= 0) {
+    return;
+  }
+
+  /** @var \Drupal\node\NodeStorageInterface $storage */
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $latest = $storage->load($submitted->id());
+  if (!$latest instanceof NodeInterface) {
+    return;
+  }
+
+  if (!node_save_concurrency_has_entity_changed_conflict($latest, $submitted)) {
+    return;
+  }
+
+  $base = $storage->loadRevision($loaded_revision_id);
+  $summary = node_save_concurrency_build_conflict_summary(
+    $base instanceof NodeInterface ? $base : NULL,
+    $latest,
+    $submitted,
+    method_exists($form_object, 'getOperation') ? (string) $form_object->getOperation() : 'default'
+  );
+
+  node_save_concurrency_tempstore()->set(node_save_concurrency_tempstore_key((int) $submitted->id()), $summary);
+
+  $query = [];
+  $active_tab = node_save_concurrency_normalize_tab_alias((string) $form_state->getValue('incoming_edit_tweaks_active_tab', ''));
+  if ($active_tab !== '') {
+    $query['tab'] = $active_tab;
+  }
+
+  $url = Url::fromRoute('entity.node.edit_form', ['node' => $submitted->id()], $query !== [] ? ['query' => $query] : []);
+  throw new EnforcedResponseException(new LocalRedirectResponse($url->toString()));
+}
+
+/**
+ * Mirrors Drupal core EntityChanged conflict detection.
+ */
+function node_save_concurrency_has_entity_changed_conflict(NodeInterface $latest, NodeInterface $submitted): bool {
+  $common_translation_languages = array_intersect_key(
+    $submitted->getTranslationLanguages(),
+    $latest->getTranslationLanguages()
+  );
+
+  foreach (array_keys($common_translation_languages) as $langcode) {
+    if ($latest->getTranslation($langcode)->getChangedTime() > $submitted->getTranslation($langcode)->getChangedTime()) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Adds a one-time conflict warning on the fresh edit form.
+ */
+function node_save_concurrency_attach_conflict_notice(array &$form, NodeInterface $entity): void {
+  $key = node_save_concurrency_tempstore_key((int) $entity->id());
+  $summary = node_save_concurrency_tempstore()->get($key);
+  if (!is_array($summary)) {
+    return;
+  }
+
+  node_save_concurrency_tempstore()->delete($key);
+
+  $form['node_save_concurrency_notice'] = [
+    '#type' => 'container',
+    '#weight' => -100,
+    '#attributes' => [
+      'class' => ['messages', 'messages--warning', 'node-save-concurrency-notice'],
+    ],
+  ];
+
+  $form['node_save_concurrency_notice']['summary'] = [
+    '#type' => 'html_tag',
+    '#tag' => 'div',
+    '#value' => t('This incoming was updated by another user while you were editing. The form was reloaded with the latest saved data. Your changes were not applied automatically.'),
+  ];
+
+  $other_changes = $summary['other_changes'] ?? [];
+  $user_changes = $summary['user_changes'] ?? [];
+  $conflicts = $summary['conflicts'] ?? [];
+
+  if ($conflicts !== []) {
+    $form['node_save_concurrency_notice']['conflicts'] = [
+      '#type' => 'details',
+      '#title' => t('Conflicting Fields (@count)', ['@count' => count($conflicts)]),
+      '#open' => TRUE,
+    ];
+    $form['node_save_concurrency_notice']['conflicts']['items'] = node_save_concurrency_build_change_list($conflicts);
+  }
+
+  if ($other_changes !== []) {
+    $form['node_save_concurrency_notice']['other_changes'] = [
+      '#type' => 'details',
+      '#title' => t('Changed By Another User (@count)', ['@count' => count($other_changes)]),
+      '#open' => FALSE,
+    ];
+    $form['node_save_concurrency_notice']['other_changes']['items'] = node_save_concurrency_build_change_list($other_changes);
+  }
+
+  if ($user_changes !== []) {
+    $form['node_save_concurrency_notice']['user_changes'] = [
+      '#type' => 'details',
+      '#title' => t('Your Unsaved Changes (@count)', ['@count' => count($user_changes)]),
+      '#open' => FALSE,
+    ];
+    $form['node_save_concurrency_notice']['user_changes']['items'] = node_save_concurrency_build_change_list($user_changes);
+  }
+}
+
+/**
+ * Builds a conflict summary between base, latest, and submitted entities.
+ *
+ * @return array<string, mixed>
+ *   Structured summary data for tempstore.
+ */
+function node_save_concurrency_build_conflict_summary(?NodeInterface $base, NodeInterface $latest, NodeInterface $submitted, string $operation): array {
+  $other_changes = [];
+  $user_changes = [];
+  $conflicts = [];
+
+  foreach (node_save_concurrency_compared_field_names($latest, $operation) as $field_name) {
+    if ($base instanceof NodeInterface && !node_save_concurrency_entities_differ_on_field($base, $latest, $field_name)) {
+      $changed_by_other = FALSE;
+    }
+    else {
+      $changed_by_other = TRUE;
+    }
+
+    if ($base instanceof NodeInterface && !node_save_concurrency_entities_differ_on_field($base, $submitted, $field_name)) {
+      $changed_by_user = FALSE;
+    }
+    else {
+      $changed_by_user = TRUE;
+    }
+
+    if (!$changed_by_other && !$changed_by_user) {
+      continue;
+    }
+
+    $label = node_save_concurrency_field_label($latest, $field_name);
+
+    if ($changed_by_other) {
+      $other_changes[$field_name] = [
+        'field_name' => $field_name,
+        'label' => $label,
+        'from' => node_save_concurrency_format_field_value($base, $field_name),
+        'to' => node_save_concurrency_format_field_value($latest, $field_name),
+      ];
+    }
+
+    if ($changed_by_user) {
+      $user_changes[$field_name] = [
+        'field_name' => $field_name,
+        'label' => $label,
+        'from' => node_save_concurrency_format_field_value($base, $field_name),
+        'to' => node_save_concurrency_format_field_value($submitted, $field_name),
+      ];
+    }
+
+    if ($changed_by_other && $changed_by_user) {
+      $conflicts[$field_name] = [
+        'field_name' => $field_name,
+        'label' => $label,
+        'latest' => node_save_concurrency_format_field_value($latest, $field_name),
+        'yours' => node_save_concurrency_format_field_value($submitted, $field_name),
+      ];
+    }
+  }
+
+  return [
+    'detected' => \Drupal::time()->getRequestTime(),
+    'base_revision_id' => $base ? (int) $base->getRevisionId() : NULL,
+    'latest_revision_id' => (int) $latest->getRevisionId(),
+    'other_changes' => array_values($other_changes),
+    'user_changes' => array_values($user_changes),
+    'conflicts' => array_values($conflicts),
+  ];
+}
+
+/**
+ * Returns field names worth comparing for the current entity form.
+ *
+ * @return string[]
+ *   Comparable field names.
+ */
+function node_save_concurrency_compared_field_names(NodeInterface $entity, string $operation): array {
+  $display = EntityFormDisplay::collectRenderDisplay($entity, $operation);
+  $field_names = array_keys($display->getComponents());
+
+  foreach (['title', 'moderation_state', 'field_basic_operator', 'field_supervisor'] as $extra_field) {
+    if ($entity->hasField($extra_field) && !in_array($extra_field, $field_names, TRUE)) {
+      $field_names[] = $extra_field;
+    }
+  }
+
+  $ignored = [
+    'changed',
+    'revision_log',
+    'revision_timestamp',
+    'revision_uid',
+    'field_plan_dt_api_response',
+    'field_dt_docid',
+  ];
+
+  return array_values(array_filter($field_names, static function (string $field_name) use ($ignored): bool {
+    return !in_array($field_name, $ignored, TRUE);
+  }));
+}
+
+/**
+ * Returns TRUE when the two entities differ on a field.
+ */
+function node_save_concurrency_entities_differ_on_field(?FieldableEntityInterface $left, ?FieldableEntityInterface $right, string $field_name): bool {
+  return node_save_concurrency_normalized_field_value($left, $field_name) !== node_save_concurrency_normalized_field_value($right, $field_name);
+}
+
+/**
+ * Returns a normalized field value suitable for equality checks.
+ *
+ * @return mixed
+ *   A recursively normalized value.
+ */
+function node_save_concurrency_normalized_field_value(?FieldableEntityInterface $entity, string $field_name) {
+  if (!$entity instanceof FieldableEntityInterface || !$entity->hasField($field_name)) {
+    return NULL;
+  }
+
+  return node_save_concurrency_normalize_recursive($entity->get($field_name)->getValue());
+}
+
+/**
+ * Recursively normalizes arrays/scalars for stable comparisons.
+ *
+ * @param mixed $value
+ *   A field value.
+ *
+ * @return mixed
+ *   Normalized value.
+ */
+function node_save_concurrency_normalize_recursive($value) {
+  if (is_array($value)) {
+    $normalized = [];
+    foreach ($value as $key => $item) {
+      $normalized[$key] = node_save_concurrency_normalize_recursive($item);
+    }
+    ksort($normalized);
+    return $normalized;
+  }
+
+  if (is_bool($value)) {
+    return $value ? '1' : '0';
+  }
+
+  if ($value === NULL) {
+    return NULL;
+  }
+
+  if ($value instanceof EntityInterface) {
+    return [
+      '_entity_type' => $value->getEntityTypeId(),
+      '_entity_id' => $value->id(),
+      '_entity_uuid' => method_exists($value, 'uuid') ? $value->uuid() : NULL,
+      '_entity_label' => trim((string) $value->label()),
+    ];
+  }
+
+  if (is_object($value)) {
+    if (method_exists($value, '__toString')) {
+      return trim((string) $value);
+    }
+    if (method_exists($value, 'id')) {
+      return [
+        '_object_class' => $value::class,
+        '_object_id' => $value->id(),
+      ];
+    }
+    return ['_object_class' => $value::class];
+  }
+
+  return trim((string) $value);
+}
+
+/**
+ * Returns a human-readable field label.
+ */
+function node_save_concurrency_field_label(NodeInterface $entity, string $field_name): string {
+  if ($entity->hasField($field_name)) {
+    return (string) $entity->getFieldDefinition($field_name)->getLabel();
+  }
+
+  return $field_name;
+}
+
+/**
+ * Formats an entity field value for display in the conflict summary.
+ */
+function node_save_concurrency_format_field_value(?FieldableEntityInterface $entity, string $field_name): string {
+  if (!$entity instanceof FieldableEntityInterface || !$entity->hasField($field_name) || $entity->get($field_name)->isEmpty()) {
+    return (string) t('(empty)');
+  }
+
+  $field = $entity->get($field_name);
+  $definition = $field->getFieldDefinition();
+  $type = $definition->getType();
+
+  if (in_array($type, ['entity_reference', 'file', 'image'], TRUE)) {
+    $labels = [];
+    foreach ($field->referencedEntities() as $referenced) {
+      if ($referenced instanceof EntityInterface) {
+        $labels[] = trim((string) $referenced->label());
+      }
+    }
+    return $labels !== [] ? implode(', ', $labels) : (string) t('(empty)');
+  }
+
+  $items = [];
+  foreach ($field->getValue() as $item) {
+    $items[] = node_save_concurrency_format_field_item($item);
+  }
+
+  $items = array_values(array_filter($items, static fn (string $item): bool => $item !== ''));
+  if ($items === []) {
+    return (string) t('(empty)');
+  }
+
+  return implode(' | ', $items);
+}
+
+/**
+ * Formats a single field item for summary output.
+ *
+ * @param array<string, mixed> $item
+ *   Raw field item values.
+ */
+function node_save_concurrency_format_field_item(array $item): string {
+  if (isset($item['value'])) {
+    return node_save_concurrency_truncate_summary_value((string) $item['value']);
+  }
+
+  if (isset($item['target_id'])) {
+    return (string) $item['target_id'];
+  }
+
+  $cleaned = [];
+  foreach ($item as $key => $value) {
+    if (in_array($key, ['format', 'processed', 'entity'], TRUE)) {
+      continue;
+    }
+    $cleaned[$key] = is_scalar($value) || $value === NULL ? (string) $value : Json::encode($value);
+  }
+
+  return node_save_concurrency_truncate_summary_value(Json::encode($cleaned, JSON_UNESCAPED_UNICODE));
+}
+
+/**
+ * Truncates long field values to keep summaries readable.
+ */
+function node_save_concurrency_truncate_summary_value(string $value): string {
+  $value = trim(strip_tags($value));
+  if ($value === '') {
+    return '';
+  }
+
+  if (mb_strlen($value) > 180) {
+    return mb_substr($value, 0, 180) . '...';
+  }
+
+  return $value;
+}
+
+/**
+ * Builds a themed item list for change summaries.
+ *
+ * @param array<int, array<string, string>> $changes
+ *   Change rows.
+ *
+ * @return array<string, mixed>
+ *   Render array.
+ */
+function node_save_concurrency_build_change_list(array $changes): array {
+  $items = [];
+
+  foreach ($changes as $change) {
+    if (isset($change['latest'], $change['yours'])) {
+      $items[] = [
+        '#markup' => t('<strong>@label</strong><br>Latest saved: @latest<br>Your attempted value: @yours', [
+          '@label' => $change['label'],
+          '@latest' => $change['latest'],
+          '@yours' => $change['yours'],
+        ]),
+      ];
+      continue;
+    }
+
+    $items[] = [
+      '#markup' => t('<strong>@label</strong><br>From: @from<br>To: @to', [
+        '@label' => $change['label'],
+        '@from' => $change['from'],
+        '@to' => $change['to'],
+      ]),
+    ];
+  }
+
+  return [
+    '#theme' => 'item_list',
+    '#items' => $items,
+  ];
+}
+
+/**
+ * Returns the private tempstore collection used by this module.
+ */
+function node_save_concurrency_tempstore(): \Drupal\Core\TempStore\PrivateTempStore {
+  return \Drupal::service('tempstore.private')->get('node_save_concurrency');
+}
+
+/**
+ * Builds a tempstore key for the current node.
+ */
+function node_save_concurrency_tempstore_key(int $node_id): string {
+  return 'node.' . $node_id;
+}
+
+/**
+ * Normalizes the tab alias before reloading the fresh edit form.
+ */
+function node_save_concurrency_normalize_tab_alias(string $tab_id): string {
+  $tab_id = strtolower(ltrim(trim($tab_id), '#'));
+  if (str_starts_with($tab_id, 'edit-group-')) {
+    $tab_id = substr($tab_id, strlen('edit-group-'));
+  }
+
+  if ($tab_id === '') {
+    return '';
+  }
+
+  return preg_match('/^[A-Za-z0-9_-]+$/', $tab_id) ? $tab_id : '';
+}

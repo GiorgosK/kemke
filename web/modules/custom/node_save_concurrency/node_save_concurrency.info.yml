@@ -1,0 +1,7 @@
+name: Node Save Concurrency
+type: module
+description: Prevents stale incoming node saves and shows conflict summaries after reload.
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node
