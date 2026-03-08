@@ -1874,26 +1874,9 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
 
   $doc_payload = ['Document' => ['Title' => $title]];
 
-  $creator_debug = [
-    'basic_operator_enabled' => incoming_tweaks_use_basic_operator_document_creator(),
-    'creator_to_sign_enabled' => incoming_tweaks_use_creator_to_sign(),
-    'has_basic_operator_field' => $node->hasField('field_basic_operator'),
-    'basic_operator_empty' => !$node->hasField('field_basic_operator') || $node->get('field_basic_operator')->isEmpty(),
-  ];
-
   $operator_docutracks = incoming_tweaks_resolve_plan_operator_docutracks($node);
   if ($operator_docutracks !== NULL) {
-    $creator_debug['resolved_user_id'] = $operator_docutracks['user_id'];
-    $creator_debug['resolved_user_group_id'] = $operator_docutracks['user_group_id'];
-  }
-  else {
-    $creator_debug['resolved_user_id'] = NULL;
-    $creator_debug['resolved_user_group_id'] = NULL;
-  }
-
-  if ($operator_docutracks !== NULL) {
     $use_basic_operator_creator = incoming_tweaks_use_basic_operator_document_creator();
-    $creator_debug['creator_source'] = $use_basic_operator_creator ? 'field_basic_operator' : 'default';
 
     if ($use_basic_operator_creator) {
       $doc_payload['Document']['CreatedBy'] = ['Id' => $operator_docutracks['user_id']];
@@ -1923,9 +1906,6 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
       ];
     }
   }
-  else {
-    $creator_debug['creator_source'] = incoming_tweaks_use_basic_operator_document_creator() ? 'fallback_default_missing_operator_data' : 'default';
-  }
 
   // The first request after a long idle period can be slow; give login more time.
   $timeout = 60.0;
@@ -1938,16 +1918,6 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     $resolved_type = $client->extractValueByPath($payload, 'Document.Type.Id');
     $resolved_kind = $client->extractValueByPath($payload, 'Document.Kind.Id');
     $resolved_created_for = $client->extractValueByPath($payload, 'Document.CreatedForGroup.Id');
-    $resolved_created_by = $client->extractValueByPath($payload, 'Document.CreatedBy.Id');
-    $resolved_created_by_group = $client->extractValueByPath($payload, 'Document.CreatedByGroup.Id');
-    \Drupal::logger('incoming_tweaks')->info('Docutracks creator resolution: @details', [
-      '@details' => Json::encode($creator_debug + [
-        'nid' => $node->id(),
-        'payload_created_by' => $resolved_created_by,
-        'payload_created_by_group' => $resolved_created_by_group,
-        'payload_created_for_group' => $resolved_created_for,
-      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-    ]);
     \Drupal::logger('incoming_tweaks')->info('Docutracks plan payload resolved ids: @details', [
       '@details' => Json::encode([
         'nid' => $node->id(),
