@@ -76,6 +76,7 @@ module:
   mysql57: 0
   nocurrent_pass: 0
   node: 0
+  node_edit_concurrency_warning: 0
   node_view_permissions: 0
   notify_widget: 0
   oauth2_client: 0

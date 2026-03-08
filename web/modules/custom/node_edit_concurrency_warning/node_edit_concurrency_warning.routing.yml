@@ -1,0 +1,8 @@
+node_edit_concurrency_warning.check:
+  path: '/node-edit-concurrency-warning/check/{node}'
+  defaults:
+    _controller: '\Drupal\node_edit_concurrency_warning\Controller\NodeEditConcurrencyWarningController::check'
+    _format: 'json'
+  methods: [GET]
+  requirements:
+    _entity_access: 'node.update'

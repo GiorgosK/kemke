@@ -1,0 +1,7 @@
+name: Node Edit Concurrency Warning
+type: module
+description: Warns incoming editors when the open edit form becomes stale after another save.
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node

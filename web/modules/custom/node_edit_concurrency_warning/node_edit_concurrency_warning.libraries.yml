@@ -1,0 +1,9 @@
+warning:
+  css:
+    theme:
+      css/node-edit-concurrency-warning.css: {}
+  js:
+    js/node-edit-concurrency-warning.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

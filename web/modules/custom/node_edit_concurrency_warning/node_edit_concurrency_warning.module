@@ -1,0 +1,34 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * @file
+ * Warning-only stale edit detection for incoming edit forms.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter() for incoming edit forms.
+ */
+function node_edit_concurrency_warning_form_node_incoming_edit_form_alter(array &$form, FormStateInterface $form_state): void {
+  $form_object = $form_state->getFormObject();
+  if (!method_exists($form_object, 'getEntity')) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'incoming' || $entity->isNew()) {
+    return;
+  }
+
+  $form['#attached']['library'][] = 'node_edit_concurrency_warning/warning';
+  $form['#attached']['drupalSettings']['nodeEditConcurrencyWarning'] = [
+    'nodeId' => (int) $entity->id(),
+    'loadedChangedTime' => (int) $entity->getChangedTime(),
+    'checkUrl' => Url::fromRoute('node_edit_concurrency_warning.check', ['node' => $entity->id()])->toString(),
+    'pollInterval' => 60000,
+    'warningMessage' => (string) t('This documet was modified by another user while you were editing. Reload the page or press edit before continuing.'),
+  ];
+}
