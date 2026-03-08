@@ -308,11 +308,22 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
   background: inherit;
 }
 
+.region-highlighted .govgr-panel {
+  text-align: left;
+}
+.region-highlighted .govgr-list--bullet {
+  list-style-type: none;
+  padding-left: 0;
+}
+@media (min-width: 768px) {
+  .region-highlighted .govgr-list {
+    margin-bottom: 0;
+    margin-top: 5px;
+  }
+}
 .govgr-list--bullet li {
   color: white;
-  font-size: 2rem;
 }
-
 .govgr-checkboxes__input {
   zoom: 60%;
 }
@@ -323,12 +334,12 @@ tr[data-hierarchy-level="4"] .views-tree-hierarchy-cell {
 }
 
 .govgr-panel {
-  padding: 1rem;
+  padding: 7px 15px;
 }
 
 .govgr-panel__title {
-  font-size: 1.4rem;
-  line-height: 2rem;
+  font-size: 1.2rem;
+  font-weight: normal;
   margin-bottom: 0;
 }
 
