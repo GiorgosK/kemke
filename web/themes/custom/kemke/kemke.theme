@@ -18,6 +18,10 @@ function kemke_preprocess_page(&$variables) {
   $variables['site_name'] = \Drupal::config('system.site')->get('name');
   $variables['is_login_front'] = (bool) ($variables['is_front'] ?? FALSE)
     && \Drupal::routeMatch()->getRouteName() === 'user.login';
+  $route_object = \Drupal::routeMatch()->getRouteObject();
+  $variables['current_page_title'] = $route_object
+    ? \Drupal::service('title_resolver')->getTitle(\Drupal::request(), $route_object)
+    : NULL;
 }
 
 /**

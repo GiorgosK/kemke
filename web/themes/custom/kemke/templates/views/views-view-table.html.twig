@@ -50,8 +50,9 @@
     sticky ? 'sticky-header',
   ]
 %}
+{% set table_id = 'views-table-' ~ random() %}
 <div class="{{ container_classes|join(' ') }}">
-<table{{ attributes.addClass(table_classes) }}>
+<table{{ attributes.addClass(table_classes).setAttribute('id', table_id) }}>
   {% if caption_needed %}
     <caption class="govgr-table__caption">
     {% if caption %}
@@ -68,6 +69,7 @@
     <thead class="govgr-table__head">
       <tr class="govgr-table__row">
         {% for key, column in header %}
+          {% set header_id = table_id ~ '-col-' ~ loop.index %}
           {%
             set column_classes = [
               'govgr-table__header'
@@ -79,7 +81,7 @@
               'views-field-' ~ fields[key],
             ]) %}
           {% endif %}
-          <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col') }}>
+          <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col').setAttribute('id', header_id) }}>
             {%- if column.wrapper_element -%}
               <{{ column.wrapper_element }}>
                 {%- if column.url -%}
@@ -105,6 +107,7 @@
       {% set row_classes = ['govgr-table__row'] %}
       <tr{{ row.attributes.addClass(row_classes) }}>
         {% for key, column in row.columns %}
+          {% set header_id = table_id ~ '-col-' ~ loop.index %}
           {%
             set column_classes = [
               'govgr-table__cell'
@@ -116,7 +119,7 @@
               {% set column_classes = column_classes|merge(['views-field-' ~ field]) %}
             {% endfor %}
           {% endif %}
-          <td{{ column.attributes.addClass(column_classes) }}>
+          <td{{ column.attributes.addClass(column_classes).setAttribute('headers', header_id) }}>
             {%- if column.wrapper_element -%}
               <{{ column.wrapper_element }}>
               {% for content in column.content %}

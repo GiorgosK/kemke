@@ -67,6 +67,13 @@
   max-width: 250px;
 }
 
+.views-exposed-form .govgr-input,
+.views-exposed-form .govgr-select,
+.views-exposed-form .govgr-textarea {
+  border: 2px solid rgba(var(--color-base-content-rgb), 1);
+  background-color: rgba(var(--color-white-rgb), 1);
+}
+
 .views-exposed-form .form-item-tags {
   max-width: none;
   min-width: 250px;
@@ -105,6 +112,19 @@
 .views-exposed-form .govgr-field .select2-container--default.select2-container--open .select2-selection--single,
 .views-exposed-form .govgr-field .select2-container--default.select2-container--open .select2-selection--multiple {
   border-color: rgba(var(--color-base-content-rgb), 1);
+}
+
+.views-exposed-form .govgr-field .select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
+  min-width: 5ch;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.25rem;
+  border: 2px solid rgba(var(--color-base-600-rgb), 1);
+  background-color: rgba(var(--color-white-rgb), 1);
+  box-sizing: border-box;
+}
+
+.views-exposed-form select.views-entity-reference-select2.select2-hidden-accessible {
+  display: none !important;
 }
 
 .diff-revisions .govgr-radios__input {
