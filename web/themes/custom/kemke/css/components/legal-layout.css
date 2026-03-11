@@ -53,6 +53,10 @@
   margin-bottom: 0;
 }
 
+.login-gsis-only #block-kemke-primary-local-tasks {
+  display: none;
+}
+
 .path-frontpage .kemke-front-footer {
   margin-top: auto;
 }

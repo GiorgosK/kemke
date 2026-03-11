@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
+use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
+
+/**
+ * Query parameter that exposes the local Drupal login form.
+ */
+const KEMKE_USERS_GSIS_PA_AUTH2_LOCAL_LOGIN_QUERY = 'local_login';
 
 /**
  * Implements hook_form_FORM_ID_alter() for user_login_form.
@@ -28,4 +34,41 @@ function kemke_users_gsis_pa_auth2_form_user_login_form_alter(array &$form, Form
     '#attributes' => ['class' => ['button', 'button--secondary']],
     '#weight' => 25,
   ];
+
+  if (!kemke_users_gsis_pa_auth2_local_login_enabled()) {
+    if (isset($form['name'])) {
+      $form['name']['#access'] = FALSE;
+    }
+    if (isset($form['pass'])) {
+      $form['pass']['#access'] = FALSE;
+    }
+    if (isset($form['actions']['submit'])) {
+      $form['actions']['submit']['#access'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function kemke_users_gsis_pa_auth2_block_view_alter(array &$build, BlockPluginInterface $block): void {
+  if (kemke_users_gsis_pa_auth2_local_login_enabled()) {
+    return;
+  }
+
+  if (\Drupal::routeMatch()->getRouteName() !== 'user.login') {
+    return;
+  }
+
+  if ($block->getBaseId() === 'local_tasks_block') {
+    $build['#access'] = FALSE;
+  }
+}
+
+/**
+ * Returns TRUE when the local Drupal login should be available.
+ */
+function kemke_users_gsis_pa_auth2_local_login_enabled(): bool {
+  $request = \Drupal::request();
+  return $request->query->get(KEMKE_USERS_GSIS_PA_AUTH2_LOCAL_LOGIN_QUERY) === '1';
 }

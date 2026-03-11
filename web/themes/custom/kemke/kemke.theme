@@ -28,6 +28,13 @@ function kemke_preprocess_html(array &$variables): void {
   if (preg_match('@^/user/\d+/notifications$@', $path)) {
     $variables['attributes']['class'][] = 'user-notifications';
   }
+
+  if (
+    $path === '/user/login' &&
+    \Drupal::request()->query->get('local_login') !== '1'
+  ) {
+    $variables['attributes']['class'][] = 'login-gsis-only';
+  }
 }
 
 /**
