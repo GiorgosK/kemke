@@ -46,6 +46,8 @@ Mock authorize supports query params:
 ```php
 $gsis_pa_environment = 'mock'; // mock | test | live
 $base_url = 'https://kemke.ddev.site';
+$gsis_pa_test_redirect_uri = 'https://kemke.webx2.com/auth/gsis-pa/login';
+$gsis_pa_live_redirect_uri = 'https://kemke.example.gov.gr/auth/gsis-pa/login';
 
 $settings['kemke_gsis_pa_oauth2_client'] = [
   'environment' => $gsis_pa_environment,
@@ -63,6 +65,11 @@ $settings['kemke_gsis_pa_oauth2_client'] = [
     'mock' => $base_url . '/mock/gsis-pa/userinfo?format=xml',
     'live' => 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml',
     default => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  },
+  'redirect_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/oauth2-client/kemke_gsis_pa/code',
+    'live' => $gsis_pa_live_redirect_uri,
+    default => $gsis_pa_test_redirect_uri,
   },
   'call_log_path' => 'private://gsis-pa/oauth-calls.log',
   'scopes' => ['read'],

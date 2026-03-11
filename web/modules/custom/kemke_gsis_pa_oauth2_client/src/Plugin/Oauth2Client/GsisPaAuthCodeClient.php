@@ -110,6 +110,14 @@ final class GsisPaAuthCodeClient extends Oauth2ClientPluginBase implements Oauth
     return parent::getAuthorizationUri();
   }
 
+  public function getRedirectUri(): string {
+    $settings = Settings::get('kemke_gsis_pa_oauth2_client', []);
+    if (is_array($settings) && !empty($settings['redirect_uri'])) {
+      return (string) $settings['redirect_uri'];
+    }
+    return parent::getRedirectUri();
+  }
+
   public function getTokenUri(): string {
     $settings = Settings::get('kemke_gsis_pa_oauth2_client', []);
     if (is_array($settings) && !empty($settings['token_uri'])) {

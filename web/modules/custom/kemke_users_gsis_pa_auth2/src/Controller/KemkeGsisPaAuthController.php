@@ -13,6 +13,9 @@ use Drupal\Core\State\StateInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
 use Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger;
+use Drupal\oauth2_client\Entity\Oauth2Client;
+use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginInterface;
+use Drupal\oauth2_client\Plugin\Oauth2GrantType\AuthorizationCode;
 use Drupal\oauth2_client\Service\Oauth2ClientServiceInterface;
 use Drupal\user\Entity\User;
 use GuzzleHttp\ClientInterface;
@@ -58,11 +61,15 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
 
+    $request = $this->requestStack->getCurrentRequest();
+    if ($request !== NULL && ($request->query->has('code') || $request->query->has('error'))) {
+      return $this->handleAuthorizationCallback($request);
+    }
+
     if ($this->currentAccount->isAuthenticated()) {
       return new RedirectResponse('/incoming');
     }
 
-    $request = $this->requestStack->getCurrentRequest();
     if ($request !== NULL) {
       $destination = (string) $request->query->get('destination', '');
       if ($destination !== '' && $destination[0] === '/') {
@@ -90,6 +97,61 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     $this->messengerService->addError($this->t('Unable to start GSIS OAuth2 flow. Check OAuth2 client credentials and plugin status.'));
     return new RedirectResponse(Url::fromRoute('user.login')->toString());
+  }
+
+  private function handleAuthorizationCallback(Request $request): RedirectResponse {
+    $error = trim((string) $request->query->get('error', ''));
+    if ($error !== '') {
+      $this->callLogger->log('authorization_callback_error', [
+        'error' => $error,
+        'error_description' => trim((string) $request->query->get('error_description', '')),
+      ]);
+      $this->messengerService->addError($this->t('GSIS login failed: @error.', ['@error' => $error]));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    $code = trim((string) $request->query->get('code', ''));
+    $state = trim((string) $request->query->get('state', ''));
+    if ($code === '' || $state === '') {
+      $this->messengerService->addError($this->t('GSIS login failed: missing authorization callback parameters.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    $oauth2Client = $this->entityTypeManager()->getStorage('oauth2_client')->load(self::OAUTH_PLUGIN_ID);
+    if (!$oauth2Client instanceof Oauth2Client) {
+      $this->messengerService->addError($this->t('GSIS login failed: OAuth2 client configuration is missing.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    $clientPlugin = $oauth2Client->getClient();
+    if (!$clientPlugin instanceof Oauth2ClientPluginInterface) {
+      $this->messengerService->addError($this->t('GSIS login failed: OAuth2 client plugin is unavailable.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    $tempstore = \Drupal::service('tempstore.private')->get('oauth2_client');
+    $storedState = (string) $tempstore->get('oauth2_client_state-' . self::OAUTH_PLUGIN_ID);
+    if ($state !== $storedState) {
+      $tempstore->delete('oauth2_client_state-' . self::OAUTH_PLUGIN_ID);
+      $this->messengerService->addError($this->t('GSIS login failed: invalid OAuth state.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    $grantPlugin = \Drupal::service('plugin.manager.oauth2_grant_type')->createInstance('authorization_code');
+    if (!$grantPlugin instanceof AuthorizationCode) {
+      $this->messengerService->addError($this->t('GSIS login failed: authorization code grant is unavailable.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    if (!$grantPlugin->requestAccessToken($clientPlugin, $code)) {
+      $this->callLogger->log('authorization_callback_token_exchange_failed', [
+        'redirect_uri' => $clientPlugin->getRedirectUri(),
+      ]);
+      $this->messengerService->addError($this->t('GSIS login failed while exchanging the authorization code.'));
+      return new RedirectResponse(Url::fromRoute('user.login')->toString());
+    }
+
+    return $grantPlugin->getPostCaptureRedirect($clientPlugin);
   }
 
   public function finalize(): RedirectResponse {

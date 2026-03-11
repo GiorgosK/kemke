@@ -30,6 +30,8 @@ $base_url = 'https://kemke.ddev.site';
 $gsis_pa_live_authorization_uri = getenv('GSIS_PA_LIVE_AUTHORIZATION_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/authorize';
 $gsis_pa_live_token_uri = getenv('GSIS_PA_LIVE_TOKEN_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/token';
 $gsis_pa_live_resource_uri = getenv('GSIS_PA_LIVE_RESOURCE_URI') ?: 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml';
+$gsis_pa_test_redirect_uri = getenv('GSIS_PA_TEST_REDIRECT_URI') ?: $base_url . '/oauth2-client/kemke_gsis_pa/code';
+$gsis_pa_live_redirect_uri = getenv('GSIS_PA_LIVE_REDIRECT_URI') ?: $base_url . '/auth/gsis-pa/login';
 
 $settings['kemke_gsis_pa_oauth2_client'] = [
   'environment' => $gsis_pa_environment,
@@ -47,6 +49,11 @@ $settings['kemke_gsis_pa_oauth2_client'] = [
     'mock' => $base_url . '/mock/gsis-pa/userinfo?format=xml',
     'live' => $gsis_pa_live_resource_uri,
     default => 'https://test.gsis.gr/oauth2servergov/userinfo?format=xml',
+  },
+  'redirect_uri' => match ($gsis_pa_environment) {
+    'mock' => $base_url . '/oauth2-client/kemke_gsis_pa/code',
+    'live' => $gsis_pa_live_redirect_uri,
+    default => $gsis_pa_test_redirect_uri,
   },
   'call_log_path' => 'private://gsis-pa/oauth-calls.log',
   'call_log_retention_days' => 30,
