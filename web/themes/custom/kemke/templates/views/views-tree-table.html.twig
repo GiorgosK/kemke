@@ -26,11 +26,12 @@
     sticky ? 'sticky-enabled',
   ]
 %}
+{% set table_id = 'views-tree-table-' ~ random() %}
 {{ attach_library('kemke/views-tree-table') }}
 {% import _self as views_tree %}
 
 <div class="{{ container_classes|join(' ') }}">
-  <table{{ attributes.addClass(table_classes) }}>
+  <table{{ attributes.addClass(table_classes).setAttribute('id', table_id) }}>
     {% if caption_needed %}
       <caption class="govgr-table__caption">
         {% if caption %}
@@ -54,6 +55,7 @@
       <thead class="govgr-table__head">
       <tr class="govgr-table__row">
         {% for key, column in header %}
+          {% set header_id = table_id ~ '-col-' ~ loop.index %}
           {% set column_classes = ['govgr-table__header'] %}
           {% if column.default_classes %}
             {% set column_classes = column_classes|merge([
@@ -61,7 +63,7 @@
               'views-field-' ~ fields[key],
             ]) %}
           {% endif %}
-          <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col') }}>
+          <th{{ column.attributes.addClass(column_classes).setAttribute('scope', 'col').setAttribute('id', header_id) }}>
             {%- if column.wrapper_element -%}
               <{{ column.wrapper_element }}>
               {%- if column.url -%}
@@ -83,25 +85,26 @@
       </thead>
     {% endif %}
     <tbody class="govgr-table__body">
-      {{ views_tree.tree(items, 0) }}
+      {{ views_tree.tree(items, 0, table_id) }}
     </tbody>
   </table>
 </div>
 
-{% macro tree(items, level) %}
+{% macro tree(items, level, table_id) %}
   {% import _self as views_tree %}
   {% if items %}
     {%- for item in items -%}
-      {{ views_tree.row(item.node, level, item.leaves|length > 0) }}
-      {{ views_tree.tree(item.leaves, level + 1) }}
+      {{ views_tree.row(item.node, level, item.leaves|length > 0, table_id) }}
+      {{ views_tree.tree(item.leaves, level + 1, table_id) }}
     {% endfor %}
   {% endif %}
 {% endmacro %}
 
-{% macro row(item, level, has_children) %}
+{% macro row(item, level, has_children, table_id) %}
 {% set row_attributes = item.attributes.addClass('govgr-table__row', 'views-tree-row').setAttribute('data-hierarchy-level', level).setAttribute('data-has-children', has_children ? 'true' : 'false').setAttribute('data-expanded', has_children ? 'false' : 'true') %}
 <tr{{ row_attributes }}>
   {% for key, column in item.columns %}
+    {% set header_id = table_id ~ '-col-' ~ loop.index %}
     {% set column_classes = ['govgr-table__cell'] %}
     {% if column.default_classes %}
       {% set column_classes = column_classes|merge(['views-field']) %}
@@ -110,6 +113,7 @@
       {% endfor %}
     {% endif %}
     {% set cell_attributes = column.attributes.addClass(column_classes) %}
+    {% set cell_attributes = cell_attributes.setAttribute('headers', header_id) %}
     {% if loop.first %}
       {% set cell_attributes = cell_attributes.setAttribute('style', 'padding-left: ' ~ ((level * 1.25) + 0.5) ~ 'rem;') %}
     {% endif %}

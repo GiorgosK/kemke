@@ -47,8 +47,9 @@
     'govgr-table-simple'
   ]
 %}
+{% set table_id = 'table-' ~ random() %}
 
-<table{{ attributes.addClass(classes) }}>
+<table{{ attributes.addClass(classes).setAttribute('id', table_id) }}>
   {% if caption %}
     <caption>{{ caption }}</caption>
   {% endif %}
@@ -69,12 +70,13 @@
     <thead>
       <tr>
         {% for cell in header %}
+          {% set header_id = table_id ~ '-col-' ~ loop.index %}
           {%
             set cell_classes = [
               cell.active_table_sort ? 'is-active',
             ]
           %}
-          <{{ cell.tag }}{{ cell.attributes.addClass(cell_classes) }}>
+          <{{ cell.tag }}{{ cell.attributes.addClass(cell_classes).setAttribute('id', header_id) }}>
             {{- cell.content -}}
           </{{ cell.tag }}>
         {% endfor %}
@@ -92,7 +94,12 @@
         %}
         <tr{{ row.attributes.addClass(row_classes) }}>
           {% for cell in row.cells %}
-            <{{ cell.tag }}{{ cell.attributes }}>
+            {% set header_id = table_id ~ '-col-' ~ loop.index %}
+            {% set cell_attributes = cell.attributes %}
+            {% if cell.tag == 'td' %}
+              {% set cell_attributes = cell_attributes.setAttribute('headers', header_id) %}
+            {% endif %}
+            <{{ cell.tag }}{{ cell_attributes }}>
               {{- cell.content -}}
             </{{ cell.tag }}>
           {% endfor %}
