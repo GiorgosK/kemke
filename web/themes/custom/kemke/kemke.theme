@@ -16,6 +16,8 @@ use Drupal\Component\Utility\Html;
  */
 function kemke_preprocess_page(&$variables) {
   $variables['site_name'] = \Drupal::config('system.site')->get('name');
+  $variables['is_login_front'] = (bool) ($variables['is_front'] ?? FALSE)
+    && \Drupal::routeMatch()->getRouteName() === 'user.login';
 }
 
 /**

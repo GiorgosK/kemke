@@ -78,13 +78,14 @@
   </div>  
   <div class="govgr-layout-wrapper{{ not is_front ? ' govgr-layout-wrapper__full-height' : '' }}">
     <div class="govgr-width-container">
-
       <div class="govgr-main-wrapper" role="main">
         <main class="govgr-grid-column-three-thirds">
 
           <a id="main-content" tabindex="-1"></a>{# link is in html.html.twig #}
-
           <div class="layout-content">
+            {% if is_login_front %}
+              <h1 class="visually-hidden">{{ 'Είσοδος'|t }}</h1>
+            {% endif %}
             {{ page.content }}
           </div>{# /.layout-content #}
 
