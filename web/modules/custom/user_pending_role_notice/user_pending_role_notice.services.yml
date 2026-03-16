@@ -1,0 +1,6 @@
+services:
+  user_pending_role_notice.redirect_subscriber:
+    class: Drupal\user_pending_role_notice\EventSubscriber\UserPendingRoleRedirectSubscriber
+    arguments: ['@current_user']
+    tags:
+      - { name: event_subscriber }

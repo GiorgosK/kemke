@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Url;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_user_login().
+ */
+function user_pending_role_notice_user_login(UserInterface $account): void {
+  $request = \Drupal::requestStack()->getCurrentRequest();
+  if ($request !== NULL && user_pending_role_notice_has_pending_role($account)) {
+    $request->getSession()->set('user_pending_role_notice.redirect_pending', TRUE);
+  }
+}
+
+function user_pending_role_notice_has_pending_role(UserInterface $account): bool {
+  $roles = array_values(array_diff($account->getRoles(), ['authenticated']));
+  return $roles === [];
+}
+
+function user_pending_role_notice_get_redirect_url(UserInterface $account): ?Url {
+  if (!user_pending_role_notice_has_pending_role($account)) {
+    return NULL;
+  }
+
+  return Url::fromRoute('user_pending_role_notice.pending');
+}

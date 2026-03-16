@@ -169,6 +169,14 @@ function users_tweaks_login_redirect_submit(array &$form, FormStateInterface $fo
     return;
   }
 
+  if (function_exists('user_pending_role_notice_get_redirect_url')) {
+    $pending_redirect = user_pending_role_notice_get_redirect_url($account);
+    if ($pending_redirect instanceof Url) {
+      $form_state->setRedirectUrl($pending_redirect);
+      return;
+    }
+  }
+
   $destination = $account->hasRole('amke_user') ? '/amke' : '/incoming';
   $form_state->setRedirectUrl(Url::fromUserInput($destination));
 }

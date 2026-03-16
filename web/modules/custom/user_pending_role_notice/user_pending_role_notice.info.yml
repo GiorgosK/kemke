@@ -1,0 +1,6 @@
+name: 'User Pending Role Notice'
+type: module
+description: 'Shows a login notice to users who only have the authenticated role.'
+core_version_requirement: ^10 || ^11
+package: Custom
+

@@ -67,6 +67,15 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     if ($this->currentAccount->isAuthenticated()) {
+      if (function_exists('user_pending_role_notice_get_redirect_url')) {
+        $account = $this->entityTypeManager()->getStorage('user')->load($this->currentAccount->id());
+        if ($account instanceof User) {
+          $pending_redirect = user_pending_role_notice_get_redirect_url($account);
+          if ($pending_redirect instanceof Url) {
+            return new RedirectResponse($pending_redirect->toString());
+          }
+        }
+      }
       return new RedirectResponse('/incoming');
     }
 
@@ -274,9 +283,17 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     $request = $this->requestStack->getCurrentRequest();
     $destination = '/incoming';
+    $has_pending_redirect = FALSE;
+    if (function_exists('user_pending_role_notice_get_redirect_url')) {
+      $pending_redirect = user_pending_role_notice_get_redirect_url($user);
+      if ($pending_redirect instanceof Url) {
+        $destination = $pending_redirect->toString();
+        $has_pending_redirect = TRUE;
+      }
+    }
     if ($request !== NULL) {
       $stored = (string) $request->getSession()->get(self::SESSION_DESTINATION_KEY, '');
-      if ($stored !== '' && $stored[0] === '/') {
+      if ($stored !== '' && $stored[0] === '/' && !$has_pending_redirect) {
         $destination = $stored;
       }
       $request->getSession()->remove(self::SESSION_DESTINATION_KEY);

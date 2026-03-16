@@ -110,6 +110,7 @@ module:
   toolbar: 0
   user: 0
   user_import: 0
+  user_pending_role_notice: 0
   users_tweaks: 0
   views_autocomplete_filters: 0
   views_bulk_edit: 0

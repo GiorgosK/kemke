@@ -1,0 +1,8 @@
+user_pending_role_notice.pending:
+  path: '/user/pending-role'
+  defaults:
+    _controller: '\Drupal\user_pending_role_notice\Controller\UserPendingRoleNoticeController::page'
+    _title: 'Account Pending Role Assignment'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
