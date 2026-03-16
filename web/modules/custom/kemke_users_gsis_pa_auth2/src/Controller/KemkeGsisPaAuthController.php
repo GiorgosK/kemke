@@ -216,6 +216,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       'last_name' => $this->extractXmlValue($xml, ['EPONYMO', 'LASTNAME', 'lastname', 'surname']),
       'afm' => $this->extractXmlValue($xml, ['AFM', 'taxid', 'TIN']),
     ];
+    $raw_payload = $this->extractReceivedPayload($xml);
 
     if ($details['afm'] === NULL) {
       $this->callLogger->log('finalize_missing_afm', [
@@ -263,7 +264,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
 
-    $this->syncUserFields($user, $details);
+    $this->syncUserFields($user, $details, $raw_payload);
     $user->save();
 
     user_login_finalize($user);
@@ -659,16 +660,28 @@ final class KemkeGsisPaAuthController extends ControllerBase {
    * @param array<string, mixed> $decoded
    */
   private function extractAfmFromArray(array $decoded): ?string {
-    $candidates = [
-      $decoded['afm'] ?? NULL,
-      $decoded['AFM'] ?? NULL,
-      $decoded['taxid'] ?? NULL,
-      $decoded['TaxId'] ?? NULL,
-    ];
+    return $this->extractValueFromArray($decoded, ['afm', 'AFM', 'taxid', 'TaxId', 'TIN', 'tin']);
+  }
 
-    foreach ($candidates as $candidate) {
-      if (is_string($candidate) && trim($candidate) !== '') {
-        return trim($candidate);
+  /**
+   * @param array<string, mixed> $decoded
+   * @param array<int, string> $candidateKeys
+   */
+  private function extractValueFromArray(array $decoded, array $candidateKeys): ?string {
+    foreach ($candidateKeys as $candidate) {
+      $candidate = trim((string) $candidate);
+      if ($candidate === '') {
+        continue;
+      }
+
+      foreach ($decoded as $key => $value) {
+        if (strcasecmp((string) $key, $candidate) !== 0) {
+          continue;
+        }
+
+        if (is_scalar($value) && trim((string) $value) !== '') {
+          return trim((string) $value);
+        }
       }
     }
 
@@ -711,8 +724,9 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
   /**
    * @param array<string, string|null> $details
+   * @param array<string, string> $rawPayload
    */
-  private function syncUserFields(User $user, array $details): void {
+  private function syncUserFields(User $user, array $details, array $rawPayload): void {
     if (
       $user->hasField('field_first_name') &&
       !empty($details['first_name']) &&
@@ -736,8 +750,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     if (
       $user->hasField('field_gsis_info')
     ) {
-      $payload = $details;
-      $payload['updated_at'] = gmdate('c');
+      $payload = !empty($rawPayload) ? $rawPayload : $this->buildLegacyPayload($details);
       $user->set('field_gsis_info', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
   }
@@ -791,6 +804,73 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     return $normalized;
+  }
+
+  /**
+   * @return array<string, string>
+   */
+  private function extractReceivedPayload(\SimpleXMLElement $xml): array {
+    $nodes = $xml->xpath('//*[count(@*) > 0 or count(*) > 0]');
+    if (!is_array($nodes)) {
+      return [];
+    }
+
+    foreach ($nodes as $node) {
+      if (!$node instanceof \SimpleXMLElement) {
+        continue;
+      }
+
+      $payload = $this->flattenXmlNode($node);
+      if ($payload !== []) {
+        return $payload;
+      }
+    }
+
+    return [];
+  }
+
+  /**
+   * @return array<string, string>
+   */
+  private function flattenXmlNode(\SimpleXMLElement $node): array {
+    $payload = [];
+
+    foreach ($node->attributes() as $name => $value) {
+      $payload[(string) $name] = trim((string) $value);
+    }
+
+    foreach ($node->children() as $child) {
+      $child_name = (string) $child->getName();
+      $child_value = trim((string) $child);
+      if ($child_name !== '' && $child_value !== '') {
+        $payload[$child_name] = $child_value;
+      }
+    }
+
+    return $payload;
+  }
+
+  /**
+   * @param array<string, string|null> $details
+   *
+   * @return array<string, string>
+   */
+  private function buildLegacyPayload(array $details): array {
+    $payload = [];
+    if (!empty($details['username'])) {
+      $payload['username'] = trim((string) $details['username']);
+    }
+    if (!empty($details['first_name'])) {
+      $payload['first_name'] = trim((string) $details['first_name']);
+    }
+    if (!empty($details['last_name'])) {
+      $payload['last_name'] = trim((string) $details['last_name']);
+    }
+    if (!empty($details['afm'])) {
+      $payload['afm'] = trim((string) $details['afm']);
+    }
+
+    return $payload;
   }
 
 }
