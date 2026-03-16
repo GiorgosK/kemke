@@ -72,6 +72,7 @@ function permissions_filtering_form_user_admin_permissions_alter(array &$form, F
     'Image',
     'Incoming API',
     'Interface Translation',
+    'KEMKE Manuals',
     'Language',
     'Node view permissions',
     'Opinion Reference ID Tweaks',
