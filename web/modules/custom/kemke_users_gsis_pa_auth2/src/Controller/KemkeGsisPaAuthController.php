@@ -532,6 +532,16 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         continue;
       }
 
+      // GSIS may return userinfo values either as child elements or as
+      // attributes on the <userinfo /> node. Support both shapes.
+      $attribute_matches = $xml->xpath(sprintf('//@*[translate(local-name(), "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")="%s"]', $needle));
+      if (is_array($attribute_matches) && isset($attribute_matches[0])) {
+        $value = trim((string) $attribute_matches[0]);
+        if ($value !== '') {
+          return $value;
+        }
+      }
+
       $query = sprintf('//*[translate(local-name(), "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")="%s"]', $needle);
       $matches = $xml->xpath($query);
       if (!is_array($matches) || !isset($matches[0])) {
