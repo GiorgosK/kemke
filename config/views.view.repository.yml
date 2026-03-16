@@ -9,6 +9,13 @@ dependencies:
     - field.storage.node.field_repository_type
     - node.type.repository_item
     - taxonomy.vocabulary.repository_type
+    - user.role.administrator
+    - user.role.department_supervisor
+    - user.role.director_supervisor
+    - user.role.kemke_admin
+    - user.role.kemke_admin_readonly
+    - user.role.operator
+    - user.role.secretariat
   module:
     - datetime
     - file
@@ -178,9 +185,16 @@ display:
           sort_asc_label: Αύξ
           sort_desc_label: Φθί
       access:
-        type: perm
+        type: role
         options:
-          perm: 'view any repository_item content'
+          role:
+            administrator: administrator
+            director_supervisor: director_supervisor
+            department_supervisor: department_supervisor
+            secretariat: secretariat
+            operator: operator
+            kemke_admin: kemke_admin
+            kemke_admin_readonly: kemke_admin_readonly
       cache:
         type: tag
         options: {  }
@@ -368,7 +382,7 @@ display:
         - url
         - url.query_args
         - 'user.node_grants:view'
-        - user.permissions
+        - user.roles
       tags:
         - 'config:field.storage.node.field_repository_date'
         - 'config:field.storage.node.field_repository_description'
@@ -399,7 +413,7 @@ display:
         - url
         - url.query_args
         - 'user.node_grants:view'
-        - user.permissions
+        - user.roles
       tags:
         - 'config:field.storage.node.field_repository_date'
         - 'config:field.storage.node.field_repository_description'
