@@ -25,4 +25,11 @@ visibility:
     context_mapping:
       user: '@user.current_user_context:current_user'
     roles:
-      authenticated: authenticated
+      administrator: administrator
+      director_supervisor: director_supervisor
+      department_supervisor: department_supervisor
+      secretariat: secretariat
+      amke_user: amke_user
+      operator: operator
+      kemke_admin: kemke_admin
+      kemke_admin_readonly: kemke_admin_readonly
