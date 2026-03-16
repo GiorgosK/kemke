@@ -191,6 +191,13 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     $xml_string = trim((string) $response->getBody());
+    $this->callLogger->log('userinfo_response_body', [
+      'url' => $userinfo_url,
+      'status_code' => $response->getStatusCode(),
+      'raw_xml' => $this->sanitizeUserinfoXmlForLog($xml_string),
+      'raw_xml_truncated' => strlen($xml_string) > 16000,
+    ]);
+
     if ($xml_string === '') {
       $this->messengerService->addError($this->t('GSIS login failed: empty user info response.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
@@ -210,15 +217,15 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       'afm' => $this->extractXmlValue($xml, ['AFM', 'taxid', 'TIN']),
     ];
 
-    if ($details['username'] === NULL) {
-      $this->callLogger->log('finalize_missing_username', [
+    if ($details['afm'] === NULL) {
+      $this->callLogger->log('finalize_missing_afm', [
         'gsis_user' => $this->buildGsisUserContext($details),
       ]);
-      $this->messengerService->addError($this->t('GSIS login failed: USERNAME missing from response.'));
+      $this->messengerService->addError($this->t('GSIS login failed: AFM missing from response.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
 
-    $match_result = $this->resolveUserMatch($details['username'], $details['first_name'], $details['last_name'], $details['afm']);
+    $match_result = $this->resolveUserMatch($details['afm']);
     $user = $match_result['user'];
     $settings = $this->getGlueSettings();
 
@@ -234,17 +241,17 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     if ($user === NULL) {
-      if ($match_result['reason'] === 'afm_mismatch') {
-        $this->callLogger->log('match_failed_afm_mismatch', [
+      if ($match_result['reason'] === 'duplicate_afm') {
+        $this->callLogger->log('match_failed_duplicate_afm', [
           'gsis_user' => $this->buildGsisUserContext($details),
         ]);
-        $this->messengerService->addError($this->t('Login denied: the AFM returned by GSIS does not match our records.'));
+        $this->messengerService->addError($this->t('Login denied: more than one local account is linked to GSIS AFM @afm.', ['@afm' => $details['afm']]));
         return new RedirectResponse(Url::fromRoute('user.login')->toString());
       }
       $this->callLogger->log('match_failed_no_local_user', [
         'gsis_user' => $this->buildGsisUserContext($details),
       ]);
-      $this->messengerService->addError($this->t('No matching local user account was found for GSIS username @username.', ['@username' => $details['username']]));
+      $this->messengerService->addError($this->t('No matching local user account was found for GSIS AFM @afm.', ['@afm' => $details['afm']]));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
 
@@ -438,6 +445,13 @@ final class KemkeGsisPaAuthController extends ControllerBase {
    * Attempt to resolve AFM from user fields.
    */
   private function extractAfmFromUser(User $account): string {
+    if ($account->hasField('field_gsis_afm')) {
+      $afm = trim((string) $account->get('field_gsis_afm')->value);
+      if ($afm !== '') {
+        return $afm;
+      }
+    }
+
     if ($account->hasField('field_gsis_info')) {
       $raw = trim((string) $account->get('field_gsis_info')->value);
       if ($raw !== '') {
@@ -539,67 +553,61 @@ final class KemkeGsisPaAuthController extends ControllerBase {
    * @return array{user: ?\Drupal\user\Entity\User, reason: string}
    *   reason values:
    *   - matched
-   *   - afm_mismatch
+   *   - duplicate_afm
    *   - no_match
    */
-  private function resolveUserMatch(string $username, ?string $firstName, ?string $lastName, ?string $afm): array {
-    $storage = $this->entityTypeManager()->getStorage('user');
-
-    $afm_match = $this->matchByGsisInfoAfm($afm);
-    if ($afm_match instanceof User) {
-      return ['user' => $afm_match, 'reason' => 'matched'];
+  private function resolveUserMatch(?string $afm): array {
+    $incoming_afm = trim((string) $afm);
+    if ($incoming_afm === '') {
+      return ['user' => NULL, 'reason' => 'no_match'];
     }
 
-    $accounts = $storage->loadByProperties(['name' => $username]);
-    if (!empty($accounts)) {
-      $candidate = reset($accounts);
-      if ($candidate instanceof User && $this->hasAfmMismatch($candidate, $afm)) {
-        return ['user' => NULL, 'reason' => 'afm_mismatch'];
-      }
-      return ['user' => ($candidate instanceof User ? $candidate : NULL), 'reason' => 'matched'];
+    $dedicated_match = $this->matchByDedicatedAfm($incoming_afm);
+    if ($dedicated_match['user'] instanceof User || $dedicated_match['reason'] === 'duplicate_afm') {
+      return $dedicated_match;
     }
 
-    $from_gsis_info = $this->matchByGsisInfo($username, $firstName, $lastName);
-    if ($from_gsis_info instanceof User) {
-      if ($this->hasAfmMismatch($from_gsis_info, $afm)) {
-        return ['user' => NULL, 'reason' => 'afm_mismatch'];
-      }
-      return ['user' => $from_gsis_info, 'reason' => 'matched'];
-    }
-
-    if ($firstName !== NULL && $lastName !== NULL) {
-      $query = $storage->getQuery()
-        ->accessCheck(FALSE)
-        ->condition('status', 1)
-        ->condition('field_first_name', $firstName)
-        ->condition('field_last_name', $lastName)
-        ->range(0, 2);
-      $ids = $query->execute();
-      if (count($ids) === 1) {
-        $id = (int) reset($ids);
-        $account = $storage->load($id);
-        if ($account instanceof User && $this->hasAfmMismatch($account, $afm)) {
-          return ['user' => NULL, 'reason' => 'afm_mismatch'];
-        }
-        return ['user' => ($account instanceof User ? $account : NULL), 'reason' => 'matched'];
-      }
+    $legacy_match = $this->matchByGsisInfoAfm($incoming_afm);
+    if ($legacy_match instanceof User) {
+      return ['user' => $legacy_match, 'reason' => 'matched'];
     }
 
     return ['user' => NULL, 'reason' => 'no_match'];
   }
 
   /**
-   * Decide match based on field_gsis_info.afm as a hard gate.
+   * Match exactly on the dedicated AFM field.
+   *
+   * @return array{user: ?\Drupal\user\Entity\User, reason: string}
+   */
+  private function matchByDedicatedAfm(string $afm): array {
+    $storage = $this->entityTypeManager()->getStorage('user');
+    $query = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('status', 1)
+      ->condition('field_gsis_afm', $afm)
+      ->range(0, 2);
+    $ids = array_values($query->execute());
+
+    if (count($ids) > 1) {
+      return ['user' => NULL, 'reason' => 'duplicate_afm'];
+    }
+
+    if (count($ids) === 1) {
+      $account = $storage->load((int) $ids[0]);
+      return ['user' => ($account instanceof User ? $account : NULL), 'reason' => 'matched'];
+    }
+
+    return ['user' => NULL, 'reason' => 'no_match'];
+  }
+
+  /**
+   * Decide match based on legacy field_gsis_info.afm as a hard gate.
    *
    * @return \Drupal\user\Entity\User|null
    *   A user matched exactly by stored AFM, or NULL if there is no exact AFM hit.
    */
-  private function matchByGsisInfoAfm(?string $afm): ?User {
-    $incoming_afm = trim((string) $afm);
-    if ($incoming_afm === '') {
-      return NULL;
-    }
-
+  private function matchByGsisInfoAfm(string $incoming_afm): ?User {
     $storage = $this->entityTypeManager()->getStorage('user');
     $query = $storage->getQuery()
       ->accessCheck(FALSE)
@@ -637,44 +645,6 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     return NULL;
   }
 
-  private function matchByGsisInfo(string $username, ?string $firstName, ?string $lastName): ?User {
-    $storage = $this->entityTypeManager()->getStorage('user');
-    $query = $storage->getQuery()
-      ->accessCheck(FALSE)
-      ->condition('status', 1)
-      ->exists('field_gsis_info')
-      ->range(0, 250);
-    $ids = $query->execute();
-
-    foreach ($ids as $id) {
-      $account = $storage->load((int) $id);
-      if (!$account instanceof User || !$account->hasField('field_gsis_info')) {
-        continue;
-      }
-      $raw = trim((string) $account->get('field_gsis_info')->value);
-      if ($raw === '') {
-        continue;
-      }
-      $decoded = json_decode($raw, TRUE);
-      if (!is_array($decoded)) {
-        continue;
-      }
-
-      $stored_username = isset($decoded['username']) ? trim((string) $decoded['username']) : '';
-      if ($stored_username !== '' && $stored_username === $username) {
-        return $account;
-      }
-
-      $stored_first = isset($decoded['first_name']) ? trim((string) $decoded['first_name']) : '';
-      $stored_last = isset($decoded['last_name']) ? trim((string) $decoded['last_name']) : '';
-      if ($firstName !== NULL && $lastName !== NULL && $stored_first === $firstName && $stored_last === $lastName) {
-        return $account;
-      }
-    }
-
-    return NULL;
-  }
-
   /**
    * @param array<string, mixed> $decoded
    */
@@ -695,30 +665,6 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     return NULL;
   }
 
-  private function hasAfmMismatch(User $account, ?string $incomingAfm): bool {
-    $incomingAfm = trim((string) $incomingAfm);
-    if ($incomingAfm === '' || !$account->hasField('field_gsis_info')) {
-      return FALSE;
-    }
-
-    $raw = trim((string) $account->get('field_gsis_info')->value);
-    if ($raw === '') {
-      return FALSE;
-    }
-
-    $decoded = json_decode($raw, TRUE);
-    if (!is_array($decoded)) {
-      return FALSE;
-    }
-
-    $storedAfm = $this->extractAfmFromArray($decoded);
-    if ($storedAfm === NULL || $storedAfm === '') {
-      return FALSE;
-    }
-
-    return $storedAfm !== $incomingAfm;
-  }
-
   private function generateMockAfm(int $uid): string {
     return '9' . str_pad((string) $uid, 8, '0', STR_PAD_LEFT);
   }
@@ -729,7 +675,13 @@ final class KemkeGsisPaAuthController extends ControllerBase {
   private function createUserFromDetails(array $details): User {
     $storage = $this->entityTypeManager()->getStorage('user');
 
-    $base = strtolower((string) ($details['username'] ?? 'gsis_user'));
+    $base_source = $details['username'] ?? NULL;
+    if (!is_string($base_source) || trim($base_source) === '') {
+      $afm_suffix = preg_replace('/[^0-9]+/', '', (string) ($details['afm'] ?? ''));
+      $base_source = $afm_suffix !== '' ? 'gsis_' . $afm_suffix : 'gsis_user';
+    }
+
+    $base = strtolower((string) $base_source);
     $base = preg_replace('/[^a-z0-9_.-]+/', '_', $base) ?: 'gsis_user';
     $candidate = $base;
     $counter = 1;
@@ -764,6 +716,12 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       trim((string) $user->get('field_last_name')->value) === ''
     ) {
       $user->set('field_last_name', $details['last_name']);
+    }
+    if (
+      $user->hasField('field_gsis_afm') &&
+      !empty($details['afm'])
+    ) {
+      $user->set('field_gsis_afm', $details['afm']);
     }
     if (
       $user->hasField('field_gsis_info')
@@ -809,6 +767,20 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       'last_name' => trim((string) ($details['last_name'] ?? '')),
       'afm' => trim((string) ($details['afm'] ?? '')),
     ];
+  }
+
+  private function sanitizeUserinfoXmlForLog(string $xml): string {
+    $normalized = preg_replace('/[^\P{C}\t\r\n]/u', '', $xml);
+    if (!is_string($normalized)) {
+      $normalized = $xml;
+    }
+
+    $normalized = trim($normalized);
+    if (strlen($normalized) > 16000) {
+      return substr($normalized, 0, 16000);
+    }
+
+    return $normalized;
   }
 
 }

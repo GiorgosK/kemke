@@ -1,0 +1,21 @@
+uuid: 55a22e0e-c6c1-461b-8605-7e6550ab9066
+langcode: el
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_gsis_afm
+field_name: field_gsis_afm
+entity_type: user
+type: string
+settings:
+  max_length: 32
+  case_sensitive: false
+  is_ascii: true
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

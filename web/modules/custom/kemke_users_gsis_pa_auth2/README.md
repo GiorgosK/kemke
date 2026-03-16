@@ -12,17 +12,15 @@ Supports three endpoint environments through `settings.local.php`:
 - Adds login entrypoint: `/auth/gsis-pa/login`
 - Finalizes login after OAuth code capture: `/auth/gsis-pa/finalize`
 - Matches GSIS response to existing Drupal users using:
-  - `field_gsis_info.afm` as the primary hard gate:
-    - match => immediate success
-    - AFM exists but differs => immediate no-match (no further checks)
-  - Drupal username (`users_field_data.name`)
-  - `field_gsis_info` JSON history (`username` first, then `first_name + last_name`)
-  - fallback on `field_first_name + field_last_name` (exact match)
+  - `field_gsis_afm` as the primary hard gate
+  - legacy `field_gsis_info.afm` as an exact-match fallback during migration
+- No automatic matching by Drupal username or local first/last name
 - Logs in matched user and syncs selected profile fields.
 
 ## Sync behavior
 
 - `field_first_name` and `field_last_name` are filled only when empty.
+- `field_gsis_afm` is updated with the latest GSIS AFM.
 - `field_gsis_info` is always updated with the latest GSIS payload (JSON).
 
 ## Local mock OAuth2 server
@@ -96,6 +94,7 @@ Use your pilot values there.
 - Each entry is stored as pretty-printed JSON for easier inspection
 - Every entry includes at least: `call_id`, `timestamp`, `user_ip`, current Drupal user info, and event context
 - GSIS identity details are logged under `context.gsis_user` when available
+- The raw `userinfo` XML body is logged in a JSON-safe form under `context.raw_xml`
 - Admin report route: `/admin/reports/gsis-pa-oauth-calls`
 - Download full log route: `/admin/reports/gsis-pa-oauth-calls/download`
 - Old records are auto-pruned (default retention: 30 days)

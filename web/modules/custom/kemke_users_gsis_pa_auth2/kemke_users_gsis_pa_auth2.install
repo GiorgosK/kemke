@@ -6,9 +6,9 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 
 /**
- * Ensure GSIS user info field exists.
+ * Ensure GSIS user fields exist.
  */
-function _kemke_users_gsis_pa_auth2_ensure_gsis_info_field(): void {
+function _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields(): void {
   if (!FieldStorageConfig::loadByName('user', 'field_gsis_info')) {
     FieldStorageConfig::create([
       'field_name' => 'field_gsis_info',
@@ -31,19 +31,52 @@ function _kemke_users_gsis_pa_auth2_ensure_gsis_info_field(): void {
       'settings' => [],
     ])->save();
   }
+
+  if (!FieldStorageConfig::loadByName('user', 'field_gsis_afm')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_gsis_afm',
+      'entity_type' => 'user',
+      'type' => 'string',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+      'settings' => [
+        'max_length' => 32,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_gsis_afm')) {
+    FieldConfig::create([
+      'field_name' => 'field_gsis_afm',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'GSIS AFM',
+      'required' => FALSE,
+      'translatable' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
 }
 
 /**
  * Implements hook_install().
  */
 function kemke_users_gsis_pa_auth2_install(): void {
-  _kemke_users_gsis_pa_auth2_ensure_gsis_info_field();
+  _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
 }
 
 /**
  * Add field_gsis_info on existing installations.
  */
 function kemke_users_gsis_pa_auth2_update_11001(): void {
-  _kemke_users_gsis_pa_auth2_ensure_gsis_info_field();
+  _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
 }
 
+/**
+ * Add dedicated GSIS AFM field on existing installations.
+ */
+function kemke_users_gsis_pa_auth2_update_11002(): void {
+  _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
+}
