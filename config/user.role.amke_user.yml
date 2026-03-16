@@ -10,6 +10,7 @@ dependencies:
     - content_moderation
     - field_permissions
     - filter
+    - kemke_manuals
     - node
     - node_view_permissions
     - system
@@ -20,6 +21,7 @@ weight: 10
 is_admin: false
 permissions:
   - 'access content'
+  - 'access kemke manuals page'
   - 'access toolbar'
   - 'access user profiles'
   - 'change own username'

@@ -4,4 +4,4 @@ kemke_manuals.manual:
     _controller: '\Drupal\kemke_manuals\Controller\ManualController::manualPage'
     _title: 'User manual'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _permission: 'access kemke manuals page'

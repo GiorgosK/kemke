@@ -23,6 +23,7 @@ dependencies:
     - field_permissions
     - filter
     - incoming_change_state
+    - kemke_manuals
     - kemke_reports
     - node
     - node_view_permissions
@@ -37,6 +38,7 @@ is_admin: false
 permissions:
   - 'access administration pages'
   - 'access content'
+  - 'access kemke manuals page'
   - 'access node activity'
   - 'access people permissions page'
   - 'access taxonomy overview'

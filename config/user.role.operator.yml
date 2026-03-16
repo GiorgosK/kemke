@@ -14,6 +14,7 @@ dependencies:
     - content_moderation
     - field_permissions
     - filter
+    - kemke_manuals
     - node
     - node_view_permissions
     - system
@@ -26,6 +27,7 @@ is_admin: false
 permissions:
   - 'access administration pages'
   - 'access content'
+  - 'access kemke manuals page'
   - 'access node activity'
   - 'access taxonomy overview'
   - 'access toolbar'
