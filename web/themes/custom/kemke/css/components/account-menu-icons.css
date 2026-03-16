@@ -50,3 +50,7 @@
 .kemke-account-menu .kemke-menu-icon--manual {
   background-image: url(../../images/icons/manual-h2.svg);
 }
+
+.kemke-account-menu .kemke-menu-icon--helpdesk {
+  background-image: url(../../images/icons/helpdesk-h2.svg);
+}

@@ -19,13 +19,17 @@
       %}
       {% set item_path = item.url.toString %}
       {% set item_title = item.title|striptags|trim %}
+      {% set item_title_lower = item_title|lower %}
       {% set icon_class = '' %}
       {% set open_in_new_tab = false %}
       {% set link_classes = ['govgr-nav__list-item-link', 'govgr-link', 'kemke-account-menu__link'] %}
       {% if item.in_active_trail %}
         {% set link_classes = link_classes|merge(['is-active']) %}
       {% endif %}
-      {% if item_path starts with '/reports' %}
+      {% if 'helpdesk' in item_title_lower %}
+        {% set icon_class = 'kemke-menu-icon--helpdesk' %}
+        {% set open_in_new_tab = true %}
+      {% elseif item_path starts with '/reports' %}
         {% set icon_class = 'kemke-menu-icon--report' %}
       {% elseif item_path starts with '/cases' %}
         {% set icon_class = 'kemke-menu-icon--case' %}
