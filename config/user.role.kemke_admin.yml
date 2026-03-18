@@ -55,6 +55,8 @@ permissions:
   - 'change own username'
   - 'change to arbitary state'
   - 'create contact content'
+  - 'create field_notifications'
+  - 'create field_temporary_disabled'
   - 'create incoming content'
   - 'create repository_item content'
   - 'create terms in case'

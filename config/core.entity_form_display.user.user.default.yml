@@ -54,7 +54,7 @@ third_party_settings:
     group_other:
       children:
         - account
-      label: 'Email / κωδικός'
+      label: Ρόλοι
       region: content
       parent_name: group_tabs
       weight: 5

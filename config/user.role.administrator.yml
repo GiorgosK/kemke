@@ -11,10 +11,10 @@ label: Διαχειριστής
 weight: 3
 is_admin: true
 permissions:
-  - 'create field_dt_config'
-  - 'create read-only field_dt_config'
-  - 'edit field_dt_config'
-  - 'edit own field_dt_config'
-  - 'edit read-only field_dt_config'
-  - 'view field_dt_config'
-  - 'view own field_dt_config'
+  - 'create field_notifications'
+  - 'create read-only field_notifications'
+  - 'edit field_notifications'
+  - 'edit own field_notifications'
+  - 'edit read-only field_notifications'
+  - 'view field_notifications'
+  - 'view own field_notifications'
