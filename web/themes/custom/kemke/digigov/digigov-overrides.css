@@ -268,6 +268,13 @@ pre {
 [class*="node-incoming-"] .details-wrapper .field--widget-select2-entity-reference {
   width: 700px;
 }
+[class*="node-incoming-"] .details-wrapper .field--widget-select2-entity-reference.field--name-field-legal-entity {
+  width: 100%;
+}
+#edit-field-legal-entity--description {
+  display: none;
+}
+ 
 
 [class*="node-incoming-"] .details-wrapper .paragraphs-subform .field--type-entity-reference {
   width: 400px !important;

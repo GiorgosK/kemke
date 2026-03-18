@@ -80,6 +80,7 @@ third_party_settings:
         - field_completion_date
         - field_legal_deadline
         - group_various
+        - field_legal_entity
         - field_requested_deadline
         - field_interim_deadline
         - group_on_time
@@ -392,7 +393,6 @@ third_party_settings:
     group_various:
       children:
         - field_priority
-        - field_legal_entity
       label: Various
       region: content
       parent_name: group_status
@@ -470,7 +470,7 @@ third_party_settings:
       label: Εμπρόθεσμο
       region: content
       parent_name: group_status
-      weight: 12
+      weight: 13
       format_type: fieldset
       format_settings:
         classes: ''
@@ -619,7 +619,7 @@ content:
     third_party_settings: {  }
   field_interim_deadline:
     type: datetime_default
-    weight: 11
+    weight: 12
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -631,7 +631,7 @@ content:
     third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
-    weight: 25
+    weight: 10
     region: content
     settings:
       width: 100%
@@ -804,7 +804,7 @@ content:
     third_party_settings: {  }
   field_requested_deadline:
     type: datetime_default
-    weight: 10
+    weight: 11
     region: content
     settings: {  }
     third_party_settings: {  }
