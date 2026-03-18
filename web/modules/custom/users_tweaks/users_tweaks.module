@@ -224,6 +224,18 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
     return;
   }
 
+  if (isset($form['account']['name'])) {
+    $form['account']['name']['#required'] = FALSE;
+    $form['account']['name']['#access'] = FALSE;
+  }
+
+  if (isset($form['account']['pass'])) {
+    $form['account']['pass']['#required'] = FALSE;
+    $form['account']['pass']['#access'] = FALSE;
+  }
+
+  $form['#entity_builders']['users_tweaks_hidden_account_defaults'] = 'users_tweaks_user_form_entity_builder';
+
   if (isset($form['actions']['delete'])) {
     unset($form['actions']['delete']);
   }
@@ -234,6 +246,70 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
 
   if (isset($form['account']['roles']['#options']['administrator'])) {
     unset($form['account']['roles']['#options']['administrator']);
+  }
+}
+
+/**
+ * Fill hidden account fields for non-admin user form submissions.
+ */
+function users_tweaks_user_form_entity_builder(string $entity_type_id, UserInterface $account, array &$form, FormStateInterface &$form_state): void {
+  $current_user = \Drupal::currentUser();
+  if ($entity_type_id !== 'user' || $current_user->hasRole('administrator')) {
+    return;
+  }
+
+  if (trim((string) $account->getAccountName()) === '') {
+    $account->setUsername(users_tweaks_generate_username($account, $form_state));
+  }
+
+  $submitted_password = trim((string) ($form_state->getValue(['account', 'pass', 'pass1']) ?? ''));
+  if ($account->isNew() && $submitted_password === '') {
+    $account->setPassword(bin2hex(random_bytes(16)));
+  }
+}
+
+/**
+ * Generate a unique username for hidden non-admin user form submissions.
+ */
+function users_tweaks_generate_username(UserInterface $account, FormStateInterface $form_state): string {
+  $generated = $form_state->get('users_tweaks_generated_username');
+  if (is_string($generated) && $generated !== '') {
+    return $generated;
+  }
+
+  $submitted_mail = trim((string) ($form_state->getValue(['account', 'mail']) ?? ''));
+  $mail = $submitted_mail !== '' ? $submitted_mail : trim((string) $account->getEmail());
+  $base = '';
+  if ($mail !== '') {
+    $base = strtolower(strtok($mail, '@') ?: '');
+  }
+
+  $base = preg_replace('/[^a-z0-9_.-]+/', '_', $base ?? '') ?: 'user';
+  $candidate = $base;
+  $storage = \Drupal::entityTypeManager()->getStorage('user');
+  $counter = 1;
+
+  while (TRUE) {
+    $matches = $storage->loadByProperties(['name' => $candidate]);
+    $conflict = FALSE;
+    foreach ($matches as $match) {
+      if (!$match instanceof UserInterface) {
+        continue;
+      }
+      if ($account->id() !== NULL && (int) $match->id() === (int) $account->id()) {
+        continue;
+      }
+      $conflict = TRUE;
+      break;
+    }
+
+    if (!$conflict) {
+      $form_state->set('users_tweaks_generated_username', $candidate);
+      return $candidate;
+    }
+
+    $counter++;
+    $candidate = $base . '_' . $counter;
   }
 }
 
