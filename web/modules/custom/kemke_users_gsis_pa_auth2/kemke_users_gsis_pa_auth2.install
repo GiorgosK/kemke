@@ -58,6 +58,33 @@ function _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields(): void {
       'settings' => [],
     ])->save();
   }
+
+  if (!FieldStorageConfig::loadByName('user', 'field_gsis_userid')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_gsis_userid',
+      'entity_type' => 'user',
+      'type' => 'string',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+      'settings' => [
+        'max_length' => 128,
+        'is_ascii' => TRUE,
+        'case_sensitive' => FALSE,
+      ],
+    ])->save();
+  }
+
+  if (!FieldConfig::loadByName('user', 'user', 'field_gsis_userid')) {
+    FieldConfig::create([
+      'field_name' => 'field_gsis_userid',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'GSIS User ID',
+      'required' => FALSE,
+      'translatable' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
 }
 
 /**
@@ -78,5 +105,12 @@ function kemke_users_gsis_pa_auth2_update_11001(): void {
  * Add dedicated GSIS AFM field on existing installations.
  */
 function kemke_users_gsis_pa_auth2_update_11002(): void {
+  _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
+}
+
+/**
+ * Add dedicated GSIS userid field on existing installations.
+ */
+function kemke_users_gsis_pa_auth2_update_11003(): void {
   _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
 }
