@@ -1,0 +1,7 @@
+edit_settings.form:
+  path: '/admin/settings/edit'
+  defaults:
+    _form: '\Drupal\edit_settings\Form\EditSettingsForm'
+    _title: 'Edit settings files'
+  requirements:
+    _custom_access: '\Drupal\edit_settings\Form\EditSettingsForm::access'

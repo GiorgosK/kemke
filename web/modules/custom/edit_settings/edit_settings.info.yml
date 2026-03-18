@@ -1,0 +1,5 @@
+name: Edit Settings
+type: module
+description: Provides an administrator-only form for editing settings files.
+core_version_requirement: ^10 || ^11
+package: Custom

@@ -33,6 +33,7 @@ module:
   dblog: 0
   diff: 0
   dynamic_page_cache: 0
+  edit_settings: 0
   editor: 0
   entity_browser: 0
   entity_reference_revisions: 0
