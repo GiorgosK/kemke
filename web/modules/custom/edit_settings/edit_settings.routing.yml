@@ -5,3 +5,11 @@ edit_settings.form:
     _title: 'Edit settings files'
   requirements:
     _custom_access: '\Drupal\edit_settings\Form\EditSettingsForm::access'
+
+edit_settings.manuals:
+  path: '/admin/settings/manuals'
+  defaults:
+    _form: '\Drupal\edit_settings\Form\EditManualsForm'
+    _title: 'Edit manuals files'
+  requirements:
+    _custom_access: '\Drupal\edit_settings\Form\EditManualsForm::access'

@@ -7,21 +7,9 @@ namespace Drupal\edit_settings\Form;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final class EditSettingsForm extends FormBase {
-
-  public function __construct(
-    private readonly MessengerInterface $messengerService,
-  ) {}
-
-  public static function create(ContainerInterface $container): self {
-    return new self(
-      $container->get('messenger'),
-    );
-  }
 
   public static function access(AccountInterface $account): AccessResult {
     return AccessResult::allowedIf(in_array('administrator', $account->getRoles(), TRUE))
@@ -151,23 +139,23 @@ final class EditSettingsForm extends FormBase {
     $target_path = $directory . DIRECTORY_SEPARATOR . $target_filename;
 
     if ($target_path !== $selected_file && file_exists($target_path)) {
-      $this->messengerService->addError($this->t('The target file already exists.'));
+      $this->messenger()->addError($this->t('The target file already exists.'));
       return;
     }
 
     if ($target_path !== $selected_file && !@rename($selected_file, $target_path)) {
-      $this->messengerService->addError($this->t('The file could not be renamed.'));
+      $this->messenger()->addError($this->t('The file could not be renamed.'));
       return;
     }
 
     if (@file_put_contents($target_path, $contents) === FALSE) {
-      $this->messengerService->addError($this->t('The file could not be saved.'));
+      $this->messenger()->addError($this->t('The file could not be saved.'));
       return;
     }
 
     $form_state->set('selected_file', $target_path);
     $form_state->setValue('selected_file', $target_path);
-    $this->messengerService->addStatus($this->t('Saved settings file @file.', ['@file' => basename($target_path)]));
+    $this->messenger()->addStatus($this->t('Saved settings file @file.', ['@file' => basename($target_path)]));
     $form_state->setRebuild();
   }
 
