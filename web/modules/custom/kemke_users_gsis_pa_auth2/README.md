@@ -12,8 +12,8 @@ Supports three endpoint environments through `settings.local.php`:
 - Adds login entrypoint: `/auth/gsis-pa/login`
 - Finalizes login after OAuth code capture: `/auth/gsis-pa/finalize`
 - Matches GSIS response to existing Drupal users using:
-  - `field_gsis_afm` as the primary hard gate
-  - legacy `field_gsis_info.afm` as an exact-match fallback during migration
+  - exact `field_gsis_afm` or exact `field_gsis_userid`
+  - legacy `field_gsis_info.afm` or `field_gsis_info.userid` as exact-match fallback during migration
 - No automatic matching by Drupal username or local first/last name
 - Logs in matched user and syncs selected profile fields.
 
@@ -21,6 +21,7 @@ Supports three endpoint environments through `settings.local.php`:
 
 - `field_first_name` and `field_last_name` are filled only when empty.
 - `field_gsis_afm` is updated with the latest GSIS AFM.
+- `field_gsis_userid` is updated with the latest GSIS userid.
 - `field_gsis_info` is always updated with the latest GSIS payload (JSON).
 
 ## Local mock OAuth2 server
@@ -37,6 +38,7 @@ Mock authorize supports query params:
 - `mock_first_name`
 - `mock_last_name`
 - `mock_afm`
+- `mock_userid`
 - `scenario=deny` (to simulate access denied)
 
 ## settings.local.php example
