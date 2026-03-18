@@ -1,16 +1,16 @@
-uuid: 7495ac51-0119-4054-9198-09f3c3826309
+uuid: d9f3c898-ef7e-4d09-85a2-b31bfcbbbc15
 langcode: el
 status: true
 dependencies:
   config:
-    - field.storage.user.field_gsis_afm
+    - field.storage.user.field_gsis_userid
   module:
     - user
-id: user.user.field_gsis_afm
-field_name: field_gsis_afm
+id: user.user.field_gsis_userid
+field_name: field_gsis_userid
 entity_type: user
 bundle: user
-label: ΑΦΜ
+label: userid
 description: ''
 required: false
 translatable: false

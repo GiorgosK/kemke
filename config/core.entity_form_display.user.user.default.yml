@@ -13,6 +13,7 @@ dependencies:
     - field.field.user.user.field_first_name
     - field.field.user.user.field_gsis_afm
     - field.field.user.user.field_gsis_info
+    - field.field.user.user.field_gsis_userid
     - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
     - field.field.user.user.field_last_password_reset
@@ -126,6 +127,7 @@ third_party_settings:
     group_ggps:
       children:
         - field_gsis_afm
+        - field_gsis_userid
         - field_gsis_info
       label: ΓΓΠΣ
       region: content
@@ -232,10 +234,18 @@ content:
     third_party_settings: {  }
   field_gsis_info:
     type: string_textarea
-    weight: 1
+    weight: 2
     region: content
     settings:
       rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_gsis_userid:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
       placeholder: ''
     third_party_settings: {  }
   field_last_name:
