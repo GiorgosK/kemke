@@ -34,11 +34,7 @@ For development/testing before real credentials are available:
 
 Mock authorize supports query params:
 
-- `mock_username`
-- `mock_first_name`
-- `mock_last_name`
-- `mock_afm`
-- `mock_userid`
+- `mock_payload` (JSON payload that mirrors the GSIS response shape)
 - `scenario=deny` (to simulate access denied)
 
 ## settings.local.php example

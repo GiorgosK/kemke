@@ -312,25 +312,29 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       return new RedirectResponse('/user/login');
     }
 
-    $has_mock_inputs = $request->query->has('mock_username')
-      || $request->query->has('mock_first_name')
-      || $request->query->has('mock_last_name')
-      || $request->query->has('mock_afm')
-      || $request->query->has('mock_userid')
+    $has_mock_inputs = $request->query->has('mock_payload')
       || $request->query->has('scenario');
 
     if (!$has_mock_inputs) {
       $profiles = $this->buildMockUserProfiles();
-      $selected_uid = (string) $request->query->get('mock_user_uid', '');
+      $selected_uid = (string) $request->query->get('mock_user_uid', (string) array_key_first($profiles));
       $selected_profile = ($selected_uid !== '' && isset($profiles[$selected_uid])) ? $profiles[$selected_uid] : NULL;
 
-      $default_username = $selected_profile['username'] ?? 'mock.gsis.user';
-      $default_userid = $selected_profile['userid'] ?? $default_username;
-      $default_first_name = $selected_profile['first_name'] ?? 'Mock';
-      $default_last_name = $selected_profile['last_name'] ?? 'User';
-      $default_afm = $selected_profile['afm'] ?? '';
+      $default_payload = $selected_profile['payload'] ?? [
+        'userid' => 'mock.gsis.user',
+        'taxid' => '999999999',
+        'lastname' => 'User',
+        'firstname' => 'Mock',
+        'fathername' => 'null',
+        'mothername' => 'null',
+        'birthyear' => '1984',
+      ];
+      $default_payload_json = json_encode($default_payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+      if (!is_string($default_payload_json)) {
+        $default_payload_json = '{}';
+      }
 
-      $options = '<option value="">-- Manual entry --</option>';
+      $options = '';
       foreach ($profiles as $uid => $profile) {
         $label = sprintf(
           'uid:%s | %s (%s %s)',
@@ -348,15 +352,14 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         $profiles_json = '{}';
       }
 
-      $form_html = '<form method="get" style="max-width:640px;padding:16px;border:1px solid #ddd;border-radius:8px">'
+      $button_css = 'display:inline-block;padding:12px 18px;border:0;border-radius:6px;background:#114b5f;color:#fff;font:600 14px/1.2 sans-serif;cursor:pointer;';
+      $form_html = '<form method="get" style="max-width:760px;padding:20px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc">'
         . '<h2>Mock GSIS OAuth2 Login</h2>'
-        . '<p>Select an existing Drupal user to prefill fields, then adjust values if you want to simulate mismatch/failure.</p>'
+        . '<p>Select an existing Drupal user, review the raw payload, then modify the JSON before continuing if needed.</p>'
         . '<label>Drupal user<br><select id="mock_user_uid" name="mock_user_uid" style="width:100%">' . $options . '</select></label><br><br>'
-        . '<label>Username<br><input id="mock_username" required name="mock_username" value="' . Html::escape((string) $default_username) . '" style="width:100%"></label><br><br>'
-        . '<label>User ID<br><input id="mock_userid" required name="mock_userid" value="' . Html::escape((string) $default_userid) . '" style="width:100%"></label><br><br>'
-        . '<label>First name<br><input id="mock_first_name" required name="mock_first_name" value="' . Html::escape((string) $default_first_name) . '" style="width:100%"></label><br><br>'
-        . '<label>Last name<br><input id="mock_last_name" required name="mock_last_name" value="' . Html::escape((string) $default_last_name) . '" style="width:100%"></label><br><br>'
-        . '<label>AFM<br><input id="mock_afm" required name="mock_afm" value="' . Html::escape((string) $default_afm) . '" style="width:100%"></label><br><br>'
+        . '<label>Payload<br><textarea id="mock_payload" name="mock_payload" rows="12" style="width:100%;font:13px/1.5 monospace;border:1px solid #94a3b8;border-radius:8px;padding:12px;background:#fff">'
+        . Html::escape($default_payload_json)
+        . '</textarea></label><br><br>'
         . '<label>Scenario<br><select name="scenario" style="width:100%">'
         . '<option value="">Success</option>'
         . '<option value="deny">Deny access</option>'
@@ -366,21 +369,18 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         . '<input type="hidden" name="state" value="' . Html::escape($state) . '">'
         . '<input type="hidden" name="scope" value="' . Html::escape((string) $request->query->get('scope', 'read')) . '">'
         . '<input type="hidden" name="response_type" value="code">'
-        . '<br><button type="submit">Continue OAuth2 Flow</button>'
+        . '<br><button type="submit" style="' . $button_css . '">Submit Mock Login</button>'
         . '</form>'
         . '<script>'
         . '(function(){'
         . 'const profiles=' . $profiles_json . ';'
         . 'const sel=document.getElementById("mock_user_uid");'
+        . 'const payload=document.getElementById("mock_payload");'
         . 'if(!sel){return;}'
         . 'sel.addEventListener("change", function(){'
         . 'const p=profiles[this.value];'
-        . 'if(!p){return;}'
-        . 'document.getElementById("mock_username").value=p.username || "";'
-        . 'document.getElementById("mock_userid").value=p.userid || p.username || "";'
-        . 'document.getElementById("mock_first_name").value=p.first_name || "";'
-        . 'document.getElementById("mock_last_name").value=p.last_name || "";'
-        . 'document.getElementById("mock_afm").value=p.afm || "";'
+        . 'if(!p||!payload){return;}'
+        . 'payload.value=JSON.stringify(p.payload || {}, null, 4);'
         . '});'
         . '})();'
         . '</script>';
@@ -400,14 +400,11 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       return new TrustedRedirectResponse($redirect_uri . '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986));
     }
 
-    $payload = [
-      'username' => (string) ($request->query->get('mock_username') ?: 'mock.gsis.user'),
-      'userid' => (string) ($request->query->get('mock_userid') ?: $request->query->get('mock_username') ?: 'mock.gsis.user'),
-      'first_name' => (string) ($request->query->get('mock_first_name') ?: 'Mock'),
-      'last_name' => (string) ($request->query->get('mock_last_name') ?: 'User'),
-      'afm' => (string) ($request->query->get('mock_afm') ?: '999999999'),
-      'created' => \Drupal::time()->getRequestTime(),
-    ];
+    $payload = json_decode((string) $request->query->get('mock_payload', '{}'), TRUE);
+    if (!is_array($payload)) {
+      $payload = [];
+    }
+    $payload['created'] = (string) \Drupal::time()->getRequestTime();
 
     $code = bin2hex(random_bytes(10));
     $codes = $this->state->get(self::MOCK_CODES_STATE_KEY, []);
@@ -428,7 +425,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
   /**
    * Build a list of active local users for mock impersonation.
    *
-   * @return array<string, array{username: string, userid: string, first_name: string, last_name: string, afm: string}>
+   * @return array<string, array{username: string, userid: string, first_name: string, last_name: string, afm: string, payload: array<string, string>}>
    *   The user profiles keyed by uid.
    */
   private function buildMockUserProfiles(): array {
@@ -464,6 +461,15 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         'first_name' => $first_name !== '' ? $first_name : 'Unknown',
         'last_name' => $last_name !== '' ? $last_name : 'Unknown',
         'afm' => $afm,
+        'payload' => [
+          'userid' => $userid,
+          'taxid' => $afm,
+          'lastname' => $last_name !== '' ? $last_name : 'Unknown',
+          'firstname' => $first_name !== '' ? $first_name : 'Unknown',
+          'fathername' => 'null',
+          'mothername' => 'null',
+          'birthyear' => '1984',
+        ],
       ];
     }
 
@@ -570,14 +576,17 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     $user = $tokens[$token];
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>'
-      . '<userinfo>'
-      . '<USERNAME>' . htmlspecialchars((string) ($user['username'] ?? ''), ENT_XML1) . '</USERNAME>'
-      . '<USERID>' . htmlspecialchars((string) ($user['userid'] ?? ''), ENT_XML1) . '</USERID>'
-      . '<FIRSTNAME>' . htmlspecialchars((string) ($user['first_name'] ?? ''), ENT_XML1) . '</FIRSTNAME>'
-      . '<LASTNAME>' . htmlspecialchars((string) ($user['last_name'] ?? ''), ENT_XML1) . '</LASTNAME>'
-      . '<AFM>' . htmlspecialchars((string) ($user['afm'] ?? ''), ENT_XML1) . '</AFM>'
-      . '</userinfo>';
+    $xml = '<?xml version="1.0" encoding="UTF-8"?><userinfo>';
+    foreach ($user as $key => $value) {
+      $name = preg_replace('/[^A-Za-z0-9_.:-]+/', '', (string) $key);
+      if (!is_string($name) || $name === '' || preg_match('/^[0-9.-]/', $name)) {
+        continue;
+      }
+      if (is_scalar($value) || $value === NULL) {
+        $xml .= '<' . $name . '>' . htmlspecialchars((string) $value, ENT_XML1) . '</' . $name . '>';
+      }
+    }
+    $xml .= '</userinfo>';
 
     return new \Symfony\Component\HttpFoundation\Response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
   }
