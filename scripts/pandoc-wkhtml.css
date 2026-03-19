@@ -12,3 +12,18 @@ html, body {
   background: white !important;
   color: black !important;
 }
+
+pre {
+  background: #f3f4f6 !important;
+  padding: 10px 12px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+pre code,
+code.language-plaintext {
+  background: transparent !important;
+  padding: 0 !important;
+}

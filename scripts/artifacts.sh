@@ -14,6 +14,14 @@ WKHTML_FLAGS=(
   --pdf-engine-opt=--margin-right --pdf-engine-opt=25mm
   --pdf-engine-opt=--footer-html --pdf-engine-opt="$WKHTML_FOOTER"
 )
+WKHTMLTOPDF_FLAGS=(
+  --user-style-sheet "$WKHTML_CSS"
+  --margin-top 10mm
+  --margin-bottom 10mm
+  --margin-left 25mm
+  --margin-right 25mm
+  --footer-html "$WKHTML_FOOTER"
+)
 
 run_package() {
   mkdir -p "$ROOT_DIR/artifacts"
@@ -45,6 +53,7 @@ run_schema() {
     ddev exec php scripts/export_schema.php
     pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
     pandoc docs/schema/schema-overview.md -o artifacts/schema-overview.pdf "${WKHTML_FLAGS[@]}"
+    wkhtmltopdf "${WKHTMLTOPDF_FLAGS[@]}" docs/api.html artifacts/api.pdf
   )
 }
 
