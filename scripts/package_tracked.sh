@@ -21,7 +21,9 @@ fi
 # Excludes:
 # - composer-installed paths
 # - top-level tests/ and scripts/ directories
-EXCLUDE_REGEX='^(vendor/|web/core/|web/modules/contrib/|web/themes/contrib/|tests/|scripts/|docs/)'
+# - top-level .ddev/ and .vscode/ directories
+# - root-level db.zip
+EXCLUDE_REGEX='^(\.ddev/|\.vscode/|db\.zip$|vendor/|web/core/|web/modules/contrib/|web/themes/contrib/|tests/|scripts/|docs/)'
 FILES=$(git ls-files | grep -Ev "$EXCLUDE_REGEX" || true)
 if [[ -z "$FILES" ]]; then
   echo "No files to archive." >&2
