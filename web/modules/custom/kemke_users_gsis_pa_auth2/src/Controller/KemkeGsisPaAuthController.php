@@ -337,9 +337,12 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       $options = '';
       foreach ($profiles as $uid => $profile) {
         $label = sprintf(
-          'uid:%s | %s (%s %s)',
+          'uid:%s | %s | role:%s | userid:%s | afm:%s | %s %s',
           $uid,
           $profile['username'],
+          $profile['role_label'],
+          $profile['userid'],
+          $profile['afm'],
           $profile['first_name'],
           $profile['last_name']
         );
@@ -425,12 +428,14 @@ final class KemkeGsisPaAuthController extends ControllerBase {
   /**
    * Build a list of active local users for mock impersonation.
    *
-   * @return array<string, array{username: string, userid: string, first_name: string, last_name: string, afm: string, payload: array<string, string>}>
+   * @return array<string, array{username: string, userid: string, first_name: string, last_name: string, afm: string, role_label: string, payload: array<string, string>}>
    *   The user profiles keyed by uid.
    */
   private function buildMockUserProfiles(): array {
     $profiles = [];
     $storage = $this->entityTypeManager()->getStorage('user');
+    $role_storage = $this->entityTypeManager()->getStorage('user_role');
+    $roles = $role_storage->loadMultiple();
     $ids = $storage->getQuery()
       ->accessCheck(FALSE)
       ->condition('status', 1)
@@ -454,6 +459,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       if ($userid === '') {
         $userid = (string) $account->getAccountName();
       }
+      $role_label = $this->buildPrimaryRoleLabel($account, $roles);
+      $payload = $this->buildMockPayloadFromUser($account, $userid, $afm, $first_name, $last_name);
 
       $profiles[(string) $uid] = [
         'username' => (string) $account->getAccountName(),
@@ -461,19 +468,82 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         'first_name' => $first_name !== '' ? $first_name : 'Unknown',
         'last_name' => $last_name !== '' ? $last_name : 'Unknown',
         'afm' => $afm,
-        'payload' => [
-          'userid' => $userid,
-          'taxid' => $afm,
-          'lastname' => $last_name !== '' ? $last_name : 'Unknown',
-          'firstname' => $first_name !== '' ? $first_name : 'Unknown',
-          'fathername' => 'null',
-          'mothername' => 'null',
-          'birthyear' => '1984',
-        ],
+        'role_label' => $role_label,
+        'payload' => $payload,
       ];
     }
 
     return $profiles;
+  }
+
+  /**
+   * @param array<string, \Drupal\user\RoleInterface> $roles
+   */
+  private function buildPrimaryRoleLabel(User $account, array $roles): string {
+    $role_ids = array_values(array_filter(
+      $account->getRoles(),
+      static fn (string $role_id): bool => $role_id !== 'authenticated'
+    ));
+
+    if ($role_ids === []) {
+      return 'authenticated';
+    }
+
+    $labels = [];
+    foreach ($role_ids as $role_id) {
+      $role = $roles[$role_id] ?? NULL;
+      $labels[] = $role ? $role->label() : $role_id;
+    }
+
+    return implode(', ', $labels);
+  }
+
+  /**
+   * @return array<string, string>
+   */
+  private function buildMockPayloadFromUser(User $account, string $userid, string $afm, string $first_name, string $last_name): array {
+    $payload = [];
+
+    if ($account->hasField('field_gsis_info')) {
+      $raw = trim((string) $account->get('field_gsis_info')->value);
+      if ($raw !== '') {
+        $decoded = json_decode($raw, TRUE);
+        if (is_array($decoded)) {
+          foreach ($decoded as $key => $value) {
+            if (!is_string($key) || $key === '') {
+              continue;
+            }
+            if (is_scalar($value) || $value === NULL) {
+              $payload[$key] = trim((string) $value);
+            }
+          }
+        }
+      }
+    }
+
+    if ($userid !== '') {
+      $payload['userid'] = $userid;
+    }
+    if ($afm !== '') {
+      $payload['taxid'] = $afm;
+    }
+    if (($payload['firstname'] ?? '') === '' && $first_name !== '') {
+      $payload['firstname'] = $first_name;
+    }
+    if (($payload['lastname'] ?? '') === '' && $last_name !== '') {
+      $payload['lastname'] = $last_name;
+    }
+    if (($payload['fathername'] ?? '') === '') {
+      $payload['fathername'] = 'null';
+    }
+    if (($payload['mothername'] ?? '') === '') {
+      $payload['mothername'] = 'null';
+    }
+    if (($payload['birthyear'] ?? '') === '') {
+      $payload['birthyear'] = '1984';
+    }
+
+    return $payload;
   }
 
   /**
