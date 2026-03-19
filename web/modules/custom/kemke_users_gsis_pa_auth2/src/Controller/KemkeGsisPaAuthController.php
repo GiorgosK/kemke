@@ -67,14 +67,17 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     if ($this->currentAccount->isAuthenticated()) {
+      $account = $this->entityTypeManager()->getStorage('user')->load($this->currentAccount->id());
       if (function_exists('user_pending_role_notice_get_redirect_url')) {
-        $account = $this->entityTypeManager()->getStorage('user')->load($this->currentAccount->id());
         if ($account instanceof User) {
           $pending_redirect = user_pending_role_notice_get_redirect_url($account);
           if ($pending_redirect instanceof Url) {
             return new RedirectResponse($pending_redirect->toString());
           }
         }
+      }
+      if ($account instanceof User) {
+        return new RedirectResponse($this->getDefaultPostLoginDestination($account));
       }
       return new RedirectResponse('/incoming');
     }
@@ -283,7 +286,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     ]);
 
     $request = $this->requestStack->getCurrentRequest();
-    $destination = '/incoming';
+    $destination = $this->getDefaultPostLoginDestination($user);
     $has_pending_redirect = FALSE;
     if (function_exists('user_pending_role_notice_get_redirect_url')) {
       $pending_redirect = user_pending_role_notice_get_redirect_url($user);
@@ -301,6 +304,10 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     return new RedirectResponse($destination);
+  }
+
+  private function getDefaultPostLoginDestination(User $user): string {
+    return $user->hasRole('amke_user') ? '/amke' : '/incoming';
   }
 
   public function mockAuthorize(Request $request): array|RedirectResponse {
