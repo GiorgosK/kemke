@@ -16,17 +16,25 @@ WKHTML_FLAGS=(
 )
 
 run_package() {
-  local db_dump
-  db_dump="$ROOT_DIR/db.sql"
-
   mkdir -p "$ROOT_DIR/artifacts"
 
-  ddev drush sql-dump > "$db_dump"
-  zip -9qr "$ROOT_DIR/artifacts/db.sql.zip" "$db_dump"
-  rm "$db_dump"
-
   "$SCRIPT_DIR/package_tracked.sh"
-  pandoc "$ROOT_DIR/SETUP.md" -o "$ROOT_DIR/artifacts/SETUP.pdf" "${WKHTML_FLAGS[@]}"
+}
+
+run_db() {
+  local db_dump
+  local db_zip
+  db_dump="$ROOT_DIR/artifacts/db.sql"
+  db_zip="$ROOT_DIR/artifacts/db.zip"
+
+  mkdir -p "$ROOT_DIR/artifacts"
+  rm -f "$db_zip"
+  ddev drush sql-dump > "$db_dump"
+  (
+    cd "$ROOT_DIR/artifacts"
+    zip -9q db.zip db.sql
+  )
+  rm "$db_dump"
 }
 
 run_schema() {
@@ -35,6 +43,7 @@ run_schema() {
   (
     cd "$ROOT_DIR"
     ddev exec php scripts/export_schema.php
+    pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
     pandoc docs/schema/schema-overview.md -o artifacts/schema-overview.pdf "${WKHTML_FLAGS[@]}"
   )
 }
@@ -47,12 +56,13 @@ run_uat() {
 
 print_usage() {
   cat <<EOF
-Usage: $(basename "$0") [--package] [--schema] [--uat] [--help]
+Usage: $(basename "$0") [--package] [--db] [--schema] [--uat] [--help]
 
 Without arguments, all sections run in order:
   1. --package
-  2. --schema
-  3. --uat
+  2. --db
+  3. --schema
+  4. --uat
 EOF
 }
 
@@ -60,6 +70,7 @@ run_selected=false
 
 if [[ $# -eq 0 ]]; then
   run_package
+  run_db
   run_schema
   run_uat
   exit 0
@@ -69,6 +80,10 @@ for arg in "$@"; do
   case "$arg" in
     --package)
       run_package
+      run_selected=true
+      ;;
+    --db)
+      run_db
       run_selected=true
       ;;
     --schema)
