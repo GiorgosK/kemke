@@ -40,6 +40,19 @@ final class EditSettingsForm extends FormBase {
     }
     $form_state->set('selected_file', $selected_file);
 
+    if ($this->isSelectedFileAjaxRequest($form_state)) {
+      $filename = basename($selected_file);
+      $contents = $this->loadFileContents($selected_file);
+
+      $form_state->setValue('target_filename', $filename);
+      $form_state->setValue('file_contents', $contents);
+
+      $user_input = $form_state->getUserInput();
+      $user_input['target_filename'] = $filename;
+      $user_input['file_contents'] = $contents;
+      $form_state->setUserInput($user_input);
+    }
+
     $form['editor'] = [
       '#type' => 'container',
       '#prefix' => '<div id="edit-settings-editor">',
@@ -60,10 +73,7 @@ final class EditSettingsForm extends FormBase {
     $filename_value = (string) $form_state->getValue('target_filename', basename($selected_file));
     $contents_value = $form_state->getValue('file_contents');
     if (!is_string($contents_value)) {
-      $contents_value = @file_get_contents($selected_file);
-      if (!is_string($contents_value)) {
-        $contents_value = '';
-      }
+      $contents_value = $this->loadFileContents($selected_file);
     }
 
     $form['editor']['target_filename'] = [
@@ -98,12 +108,6 @@ final class EditSettingsForm extends FormBase {
   }
 
   public function refreshEditor(array &$form, FormStateInterface $form_state): array {
-    $selected_file = (string) $form_state->getValue('selected_file', '');
-    $form_state->set('selected_file', $selected_file);
-    $form_state->setValue('target_filename', basename($selected_file));
-    $contents = @file_get_contents($selected_file);
-    $form_state->setValue('file_contents', is_string($contents) ? $contents : '');
-    $form_state->setRebuild();
     return $form['editor'];
   }
 
@@ -210,6 +214,16 @@ final class EditSettingsForm extends FormBase {
     }
 
     return NULL;
+  }
+
+  private function isSelectedFileAjaxRequest(FormStateInterface $form_state): bool {
+    $trigger = $form_state->getTriggeringElement();
+    return is_array($trigger) && ($trigger['#name'] ?? NULL) === 'selected_file';
+  }
+
+  private function loadFileContents(string $path): string {
+    $contents = @file_get_contents($path);
+    return is_string($contents) ? $contents : '';
   }
 
 }
