@@ -11,6 +11,12 @@ use Drupal\Core\Session\AccountInterface;
 
 final class EditSettingsForm extends FormBase {
 
+  private const EXTRA_EDITABLE_FILES = [
+    '../private/gsis-pa/oauth-calls.log' => [
+      'rename_pattern' => '/^oauth-calls\.log$/',
+    ],
+  ];
+
   public static function access(AccountInterface $account): AccessResult {
     return AccessResult::allowedIf(in_array('administrator', $account->getRoles(), TRUE))
       ->addCacheContexts(['user.roles']);
@@ -24,7 +30,7 @@ final class EditSettingsForm extends FormBase {
     $files = $this->getEditableFiles();
     if ($files === []) {
       $form['message'] = [
-        '#markup' => $this->t('No settings files were found under the sites directory.'),
+        '#markup' => $this->t('No editable files were found.'),
       ];
       return $form;
     }
@@ -61,7 +67,7 @@ final class EditSettingsForm extends FormBase {
 
     $form['editor']['selected_file'] = [
       '#type' => 'select',
-      '#title' => $this->t('Settings file'),
+      '#title' => $this->t('Editable file'),
       '#options' => $files,
       '#default_value' => $selected_file,
       '#ajax' => [
@@ -113,9 +119,10 @@ final class EditSettingsForm extends FormBase {
 
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $files = $this->getEditableFiles();
+    $editable_configs = $this->getEditableFileConfigs();
     $selected_file = (string) $form_state->getValue('selected_file', '');
     if (!isset($files[$selected_file])) {
-      $form_state->setErrorByName('selected_file', $this->t('The selected settings file is not editable.'));
+      $form_state->setErrorByName('selected_file', $this->t('The selected file is not editable.'));
       return;
     }
 
@@ -129,8 +136,9 @@ final class EditSettingsForm extends FormBase {
       $form_state->setErrorByName('target_filename', $this->t('Filename must not include path separators.'));
     }
 
-    if (!preg_match('/^settings(?:\.[A-Za-z0-9_.-]+)?(?:\.php)?$/', $target_filename)) {
-      $form_state->setErrorByName('target_filename', $this->t('Filename must start with settings and remain a settings file.'));
+    $rename_pattern = $editable_configs[$selected_file]['rename_pattern'] ?? NULL;
+    if (!is_string($rename_pattern) || !preg_match($rename_pattern, $target_filename)) {
+      $form_state->setErrorByName('target_filename', $this->t('Filename is not allowed for the selected file.'));
     }
   }
 
@@ -159,7 +167,7 @@ final class EditSettingsForm extends FormBase {
 
     $form_state->set('selected_file', $target_path);
     $form_state->setValue('selected_file', $target_path);
-    $this->messenger()->addStatus($this->t('Saved settings file @file.', ['@file' => basename($target_path)]));
+    $this->messenger()->addStatus($this->t('Saved file @file.', ['@file' => basename($target_path)]));
     $form_state->setRebuild();
   }
 
@@ -167,39 +175,66 @@ final class EditSettingsForm extends FormBase {
    * @return array<string, string>
    */
   private function getEditableFiles(): array {
-    $sites_directory = DRUPAL_ROOT . '/sites';
-    if (!is_dir($sites_directory)) {
-      return [];
-    }
-
+    $configs = $this->getEditableFileConfigs();
     $paths = [];
-    $iterator = new \RecursiveIteratorIterator(
-      new \RecursiveDirectoryIterator($sites_directory, \FilesystemIterator::SKIP_DOTS)
-    );
-
-    foreach ($iterator as $file) {
-      if (!$file instanceof \SplFileInfo || !$file->isFile()) {
-        continue;
-      }
-
-      $filename = $file->getFilename();
-      if (
-        $filename !== 'settings.php' &&
-        !preg_match('/^settings\..+$/', $filename)
-      ) {
-        continue;
-      }
-
-      $real_path = $file->getRealPath();
-      if (!is_string($real_path) || $real_path === '') {
-        continue;
-      }
-
-      $relative = ltrim(str_replace(DRUPAL_ROOT . '/', '', $real_path), '/');
-      $paths[$real_path] = $relative;
+    foreach ($configs as $path => $config) {
+      $paths[$path] = $config['label'];
     }
 
     asort($paths, SORT_NATURAL);
+    return $paths;
+  }
+
+  /**
+   * @return array<string, array{label: string, rename_pattern: string}>
+   */
+  private function getEditableFileConfigs(): array {
+    $sites_directory = DRUPAL_ROOT . '/sites';
+    $paths = [];
+    if (is_dir($sites_directory)) {
+      $iterator = new \RecursiveIteratorIterator(
+        new \RecursiveDirectoryIterator($sites_directory, \FilesystemIterator::SKIP_DOTS)
+      );
+
+      foreach ($iterator as $file) {
+        if (!$file instanceof \SplFileInfo || !$file->isFile()) {
+          continue;
+        }
+
+        $filename = $file->getFilename();
+        if (
+          $filename !== 'settings.php' &&
+          !preg_match('/^settings\..+$/', $filename)
+        ) {
+          continue;
+        }
+
+        $real_path = $file->getRealPath();
+        if (!is_string($real_path) || $real_path === '') {
+          continue;
+        }
+
+        $relative = ltrim(str_replace(DRUPAL_ROOT . '/', '', $real_path), '/');
+        $paths[$real_path] = [
+          'label' => $relative,
+          'rename_pattern' => '/^settings(?:\.[A-Za-z0-9_.-]+)?(?:\.php)?$/',
+        ];
+      }
+    }
+
+    foreach (self::EXTRA_EDITABLE_FILES as $relative_path => $config) {
+      $absolute_path = DRUPAL_ROOT . '/' . ltrim($relative_path, '/');
+      $real_path = realpath($absolute_path);
+      if (!is_string($real_path) || $real_path === '' || !is_file($real_path)) {
+        continue;
+      }
+
+      $paths[$real_path] = [
+        'label' => $this->buildDisplayPath($real_path),
+        'rename_pattern' => $config['rename_pattern'],
+      ];
+    }
+
     return $paths;
   }
 
@@ -224,6 +259,15 @@ final class EditSettingsForm extends FormBase {
   private function loadFileContents(string $path): string {
     $contents = @file_get_contents($path);
     return is_string($contents) ? $contents : '';
+  }
+
+  private function buildDisplayPath(string $path): string {
+    $project_root = dirname(DRUPAL_ROOT);
+    if (str_starts_with($path, $project_root . '/')) {
+      return ltrim(str_replace($project_root . '/', '', $path), '/');
+    }
+
+    return $path;
   }
 
 }
