@@ -167,7 +167,8 @@
                 "Skip buttons missing transition metadata": "patches/workflow_buttons-missing-transition-data.patch"
             },
             "drupal/notify_widget": {
-                "Translate notify widget toggle title and label": "patches/notify_widget-translate-toggle-title.patch"
+                "Translate notify widget toggle title and label": "patches/notify_widget-translate-toggle-title.patch",
+                "Remove redundant notification type column": "patches/notify_widget-remove-type-column.patch"
             },
             "drupal/pdf_serialization": {
                 "Drupal 11 compatibility (core_version_requirement) dgo.re/3447418": "https://git.drupalcode.org/project/pdf_serialization/-/merge_requests/9.patch",

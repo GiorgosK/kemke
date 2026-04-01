@@ -1,5 +1,5 @@
 {
-    "_hash": "3882ea499a5b970ecf181e6b4552291e823dd31409d73995d4c1b14264433c2c",
+    "_hash": "83ad145205dd17cab29881d5564d632332632ea35cfec896796faba459adba04",
     "patches": {
         "drupal/core": [
             {
@@ -53,6 +53,16 @@
                 "description": "Translate notify widget toggle title and label",
                 "url": "patches/notify_widget-translate-toggle-title.patch",
                 "sha256": "5d16caa2a87b9c61ea9737ddda6fa22add23f0b23b91e6d02b5d4d3d4fac8c1c",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            },
+            {
+                "package": "drupal/notify_widget",
+                "description": "Remove redundant notification type column",
+                "url": "patches/notify_widget-remove-type-column.patch",
+                "sha256": "82f173d982ef777ecb80900df8a94b84cbe9ebcb357fba77dd2f536c7b096373",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"

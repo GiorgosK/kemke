@@ -1,0 +1,18 @@
+--- a/src/Controller/NotificationsController.php
++++ b/src/Controller/NotificationsController.php
+@@ -44,7 +44,6 @@
+ 
+     $header = [
+       ['data' => $this->t('Date/Time')],
+-      ['data' => $this->t('Notification Type')],
+       ['data' => $this->t('Title')],
+       ['data' => $this->t('Text')],
+       ['data' => $this->t('Read')],
+@@ -64,7 +63,6 @@
+       $rows[$notification->id] = [
+         'data' => [
+           ['data' => date('d/m/Y H:i', (int) $notification->timestamp)],
+-          ['data' => $notification->notification_type],
+           ['data' => $notification->notification_title],
+           ['data' => $notification->notification_text],
+           ['data' => $notification->read ? $this->t('Yes') : $this->t('No')],
