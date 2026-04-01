@@ -137,3 +137,16 @@ array (
   'client_secret_len' => 11,
 )-
 ```
+
+
+## Last deploy
+
+```
+git pull origin main
+composer patches-relock
+composer patches-repatch
+drush cr
+drush updb
+drush cim
+drush cr
+```
