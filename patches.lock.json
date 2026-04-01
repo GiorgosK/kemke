@@ -1,17 +1,7 @@
 {
-    "_hash": "83ad145205dd17cab29881d5564d632332632ea35cfec896796faba459adba04",
+    "_hash": "ba5606c5db785efe1072cc92844aa7c8a94c470f866124d1767702c2fd335d79",
     "patches": {
         "drupal/core": [
-            {
-                "package": "drupal/core",
-                "description": "Update taxonomy term base fields (parent and weight) to be configurable on form display and detail page dgo.re/3158934",
-                "url": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch",
-                "sha256": "ebc98c21906c91541fa9a7ee70b281cba3e664a8a6374beed7df8d157aa1b16a",
-                "depth": 2,
-                "extra": {
-                    "provenance": "root"
-                }
-            },
             {
                 "package": "drupal/core",
                 "description": "Drupal\\node\\Hook\\NodeRequirements::runtime throws PHP warning when views filters are NULL dgo.re/3557953",

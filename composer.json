@@ -157,7 +157,6 @@
         },
         "patches": {
             "drupal/core": {
-                "Update taxonomy term base fields (parent and weight) to be configurable on form display and detail page dgo.re/3158934": "https://www.drupal.org/files/issues/2025-07-08/drupal-3158934-30.patch",
                 "Drupal\\node\\Hook\\NodeRequirements::runtime throws PHP warning when views filters are NULL dgo.re/3557953": "https://git.drupalcode.org/project/drupal/-/merge_requests/13874.patch"
             },
             "drupal/paragraphs": {
