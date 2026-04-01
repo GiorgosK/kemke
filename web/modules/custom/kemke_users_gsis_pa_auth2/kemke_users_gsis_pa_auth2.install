@@ -88,6 +88,40 @@ function _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields(): void {
 }
 
 /**
+ * Backfills missing installed SQL schema metadata for a field storage.
+ */
+function _kemke_users_gsis_pa_auth2_repair_field_schema_data(string $entity_type_id, string $field_name): bool {
+  $field_storage = FieldStorageConfig::loadByName($entity_type_id, $field_name);
+  if (!$field_storage || $field_storage->hasCustomStorage()) {
+    return FALSE;
+  }
+
+  $schema_key = sprintf('%s.field_schema_data.%s', $entity_type_id, $field_name);
+  $installed_storage_schema = \Drupal::keyValue('entity.storage_schema.sql');
+  if ($installed_storage_schema->get($schema_key)) {
+    return FALSE;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+  $storage_reflection = new ReflectionClass($storage);
+  $get_storage_schema = $storage_reflection->getMethod('getStorageSchema');
+  $get_storage_schema->setAccessible(TRUE);
+  $storage_schema = $get_storage_schema->invoke($storage);
+
+  $schema_reflection = new ReflectionClass($storage_schema);
+  $get_schema_from_storage_definition = $schema_reflection->getMethod('getSchemaFromStorageDefinition');
+  $get_schema_from_storage_definition->setAccessible(TRUE);
+
+  $schema = $get_schema_from_storage_definition->invoke($storage_schema, $field_storage);
+  if (empty($schema)) {
+    return FALSE;
+  }
+
+  $installed_storage_schema->set($schema_key, $schema);
+  return TRUE;
+}
+
+/**
  * Implements hook_install().
  */
 function kemke_users_gsis_pa_auth2_install(): void {
@@ -113,4 +147,15 @@ function kemke_users_gsis_pa_auth2_update_11002(): void {
  */
 function kemke_users_gsis_pa_auth2_update_11003(): void {
   _kemke_users_gsis_pa_auth2_ensure_gsis_user_fields();
+}
+
+/**
+ * Repair missing installed schema metadata for field_gsis_afm.
+ */
+function kemke_users_gsis_pa_auth2_update_11004(): ?string {
+  if (_kemke_users_gsis_pa_auth2_repair_field_schema_data('user', 'field_gsis_afm')) {
+    return 'Rebuilt installed SQL schema metadata for user.field_gsis_afm.';
+  }
+
+  return NULL;
 }
