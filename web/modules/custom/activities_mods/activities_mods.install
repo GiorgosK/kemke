@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\Core\Database\Database;
+
 /**
  * Implements hook_uninstall().
  */
@@ -9,4 +11,35 @@ function activities_mods_uninstall() {
   if ($config->isNew() === FALSE) {
     $config->delete();
   }
+}
+
+/**
+ * Rewrites legacy English activity state prefixes to Greek.
+ */
+function activities_mods_update_11001(): ?string {
+  $database = Database::getConnection();
+  $query = $database->select('user_activities', 'ua')
+    ->fields('ua', ['id', 'info'])
+    ->condition('info', '%State:%', 'LIKE');
+
+  $result = $query->execute();
+  $updated = 0;
+
+  foreach ($result as $row) {
+    $info = (string) $row->info;
+    $rewritten = str_replace('State: ', 'Κατάσταση: ', $info);
+    if ($rewritten === $info) {
+      continue;
+    }
+
+    $database->update('user_activities')
+      ->fields(['info' => $rewritten])
+      ->condition('id', (int) $row->id)
+      ->execute();
+    $updated++;
+  }
+
+  return $updated > 0
+    ? sprintf('Rewrote %d activity entries from "State:" to "Κατάσταση:".', $updated)
+    : NULL;
 }

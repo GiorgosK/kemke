@@ -148,6 +148,13 @@ function activities_mods_incoming_build_title(NodeInterface $node): string {
 }
 
 /**
+ * Formats the persisted activity state-change label in Greek.
+ */
+function activities_mods_format_state_change(string $from, string $to): string {
+  return sprintf('Κατάσταση: %s -> %s', $from, $to);
+}
+
+/**
  * Builds lines describing the latest incoming changes.
  *
  * @return string[]

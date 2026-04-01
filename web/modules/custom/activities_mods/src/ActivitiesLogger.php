@@ -163,10 +163,7 @@ class ActivitiesLogger extends BaseActivitiesLogger {
     $old_label = $plugin && $plugin->hasState($old_state) ? $plugin->getState($old_state)->label() : $old_state;
     $new_label = $plugin && $plugin->hasState($new_state) ? $plugin->getState($new_state)->label() : $new_state;
 
-    return (string) t('State: @from -> @to', [
-      '@from' => $old_label,
-      '@to' => $new_label,
-    ]);
+    return activities_mods_format_state_change((string) $old_label, (string) $new_label);
   }
 
   /**
