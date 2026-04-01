@@ -1,0 +1,11 @@
+--- a/templates/notify-widget-block.html.twig
++++ b/templates/notify-widget-block.html.twig
+@@ -17,7 +17,7 @@
+ ] %}
+ 
+ <div id="notify_widget" {{ attributes.addClass(classes) }}>
+-  <a id="notify_toggle" href="#" title="Notifications">Notifications</a>
++  <a id="notify_toggle" href="#" title="{{ 'Notifications'|trans }}">{{ 'Notifications'|trans }}</a>
+   {% if unread_count %}
+     <span class="unread">{{ '@count'|trans({'@count': unread_count}) }}</span>
+   {% endif %}

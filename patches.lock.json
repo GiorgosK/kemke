@@ -1,5 +1,5 @@
 {
-    "_hash": "a5091ecd0359a20251e02fd0c83384502443375f24006e293ad0c5939e3a858e",
+    "_hash": "3882ea499a5b970ecf181e6b4552291e823dd31409d73995d4c1b14264433c2c",
     "patches": {
         "drupal/core": [
             {
@@ -41,6 +41,18 @@
                 "description": "Skip buttons missing transition metadata",
                 "url": "patches/workflow_buttons-missing-transition-data.patch",
                 "sha256": "3bf39b084bbcd5ef98912aa06d4515a1ae7af404b70f4eaa1149846e42ceaecf",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ],
+        "drupal/notify_widget": [
+            {
+                "package": "drupal/notify_widget",
+                "description": "Translate notify widget toggle title and label",
+                "url": "patches/notify_widget-translate-toggle-title.patch",
+                "sha256": "5d16caa2a87b9c61ea9737ddda6fa22add23f0b23b91e6d02b5d4d3d4fac8c1c",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
