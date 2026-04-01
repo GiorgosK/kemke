@@ -1,18 +1,6 @@
 {
-    "_hash": "ba5606c5db785efe1072cc92844aa7c8a94c470f866124d1767702c2fd335d79",
+    "_hash": "6f18525dbeb93dd4971919e5ad7a9b65816e26544cb99647dc1b27f1a7a505b5",
     "patches": {
-        "drupal/core": [
-            {
-                "package": "drupal/core",
-                "description": "Drupal\\node\\Hook\\NodeRequirements::runtime throws PHP warning when views filters are NULL dgo.re/3557953",
-                "url": "https://git.drupalcode.org/project/drupal/-/merge_requests/13874.patch",
-                "sha256": "260f2d584c31aeb8aeca0a296e0da8ef1047d60c8d63f2d639ff8400d9ba5a5f",
-                "depth": 2,
-                "extra": {
-                    "provenance": "root"
-                }
-            }
-        ],
         "drupal/paragraphs": [
             {
                 "package": "drupal/paragraphs",
