@@ -143,10 +143,10 @@ array (
 
 ```
 git pull origin main
-composer patches-relock
-composer patches-repatch
+composer install --no-dev -o
+php scripts/apply_patches.php
 drush cr
-drush updb
+drush updb -y
 drush cim
 drush cr
 ```
