@@ -30,8 +30,8 @@ $base_url = 'https://kemke.ddev.site';
 $gsis_pa_live_authorization_uri = getenv('GSIS_PA_LIVE_AUTHORIZATION_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/authorize';
 $gsis_pa_live_token_uri = getenv('GSIS_PA_LIVE_TOKEN_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/token';
 $gsis_pa_live_resource_uri = getenv('GSIS_PA_LIVE_RESOURCE_URI') ?: 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml';
-$gsis_pa_test_redirect_uri = getenv('GSIS_PA_TEST_REDIRECT_URI') ?: $base_url . '/oauth2-client/kemke_gsis_pa/code';
-$gsis_pa_live_redirect_uri = getenv('GSIS_PA_LIVE_REDIRECT_URI') ?: $base_url . '/auth/gsis-pa/login';
+$gsis_pa_test_redirect_uri = getenv('GSIS_PA_TEST_REDIRECT_URI') ?: 'https://www.intra-kemke.gov.gr/oauth2-client/kemke_gsis_pa/code';
+$gsis_pa_live_redirect_uri = getenv('GSIS_PA_LIVE_REDIRECT_URI') ?: 'https://www.intra-kemke.gov.gr/oauth2-client/kemke_gsis_pa/code';
 
 $settings['kemke_gsis_pa_oauth2_client'] = [
   'environment' => $gsis_pa_environment,

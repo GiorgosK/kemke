@@ -1,23 +1,14 @@
 <?php
 
-//$config['system.performance']['css']['preprocess'] = FALSE;
-//$config['system.performance']['js']['preprocess'] = FALSE;
+$config['system.performance']['css']['preprocess'] = FALSE;
+$config['system.performance']['js']['preprocess'] = FALSE;
 
 #$settings['file_temp_path'] = '_tmp';
 
-$settings['file_private_path'] = '../private';
+//$settings['file_private_path'] = '../private';
+$settings['file_private_path'] = '/var/www/drupal/private';
+//$settings['file_private_path'] = 'sites/default/files/private';
 
-$databases['default']['default'] = array (
-  'database' => 'kemke',
-  'username' => 'kemke',
-  'password' => '5gG@Te%Hf7u4mqoo',
-  'prefix' => '',
-  'host' => 'localhost',
-  'port' => '3306',
-  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
-  'driver' => 'mysql',
-  'pdo' => [],
-);
 
 $settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
 
@@ -47,11 +38,9 @@ $settings['side_api']['plan'] = [
   'kind_id' => 50,
 ];
 
-//#$settings['incoming_tweaks']['get_plan_unsigned'] = TRUE;
+#$settings['incoming_tweaks']['get_plan_unsigned'] = TRUE;
 
-$settings['incoming_tweaks']['document_CreatedBy_to_sign'] = FALSE;
-//$settings['incoming_tweaks']['document_CreatedBy_basic_operator'] = TRUE;
-//$settings['incoming_tweaks']['document_CreatedBy_to_sign'] = TRUE;
+$settings['incoming_tweaks']['document_CreatedBy_to_sign'] = TRUE;
 
 
 // Side API simulation settings for local Docutracks testing.
@@ -82,6 +71,8 @@ $settings['field_non_empty_lock']['disable_lock'] = FALSE;
 
 
 
+
+
 // GSIS PA environment selector: mock | test | live.
 // If NULL, env var GSIS_PA_ENVIRONMENT is used.
 $gsis_pa_environment = 'test';
@@ -96,8 +87,9 @@ $base_url = 'https://kemke.ddev.site';
 $gsis_pa_live_authorization_uri = getenv('GSIS_PA_LIVE_AUTHORIZATION_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/authorize';
 $gsis_pa_live_token_uri = getenv('GSIS_PA_LIVE_TOKEN_URI') ?: 'https://www1.gsis.gr/oauth2servergov/oauth/token';
 $gsis_pa_live_resource_uri = getenv('GSIS_PA_LIVE_RESOURCE_URI') ?: 'https://www1.gsis.gr/oauth2servergov/userinfo?format=xml';
-$gsis_pa_test_redirect_uri = getenv('GSIS_PA_TEST_REDIRECT_URI') ?: 'https://kemke.webx2.com/auth/gsis-pa/login';
-$gsis_pa_live_redirect_uri = getenv('GSIS_PA_LIVE_REDIRECT_URI') ?: 'https://kemke.webx2.com/auth/gsis-pa/login';
+//$gsis_pa_live_redirect_uri = getenv('GSIS_PA_LIVE_REDIRECT_URI') ?: 'https://www.intra-kemke.gov.gr/oauth2-client/kemke_gsis_pa/code';
+$gsis_pa_live_redirect_uri = 'https://www.intra-kemke.gov.gr/oauth2-client/kemke_gsis_pa/code';
+$gsis_pa_test_redirect_uri = getenv('GSIS_PA_TEST_REDIRECT_URI') ?: 'https://www.intra-kemke.gov.gr/oauth2-client/kemke_gsis_pa/code';
 
 $settings['kemke_gsis_pa_oauth2_client'] = [
   'environment' => $gsis_pa_environment,
@@ -122,17 +114,15 @@ $settings['kemke_gsis_pa_oauth2_client'] = [
     default => $gsis_pa_test_redirect_uri,
   },
   'call_log_path' => 'private://gsis-pa/oauth-calls.log',
-  'call_log_retention_days' => 15,
+  'call_log_retention_days' => 30,
   'call_log_prune_interval_seconds' => 86400,
   'scopes' => ['read'],
 ];
 
-
 $settings['kemke_users_gsis_pa_auth2'] = [
   'enabled' => TRUE,
-  'allow_user_creation' => TRUE,
-  'default_roles' => [],
-//  'default_roles' => ['operator'],
+  'allow_user_creation' => FALSE,
+  'default_roles' => ['operator'],
 ];
 
 // GSIS Public Administration OAuth2 (oAuth2.0.PA) pilot configuration.
@@ -146,24 +136,5 @@ $settings['gsis_pa_auth'] = [
   'scope' => 'read',
   'auto_create_user' => FALSE,
 ];
-
-
-
-
-
-
-$settings['kemke_manuals_links_per_role'] = [
-  'kemke_admin' => [
-    'Εγχειρίδιο Διαχειριστή' => '/sites/default/files/manuals/Π3.2 Εγχειρίδιο διαχειριστή v1.4.pdf',
-    'Βίντεο Εκμάθησης' => 'https://www.youtube.com/',
-  ],
-  'amke_user' => [
-    'Εγχειρίδιο Χρήστη ΑΜΚΕ' => '/sites/default/files/manuals/Π3.1 Εγχειρίδιο χρήστη ΑΜΚΕ v1.1.pdf',
-    'Βίντεο Εκμάθησης' => 'https://www.youtube.com/',
-  ],
-  'default' => [
-    'Εγχειρίδιο χρήστη' => '/sites/default/files/manuals/Π3.1 Εγχειρίδιο χρήστη ΚΕΜΚΕ v1.4.pdf',
-    'Βίντεο Εκμάθησης' => 'https://www.youtube.com/',
-  ],
-];
-
+$settings['kemke_gsis_pa_oauth2_client']['call_log_retention_days'] = 30;
+$settings['kemke_gsis_pa_oauth2_client']['call_log_prune_interval_seconds'] = 86400;
