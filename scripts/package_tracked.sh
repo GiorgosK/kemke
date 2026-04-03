@@ -24,7 +24,37 @@ fi
 # - top-level .ddev/ and .vscode/ directories
 # - root-level db.zip
 EXCLUDE_REGEX='^(\.ddev/|\.vscode/|db\.zip$|vendor/|web/core/|web/modules/contrib/|web/themes/contrib/|tests/|scripts/|docs/)'
+ENABLED_MODULE_DIRS="$(
+  php -r '
+    require "vendor/autoload.php";
+    $config = Symfony\Component\Yaml\Yaml::parseFile("config/core.extension.yml");
+    $enabled = array_keys($config["module"] ?? []);
+    $dirs = [];
+    foreach (glob("web/modules/custom/*", GLOB_ONLYDIR) ?: [] as $dir) {
+      $name = basename($dir);
+      if (in_array($name, $enabled, true)) {
+        $dirs[] = $dir;
+      }
+    }
+    sort($dirs);
+    echo implode("\n", $dirs);
+  '
+)"
+
+DISABLED_MODULE_REGEX=''
+if [[ -n "$ENABLED_MODULE_DIRS" ]]; then
+  DISABLED_MODULE_REGEX="$(
+    find web/modules/custom -mindepth 1 -maxdepth 1 -type d \
+      | grep -Fvx -f <(printf '%s\n' "$ENABLED_MODULE_DIRS") \
+      | sed 's#[][\.^$*+?(){}|]#\\&#g' \
+      | paste -sd'|' -
+  )"
+fi
+
 FILES=$(git ls-files | grep -Ev "$EXCLUDE_REGEX" || true)
+if [[ -n "$DISABLED_MODULE_REGEX" ]]; then
+  FILES=$(printf '%s\n' "$FILES" | grep -Ev "^(${DISABLED_MODULE_REGEX})/" || true)
+fi
 if [[ -z "$FILES" ]]; then
   echo "No files to archive." >&2
   exit 0

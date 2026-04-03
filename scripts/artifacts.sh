@@ -51,8 +51,10 @@ run_schema() {
   (
     cd "$ROOT_DIR"
     ddev exec php scripts/export_schema.php
+    php scripts/export_custom_modules_overview.php
     pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
     pandoc docs/schema/schema-overview.md -o artifacts/schema-overview.pdf "${WKHTML_FLAGS[@]}"
+    pandoc docs/architecture/custom-modules-overview.md -o artifacts/custom-modules-overview.pdf "${WKHTML_FLAGS[@]}"
     wkhtmltopdf "${WKHTMLTOPDF_FLAGS[@]}" docs/api.html artifacts/api.pdf
   )
 }

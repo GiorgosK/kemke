@@ -27,3 +27,25 @@ code.language-plaintext {
   background: transparent !important;
   padding: 0 !important;
 }
+
+/* Prevent wkhtmltopdf from repeating table headers on each page. */
+thead {
+  display: table-row-group !important;
+}
+
+table {
+  width: 98% !important;
+  max-width: 98% !important;
+  border-collapse: collapse !important;
+  border: 1px solid #000 !important;
+  box-sizing: border-box !important;
+  margin-right: 0 !important;
+}
+
+th,
+td {
+  border: 1px solid #000 !important;
+  padding: 6px 8px !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+}
