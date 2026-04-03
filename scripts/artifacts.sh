@@ -52,10 +52,18 @@ run_schema() {
     cd "$ROOT_DIR"
     ddev exec php scripts/export_schema.php
     php scripts/export_custom_modules_overview.php
-    pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
     pandoc docs/schema/schema-overview.md -o artifacts/schema-overview.pdf "${WKHTML_FLAGS[@]}"
     pandoc docs/architecture/custom-modules-overview.md -o artifacts/custom-modules-overview.pdf "${WKHTML_FLAGS[@]}"
     wkhtmltopdf "${WKHTMLTOPDF_FLAGS[@]}" docs/api.html artifacts/api.pdf
+  )
+}
+
+run_setup() {
+  mkdir -p "$ROOT_DIR/artifacts"
+
+  (
+    cd "$ROOT_DIR"
+    pandoc SETUP.md -o artifacts/SETUP.pdf "${WKHTML_FLAGS[@]}"
   )
 }
 
@@ -72,8 +80,9 @@ Usage: $(basename "$0") [--package] [--db] [--schema] [--uat] [--help]
 Without arguments, all sections run in order:
   1. --package
   2. --db
-  3. --schema
-  4. --uat
+  3. --setup
+  4. --schema
+  5. --uat
 EOF
 }
 
@@ -82,6 +91,7 @@ run_selected=false
 if [[ $# -eq 0 ]]; then
   run_package
   run_db
+  run_setup
   run_schema
   run_uat
   exit 0
@@ -99,6 +109,10 @@ for arg in "$@"; do
       ;;
     --schema)
       run_schema
+      run_selected=true
+      ;;
+    --setup)
+      run_setup
       run_selected=true
       ;;
     --uat)
