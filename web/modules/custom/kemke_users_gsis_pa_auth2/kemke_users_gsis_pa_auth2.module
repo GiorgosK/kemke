@@ -70,5 +70,9 @@ function kemke_users_gsis_pa_auth2_block_view_alter(array &$build, BlockPluginIn
  */
 function kemke_users_gsis_pa_auth2_local_login_enabled(): bool {
   $request = \Drupal::request();
-  return $request->query->get(KEMKE_USERS_GSIS_PA_AUTH2_LOCAL_LOGIN_QUERY) === '1';
+  if ($request->query->get(KEMKE_USERS_GSIS_PA_AUTH2_LOCAL_LOGIN_QUERY) === '1') {
+    return TRUE;
+  }
+
+  return \Drupal::routeMatch()->getRouteName() === 'kemke_users_gsis_pa_auth2.local_login';
 }

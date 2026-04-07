@@ -8,6 +8,16 @@ kemke_users_gsis_pa_auth2.login:
   options:
     no_cache: 'TRUE'
 
+kemke_users_gsis_pa_auth2.local_login:
+  path: '/user/login/local'
+  defaults:
+    _form: '\Drupal\user\Form\UserLoginForm'
+    _title: 'Σύνδεση διαχειριστή'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
 kemke_users_gsis_pa_auth2.finalize:
   path: '/auth/gsis-pa/finalize'
   defaults:
