@@ -11,6 +11,17 @@ use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
 
 /**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function taxonomy_tweaks_entity_base_field_info_alter(array &$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type): void {
+  if ($entity_type->id() !== 'taxonomy_term' || !isset($fields['name'])) {
+    return;
+  }
+
+  $fields['name']->setSetting('max_length', 1024);
+}
+
+/**
  * Implements hook_entity_prepare_form().
  */
 function taxonomy_tweaks_entity_prepare_form(EntityInterface $entity, string $operation, FormStateInterface $form_state): void {

@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Increase taxonomy term name storage to 1024 characters.
+ */
+function taxonomy_tweaks_update_11001(): void {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+
+  $varchar_1024 = [
+    'description' => 'Updated by taxonomy_tweaks_update_11001().',
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => FALSE,
+  ];
+
+  foreach (['taxonomy_term_field_data', 'taxonomy_term_field_revision'] as $table) {
+    if (!$schema->tableExists($table) || !$schema->fieldExists($table, 'name')) {
+      continue;
+    }
+    $schema->changeField($table, 'name', 'name', $varchar_1024);
+  }
+}
+
+/**
+ * Refresh installed taxonomy term field storage metadata for resized name.
+ */
+function taxonomy_tweaks_update_11002(): void {
+  $repository = \Drupal::service('entity.last_installed_schema.repository');
+  $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('taxonomy_term');
+
+  if (isset($definitions['name'])) {
+    $repository->setLastInstalledFieldStorageDefinition($definitions['name']);
+  }
+}
+
+/**
+ * Refresh stored SQL schema snapshots for the resized taxonomy term name.
+ */
+function taxonomy_tweaks_update_11003(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  $storage_reflection = new \ReflectionClass($storage);
+  $get_storage_schema = $storage_reflection->getMethod('getStorageSchema');
+  $get_storage_schema->setAccessible(TRUE);
+  $schema_handler = $get_storage_schema->invoke($storage);
+
+  $schema_reflection = new \ReflectionClass($schema_handler);
+  $get_schema_from_definition = $schema_reflection->getMethod('getSchemaFromStorageDefinition');
+  $get_schema_from_definition->setAccessible(TRUE);
+  $process_field_storage_schema = $schema_reflection->getMethod('processFieldStorageSchema');
+  $process_field_storage_schema->setAccessible(TRUE);
+
+  $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('taxonomy_term');
+  if (!isset($definitions['name'])) {
+    return;
+  }
+
+  $schema = $get_schema_from_definition->invoke($schema_handler, $definitions['name']);
+  $process_field_storage_schema->invokeArgs($schema_handler, [&$schema]);
+
+  \Drupal::keyValue('entity.storage_schema.sql')
+    ->set('taxonomy_term.field_schema_data.name', $schema);
+}
