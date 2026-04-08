@@ -63,3 +63,14 @@ function taxonomy_tweaks_update_11003(): void {
   \Drupal::keyValue('entity.storage_schema.sql')
     ->set('taxonomy_term.field_schema_data.name', $schema);
 }
+
+/**
+ * Remove stale system.schema entry for the missing shs module.
+ */
+function taxonomy_tweaks_update_11004(): void {
+  if (\Drupal::moduleHandler()->moduleExists('shs')) {
+    return;
+  }
+
+  \Drupal::keyValue('system.schema')->delete('shs');
+}
