@@ -2104,7 +2104,7 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
     return NULL;
   }
 
-  $environment_key = incoming_tweaks_is_side_api_live() ? 'live' : 'test';
+  $environment_key = incoming_tweaks_side_api_environment_key();
   $department = $decoded['department'][$environment_key] ?? NULL;
   if (!is_array($department)) {
     return NULL;
@@ -2124,15 +2124,30 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
 }
 
 /**
- * Read side_api live/test mode from settings.
+ * Resolve side_api field_dt_config environment key for the current host.
  */
-function incoming_tweaks_is_side_api_live(): bool {
+function incoming_tweaks_side_api_environment_key(): string {
+  $host = $_SERVER['HTTP_HOST'] ?? '';
   $settings = Settings::get('side_api', []);
-  if (!is_array($settings) || !array_key_exists('live', $settings)) {
-    return TRUE;
+
+  if (
+    $host !== ''
+    && is_array($settings)
+    && isset($settings['host_overrides'][$host])
+    && is_array($settings['host_overrides'][$host])
+  ) {
+    $override_environment = $settings['host_overrides'][$host]['environment_key'] ?? NULL;
+    if (is_string($override_environment) && in_array($override_environment, ['test', 'live'], TRUE)) {
+      return $override_environment;
+    }
   }
 
-  return (bool) $settings['live'];
+  $dev_hosts = ['kemke.webx2.com', 'kemke.ddev.site'];
+  if (is_array($settings) && isset($settings['dev_hosts']) && is_array($settings['dev_hosts'])) {
+    $dev_hosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
+  }
+
+  return in_array($host, $dev_hosts, TRUE) ? 'test' : 'live';
 }
 
 /**

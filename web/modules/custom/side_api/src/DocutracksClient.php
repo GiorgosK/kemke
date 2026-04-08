@@ -1268,6 +1268,23 @@ final class DocutracksClient {
   private function detectEnvironment(): array {
     $host = $_SERVER['HTTP_HOST'] ?? '';
     $settings = Settings::get('side_api', []);
+
+    if (
+      $host !== ''
+      && is_array($settings)
+      && isset($settings['host_overrides'][$host])
+      && is_array($settings['host_overrides'][$host])
+    ) {
+      $override = $settings['host_overrides'][$host];
+      return [
+        'base_url' => (string) ($override['base_url'] ?? self::DEV_BASE_URL),
+        'admin_user' => (string) ($override['admin_user'] ?? self::DEV_ADMIN_USER),
+        'admin_pass' => (string) ($override['admin_pass'] ?? self::DEV_ADMIN_PASS),
+        'app_user' => (string) ($override['app_user'] ?? self::DEV_APP_USER),
+        'app_pass' => (string) ($override['app_pass'] ?? self::DEV_APP_PASS),
+      ];
+    }
+
     $devHosts = ['kemke.webx2.com', 'kemke.ddev.site'];
     if (is_array($settings) && isset($settings['dev_hosts']) && is_array($settings['dev_hosts'])) {
       $devHosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
@@ -1276,11 +1293,11 @@ final class DocutracksClient {
 
     if ($isDev) {
       return [
-        'base_url' => self::DEV_BASE_URL,
-        'admin_user' => self::DEV_ADMIN_USER,
-        'admin_pass' => self::DEV_ADMIN_PASS,
-        'app_user' => self::DEV_APP_USER,
-        'app_pass' => self::DEV_APP_PASS,
+        'base_url' => is_array($settings) ? (string) ($settings['dev_base_url'] ?? self::DEV_BASE_URL) : self::DEV_BASE_URL,
+        'admin_user' => is_array($settings) ? (string) ($settings['dev_admin_user'] ?? self::DEV_ADMIN_USER) : self::DEV_ADMIN_USER,
+        'admin_pass' => is_array($settings) ? (string) ($settings['dev_admin_pass'] ?? self::DEV_ADMIN_PASS) : self::DEV_ADMIN_PASS,
+        'app_user' => is_array($settings) ? (string) ($settings['dev_app_user'] ?? self::DEV_APP_USER) : self::DEV_APP_USER,
+        'app_pass' => is_array($settings) ? (string) ($settings['dev_app_pass'] ?? self::DEV_APP_PASS) : self::DEV_APP_PASS,
       ];
     }
 
@@ -1300,6 +1317,15 @@ final class DocutracksClient {
     $resolved = rtrim($baseUrl ?? $this->detectEnvironment()['base_url'], '/');
     $this->assertValidBaseUrl($resolved);
     return $resolved;
+  }
+
+  /**
+   * Return the currently effective environment settings for this host.
+   *
+   * @return array{base_url:string, admin_user:string, admin_pass:string, app_user:string, app_pass:string}
+   */
+  public function getResolvedEnvironment(): array {
+    return $this->detectEnvironment();
   }
 
   /**

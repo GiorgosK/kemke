@@ -22,13 +22,25 @@ $databases['default']['default'] = array (
 $settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
 
 $settings['side_api']['verify_ssl'] = FALSE;
-$settings['side_api']['dev_hosts'] = ['kemke.ddev.site'];
-#$settings['side_api']['dev_hosts'] = ['kemke.ddev.site','kemke.webx2.com'];
-$settings['side_api']['live_base_url'] = 'https://test-shde-int.gsis.gr';
+$settings['side_api']['dev_hosts'] = ['kemke.ddev.site', 'kemke.webx2.com'];
+$settings['side_api']['host_overrides']['kemke.ddev.site'] = [
+  'environment_key' => 'test',
+  'base_url' => 'https://edu.docutracks.eu',
+  'admin_user' => 'admin',
+  'admin_pass' => 'aQ!23456',
+  'app_user' => 'intraway',
+  'app_pass' => 'Intraway2025!',
+];
+$settings['side_api']['dev_base_url'] = 'https://test-shde-int.gsis.gr';
+$settings['side_api']['dev_admin_user'] = 'kemke';
+$settings['side_api']['dev_admin_pass'] = '1223456';
+$settings['side_api']['dev_app_user'] = 'kemke';
+$settings['side_api']['dev_app_pass'] = '123456';
+$settings['side_api']['live_base_url'] = 'https://shde-int.gsis.gr';
 $settings['side_api']['live_admin_user'] = 'kemke';
-$settings['side_api']['live_admin_pass'] = '1223456';
+$settings['side_api']['live_admin_pass'] = 'Kemke123!';
 $settings['side_api']['live_app_user'] = 'kemke';
-$settings['side_api']['live_app_pass'] = '123456';
+$settings['side_api']['live_app_pass'] = 'Kemke123!';
 
 $settings['side_api']['defaults'] = [
   'created_by' => 14780192,
@@ -139,5 +151,3 @@ $settings['gsis_pa_auth'] = [
 ];
 $settings['kemke_gsis_pa_oauth2_client']['call_log_retention_days'] = 30;
 $settings['kemke_gsis_pa_oauth2_client']['call_log_prune_interval_seconds'] = 86400;
-
-

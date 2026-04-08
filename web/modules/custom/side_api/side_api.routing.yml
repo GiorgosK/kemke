@@ -1,0 +1,9 @@
+side_api.connection_check:
+  path: '/admin/reports/side-api/connection-check/{environment}'
+  defaults:
+    _controller: '\Drupal\side_api\Controller\SideApiConnectionCheckController::build'
+    _title: 'SIDE connection check'
+    environment: 'dev'
+  requirements:
+    _permission: 'administer site configuration'
+    environment: 'dev|live'

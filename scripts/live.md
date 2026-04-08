@@ -150,3 +150,8 @@ drush updb -y
 drush cim
 drush cr
 ```
+
+## Check side connection
+
+/admin/reports/side-api/connection-check
+/admin/reports/side-api/connection-check/live
