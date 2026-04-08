@@ -49,6 +49,9 @@ $settings['side_api']['defaults'] = [
   'Apostoleas_Name' => 'KEMKE User',
   'Apostoleas_NameEmail' => 'kemke@example.com',
 ];
+$settings['side_api']['defaults_live'] = [
+  'created_by' => 14778608,
+];
 
 $settings['side_api']['type_id'] = 2;
 // New Docutracks: Kind.Id = 50 (Εγγραφο KEMKE). Old Docutracks: Kind.Id = 38 (Δοκιμαστικό).

@@ -1133,42 +1133,54 @@ final class DocutracksClient {
   /**
    * Defaults for CreatedBy / CreatedByGroup depending on environment.
    *
-   * @return array{created_by:int, created_by_group:int}
+   * Supports generic overrides in side_api.defaults and environment-specific
+   * overrides in side_api.defaults_test / side_api.defaults_live.
+   *
+   * @return array{created_by:int, created_by_group:int, owned_by_group:int, Apostoleas_Name:string, Apostoleas_NameEmail:string}
    */
   private function defaults(): array {
-    $env = $this->detectEnvironment();
-    $isDev = $env['base_url'] === self::DEV_BASE_URL;
     $settings = Settings::get('side_api', []);
-    $overrides = is_array($settings) ? ($settings['defaults'] ?? []) : [];
-    if (is_array($overrides) && $overrides !== []) {
-      unset($overrides['kind_id'], $overrides['type_id']);
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $dev_hosts = ['kemke.webx2.com', 'kemke.ddev.site'];
+    if (is_array($settings) && isset($settings['dev_hosts']) && is_array($settings['dev_hosts'])) {
+      $dev_hosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
+    }
+    $environment_key = in_array($host, $dev_hosts, TRUE) ? 'test' : 'live';
+    if (
+      $host !== ''
+      && is_array($settings)
+      && isset($settings['host_overrides'][$host])
+      && is_array($settings['host_overrides'][$host])
+    ) {
+      $override_environment = $settings['host_overrides'][$host]['environment_key'] ?? NULL;
+      if (is_string($override_environment) && in_array($override_environment, ['test', 'live'], TRUE)) {
+        $environment_key = $override_environment;
+      }
     }
 
-    if ($isDev) {
-      $defaults = [
+    $base_defaults = $environment_key === 'test'
+      ? [
         'created_by' => 2166,
         'created_by_group' => 1421,
         'owned_by_group' => 1421,
         'Apostoleas_Name' => 'lastname4321 firstname4321',
-        'Apostoleas_NameEmail' => 'lastname4321 firstname4321'
+        'Apostoleas_NameEmail' => 'lastname4321 firstname4321',
+      ]
+      : [
+        'created_by' => 0,
+        'created_by_group' => 0,
+        'owned_by_group' => 0,
+        'Apostoleas_Name' => '0',
+        'Apostoleas_NameEmail' => '0',
       ];
-      if (is_array($overrides) && $overrides !== []) {
-        return array_replace($defaults, $overrides);
-      }
-      return $defaults;
-    }
 
-    $defaults = [
-      'created_by' => 0,
-      'created_by_group' => 0,
-      'owned_by_group' => 0,
-      'Apostoleas_Name' => '0',
-      'Apostoleas_NameEmail' => '0'
-    ];
-    if (is_array($overrides) && $overrides !== []) {
-      return array_replace($defaults, $overrides);
-    }
-    return $defaults;
+    $overrides = is_array($settings) ? ($settings['defaults'] ?? []) : [];
+    $environment_overrides = is_array($settings) ? ($settings['defaults_' . $environment_key] ?? []) : [];
+    $overrides = is_array($overrides) ? $overrides : [];
+    $environment_overrides = is_array($environment_overrides) ? $environment_overrides : [];
+    unset($overrides['kind_id'], $overrides['type_id'], $environment_overrides['kind_id'], $environment_overrides['type_id']);
+
+    return array_replace($base_defaults, $overrides, $environment_overrides);
   }
 
   /**
