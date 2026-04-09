@@ -462,13 +462,31 @@ function users_tweaks_toolbar_alter(array &$items): void {
     return;
   }
 
-  $title = users_tweaks_build_user_title($account);
+  $base_title = users_tweaks_build_user_title($account);
+  $title = $base_title;
   $role_label = users_tweaks_get_primary_role_label($account);
+  $full_role_label = $role_label;
+  if ($account->hasRole('amke_user') && $account->hasField('field_legal_entity')) {
+    $legal_entity = $account->get('field_legal_entity')->entity;
+    if ($legal_entity) {
+      $full_role_label = $legal_entity->label();
+    }
+  }
   if ($role_label !== NULL) {
     $title .= ' (' . $role_label . ')';
   }
 
   $items['user']['tab']['#title'] = $title;
+  if ($full_role_label !== NULL) {
+    $tooltip = $base_title . ' (' . $full_role_label . ')';
+    $items['user']['tab']['#attributes']['title'] = $tooltip;
+    $items['user']['tab']['#attributes']['data-full-title'] = $tooltip;
+  }
+
+  // Replace the lazy-builder title with a plain server-rendered string so the
+  // final anchor markup remains stable.
+  unset($items['user']['tab']['#lazy_builder'], $items['user']['tab']['#create_placeholder'], $items['user']['tab']['#lazy_builder_preview']);
+  $items['user']['#attached']['library'][] = 'users_tweaks/toolbar-title';
   $cacheable_metadata = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($items['user']['tab'])
     ->addCacheableDependency($account)
     ->addCacheContexts(['user', 'user.roles']);
@@ -484,13 +502,54 @@ function users_tweaks_toolbar_alter(array &$items): void {
 }
 
 /**
+ * Implements hook_preprocess_toolbar().
+ */
+function users_tweaks_preprocess_toolbar(array &$variables): void {
+  if (empty($variables['tabs']['user']['link']) || !is_array($variables['tabs']['user']['link'])) {
+    return;
+  }
+
+  $current_user = \Drupal::currentUser();
+  if (!$current_user->isAuthenticated()) {
+    return;
+  }
+
+  $account = \Drupal::entityTypeManager()->getStorage('user')->load($current_user->id());
+  if (!$account instanceof UserInterface) {
+    return;
+  }
+
+  $base_title = users_tweaks_build_user_title($account);
+  $role_label = users_tweaks_get_primary_role_label($account);
+  $full_role_label = $role_label;
+  if ($account->hasRole('amke_user') && $account->hasField('field_legal_entity')) {
+    $legal_entity = $account->get('field_legal_entity')->entity;
+    if ($legal_entity) {
+      $full_role_label = $legal_entity->label();
+    }
+  }
+
+  $title = $base_title;
+  if ($role_label !== NULL) {
+    $title .= ' (' . $role_label . ')';
+  }
+
+  $variables['tabs']['user']['link']['#title'] = $title;
+  if ($full_role_label !== NULL) {
+    $tooltip = $base_title . ' (' . $full_role_label . ')';
+    $variables['tabs']['user']['link']['#attributes']['title'] = $tooltip;
+    $variables['tabs']['user']['link']['#attributes']['data-full-title'] = $tooltip;
+  }
+}
+
+/**
  * Get the first non-authenticated role label for a user.
  */
 function users_tweaks_get_primary_role_label(UserInterface $account): ?string {
   if ($account->hasRole('amke_user') && $account->hasField('field_legal_entity')) {
     $legal_entity = $account->get('field_legal_entity')->entity;
     if ($legal_entity) {
-      return $legal_entity->label();
+      return users_tweaks_build_toolbar_legal_entity_label($legal_entity->label());
     }
   }
 
@@ -510,6 +569,24 @@ function users_tweaks_get_primary_role_label(UserInterface $account): ?string {
   }
 
   return NULL;
+}
+
+/**
+ * Build a compact toolbar label for long legal entity names.
+ */
+function users_tweaks_build_toolbar_legal_entity_label(string $label): string {
+  $label = trim($label);
+  if ($label === '') {
+    return $label;
+  }
+
+  $parts = preg_split('/\s*[-–—]\s*/u', $label, 2);
+  $short = trim((string) ($parts[0] ?? ''));
+  if ($short === '' || $short === $label) {
+    return $label;
+  }
+
+  return $short . ' ...';
 }
 
 /**

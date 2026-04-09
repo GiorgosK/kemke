@@ -1,0 +1,7 @@
+toolbar-title:
+  version: VERSION
+  js:
+    js/toolbar-title.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
