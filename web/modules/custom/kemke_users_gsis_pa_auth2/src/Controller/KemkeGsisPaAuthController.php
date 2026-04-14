@@ -13,6 +13,7 @@ use Drupal\Core\State\StateInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
 use Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger;
+use Drupal\kemke_users_gsis_pa_auth2\GsisPaAuthAuditLogger;
 use Drupal\oauth2_client\Entity\Oauth2Client;
 use Drupal\oauth2_client\Plugin\Oauth2Client\Oauth2ClientPluginInterface;
 use Drupal\oauth2_client\Plugin\Oauth2GrantType\AuthorizationCode;
@@ -40,6 +41,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     private readonly AccountProxyInterface $currentAccount,
     private readonly StateInterface $state,
     private readonly GsisPaCallLogger $callLogger,
+    private readonly GsisPaAuthAuditLogger $auditLogger,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -51,6 +53,7 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       $container->get('current_user'),
       $container->get('state'),
       $container->get('kemke_gsis_pa_oauth2_client.call_logger'),
+      $container->get('kemke_users_gsis_pa_auth2.audit_logger'),
     );
   }
 
@@ -90,6 +93,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     // Force a fresh auth flow for deterministic testing.
+    $this->auditLogger->startFlow();
+    $this->auditLogger->logEvent('auth_start', 'Έναρξη αυθεντικοποίησης', 'έναρξη');
     $this->oauth2ClientService->clearAccessToken(self::OAUTH_PLUGIN_ID);
     $client = $this->oauth2ClientService->getClient(self::OAUTH_PLUGIN_ID);
     $this->callLogger->log('login_start', [
@@ -114,6 +119,9 @@ final class KemkeGsisPaAuthController extends ControllerBase {
   private function handleAuthorizationCallback(Request $request): RedirectResponse {
     $error = trim((string) $request->query->get('error', ''));
     if ($error !== '') {
+      $this->auditLogger->logEvent('oauth_callback_error', 'Επιστροφή OAuth με σφάλμα', 'άρνηση', [
+      ]);
+      $this->auditLogger->clearCurrentFlow();
       $this->callLogger->log('authorization_callback_error', [
         'error' => $error,
         'error_description' => trim((string) $request->query->get('error_description', '')),
@@ -125,9 +133,13 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     $code = trim((string) $request->query->get('code', ''));
     $state = trim((string) $request->query->get('state', ''));
     if ($code === '' || $state === '') {
+      $this->auditLogger->logEvent('oauth_callback_invalid', 'Επιστροφή OAuth χωρίς απαιτούμενες παραμέτρους', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed: missing authorization callback parameters.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
+
+    $this->auditLogger->logEvent('oauth_callback_return', 'Επιστροφή από τον πάροχο OAuth', 'επιστροφή');
 
     $oauth2Client = $this->entityTypeManager()->getStorage('oauth2_client')->load(self::OAUTH_PLUGIN_ID);
     if (!$oauth2Client instanceof Oauth2Client) {
@@ -145,6 +157,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     $storedState = (string) $tempstore->get('oauth2_client_state-' . self::OAUTH_PLUGIN_ID);
     if ($state !== $storedState) {
       $tempstore->delete('oauth2_client_state-' . self::OAUTH_PLUGIN_ID);
+      $this->auditLogger->logEvent('oauth_callback_invalid_state', 'Ασυμφωνία state στην επιστροφή OAuth', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed: invalid OAuth state.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -156,6 +170,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     if (!$grantPlugin->requestAccessToken($clientPlugin, $code)) {
+      $this->auditLogger->logEvent('token_exchange_failed', 'Αποτυχία ανταλλαγής authorization code', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->callLogger->log('authorization_callback_token_exchange_failed', [
         'redirect_uri' => $clientPlugin->getRedirectUri(),
       ]);
@@ -169,6 +185,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
   public function finalize(): RedirectResponse {
     $token = $this->oauth2ClientService->retrieveAccessToken(self::OAUTH_PLUGIN_ID);
     if ($token === NULL) {
+      $this->auditLogger->logEvent('finalize_missing_token', 'Ολοκλήρωση χωρίς access token', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed: missing access token.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -198,6 +216,9 @@ final class KemkeGsisPaAuthController extends ControllerBase {
         'error' => $throwable->getMessage(),
       ]);
       $this->getLogger('kemke_users_gsis_pa_auth2')->error('Userinfo request failed: @message', ['@message' => $throwable->getMessage()]);
+      $this->auditLogger->logEvent('userinfo_request_failed', 'Αποτυχία κλήσης στοιχείων χρήστη', 'σφάλμα', [
+      ]);
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed while fetching user info.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -211,6 +232,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     ]);
 
     if ($xml_string === '') {
+      $this->auditLogger->logEvent('userinfo_empty', 'Κενή απάντηση στοιχείων χρήστη', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed: empty user info response.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -218,6 +241,8 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     libxml_use_internal_errors(TRUE);
     $xml = simplexml_load_string($xml_string, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NONET);
     if (!$xml instanceof \SimpleXMLElement) {
+      $this->auditLogger->logEvent('userinfo_invalid_xml', 'Μη έγκυρο XML στοιχείων χρήστη', 'σφάλμα');
+      $this->auditLogger->clearCurrentFlow();
       $this->messengerService->addError($this->t('GSIS login failed: invalid XML response.'));
       return new RedirectResponse(Url::fromRoute('user.login')->toString());
     }
@@ -230,8 +255,16 @@ final class KemkeGsisPaAuthController extends ControllerBase {
       'afm' => $this->extractXmlValue($xml, ['AFM', 'taxid', 'TIN']),
     ];
     $raw_payload = $this->extractReceivedPayload($xml);
+    $this->auditLogger->attachIdentityToCurrentFlow([
+      'gsis_username' => $details['username'],
+      'afm' => $details['afm'],
+      'first_name' => $details['first_name'],
+      'last_name' => $details['last_name'],
+    ]);
 
     if ($details['afm'] === NULL && $details['userid'] === NULL) {
+      $this->auditLogger->logEvent('identity_missing', 'Η απάντηση της ΓΓΠΣ δεν περιέχει ΑΦΜ και userid', 'άρνηση');
+      $this->auditLogger->clearCurrentFlow();
       $this->callLogger->log('finalize_missing_afm', [
         'gsis_user' => $this->buildGsisUserContext($details),
       ]);
@@ -256,12 +289,16 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     if ($user === NULL) {
       if (in_array($match_result['reason'], ['duplicate_afm', 'duplicate_userid', 'conflicting_identifiers'], TRUE)) {
+        $this->auditLogger->logEvent('match_failed_duplicate', 'Πολλοί τοπικοί λογαριασμοί ταιριάζουν με τα στοιχεία ΓΓΠΣ', 'άρνηση');
+        $this->auditLogger->clearCurrentFlow();
         $this->callLogger->log('match_failed_duplicate_afm', [
           'gsis_user' => $this->buildGsisUserContext($details),
         ]);
         $this->messengerService->addError($this->t('Login denied: GSIS AFM/userid matches multiple or conflicting local accounts.'));
         return new RedirectResponse(Url::fromRoute('user.login')->toString());
       }
+      $this->auditLogger->logEvent('match_failed_no_user', 'Δεν βρέθηκε τοπικός χρήστης για τα στοιχεία ΓΓΠΣ', 'άρνηση');
+      $this->auditLogger->clearCurrentFlow();
       $this->callLogger->log('match_failed_no_local_user', [
         'gsis_user' => $this->buildGsisUserContext($details),
       ]);
@@ -270,6 +307,12 @@ final class KemkeGsisPaAuthController extends ControllerBase {
     }
 
     if (!$user->isActive()) {
+      $this->auditLogger->attachLocalUserToCurrentFlow($user);
+      $this->auditLogger->logEvent('match_blocked_user', 'Ο τοπικός χρήστης που ταιριάζει είναι μπλοκαρισμένος', 'άρνηση', [
+        'uid' => (int) $user->id(),
+        'local_username' => $user->getAccountName(),
+      ]);
+      $this->auditLogger->clearCurrentFlow();
       $this->callLogger->log('match_blocked_user', [
         'gsis_user' => $this->buildGsisUserContext($details),
       ]);
@@ -279,8 +322,14 @@ final class KemkeGsisPaAuthController extends ControllerBase {
 
     $this->syncUserFields($user, $details, $raw_payload);
     $user->save();
+    $this->auditLogger->attachLocalUserToCurrentFlow($user);
 
     user_login_finalize($user);
+    $this->auditLogger->logEvent('login_success', 'Επιτυχής σύνδεση χρήστη', 'επιτυχία', [
+      'uid' => (int) $user->id(),
+      'local_username' => $user->getAccountName(),
+    ]);
+    $this->auditLogger->clearCurrentFlow();
     $this->callLogger->log('login_success', [
       'gsis_user' => $this->buildGsisUserContext($details),
     ]);

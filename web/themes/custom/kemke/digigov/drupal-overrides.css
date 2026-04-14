@@ -145,6 +145,12 @@ tr.visible-to-amke {
 .feed-icons .xls-feed .feed-icon {
   background-image: url(../images/icons/xls.svg) !important;
 }
+.view-id-kemke-gsis-pa-auth-audit .feed-icons .xls-feed .feed-icon {
+  width: 48px;
+  height: 48px;
+  background-size: 48px 48px;
+  background-image: url(../images/icons/xls.svg) !important;
+}
 
 /* notify widget */
 .region-header {

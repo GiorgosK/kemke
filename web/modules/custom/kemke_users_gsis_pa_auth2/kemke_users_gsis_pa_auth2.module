@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
+use Drupal\views\ViewExecutable;
 
 /**
  * Query parameter that exposes the local Drupal login form.
@@ -75,4 +77,131 @@ function kemke_users_gsis_pa_auth2_local_login_enabled(): bool {
   }
 
   return \Drupal::routeMatch()->getRouteName() === 'kemke_users_gsis_pa_auth2.local_login';
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function kemke_users_gsis_pa_auth2_views_data(): array {
+  $data = [];
+
+  $data['kemke_gsis_pa_auth_audit']['table'] = [
+    'group' => t('Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'),
+    'base' => [
+      'field' => 'id',
+      'title' => t('Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'),
+      'help' => t('Καταγραφές σύνδεσης και αποσύνδεσης μέσω GSIS PA.'),
+    ],
+  ];
+
+  $data['kemke_gsis_pa_auth_audit']['id'] = [
+    'title' => t('Α/Α'),
+    'help' => t('Αναγνωριστικό εγγραφής.'),
+    'field' => ['id' => 'numeric'],
+    'filter' => ['id' => 'numeric'],
+    'sort' => ['id' => 'standard'],
+  ];
+
+  $data['kemke_gsis_pa_auth_audit']['flow_id'] = [
+    'title' => t('Κωδικός ροής'),
+    'help' => t('Αναγνωριστικό ροής αυθεντικοποίησης.'),
+    'field' => ['id' => 'standard'],
+    'filter' => ['id' => 'string'],
+    'sort' => ['id' => 'standard'],
+  ];
+
+  $data['kemke_gsis_pa_auth_audit']['created'] = [
+    'title' => t('Ημερομηνία'),
+    'help' => t('Η ημερομηνία και ώρα καταγραφής.'),
+    'field' => ['id' => 'date'],
+    'filter' => ['id' => 'date'],
+    'sort' => ['id' => 'date'],
+  ];
+
+  foreach ([
+    'event_key' => t('Κωδικός συμβάντος'),
+    'event_label' => t('Συμβάν'),
+    'outcome' => t('Κατάσταση'),
+    'request_path' => t('Διαδρομή αιτήματος'),
+    'ip_address' => t('Διεύθυνση IP'),
+    'local_username' => t('όνομα χρήστη (Τοπικό)'),
+    'gsis_username' => t('Όνομα χρήστη (ΓΓΠΣ)'),
+    'afm' => t('ΑΦΜ'),
+    'first_name' => t('Όνομα'),
+    'last_name' => t('Επώνυμο'),
+  ] as $column => $title) {
+    $data['kemke_gsis_pa_auth_audit'][$column] = [
+      'title' => $title,
+      'help' => $title,
+      'field' => ['id' => 'standard'],
+      'filter' => ['id' => 'string'],
+      'sort' => ['id' => 'standard'],
+    ];
+  }
+
+  $data['kemke_gsis_pa_auth_audit']['uid'] = [
+    'title' => t('UID'),
+    'help' => t('Αναγνωριστικό τοπικού χρήστη.'),
+    'field' => ['id' => 'numeric'],
+    'filter' => ['id' => 'numeric'],
+    'sort' => ['id' => 'standard'],
+    'relationship' => [
+      'id' => 'standard',
+      'base' => 'users_field_data',
+      'base field' => 'uid',
+      'label' => t('Τοπικός χρήστης'),
+    ],
+  ];
+
+  return $data;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function kemke_users_gsis_pa_auth2_cron(): void {
+  \Drupal::service('kemke_users_gsis_pa_auth2.audit_logger')->pruneExpiredRecords();
+}
+
+/**
+ * Implements hook_user_logout().
+ */
+function kemke_users_gsis_pa_auth2_user_logout(AccountInterface $account): void {
+  \Drupal::service('kemke_users_gsis_pa_auth2.audit_logger')->logLogout($account);
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function kemke_users_gsis_pa_auth2_preprocess_views_view(array &$variables): void {
+  if (
+    empty($variables['view']) ||
+    !$variables['view'] instanceof ViewExecutable ||
+    $variables['view']->id() !== 'kemke_gsis_pa_auth_audit' ||
+    empty($variables['feed_icons']) ||
+    !is_array($variables['feed_icons'])
+  ) {
+    return;
+  }
+
+  foreach ($variables['feed_icons'] as &$icon) {
+    if (
+      !is_array($icon) ||
+      empty($icon['#format']) ||
+      strtoupper((string) $icon['#format']) !== 'XLSX' ||
+      empty($icon['#theme_wrappers']['container']['#attributes']['class']) ||
+      !is_array($icon['#theme_wrappers']['container']['#attributes']['class'])
+    ) {
+      continue;
+    }
+
+    $icon['#theme_wrappers']['container']['#attributes']['class'] = array_values(array_filter(
+      $icon['#theme_wrappers']['container']['#attributes']['class'],
+      static fn (string $class): bool => $class !== 'xlsx-feed'
+    ));
+
+    if (!in_array('xls-feed', $icon['#theme_wrappers']['container']['#attributes']['class'], TRUE)) {
+      $icon['#theme_wrappers']['container']['#attributes']['class'][] = 'xls-feed';
+    }
+  }
 }

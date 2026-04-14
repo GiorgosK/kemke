@@ -122,6 +122,135 @@ function _kemke_users_gsis_pa_auth2_repair_field_schema_data(string $entity_type
 }
 
 /**
+ * Returns the GSIS auth audit schema definition.
+ *
+ * @return array<string, mixed>
+ */
+function _kemke_users_gsis_pa_auth2_auth_audit_schema(): array {
+  return [
+    'description' => 'Audit trail for GSIS PA authentication flows.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'flow_id' => [
+        'description' => 'Authentication flow identifier.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'created' => [
+        'description' => 'Unix timestamp when the row was created.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'event_key' => [
+        'description' => 'Machine name of the auth event.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'event_label' => [
+        'description' => 'Human-readable event label.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'outcome' => [
+        'description' => 'Outcome of the auth event.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'request_path' => [
+        'description' => 'Drupal request path.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'ip_address' => [
+        'description' => 'Client IP address.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'uid' => [
+        'description' => 'Matched local user ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'local_username' => [
+        'description' => 'Matched local Drupal username.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'gsis_username' => [
+        'description' => 'GSIS username returned by the provider.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'afm' => [
+        'description' => 'GSIS AFM.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'first_name' => [
+        'description' => 'First name from GSIS.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'last_name' => [
+        'description' => 'Last name from GSIS.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'created' => ['created'],
+      'flow_id' => ['flow_id'],
+      'afm' => ['afm'],
+      'ip_address' => ['ip_address'],
+      'uid' => ['uid'],
+      'local_username' => ['local_username'],
+      'first_name' => ['first_name'],
+      'last_name' => ['last_name'],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_schema().
+ */
+function kemke_users_gsis_pa_auth2_schema(): array {
+  return [
+    'kemke_gsis_pa_auth_audit' => _kemke_users_gsis_pa_auth2_auth_audit_schema(),
+  ];
+}
+
+/**
  * Implements hook_install().
  */
 function kemke_users_gsis_pa_auth2_install(): void {
@@ -158,4 +287,85 @@ function kemke_users_gsis_pa_auth2_update_11004(): ?string {
   }
 
   return NULL;
+}
+
+/**
+ * Create the GSIS auth audit SQL table.
+ */
+function kemke_users_gsis_pa_auth2_update_11005(): ?string {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('kemke_gsis_pa_auth_audit')) {
+    $schema->createTable('kemke_gsis_pa_auth_audit', _kemke_users_gsis_pa_auth2_auth_audit_schema());
+    return 'Created the GSIS auth audit table.';
+  }
+
+  return NULL;
+}
+
+/**
+ * Remove obsolete audit columns and refresh the Greek reporting view.
+ */
+function kemke_users_gsis_pa_auth2_update_11007(): ?string {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('kemke_gsis_pa_auth_audit')) {
+    if ($schema->fieldExists('kemke_gsis_pa_auth_audit', 'message')) {
+      $schema->dropField('kemke_gsis_pa_auth_audit', 'message');
+    }
+    if ($schema->fieldExists('kemke_gsis_pa_auth_audit', 'gsis_userid')) {
+      $schema->dropField('kemke_gsis_pa_auth_audit', 'gsis_userid');
+    }
+  }
+  return 'Removed obsolete GSIS auth audit columns.';
+}
+
+/**
+ * Translate existing audit values to Greek and refresh the report labels.
+ */
+function kemke_users_gsis_pa_auth2_update_11008(): ?string {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+  if ($schema->tableExists('kemke_gsis_pa_auth_audit')) {
+    $eventLabels = [
+      'Authentication started' => 'Έναρξη αυθεντικοποίησης',
+      'OAuth callback returned error' => 'Επιστροφή OAuth με σφάλμα',
+      'OAuth callback missing parameters' => 'Επιστροφή OAuth χωρίς απαιτούμενες παραμέτρους',
+      'Returned from OAuth provider' => 'Επιστροφή από τον πάροχο OAuth',
+      'OAuth callback state mismatch' => 'Ασυμφωνία state στην επιστροφή OAuth',
+      'Authorization code exchange failed' => 'Αποτυχία ανταλλαγής authorization code',
+      'Finalize missing access token' => 'Ολοκλήρωση χωρίς access token',
+      'User info request failed' => 'Αποτυχία κλήσης στοιχείων χρήστη',
+      'User info response was empty' => 'Κενή απάντηση στοιχείων χρήστη',
+      'User info XML was invalid' => 'Μη έγκυρο XML στοιχείων χρήστη',
+      'GSIS identity received' => 'Παραλαβή στοιχείων ταυτοποίησης από ΓΓΠΣ',
+      'GSIS response missing AFM and userid' => 'Η απάντηση της ΓΓΠΣ δεν περιέχει ΑΦΜ και userid',
+      'Multiple local accounts matched GSIS identity' => 'Πολλοί τοπικοί λογαριασμοί ταιριάζουν με τα στοιχεία ΓΓΠΣ',
+      'No local user matched GSIS identity' => 'Δεν βρέθηκε τοπικός χρήστης για τα στοιχεία ΓΓΠΣ',
+      'Matched local user is blocked' => 'Ο τοπικός χρήστης που ταιριάζει είναι μπλοκαρισμένος',
+      'User logged in successfully' => 'Επιτυχής σύνδεση χρήστη',
+    ];
+
+    foreach ($eventLabels as $source => $translated) {
+      $database->update('kemke_gsis_pa_auth_audit')
+        ->fields(['event_label' => $translated])
+        ->condition('event_label', $source)
+        ->execute();
+    }
+
+    $outcomes = [
+      'started' => 'έναρξη',
+      'returned' => 'επιστροφή',
+      'success' => 'επιτυχία',
+      'error' => 'σφάλμα',
+      'denied' => 'άρνηση',
+    ];
+
+    foreach ($outcomes as $source => $translated) {
+      $database->update('kemke_gsis_pa_auth_audit')
+        ->fields(['outcome' => $translated])
+        ->condition('outcome', $source)
+        ->execute();
+    }
+  }
+
+  return 'Translated existing GSIS auth audit entries to Greek.';
 }

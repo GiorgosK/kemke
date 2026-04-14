@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.storage.user.field_first_name
+    - field.storage.user.field_gsis_afm
     - field.storage.user.field_last_access_change
     - field.storage.user.field_last_name
     - field.storage.user.field_legal_entity
@@ -513,6 +514,69 @@ display:
             future_format: '@interval hence'
             past_format: '@interval ago'
             granularity: 2
+        field_gsis_afm:
+          id: field_gsis_afm
+          table: user__field_gsis_afm
+          field: field_gsis_afm
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: Ιστορικό
+          exclude: false
+          alter:
+            alter_text: true
+            text: '<a href="/reports/gsis-pa-auth-audit?afm={{ field_gsis_afm }}">Συνδέσεις</a>'
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: false
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: string
+          settings:
+            link_to_entity: false
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
         status:
           id: status
           table: users_field_data
@@ -971,6 +1035,54 @@ display:
           fields:
             name: name
             mail: mail
+        field_gsis_afm_value:
+          id: field_gsis_afm_value
+          table: user__field_gsis_afm
+          field: field_gsis_afm_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: '='
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_gsis_afm_value_op
+            label: ΑΦΜ
+            description: ''
+            use_operator: false
+            operator: field_gsis_afm_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: afm
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+            autocomplete_filter: 0
+            autocomplete_min_chars: '0'
+            autocomplete_items: '10'
+            autocomplete_field: field_gsis_afm
+            autocomplete_raw_suggestion: 1
+            autocomplete_raw_dropdown: 1
+            autocomplete_dependent: 0
+            autocomplete_contextual: 0
+            autocomplete_autosubmit: 0
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
         status:
           id: status
           table: users_field_data
@@ -1342,6 +1454,7 @@ display:
         - user.permissions
       tags:
         - 'config:field.storage.user.field_first_name'
+        - 'config:field.storage.user.field_gsis_afm'
         - 'config:field.storage.user.field_last_access_change'
         - 'config:field.storage.user.field_last_name'
         - 'config:field.storage.user.field_legal_entity'
@@ -1379,6 +1492,7 @@ display:
         - user.permissions
       tags:
         - 'config:field.storage.user.field_first_name'
+        - 'config:field.storage.user.field_gsis_afm'
         - 'config:field.storage.user.field_last_access_change'
         - 'config:field.storage.user.field_last_name'
         - 'config:field.storage.user.field_legal_entity'

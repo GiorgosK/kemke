@@ -1,0 +1,567 @@
+uuid: 5ebf6e3f-8fce-4c09-b3e1-f0784cc47860
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.admin
+  module:
+    - kemke_users_gsis_pa_auth2
+    - pdf_serialization
+    - rest
+    - serialization
+    - user
+    - views_data_export
+    - xls_serialization
+id: kemke_gsis_pa_auth_audit
+label: 'Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'
+module: views
+description: 'Καταγραφή συνδέσεων και αποσυνδέσεων μέσω GSIS PA.'
+tag: ''
+base_table: kemke_gsis_pa_auth_audit
+base_field: id
+display:
+  default:
+    id: default
+    display_title: Default
+    display_plugin: default
+    position: 0
+    display_options:
+      title: 'Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'
+      fields:
+        created:
+          id: created
+          table: kemke_gsis_pa_auth_audit
+          field: created
+          relationship: none
+          plugin_id: field
+          label: Ημερομηνία/Ώρα
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          type: timestamp
+          settings:
+            date_format: custom
+            custom_date_format: 'd/m/Y H:i:s'
+            timezone: ''
+        event_label:
+          id: event_label
+          table: kemke_gsis_pa_auth_audit
+          field: event_label
+          relationship: none
+          plugin_id: field
+          label: Συμβάν
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        outcome:
+          id: outcome
+          table: kemke_gsis_pa_auth_audit
+          field: outcome
+          relationship: none
+          plugin_id: field
+          label: Κατάσταση
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        afm:
+          id: afm
+          table: kemke_gsis_pa_auth_audit
+          field: afm
+          relationship: none
+          plugin_id: field
+          label: ΑΦΜ
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        first_name:
+          id: first_name
+          table: kemke_gsis_pa_auth_audit
+          field: first_name
+          relationship: none
+          plugin_id: field
+          label: Όνομα
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        last_name:
+          id: last_name
+          table: kemke_gsis_pa_auth_audit
+          field: last_name
+          relationship: none
+          plugin_id: field
+          label: Επώνυμο
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        local_username:
+          id: local_username
+          table: kemke_gsis_pa_auth_audit
+          field: local_username
+          relationship: none
+          plugin_id: field
+          label: 'όνομα χρήστη (Τοπικό)'
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        gsis_username:
+          id: gsis_username
+          table: kemke_gsis_pa_auth_audit
+          field: gsis_username
+          relationship: none
+          plugin_id: field
+          label: 'Όνομα χρήστη (ΓΓΠΣ)'
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        ip_address:
+          id: ip_address
+          table: kemke_gsis_pa_auth_audit
+          field: ip_address
+          relationship: none
+          plugin_id: field
+          label: IP
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+        request_path:
+          id: request_path
+          table: kemke_gsis_pa_auth_audit
+          field: request_path
+          relationship: none
+          plugin_id: field
+          label: Διαδρομή
+          exclude: false
+          alter:
+            alter_text: false
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            strip_tags: false
+            trim: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+      pager:
+        type: full
+        options:
+          offset: 0
+          items_per_page: 50
+      exposed_form:
+        type: basic
+        options:
+          submit_button: Φίλτρο
+          reset_button: true
+          reset_button_label: 'Εκκαθάριση φίλτρων'
+          exposed_sorts_label: 'Ταξινόμηση κατά'
+      access:
+        type: perm
+        options:
+          perm: 'administer users'
+      cache:
+        type: none
+      empty: {  }
+      sorts:
+        created:
+          id: created
+          table: kemke_gsis_pa_auth_audit
+          field: created
+          plugin_id: date
+          order: DESC
+      filters:
+        afm:
+          id: afm
+          table: kemke_gsis_pa_auth_audit
+          field: afm
+          plugin_id: string
+          operator: contains
+          exposed: true
+          expose:
+            operator_id: afm_op
+            label: ΑΦΜ
+            identifier: afm
+        ip_address:
+          id: ip_address
+          table: kemke_gsis_pa_auth_audit
+          field: ip_address
+          plugin_id: string
+          operator: contains
+          exposed: true
+          expose:
+            operator_id: ip_address_op
+            label: IP
+            identifier: ip
+        local_username:
+          id: local_username
+          table: kemke_gsis_pa_auth_audit
+          field: local_username
+          plugin_id: string
+          operator: contains
+          exposed: true
+          expose:
+            operator_id: local_username_op
+            label: 'όνομα χρήστη (Τοπικό)'
+            identifier: local_username
+        first_name:
+          id: first_name
+          table: kemke_gsis_pa_auth_audit
+          field: first_name
+          plugin_id: string
+          operator: contains
+          exposed: true
+          expose:
+            operator_id: first_name_op
+            label: Όνομα
+            identifier: first_name
+        last_name:
+          id: last_name
+          table: kemke_gsis_pa_auth_audit
+          field: last_name
+          plugin_id: string
+          operator: contains
+          exposed: true
+          expose:
+            operator_id: last_name_op
+            label: Επώνυμο
+            identifier: last_name
+      style:
+        type: table
+        options:
+          columns:
+            created: created
+            event_label: event_label
+            outcome: outcome
+            afm: afm
+            first_name: first_name
+            last_name: last_name
+            local_username: local_username
+            gsis_username: gsis_username
+            ip_address: ip_address
+            request_path: request_path
+          default: created
+          info:
+            created:
+              sortable: true
+              default_sort_order: desc
+            event_label:
+              sortable: true
+            outcome:
+              sortable: true
+            afm:
+              sortable: true
+            first_name:
+              sortable: true
+            last_name:
+              sortable: true
+            local_username:
+              sortable: true
+            gsis_username:
+              sortable: true
+            ip_address:
+              sortable: true
+            request_path:
+              sortable: false
+          empty_table: false
+      row:
+        type: fields
+      query:
+        type: views_query
+        options:
+          disable_sql_rewrite: false
+          distinct: false
+          replica: false
+      relationships: {  }
+      header: {  }
+      footer: {  }
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }
+  data_export_1:
+    id: data_export_1
+    display_title: 'Data export'
+    display_plugin: data_export
+    position: 2
+    display_options:
+      pager:
+        type: none
+        options:
+          offset: 0
+      style:
+        type: data_export
+        options:
+          formats:
+            xlsx: xlsx
+          csv_settings:
+            delimiter: ','
+            enclosure: '"'
+            escape_char: \
+            strip_tags: true
+            trim: true
+            encoding: utf8
+            utf8_bom: '0'
+            use_serializer_encode_only: false
+          xls_settings:
+            xls_format: Excel2007
+            metadata:
+              title: 'Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'
+      display_extenders: {  }
+      path: reports/gsis-pa-auth-audit/export
+      displays:
+        page_1: page_1
+        default: '0'
+      filename: gsis-pa-auth-audit
+      automatic_download: true
+      export_method: batch
+      export_batch_size: 500
+      store_in_public_file_directory: false
+      custom_redirect_path: false
+      redirect_to_display: page_1
+      include_query_params: true
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - request_format
+        - url
+        - user.permissions
+      tags: {  }
+  page_1:
+    id: page_1
+    display_title: Page
+    display_plugin: page
+    position: 1
+    display_options:
+      display_extenders: {  }
+      path: reports/gsis-pa-auth-audit
+      menu:
+        type: normal
+        title: 'Ιστορικό συνδέσεων ΓΓΠΣ ΚΔΔ'
+        description: ''
+        weight: 0
+        menu_name: admin
+        parent: system.admin_reports
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }
