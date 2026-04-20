@@ -57,7 +57,13 @@ final class SideApiConnectionCheckController extends ControllerBase {
     $environment = $environment === 'live' ? 'live' : 'dev';
     $lookup_users = ['intraway', 'kemke'];
     $resolved = $environment === 'dev'
-      ? $this->client->getResolvedEnvironment()
+      ? [
+        'base_url' => (string) ($settings['dev_base_url'] ?? ''),
+        'admin_user' => (string) ($settings['dev_admin_user'] ?? ''),
+        'admin_pass' => (string) ($settings['dev_admin_pass'] ?? ''),
+        'app_user' => (string) ($settings['dev_app_user'] ?? ''),
+        'app_pass' => (string) ($settings['dev_app_pass'] ?? ''),
+      ]
       : [
         'base_url' => (string) ($settings['live_base_url'] ?? ''),
         'admin_user' => (string) ($settings['live_admin_user'] ?? ''),
