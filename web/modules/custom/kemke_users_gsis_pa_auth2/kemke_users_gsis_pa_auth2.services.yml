@@ -1,4 +1,4 @@
 services:
   kemke_users_gsis_pa_auth2.audit_logger:
     class: Drupal\kemke_users_gsis_pa_auth2\GsisPaAuthAuditLogger
-    arguments: ['@database', '@entity_type.manager', '@request_stack', '@current_user', '@datetime.time', '@state']
+    arguments: ['@database', '@entity_type.manager', '@request_stack', '@current_user', '@datetime.time', '@state', '@kemke_gsis_pa_oauth2_client.client_ip_resolver']

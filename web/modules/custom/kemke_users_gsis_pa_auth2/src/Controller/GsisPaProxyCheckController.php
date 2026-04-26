@@ -8,6 +8,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Link;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
+use Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaClientIpResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -16,11 +17,13 @@ final class GsisPaProxyCheckController extends ControllerBase {
 
   public function __construct(
     private readonly RequestStack $requestStack,
+    private readonly GsisPaClientIpResolver $clientIpResolver,
   ) {}
 
   public static function create(ContainerInterface $container): self {
     return new self(
       $container->get('request_stack'),
+      $container->get('kemke_gsis_pa_oauth2_client.client_ip_resolver'),
     );
   }
 
@@ -43,6 +46,7 @@ final class GsisPaProxyCheckController extends ControllerBase {
     $xRealIp = (string) ($server?->get('HTTP_X_REAL_IP', '') ?? '');
     $xRealClientIp = (string) ($server?->get('HTTP_X_REAL_CLIENT_IP', '') ?? '');
     $clientIp = (string) ($request?->getClientIp() ?? '');
+    $loggerResolvedIp = $this->clientIpResolver->resolveRequestIp($request);
     $clientIps = $request instanceof Request ? $request->getClientIps() : [];
     $xffFirst = $this->extractFirstForwardedAddress($forwardedFor);
     $xffHasPort = $this->hasPortSuffix($xffFirst);
@@ -65,9 +69,12 @@ final class GsisPaProxyCheckController extends ControllerBase {
       ['Request', 'Host', (string) ($request?->getHost() ?? '')],
       ['Resolved', 'getClientIp()', $clientIp],
       ['Resolved', 'getClientIps()', implode(', ', $clientIps)],
+      ['Resolved', 'logger_resolved_ip', $loggerResolvedIp],
       ['Check', 'clientIp equals REMOTE_ADDR', $clientIp !== '' && $clientIp === $remoteAddr ? 'YES' : 'NO'],
       ['Check', 'clientIp equals normalized X-Forwarded-For first entry', $clientIp !== '' && $xffFirstNormalized !== '' && $clientIp === $xffFirstNormalized ? 'YES' : 'NO'],
       ['Check', 'clientIp equals X-Real-Client-IP', $clientIp !== '' && $xRealClientIp !== '' && $clientIp === $xRealClientIp ? 'YES' : 'NO'],
+      ['Check', 'logger_resolved_ip equals normalized X-Forwarded-For first entry', $loggerResolvedIp !== '' && $xffFirstNormalized !== '' && $loggerResolvedIp === $xffFirstNormalized ? 'YES' : 'NO'],
+      ['Check', 'logger_resolved_ip equals X-Real-Client-IP', $loggerResolvedIp !== '' && $xRealClientIp !== '' && $loggerResolvedIp === $xRealClientIp ? 'YES' : 'NO'],
     ];
 
     $interpretation = $this->buildInterpretation(

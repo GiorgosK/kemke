@@ -1,7 +1,11 @@
 services:
+  kemke_gsis_pa_oauth2_client.client_ip_resolver:
+    class: Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaClientIpResolver
+    arguments: ['@request_stack']
+
   kemke_gsis_pa_oauth2_client.call_logger:
     class: Drupal\kemke_gsis_pa_oauth2_client\Logger\GsisPaCallLogger
-    arguments: ['@file_system', '@logger.channel.oauth2_client', '@state', '@request_stack', '@current_user']
+    arguments: ['@file_system', '@logger.channel.oauth2_client', '@state', '@kemke_gsis_pa_oauth2_client.client_ip_resolver', '@request_stack', '@current_user']
 
   kemke_gsis_pa_oauth2_client.logging_http_client:
     class: Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaLoggingHttpClient

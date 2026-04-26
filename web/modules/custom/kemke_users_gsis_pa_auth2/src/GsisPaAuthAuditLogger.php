@@ -11,6 +11,7 @@ use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\State\StateInterface;
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaClientIpResolver;
 use Drupal\user\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -32,6 +33,7 @@ final class GsisPaAuthAuditLogger {
     private readonly AccountProxyInterface $currentUser,
     private readonly TimeInterface $time,
     private readonly StateInterface $state,
+    private readonly GsisPaClientIpResolver $clientIpResolver,
   ) {}
 
   /**
@@ -59,7 +61,7 @@ final class GsisPaAuthAuditLogger {
         'event_label' => $this->truncate($eventLabel, 128),
         'outcome' => $this->truncate($outcome, 32),
         'request_path' => $this->truncate($request?->getPathInfo() ?? '', 255),
-        'ip_address' => $this->truncate((string) ($values['ip_address'] ?? $request?->getClientIp() ?? ''), 64),
+        'ip_address' => $this->truncate((string) ($values['ip_address'] ?? $this->clientIpResolver->resolveRequestIp($request)), 64),
         'uid' => is_numeric($uid) ? (int) $uid : NULL,
         'local_username' => $this->truncate((string) $localUsername, 128),
         'gsis_username' => $this->truncate((string) ($values['gsis_username'] ?? $identity['gsis_username'] ?? ''), 128),

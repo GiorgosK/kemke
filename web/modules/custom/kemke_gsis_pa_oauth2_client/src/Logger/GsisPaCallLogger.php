@@ -9,6 +9,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\State\StateInterface;
+use Drupal\kemke_gsis_pa_oauth2_client\Http\GsisPaClientIpResolver;
 use Drupal;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -25,6 +26,7 @@ final class GsisPaCallLogger {
     private readonly FileSystemInterface $fileSystem,
     private readonly LoggerInterface $logger,
     private readonly StateInterface $state,
+    private readonly GsisPaClientIpResolver $clientIpResolver,
     private readonly ?RequestStack $requestStack = NULL,
     private readonly ?AccountProxyInterface $currentUser = NULL,
   ) {}
@@ -45,7 +47,7 @@ final class GsisPaCallLogger {
       'timestamp' => gmdate('c'),
       'event' => $event,
       'environment' => $this->getEnvironment(),
-      'user_ip' => $request?->getClientIp() ?? '',
+      'user_ip' => $this->clientIpResolver->resolveRequestIp($request),
       'user' => $user,
       'context' => $context,
     ];
