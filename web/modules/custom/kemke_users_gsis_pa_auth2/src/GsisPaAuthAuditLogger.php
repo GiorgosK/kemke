@@ -74,44 +74,13 @@ final class GsisPaAuthAuditLogger {
    * @param array<string, string|null> $identity
    */
   public function attachIdentityToCurrentFlow(array $identity): void {
-    $flowId = $this->getCurrentFlowId(FALSE);
-    if ($flowId === NULL) {
-      return;
-    }
-
     $identity = $this->normalizeIdentity($identity);
     $this->setStoredIdentity($identity);
-
-    $fields = array_filter([
-      'gsis_username' => $identity['gsis_username'],
-      'afm' => $identity['afm'],
-      'first_name' => $identity['first_name'],
-      'last_name' => $identity['last_name'],
-    ], static fn (?string $value): bool => $value !== NULL && $value !== '');
-
-    if ($fields === []) {
-      return;
-    }
-
-    $this->database->update(self::TABLE)
-      ->fields($fields)
-      ->condition('flow_id', $flowId)
-      ->execute();
   }
 
   public function attachLocalUserToCurrentFlow(UserInterface $user): void {
-    $flowId = $this->getCurrentFlowId(FALSE);
-    if ($flowId === NULL) {
-      return;
-    }
-
-    $this->database->update(self::TABLE)
-      ->fields([
-        'uid' => (int) $user->id(),
-        'local_username' => $this->truncate($user->getAccountName(), 128),
-      ])
-      ->condition('flow_id', $flowId)
-      ->execute();
+    // Keep current-flow context in session only; earlier rows must remain
+    // point-in-time snapshots of what was known when they were logged.
   }
 
   public function clearCurrentFlow(): void {
