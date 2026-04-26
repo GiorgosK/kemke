@@ -12,6 +12,26 @@ $settings['file_private_path'] = '/var/www/drupal/private';
 
 $settings['hash_salt'] = '0cdc9142b6c4bdb7fd924575466a4620732ac191368a6dc63eb9e03f645deeb52e157002b3cd771289788059865134feeacb84014342e519665b2b619d863dbd';
 
+// Reverse proxy handling for real client IP capture behind Azure/App Gateway/
+// Front Door/load balancer. Replace the placeholder CIDR with the actual App
+// Gateway subnet CIDR (or the exact trusted proxy CIDR that connects directly
+// to Apache/PHP), then uncomment this block.
+//
+// $settings['reverse_proxy'] = TRUE;
+// $settings['reverse_proxy_addresses'] = [
+//   '10.0.1.0/24',
+// ];
+// $settings['reverse_proxy_trusted_headers'] =
+//   \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR |
+//   \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST |
+//   \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT |
+//   \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
+//
+// If infrastructure normalizes and trusts the client IP at Apache layer
+// (for example via mod_remoteip), Drupal reverse_proxy settings may not be
+// necessary. In that case /admin/reports/gsis-pa-proxy-check should still
+// show the real browser IP in getClientIp() / REMOTE_ADDR.
+
 $settings['side_api']['verify_ssl'] = FALSE;
 $settings['side_api']['dev_hosts'] = ['kemke.ddev.site', 'kemke.webx2.com'];
 $settings['side_api']['host_overrides']['kemke.ddev.site'] = [

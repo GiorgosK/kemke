@@ -74,3 +74,13 @@ kemke_users_gsis_pa_auth2.call_log_download:
     _title: 'Download GSIS OAuth calls'
   requirements:
     _permission: 'administer site configuration'
+
+kemke_users_gsis_pa_auth2.proxy_check:
+  path: '/admin/reports/gsis-pa-proxy-check'
+  defaults:
+    _controller: '\Drupal\kemke_users_gsis_pa_auth2\Controller\GsisPaProxyCheckController::report'
+    _title: 'GSIS proxy/IP check'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    no_cache: 'TRUE'

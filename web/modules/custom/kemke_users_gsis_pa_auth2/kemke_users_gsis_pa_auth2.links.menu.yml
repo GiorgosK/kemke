@@ -1,0 +1,5 @@
+kemke_users_gsis_pa_auth2.proxy_check:
+  title: 'GSIS proxy/IP check'
+  description: 'Inspect reverse proxy and client IP resolution for GSIS login diagnostics.'
+  route_name: kemke_users_gsis_pa_auth2.proxy_check
+  parent: system.admin_reports
