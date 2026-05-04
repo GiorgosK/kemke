@@ -44,36 +44,15 @@
   ddev drush sql:query "TRUNCATE TABLE notify_widget;"
   ```
 
-## users and passwords
+## users
 - do we have all users in database ?
   ```
   ddev drush user-import:csv /var/www/html/artifacts/users.csv --delimiter=, --password='TempPass123'
 
   ```
-- reset all passwords ?
-  ```
-  ddev drush users_tweaks:password-bulk
-  ```
-
-- set user password same as username
-  ```
-  ddev drush users_tweaks:password-set bardikoy_spyridoyla
-  ```
 - set password to specific value 
   ```
   ddev drush user:password bardikoy_spyridoyla "TempPass1234@#$"
-  ```
-- set one password for all users, or only for included role(s)
-  ```
-  ddev drush users_tweaks:password-role-bulk "TempPass1234@#$"
-  ddev drush users_tweaks:password-role-bulk operator,kemke_admin "TempPass1234@#$"
-  ddev drush users_tweaks:password-role-bulk "TempPass1234@#$" --exclude=api
-  ```
-- turn on or off the password reset (force password change)
-  ```
-  ddev drush users_tweaks:password-expire-set bardikoy_spyridoyla on
-  ddev drush users_tweaks:password-expire-bulk off
-  ddev drush users_tweaks:password-expire-bulk on
   ```
 - add docutracks username for syncing
 - can use following commands for checking
