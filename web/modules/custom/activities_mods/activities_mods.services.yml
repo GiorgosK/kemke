@@ -1,0 +1,7 @@
+services:
+  activities_mods.incoming_node_route_access_check:
+    class: Drupal\activities_mods\Access\IncomingNodeRouteAccessCheck
+    arguments:
+      - '@entity_type.manager'
+    tags:
+      - { name: access_check, applies_to: _activities_mods_incoming_node_only }

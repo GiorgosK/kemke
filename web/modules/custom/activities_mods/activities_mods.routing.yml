@@ -5,6 +5,7 @@ activities_mods.node_activity:
     _title: 'Activity'
   requirements:
     _permission: 'access node activity'
+    _activities_mods_incoming_node_only: 'TRUE'
   options:
     parameters:
       node:

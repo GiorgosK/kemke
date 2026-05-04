@@ -1,0 +1,7 @@
+services:
+  incoming_change_state.incoming_node_route_access_check:
+    class: Drupal\incoming_change_state\Access\IncomingNodeRouteAccessCheck
+    arguments:
+      - '@entity_type.manager'
+    tags:
+      - { name: access_check, applies_to: _incoming_change_state_incoming_node_only }

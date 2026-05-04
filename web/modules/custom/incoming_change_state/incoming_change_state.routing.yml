@@ -6,6 +6,7 @@ incoming_change_state.change_state:
   requirements:
     _permission: 'change to arbitary state'
     _entity_access: 'node.view'
+    _incoming_change_state_incoming_node_only: 'TRUE'
   options:
     parameters:
       node:
