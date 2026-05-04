@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Drupal\kemke_manuals\Controller;
 
 use Drupal\Core\Link;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Site\Settings;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -17,8 +17,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * Displays role-specific manual resources.
  */
 final class ManualController implements ContainerInjectionInterface {
-
-  use StringTranslationTrait;
 
   /**
    * Default manual resources, overridden by $settings['kemke_manuals_links_per_role'].
@@ -73,6 +71,24 @@ final class ManualController implements ContainerInjectionInterface {
 
     $items = [];
     foreach ($links as $title => $target) {
+      if (is_int($title)) {
+        $section_title = is_string($target) ? trim($target) : '';
+        if ($section_title === '') {
+          continue;
+        }
+
+        $items[] = [
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => '<strong>' . Html::escape($section_title) . '</strong>',
+          '#attributes' => [
+            'class' => ['kemke-manuals__section'],
+            'style' => 'margin-top: 1.5rem; font-weight: 700;',
+          ],
+        ];
+        continue;
+      }
+
       if (!is_string($title) || trim($title) === '' || !is_string($target) || trim($target) === '') {
         continue;
       }
@@ -82,7 +98,14 @@ final class ManualController implements ContainerInjectionInterface {
         ? Url::fromUri($target)
         : Url::fromUserInput('/' . ltrim($target, '/'));
 
-      $items[] = Link::fromTextAndUrl($title, $url)->toRenderable();
+      $items[] = [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['kemke-manuals__link'],
+          'style' => 'margin-top: 0.5rem;',
+        ],
+        'link' => Link::fromTextAndUrl($title, $url)->toRenderable(),
+      ];
     }
 
     if ($items === []) {
@@ -90,17 +113,12 @@ final class ManualController implements ContainerInjectionInterface {
     }
 
     return [
-      'title' => [
-        '#type' => 'html_tag',
-        '#tag' => 'h2',
-        '#value' => $this->t('Εγχειρίδια Χρήσης'),
-        '#attributes' => [
-          'class' => ['govgr-!-font-weight-bold', 'govgr-caption-l'],
-        ],
-      ],
       'links' => [
-        '#theme' => 'item_list',
-        '#items' => $items,
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['kemke-manuals'],
+        ],
+        ...$items,
       ],
       '#cache' => [
         'contexts' => ['user.roles'],
@@ -112,11 +130,12 @@ final class ManualController implements ContainerInjectionInterface {
   /**
    * Returns the resources for the current role.
    *
-   * @param array<string, array<string, string>> $links_per_role
+   * @param array<string, array<int|string, string>> $links_per_role
    *   Configured resources grouped by role.
    *
-   * @return array<string, string>
-   *   Resources keyed by label with URL as value.
+   * @return array<int|string, string>
+   *   Resources keyed by label with URL as value, with integer-keyed section
+   *   titles.
    */
   private function resolveRoleLinks(array $links_per_role): array {
     foreach ($this->account->getRoles() as $role) {
@@ -136,7 +155,7 @@ final class ManualController implements ContainerInjectionInterface {
    * @param array<mixed> $links_per_role
    *   Raw settings data.
    *
-   * @return array<string, array<string, string>>
+   * @return array<string, array<int|string, string>>
    *   Normalized links grouped by role.
    */
   private function normalizeLinksPerRole(array $links_per_role): array {
@@ -159,6 +178,13 @@ final class ManualController implements ContainerInjectionInterface {
 
       $normalized[$role] = [];
       foreach ($links as $title => $target) {
+        if (is_int($title)) {
+          if (is_string($target) && trim($target) !== '') {
+            $normalized[$role][] = trim($target);
+          }
+          continue;
+        }
+
         if (!is_string($title) || trim($title) === '' || !is_string($target) || trim($target) === '') {
           continue;
         }
