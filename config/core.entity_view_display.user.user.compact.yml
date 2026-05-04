@@ -17,11 +17,8 @@ dependencies:
     - field.field.user.user.field_gsis_userid
     - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
-    - field.field.user.user.field_last_password_reset
     - field.field.user.user.field_legal_entity
     - field.field.user.user.field_notifications
-    - field.field.user.user.field_password_expiration
-    - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
     - field.field.user.user.field_temporary_disabled
     - field.field.user.user.user_picture
@@ -62,11 +59,8 @@ hidden:
   field_gsis_info: true
   field_gsis_userid: true
   field_last_access_change: true
-  field_last_password_reset: true
   field_legal_entity: true
   field_notifications: true
-  field_password_expiration: true
-  field_pending_expire_sent: true
   field_serial_number: true
   field_temporary_disabled: true
   langcode: true

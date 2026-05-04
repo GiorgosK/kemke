@@ -16,16 +16,12 @@ dependencies:
     - field.field.user.user.field_gsis_userid
     - field.field.user.user.field_last_access_change
     - field.field.user.user.field_last_name
-    - field.field.user.user.field_last_password_reset
     - field.field.user.user.field_legal_entity
     - field.field.user.user.field_notifications
-    - field.field.user.user.field_password_expiration
-    - field.field.user.user.field_pending_expire_sent
     - field.field.user.user.field_serial_number
     - field.field.user.user.field_temporary_disabled
     - field.field.user.user.user_picture
   module:
-    - datetime
     - field_group
     - ief_table_view_mode
     - select2
@@ -256,12 +252,6 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_last_password_reset:
-    type: datetime_default
-    weight: 2
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_legal_entity:
     type: select2_entity_reference
     weight: 2
@@ -277,13 +267,6 @@ content:
     weight: 5
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_password_expiration:
-    type: boolean_checkbox
-    weight: 1
-    region: content
-    settings:
-      display_label: true
     third_party_settings: {  }
   field_serial_number:
     type: number
@@ -302,7 +285,6 @@ content:
 hidden:
   field_access_change_log: true
   field_last_access_change: true
-  field_pending_expire_sent: true
   langcode: true
   language: true
   timezone: true
