@@ -1914,16 +1914,24 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $payload = $client->prepareRegisterPayload($doc_payload, $main_file_path, $attachment_paths, 'plan');
-    incoming_tweaks_prepend_supervisor_signature($payload, $node);
+    $supervisor_signature = incoming_tweaks_prepend_supervisor_signature($payload, $node);
     $resolved_type = $client->extractValueByPath($payload, 'Document.Type.Id');
     $resolved_kind = $client->extractValueByPath($payload, 'Document.Kind.Id');
     $resolved_created_for = $client->extractValueByPath($payload, 'Document.CreatedForGroup.Id');
+    $resolved_created_by = $client->extractValueByPath($payload, 'Document.CreatedBy.Id');
+    $resolved_created_by_group = $client->extractValueByPath($payload, 'Document.CreatedByGroup.Id');
     \Drupal::logger('incoming_tweaks')->info('Docutracks plan payload resolved ids: @details', [
       '@details' => Json::encode([
         'nid' => $node->id(),
         'type_id' => $resolved_type,
         'kind_id' => $resolved_kind,
+        'created_by' => $resolved_created_by,
+        'created_by_group' => $resolved_created_by_group,
         'created_for_group' => $resolved_created_for,
+        'incoming_docutracks_id' => incoming_tweaks_get_node_field_scalar($node, 'field_dt_docid'),
+        'basic_operator' => incoming_tweaks_describe_user_reference($node, 'field_basic_operator'),
+        'supervisor' => incoming_tweaks_describe_user_reference($node, 'field_supervisor'),
+        'supervisor_signature' => $supervisor_signature,
       ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
     ]);
     $sanitized_payload = incoming_tweaks_sanitize_docutracks_payload($payload);
@@ -1934,9 +1942,12 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
       'base_url' => $client->resolveBaseUrl(),
       'timeout' => $timeout,
       'main_file' => $main_file_path,
+      'main_file_info' => incoming_tweaks_describe_local_file($main_file_path),
       'attachments' => $attachment_paths,
+      'attachment_info' => array_map('incoming_tweaks_describe_local_file', $attachment_paths),
       'title' => $title,
       'moderation_state' => $current_state,
+      'incoming_docutracks_id' => incoming_tweaks_get_node_field_scalar($node, 'field_dt_docid'),
       'payload' => $sanitized_payload,
     ];
 
@@ -1949,11 +1960,13 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
 
     $is_success = is_array($response) && !empty($response['Success']);
 
-    // Persist the API response on the node without creating an extra revision.
-    if ($node->hasField('field_plan_dt_api_response')) {
+    $document_log = NULL;
+
+    // Persist successful API responses on the node without creating an extra
+    // revision. Non-success responses are appended by the revert path below.
+    if ($is_success && $node->hasField('field_plan_dt_api_response')) {
       $encoded = Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
       $document_id = $response['DocumentReference'] ?? NULL;
-      $document_log = NULL;
       if ($document_id !== NULL) {
         if ($node->hasField('field_dt_docid')) {
           $node->set('field_dt_docid', $document_id);
@@ -2050,11 +2063,14 @@ function incoming_tweaks_use_creator_to_sign(): bool {
  *
  * @param array<string, mixed> $payload
  *   Docutracks payload to mutate.
+ *
+ * @return array<string, mixed>|null
+ *   Resolved supervisor signature diagnostics, or NULL when none was added.
  */
-function incoming_tweaks_prepend_supervisor_signature(array &$payload, NodeInterface $node): void {
+function incoming_tweaks_prepend_supervisor_signature(array &$payload, NodeInterface $node): ?array {
   $supervisor_signature = incoming_tweaks_resolve_supervisor_signature($node);
   if ($supervisor_signature === NULL) {
-    return;
+    return NULL;
   }
 
   $signatures = $payload['Document']['Signatures'] ?? [];
@@ -2078,12 +2094,13 @@ function incoming_tweaks_prepend_supervisor_signature(array &$payload, NodeInter
   ]);
 
   $payload['Document']['Signatures'] = $signatures;
+  return $supervisor_signature;
 }
 
 /**
  * Resolve a supervisor-based signature from field_dt_config.
  *
- * @return array{sign_id:string, group_id:?string}|null
+ * @return array{sign_id:string, sign_id_source:string, group_id:?string, id:?string, environment_key:string, uid:int}|null
  */
 function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?array {
   if (!$node->hasField('field_supervisor') || $node->get('field_supervisor')->isEmpty()) {
@@ -2110,16 +2127,24 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
     return NULL;
   }
 
-  $sign_id = $department['id'] ?? $department['groupid'] ?? NULL;
+  $raw_department_id = $department['id'] ?? NULL;
+  $raw_group_id = $department['groupid'] ?? NULL;
+
+  // ToSign expects a Docutracks group target. Prefer explicit groupid over
+  // department id; older configs may contain both, and id can refer to a local
+  // department identifier that is invalid for the current SIDE environment.
+  $sign_id = $raw_group_id ?? $raw_department_id;
   if (!is_scalar($sign_id) || trim((string) $sign_id) === '') {
     return NULL;
   }
 
-  $group_id = $department['groupid'] ?? NULL;
-
   return [
     'sign_id' => trim((string) $sign_id),
-    'group_id' => is_scalar($group_id) && trim((string) $group_id) !== '' ? trim((string) $group_id) : NULL,
+    'sign_id_source' => is_scalar($raw_group_id) && trim((string) $raw_group_id) !== '' ? 'groupid' : 'id',
+    'group_id' => is_scalar($raw_group_id) && trim((string) $raw_group_id) !== '' ? trim((string) $raw_group_id) : NULL,
+    'id' => is_scalar($raw_department_id) && trim((string) $raw_department_id) !== '' ? trim((string) $raw_department_id) : NULL,
+    'environment_key' => $environment_key,
+    'uid' => (int) $account->id(),
   ];
 }
 
@@ -2430,6 +2455,114 @@ function incoming_tweaks_resolve_file_paths(NodeInterface $node, string $field_n
   }
 
   return $paths;
+}
+
+/**
+ * Return a scalar field value for diagnostics.
+ */
+function incoming_tweaks_get_node_field_scalar(NodeInterface $node, string $field_name): ?string {
+  if (!$node->hasField($field_name) || $node->get($field_name)->isEmpty()) {
+    return NULL;
+  }
+
+  $item = $node->get($field_name)->first();
+  if ($item === NULL) {
+    return NULL;
+  }
+
+  $value = $item->getValue();
+  foreach (['value', 'target_id'] as $key) {
+    if (isset($value[$key]) && is_scalar($value[$key]) && trim((string) $value[$key]) !== '') {
+      return trim((string) $value[$key]);
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Describe a user reference and its Docutracks fields for diagnostics.
+ *
+ * @return array<string, mixed>|null
+ */
+function incoming_tweaks_describe_user_reference(NodeInterface $node, string $field_name): ?array {
+  if (!$node->hasField($field_name) || $node->get($field_name)->isEmpty()) {
+    return NULL;
+  }
+
+  $account = $node->get($field_name)->entity;
+  if (!$account instanceof \Drupal\user\UserInterface) {
+    return ['target_id' => incoming_tweaks_get_node_field_scalar($node, $field_name), 'loaded' => FALSE];
+  }
+
+  $details = [
+    'uid' => (int) $account->id(),
+    'label' => $account->label(),
+  ];
+
+  foreach (['field_docutracks_username', 'field_docutracks_id', 'field_docutracks_email'] as $user_field_name) {
+    if ($account->hasField($user_field_name) && !$account->get($user_field_name)->isEmpty()) {
+      $details[$user_field_name] = trim((string) $account->get($user_field_name)->value);
+    }
+  }
+
+  if ($account->hasField('field_docutracks_json') && !$account->get('field_docutracks_json')->isEmpty()) {
+    $decoded = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
+    $relations = is_array($decoded) ? ($decoded['User']['Relations'] ?? NULL) : NULL;
+    if (is_array($relations)) {
+      $details['docutracks_relation_group_ids'] = [];
+      foreach ($relations as $relation) {
+        if (!is_array($relation)) {
+          continue;
+        }
+        $group_id = $relation['Group']['Id'] ?? NULL;
+        if (is_scalar($group_id) && trim((string) $group_id) !== '') {
+          $details['docutracks_relation_group_ids'][] = [
+            'group_id' => trim((string) $group_id),
+            'is_assignable' => $relation['IsAssignable'] ?? NULL,
+          ];
+        }
+      }
+    }
+    else {
+      $details['field_docutracks_json_status'] = is_array($decoded) ? 'missing User.Relations' : 'invalid json';
+    }
+  }
+
+  if ($account->hasField('field_dt_config') && !$account->get('field_dt_config')->isEmpty()) {
+    $decoded = json_decode((string) $account->get('field_dt_config')->value, TRUE);
+    $environment_key = incoming_tweaks_side_api_environment_key();
+    $department = is_array($decoded) ? ($decoded['department'][$environment_key] ?? NULL) : NULL;
+    $details['field_dt_config_department'] = [
+      'environment_key' => $environment_key,
+      'id' => is_array($department) && isset($department['id']) && is_scalar($department['id']) ? trim((string) $department['id']) : NULL,
+      'groupid' => is_array($department) && isset($department['groupid']) && is_scalar($department['groupid']) ? trim((string) $department['groupid']) : NULL,
+      'status' => is_array($department) ? 'found' : 'missing',
+    ];
+  }
+
+  return $details;
+}
+
+/**
+ * Describe a local file without logging contents.
+ *
+ * @return array<string, mixed>
+ */
+function incoming_tweaks_describe_local_file(string $path): array {
+  $info = [
+    'path' => $path,
+    'exists' => file_exists($path),
+    'readable' => is_readable($path),
+  ];
+
+  if (is_readable($path)) {
+    $info['size'] = filesize($path);
+    $info['extension'] = pathinfo($path, PATHINFO_EXTENSION);
+    $info['sha256'] = hash_file('sha256', $path) ?: NULL;
+  }
+
+  return $info;
 }
 
 /**
