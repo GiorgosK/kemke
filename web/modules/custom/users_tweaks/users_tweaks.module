@@ -161,6 +161,8 @@ function users_tweaks_form_user_login_block_alter(array &$form, FormStateInterfa
 function users_tweaks_form_user_register_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $current_user = \Drupal::currentUser();
 
+  users_tweaks_adjust_user_account_groups($form);
+
   if (!users_tweaks_current_user_can_access_integration_tabs()) {
     users_tweaks_hide_integration_groups($form);
   }
@@ -260,6 +262,8 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
   }
 
   $current_user = \Drupal::currentUser();
+  users_tweaks_adjust_user_account_groups($form);
+
   if (!users_tweaks_current_user_can_access_integration_tabs()) {
     users_tweaks_hide_integration_groups($form);
   }
@@ -508,6 +512,61 @@ function users_tweaks_hide_integration_groups(array &$build): void {
   }
 
   $build['#cache']['contexts'][] = 'user.roles';
+}
+
+/**
+ * Move email to General and restrict the account/roles tab.
+ */
+function users_tweaks_adjust_user_account_groups(array &$form): void {
+  if (isset($form['account']['mail'])) {
+    $form['mail'] = $form['account']['mail'];
+    $form['mail']['#group'] = 'group_general';
+    $form['mail']['#weight'] = -10;
+    unset($form['account']['mail']);
+
+    $form['#group_children'] = $form['#group_children'] ?? [];
+    $form['#group_children']['mail'] = 'group_general';
+  }
+
+  $pre_render = ['Drupal\users_tweaks\Render\UserMailToGeneralPreRender', 'preRender'];
+  if (!isset($form['#pre_render']) || !is_array($form['#pre_render'])) {
+    $form['#pre_render'] = [];
+  }
+  if (!in_array($pre_render, $form['#pre_render'], TRUE)) {
+    $form['#pre_render'][] = $pre_render;
+  }
+
+  if (!\Drupal::currentUser()->hasPermission('administer users')) {
+    if (isset($form['group_other'])) {
+      $form['group_other']['#access'] = FALSE;
+    }
+    if (isset($form['account'])) {
+      $form['account']['#access'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Implements hook_field_group_form_process_build_alter().
+ */
+function users_tweaks_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, &$complete_form): void {
+  if (($element['#form_id'] ?? '') !== 'user_form' && ($element['#form_id'] ?? '') !== 'user_register_form') {
+    return;
+  }
+
+  if (isset($element['mail'])) {
+    $element['mail']['#group'] = 'group_general';
+    $element['#group_children'] = $element['#group_children'] ?? [];
+    $element['#group_children']['mail'] = 'group_general';
+
+    if (isset($element['#fieldgroups']['group_general']) && is_object($element['#fieldgroups']['group_general'])) {
+      $children = $element['#fieldgroups']['group_general']->children ?? [];
+      if (!in_array('mail', $children, TRUE)) {
+        array_unshift($children, 'mail');
+        $element['#fieldgroups']['group_general']->children = $children;
+      }
+    }
+  }
 }
 
 /**
