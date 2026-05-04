@@ -156,6 +156,43 @@ function users_tweaks_form_user_login_block_alter(array &$form, FormStateInterfa
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for user creation form.
+ */
+function users_tweaks_form_user_register_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $current_user = \Drupal::currentUser();
+
+  if (isset($form['account']['pass'])) {
+    $form['account']['pass']['#required'] = FALSE;
+    if (!$current_user->hasRole('administrator')) {
+      $form['account']['pass']['#access'] = FALSE;
+    }
+  }
+
+  if (!isset($form['actions']['submit']['#submit']) || !is_array($form['actions']['submit']['#submit'])) {
+    $form['actions']['submit']['#submit'] = [];
+  }
+
+  $submit_handler = 'users_tweaks_user_register_generate_password_submit';
+  if (in_array($submit_handler, $form['actions']['submit']['#submit'], TRUE)) {
+    return;
+  }
+
+  $submit_handlers = [];
+  $inserted = FALSE;
+  foreach ($form['actions']['submit']['#submit'] as $handler) {
+    if (!$inserted && $handler === '::submitForm') {
+      $submit_handlers[] = $submit_handler;
+      $inserted = TRUE;
+    }
+    $submit_handlers[] = $handler;
+  }
+  if (!$inserted) {
+    array_unshift($submit_handlers, $submit_handler);
+  }
+  $form['actions']['submit']['#submit'] = $submit_handlers;
+}
+
+/**
  * Redirect users immediately after a successful login.
  */
 function users_tweaks_login_redirect_submit(array &$form, FormStateInterface $form_state): void {
@@ -179,6 +216,19 @@ function users_tweaks_login_redirect_submit(array &$form, FormStateInterface $fo
 
   $destination = $account->hasRole('amke_user') ? '/amke' : '/incoming';
   $form_state->setRedirectUrl(Url::fromUserInput($destination));
+}
+
+/**
+ * Generates a password for non-admin user creation submissions.
+ */
+function users_tweaks_user_register_generate_password_submit(array &$form, FormStateInterface $form_state): void {
+  if (!$form_state->isValueEmpty('pass')) {
+    return;
+  }
+
+  $password = \Drupal::service('password_generator')->generate();
+  $form_state->setValue('pass', $password);
+  $form_state->setValue(['account', 'pass'], $password);
 }
 
 /**
