@@ -16,12 +16,15 @@ use Drupal\Component\Utility\Html;
  */
 function kemke_preprocess_page(&$variables) {
   $variables['site_name'] = \Drupal::config('system.site')->get('name');
+  $route_name = \Drupal::routeMatch()->getRouteName();
   $variables['is_login_front'] = (bool) ($variables['is_front'] ?? FALSE)
-    && \Drupal::routeMatch()->getRouteName() === 'user.login';
+    && $route_name === 'user.login';
   $route_object = \Drupal::routeMatch()->getRouteObject();
   $variables['current_page_title'] = $route_object
     ? \Drupal::service('title_resolver')->getTitle(\Drupal::request(), $route_object)
     : NULL;
+  $sticky_section_classes = $route_name === 'user.admin_permissions' ? [] : ['sticky-section'];
+  $variables['sticky_section_attributes'] = new Attribute(['class' => $sticky_section_classes]);
 }
 
 /**
