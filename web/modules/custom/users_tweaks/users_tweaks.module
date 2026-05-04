@@ -161,6 +161,10 @@ function users_tweaks_form_user_login_block_alter(array &$form, FormStateInterfa
 function users_tweaks_form_user_register_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $current_user = \Drupal::currentUser();
 
+  if (!users_tweaks_current_user_can_access_integration_tabs()) {
+    users_tweaks_hide_integration_groups($form);
+  }
+
   if (isset($form['account']['pass'])) {
     $form['account']['pass']['#required'] = FALSE;
     if (!$current_user->hasRole('administrator')) {
@@ -256,6 +260,10 @@ function users_tweaks_form_user_form_alter(array &$form, FormStateInterface $for
   }
 
   $current_user = \Drupal::currentUser();
+  if (!users_tweaks_current_user_can_access_integration_tabs()) {
+    users_tweaks_hide_integration_groups($form);
+  }
+
   if ($current_user->hasRole('amke_user')) {
     users_tweaks_hide_absenses_group($form);
   }
@@ -429,6 +437,10 @@ function users_tweaks_entity_view_alter(array &$build, EntityInterface $entity, 
     return;
   }
 
+  if (!users_tweaks_current_user_can_access_integration_tabs()) {
+    users_tweaks_hide_integration_groups($build);
+  }
+
   $route_match = \Drupal::routeMatch();
   if ($route_match->getRouteName() !== 'entity.user.canonical') {
     return;
@@ -457,6 +469,45 @@ function users_tweaks_hide_absenses_group(array &$build): void {
   if (isset($build['account']['field_absenses_ref'])) {
     $build['account']['field_absenses_ref']['#access'] = FALSE;
   }
+}
+
+/**
+ * Checks whether the current user may access user integration tabs.
+ */
+function users_tweaks_current_user_can_access_integration_tabs(): bool {
+  $current_user = \Drupal::currentUser();
+  return $current_user->hasRole('administrator') || $current_user->hasRole('kemke_admin');
+}
+
+/**
+ * Hide Docutracks and GGPS tab groups and child fields.
+ */
+function users_tweaks_hide_integration_groups(array &$build): void {
+  foreach (['group_docutracks', 'group_ggps'] as $group_name) {
+    if (isset($build[$group_name])) {
+      $build[$group_name]['#access'] = FALSE;
+    }
+  }
+
+  foreach ([
+    'field_docutracks_username',
+    'field_docutracks_id',
+    'field_docutracks_email',
+    'field_docutracks_json',
+    'field_dt_config',
+    'field_gsis_afm',
+    'field_gsis_userid',
+    'field_gsis_info',
+  ] as $field_name) {
+    if (isset($build[$field_name])) {
+      $build[$field_name]['#access'] = FALSE;
+    }
+    if (isset($build['account'][$field_name])) {
+      $build['account'][$field_name]['#access'] = FALSE;
+    }
+  }
+
+  $build['#cache']['contexts'][] = 'user.roles';
 }
 
 /**
