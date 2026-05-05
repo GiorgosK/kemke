@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.full_html
     - node.type.incoming
+    - node.type.repository_item
     - workflows.workflow.incoming_processing
   module:
     - content_moderation
@@ -26,6 +27,7 @@ permissions:
   - 'access user profiles'
   - 'change own username'
   - 'create incoming content'
+  - 'create repository_item content'
   - 'edit own field_notifications'
   - 'edit own incoming content'
   - 'use incoming_processing transition issues_to_check'
