@@ -56,6 +56,12 @@ final class SideApiConnectionCheckController extends ControllerBase {
     }
     $environment = $environment === 'live' ? 'live' : 'dev';
     $lookup_users = ['intraway', 'kemke'];
+    $query_lookup_users = trim((string) ($request?->query->get('lookup_users', '') ?? ''));
+    if ($query_lookup_users !== '') {
+      $lookup_users = array_values(array_filter(array_map('trim', explode(',', $query_lookup_users)), static fn(string $value): bool => $value !== ''));
+    }
+    $signer_user = trim((string) ($request?->query->get('signer_user', '') ?? ''));
+    $signer_group_id = trim((string) ($request?->query->get('signer_group_id', '') ?? ''));
     $resolved = $environment === 'dev'
       ? [
         'base_url' => (string) ($settings['dev_base_url'] ?? ''),
@@ -83,6 +89,8 @@ final class SideApiConnectionCheckController extends ControllerBase {
       $login_timeout,
       $login_attempts,
       $probe_timeout,
+      $signer_user,
+      $signer_group_id,
     );
 
     $rows = [];
@@ -122,6 +130,8 @@ final class SideApiConnectionCheckController extends ControllerBase {
             'Configured dev hosts: ' . ($dev_hosts !== [] ? implode(', ', $dev_hosts) : '(none)'),
             'Selected environment: ' . $environment,
             'Lookup users: ' . implode(', ', $lookup_users),
+            'Signer user: ' . ($signer_user !== '' ? $signer_user : '(not checked)'),
+            'Signer group id: ' . ($signer_group_id !== '' ? $signer_group_id : '(not checked)'),
             'Login timeout: ' . rtrim(rtrim(sprintf('%.3f', $login_timeout), '0'), '.') . 's',
             'Login attempts: ' . $login_attempts,
             'Probe timeout: ' . rtrim(rtrim(sprintf('%.3f', $probe_timeout), '0'), '.') . 's',
@@ -146,6 +156,15 @@ final class SideApiConnectionCheckController extends ControllerBase {
                 'probe_timeout' => 30,
               ],
             ]))->toString(),
+            Link::fromTextAndUrl($this->t('Check zioannatou / group 1502'), Url::fromRoute('side_api.connection_check', ['environment' => $environment], [
+              'query' => [
+                'login_timeout' => 15,
+                'login_attempts' => 1,
+                'probe_timeout' => 15,
+                'signer_user' => 'zioannatou',
+                'signer_group_id' => '1502',
+              ],
+            ]))->toString(),
           ],
         ],
         'refresh' => [
@@ -166,7 +185,7 @@ final class SideApiConnectionCheckController extends ControllerBase {
    *
    * @return array<int, array{check:string, environment:string, base_url:string, status:string, login_elapsed:string, probe_elapsed:string, total_elapsed:string, probe_user:string, probe_timeout:string, probe_response_keys:string, probe_summary:string, failure_stage:string, exception_class:string, previous_exception:string, http_status:string, details:string}>
    */
-  private function runDiagnostics(string $environment, string $baseUrl, string $adminUser, string $adminPass, string $appUser, string $appPass, array $lookupUsers, float $loginTimeout, int $loginAttempts, float $probeTimeout): array {
+  private function runDiagnostics(string $environment, string $baseUrl, string $adminUser, string $adminPass, string $appUser, string $appPass, array $lookupUsers, float $loginTimeout, int $loginAttempts, float $probeTimeout, string $signerUser = '', string $signerGroupId = ''): array {
     $baseUrl = rtrim(trim($baseUrl), '/');
     if ($baseUrl === '' || $adminUser === '' || $adminPass === '' || $appUser === '' || $appPass === '') {
       return [[
@@ -236,6 +255,19 @@ final class SideApiConnectionCheckController extends ControllerBase {
         );
       }
 
+      if ($signerUser !== '' && $signerGroupId !== '') {
+        $results[] = $this->runSignerGroupCheck(
+          $environment,
+          $baseUrl,
+          $jar,
+          $signerUser,
+          $signerGroupId,
+          $probeTimeout,
+          $started,
+          $loginElapsed,
+        );
+      }
+
       return $results;
     }
     catch (\Throwable $e) {
@@ -263,6 +295,67 @@ final class SideApiConnectionCheckController extends ControllerBase {
         'http_status' => $this->extractHttpStatus($e),
         'details' => $details,
       ]];
+    }
+  }
+
+  /**
+   * Check whether a Docutracks user belongs to the requested signer group.
+   *
+   * @return array{check:string, environment:string, base_url:string, status:string, login_elapsed:string, probe_elapsed:string, total_elapsed:string, probe_user:string, probe_timeout:string, probe_response_keys:string, probe_summary:string, failure_stage:string, exception_class:string, previous_exception:string, http_status:string, details:string}
+   */
+  private function runSignerGroupCheck(string $environment, string $baseUrl, \GuzzleHttp\Cookie\CookieJarInterface $jar, string $signerUser, string $signerGroupId, float $probeTimeout, float $started, float $loginElapsed): array {
+    try {
+      $probeStarted = microtime(TRUE);
+      $probe = $this->client->fetchUserByUsername($signerUser, $jar, $baseUrl, $probeTimeout);
+      $probeElapsed = microtime(TRUE) - $probeStarted;
+      $totalElapsed = microtime(TRUE) - $started;
+      $groupIds = $this->extractUserRelationGroupIds($probe);
+      $matched = in_array($signerGroupId, $groupIds, TRUE);
+
+      return [
+        'check' => 'signer-group',
+        'environment' => $environment,
+        'base_url' => $baseUrl,
+        'status' => $matched ? 'OK' : 'Missing group',
+        'login_elapsed' => sprintf('%.3fs', $loginElapsed),
+        'probe_elapsed' => sprintf('%.3fs', $probeElapsed),
+        'total_elapsed' => sprintf('%.3fs', $totalElapsed),
+        'probe_user' => $signerUser,
+        'probe_timeout' => rtrim(rtrim(sprintf('%.3f', $probeTimeout), '0'), '.') . 's',
+        'probe_response_keys' => implode(', ', array_slice(array_keys($probe), 0, 20)),
+        'probe_summary' => $this->summarizeProbeResponse($probe),
+        'failure_stage' => '-',
+        'exception_class' => '-',
+        'previous_exception' => '-',
+        'http_status' => '-',
+        'details' => sprintf('Expected signer group %s. User relation groups: %s', $signerGroupId, $groupIds !== [] ? implode(', ', $groupIds) : '(none found)'),
+      ];
+    }
+    catch (\Throwable $e) {
+      $totalElapsed = microtime(TRUE) - $started;
+      $details = $e->getMessage();
+      if ($e->getPrevious()) {
+        $details .= ' | Previous: ' . $e->getPrevious()->getMessage();
+      }
+
+      return [
+        'check' => 'signer-group',
+        'environment' => $environment,
+        'base_url' => $baseUrl,
+        'status' => 'Failed',
+        'login_elapsed' => sprintf('%.3fs', $loginElapsed),
+        'probe_elapsed' => '-',
+        'total_elapsed' => sprintf('%.3fs', $totalElapsed),
+        'probe_user' => $signerUser,
+        'probe_timeout' => rtrim(rtrim(sprintf('%.3f', $probeTimeout), '0'), '.') . 's',
+        'probe_response_keys' => '-',
+        'probe_summary' => '-',
+        'failure_stage' => 'probe',
+        'exception_class' => get_class($e),
+        'previous_exception' => $e->getPrevious() ? get_class($e->getPrevious()) : '-',
+        'http_status' => $this->extractHttpStatus($e),
+        'details' => $details,
+      ];
     }
   }
 
@@ -361,6 +454,31 @@ final class SideApiConnectionCheckController extends ControllerBase {
     }
 
     return $parts !== [] ? implode(' | ', $parts) : '-';
+  }
+
+  /**
+   * Extract group IDs from a SIDE user lookup response.
+   *
+   * @return string[]
+   */
+  private function extractUserRelationGroupIds(array $probe): array {
+    $relations = $probe['User']['Relations'] ?? NULL;
+    if (!is_array($relations)) {
+      return [];
+    }
+
+    $groupIds = [];
+    foreach ($relations as $relation) {
+      if (!is_array($relation)) {
+        continue;
+      }
+      $groupId = $relation['Group']['Id'] ?? NULL;
+      if (is_scalar($groupId) && trim((string) $groupId) !== '') {
+        $groupIds[] = trim((string) $groupId);
+      }
+    }
+
+    return array_values(array_unique($groupIds));
   }
 
 }
