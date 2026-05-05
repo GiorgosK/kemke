@@ -7,7 +7,6 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Render\Markup;
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Component\Utility\Unicode;
@@ -1921,7 +1920,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     $resolved_created_by = $client->extractValueByPath($payload, 'Document.CreatedBy.Id');
     $resolved_created_by_group = $client->extractValueByPath($payload, 'Document.CreatedByGroup.Id');
     \Drupal::logger('incoming_tweaks')->info('Docutracks plan payload resolved ids: @details', [
-      '@details' => Json::encode([
+      '@details' => json_encode([
         'nid' => $node->id(),
         'type_id' => $resolved_type,
         'kind_id' => $resolved_kind,
@@ -1952,7 +1951,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     ];
 
     \Drupal::logger('incoming_tweaks')->info('Sending incoming to Docutracks: @details', [
-      '@details' => Json::encode($log_details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+      '@details' => json_encode($log_details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
     ]);
 
     $jar = $client->loginToDocutracks(baseUrl: NULL, adminUser: NULL, adminPass: NULL, appUser: NULL, appPass: NULL, timeout: $timeout);
@@ -1965,7 +1964,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
     // Persist successful API responses on the node without creating an extra
     // revision. Non-success responses are appended by the revert path below.
     if ($is_success && $node->hasField('field_plan_dt_api_response')) {
-      $encoded = Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+      $encoded = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
       $document_id = $response['DocumentReference'] ?? NULL;
       if ($document_id !== NULL) {
         if ($node->hasField('field_dt_docid')) {
@@ -2013,7 +2012,7 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
       \Drupal::messenger()->addStatus(t('Plan was transfered to SIDE'));
     }
     else {
-      incoming_tweaks_revert_to_under_processing($node, $reverting, 'Docutracks returned non-success response.', Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT), $attempt_number);
+      incoming_tweaks_revert_to_under_processing($node, $reverting, 'Docutracks returned non-success response.', json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT), $attempt_number);
       \Drupal::logger('incoming_tweaks')->warning('Docutracks push returned non-success', [
         'nid' => $nid,
         'attempt' => $attempt_number,

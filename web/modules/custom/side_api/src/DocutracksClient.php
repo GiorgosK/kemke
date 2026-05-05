@@ -81,7 +81,7 @@ final class DocutracksClient {
 
       try {
         \Drupal::logger('side_api')->info('Docutracks login request: @details', [
-          '@details' => Json::encode([
+          '@details' => json_encode([
             'base_url' => $resolvedBaseUrl,
             'timeout' => $timeout,
             'attempt' => $attempt,
@@ -160,7 +160,7 @@ final class DocutracksClient {
    * Format a document log line.
    */
   public static function formatDocumentLogLine(array $data): string {
-    $payload = Json::encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $payload = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $payload = str_replace(['true', 'false'], ['TRUE', 'FALSE'], $payload);
     return 'Document:' . $payload;
   }
@@ -521,7 +521,7 @@ final class DocutracksClient {
 
     try {
       \Drupal::logger('side_api')->info('Docutracks register request: @details', [
-        '@details' => Json::encode([
+        '@details' => json_encode([
           'base_url' => $resolvedBaseUrl,
           'timeout' => $timeout,
           'payload' => $sanitized,
@@ -546,7 +546,7 @@ final class DocutracksClient {
       throw new RuntimeException((string) new TranslatableMarkup('Register document response could not be decoded as JSON. This can happen when Docutracks returns the login page (credentials may be invalid or session expired).'));
     }
     \Drupal::logger('side_api')->info('Docutracks register response: @details', [
-      '@details' => Json::encode([
+      '@details' => json_encode([
         'base_url' => $resolvedBaseUrl,
         'payload' => $sanitized,
         'response' => $decoded,
@@ -790,7 +790,7 @@ final class DocutracksClient {
     $preview = mb_substr($body, 0, 4000);
     \Drupal::logger('side_api')->error('Docutracks @context response was not JSON: @details', [
       '@context' => $context,
-      '@details' => Json::encode([
+      '@details' => json_encode([
         'base_url' => $baseUrl,
         'status' => $response->getStatusCode(),
         'content_type' => $contentType,

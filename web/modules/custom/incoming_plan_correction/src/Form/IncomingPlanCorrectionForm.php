@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\incoming_plan_correction\Form;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -212,7 +211,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
       ];
 
       $this->getLogger('incoming_plan_correction')->info('Sending correction to Docutracks: @details', [
-        '@details' => Json::encode($log_details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+        '@details' => json_encode($log_details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
       ]);
 
       $jar = $client->loginToDocutracks(timeout: $timeout);
@@ -262,7 +261,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
         $this->messenger()->addError($this->t('Το ΣΗΔΕ δεν αποδέχτηκε την ορθη επανάληψη.'));
         $this->getLogger('incoming_plan_correction')->warning('Docutracks correction push returned non-success for incoming @nid: @response', [
           '@nid' => $node->id(),
-          '@response' => Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+          '@response' => json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
         ]);
       }
     }
@@ -388,7 +387,7 @@ final class IncomingPlanCorrectionForm extends FormBase {
     $updated = FALSE;
 
     if ($node->hasField('field_plan_dt_api_response')) {
-      $encoded = Json::encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+      $encoded = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
       $existing = $node->get('field_plan_dt_api_response')->value ?? '';
       $timestamp = date('Y-m-d H:i:s');
       $entry = sprintf("[%s]\n%s", $timestamp, $encoded);

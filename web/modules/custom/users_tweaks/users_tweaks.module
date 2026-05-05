@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 
@@ -41,7 +41,7 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
     return;
   }
 
-  if (!$account->get('field_docutracks_id')->isEmpty()) {
+  if (!users_tweaks_docutracks_lookup_needed($account, $username)) {
     return;
   }
 
@@ -49,7 +49,7 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
     /** @var \Drupal\side_api\DocutracksClient $client */
     $client = \Drupal::service('side_api.docutracks_client');
     $payload = $client->fetchUserByUsername($username);
-    $encoded = Json::encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $encoded = users_tweaks_json_encode($payload);
     $account->set('field_docutracks_json', $encoded);
 
     $email = $client->extractValueByPath($payload, 'User.Email');
@@ -61,6 +61,16 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
     if ((is_int($docutracks_id) || is_string($docutracks_id)) && (string) $docutracks_id !== '') {
       $account->set('field_docutracks_id', (string) $docutracks_id);
     }
+
+    $config_result = users_tweaks_reconcile_docutracks_config($account, $payload);
+    if ($config_result !== NULL) {
+      \Drupal::messenger()->addStatus($config_result['message']);
+      \Drupal::logger('users_tweaks')->info('Docutracks config @action for @username: @details', [
+        '@action' => $config_result['action'],
+        '@username' => $username,
+        '@details' => users_tweaks_json_encode($config_result['details']),
+      ]);
+    }
   }
   catch (\Throwable $throwable) {
     \Drupal::logger('users_tweaks')->error('Docutracks user lookup failed for @username: @message', [
@@ -68,6 +78,255 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
       '@message' => $throwable->getMessage(),
     ]);
   }
+}
+
+/**
+ * Decide if a user save should refresh the Docutracks lookup.
+ */
+function users_tweaks_docutracks_lookup_needed(UserInterface $account, string $username): bool {
+  $original = $account->original ?? NULL;
+  if (!$original instanceof UserInterface || !$original->hasField('field_docutracks_username')) {
+    return TRUE;
+  }
+
+  $original_username = trim((string) $original->get('field_docutracks_username')->value);
+  if ($original_username !== $username) {
+    return TRUE;
+  }
+
+  foreach (['field_docutracks_id', 'field_docutracks_email', 'field_docutracks_json'] as $field_name) {
+    if ($account->get($field_name)->isEmpty()) {
+      return TRUE;
+    }
+  }
+
+  if (!$account->hasField('field_dt_config')) {
+    return FALSE;
+  }
+
+  if ($account->get('field_dt_config')->isEmpty()) {
+    return TRUE;
+  }
+
+  return users_tweaks_current_docutracks_config_is_invalid($account);
+}
+
+/**
+ * Check the current environment's configured group against stored relations.
+ */
+function users_tweaks_current_docutracks_config_is_invalid(UserInterface $account): bool {
+  if (
+    !$account->hasField('field_dt_config') ||
+    $account->get('field_dt_config')->isEmpty() ||
+    !$account->hasField('field_docutracks_json') ||
+    $account->get('field_docutracks_json')->isEmpty()
+  ) {
+    return FALSE;
+  }
+
+  $config = json_decode((string) $account->get('field_dt_config')->value, TRUE);
+  $docutracks_json = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
+  if (!is_array($config) || !is_array($docutracks_json)) {
+    return TRUE;
+  }
+
+  $environment_key = users_tweaks_side_api_environment_key();
+  $department = $config['department'][$environment_key] ?? NULL;
+  if (!is_array($department)) {
+    return TRUE;
+  }
+
+  $configured_group = users_tweaks_effective_department_group_id($department);
+  if ($configured_group === '') {
+    return TRUE;
+  }
+
+  $relation_groups = users_tweaks_extract_docutracks_relation_groups($docutracks_json);
+  if ($relation_groups === []) {
+    return TRUE;
+  }
+
+  return !in_array($configured_group, array_column($relation_groups, 'id'), TRUE);
+}
+
+/**
+ * Create or correct field_dt_config for the current SIDE environment.
+ *
+ * @return array{action:string,message:\Drupal\Core\StringTranslation\TranslatableMarkup,details:array}|null
+ */
+function users_tweaks_reconcile_docutracks_config(UserInterface $account, array $payload): ?array {
+  if (!$account->hasField('field_dt_config')) {
+    return NULL;
+  }
+
+  $relation_groups = users_tweaks_extract_docutracks_relation_groups($payload);
+  if ($relation_groups === []) {
+    \Drupal::logger('users_tweaks')->warning('Docutracks config was not updated for @username because the lookup response did not include User.Relations.Group.Id.', [
+      '@username' => (string) $account->get('field_docutracks_username')->value,
+    ]);
+    return NULL;
+  }
+
+  $environment_key = users_tweaks_side_api_environment_key();
+  $raw_config = trim((string) $account->get('field_dt_config')->value);
+  $config = $raw_config === '' ? [] : json_decode($raw_config, TRUE);
+  if (!is_array($config)) {
+    $config = [];
+  }
+
+  if (!isset($config['department']) || !is_array($config['department'])) {
+    $config['department'] = [];
+  }
+
+  $department = $config['department'][$environment_key] ?? NULL;
+  $configured_group = is_array($department) ? users_tweaks_effective_department_group_id($department) : '';
+  $relation_ids = array_column($relation_groups, 'id');
+  if ($configured_group !== '' && in_array($configured_group, $relation_ids, TRUE)) {
+    return NULL;
+  }
+
+  $suggestion = reset($relation_groups);
+  if (!is_array($suggestion) || (string) ($suggestion['id'] ?? '') === '') {
+    return NULL;
+  }
+
+  $previous_group = $configured_group;
+  $group_id = (string) $suggestion['id'];
+  $config['department'][$environment_key] = [
+    'name' => (string) ($suggestion['label'] ?? ''),
+    'id' => users_tweaks_normalize_docutracks_id($group_id),
+    'groupid' => users_tweaks_normalize_docutracks_id($group_id),
+  ];
+
+  $account->set('field_dt_config', users_tweaks_json_encode($config));
+
+  $created = $raw_config === '' || !is_array($department);
+  $action = $created ? 'created' : 'corrected';
+  $message = $created
+    ? t('Docutracks config created for @env with group @group.', ['@env' => $environment_key, '@group' => $group_id])
+    : t('Docutracks config corrected for @env from @old to @new.', [
+      '@env' => $environment_key,
+      '@old' => $previous_group !== '' ? $previous_group : '-',
+      '@new' => $group_id,
+    ]);
+
+  return [
+    'action' => $action,
+    'message' => $message,
+    'details' => [
+      'environment_key' => $environment_key,
+      'previous_groupid' => $previous_group !== '' ? $previous_group : NULL,
+      'new_groupid' => $group_id,
+      'suggested_group_name' => (string) ($suggestion['label'] ?? ''),
+      'all_relation_groups' => $relation_groups,
+    ],
+  ];
+}
+
+/**
+ * Resolve side_api field_dt_config environment key for the current host.
+ */
+function users_tweaks_side_api_environment_key(): string {
+  $host = $_SERVER['HTTP_HOST'] ?? '';
+  $settings = Settings::get('side_api', []);
+
+  if (
+    $host !== ''
+    && is_array($settings)
+    && isset($settings['host_overrides'][$host])
+    && is_array($settings['host_overrides'][$host])
+  ) {
+    $override_environment = $settings['host_overrides'][$host]['environment_key'] ?? NULL;
+    if (is_string($override_environment) && in_array($override_environment, ['test', 'live'], TRUE)) {
+      return $override_environment;
+    }
+  }
+
+  $dev_hosts = ['kemke.webx2.com', 'kemke.ddev.site'];
+  if (is_array($settings) && isset($settings['dev_hosts']) && is_array($settings['dev_hosts'])) {
+    $dev_hosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
+  }
+
+  return in_array($host, $dev_hosts, TRUE) ? 'test' : 'live';
+}
+
+/**
+ * Extract unique group IDs and names from a Docutracks user lookup response.
+ *
+ * @return array<int, array{id:string,label:string}>
+ */
+function users_tweaks_extract_docutracks_relation_groups(array $payload): array {
+  $relations = $payload['User']['Relations'] ?? NULL;
+  if (!is_array($relations)) {
+    return [];
+  }
+
+  $groups = [];
+  $seen = [];
+  foreach ($relations as $relation) {
+    if (!is_array($relation)) {
+      continue;
+    }
+    $group = $relation['Group'] ?? NULL;
+    if (!is_array($group)) {
+      continue;
+    }
+    $group_id = $group['Id'] ?? NULL;
+    if (!is_scalar($group_id) || trim((string) $group_id) === '') {
+      continue;
+    }
+    $id = trim((string) $group_id);
+    if (isset($seen[$id])) {
+      continue;
+    }
+    $seen[$id] = TRUE;
+    $groups[] = [
+      'id' => $id,
+      'label' => users_tweaks_extract_docutracks_group_label($group),
+    ];
+  }
+
+  return $groups;
+}
+
+/**
+ * Extract a readable group label from a Docutracks group object.
+ */
+function users_tweaks_extract_docutracks_group_label(array $group): string {
+  foreach (['Name', 'DisplayName', 'Title', 'Description', 'Code', 'GroupCode'] as $key) {
+    if (isset($group[$key]) && is_scalar($group[$key]) && trim((string) $group[$key]) !== '') {
+      return trim((string) $group[$key]);
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Return the groupid that will actually be used for signing.
+ */
+function users_tweaks_effective_department_group_id(array $department): string {
+  foreach (['groupid', 'id'] as $key) {
+    if (isset($department[$key]) && is_scalar($department[$key]) && trim((string) $department[$key]) !== '') {
+      return trim((string) $department[$key]);
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Store numeric Docutracks IDs as numbers while preserving non-numeric IDs.
+ */
+function users_tweaks_normalize_docutracks_id(string $id): int|string {
+  return ctype_digit($id) ? (int) $id : $id;
+}
+
+/**
+ * Encode JSON for fields and logs with readable Greek text.
+ */
+function users_tweaks_json_encode(mixed $data): string {
+  return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 }
 
 /**
