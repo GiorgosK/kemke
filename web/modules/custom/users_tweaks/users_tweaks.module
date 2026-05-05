@@ -41,7 +41,8 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
     return;
   }
 
-  if (!users_tweaks_docutracks_lookup_needed($account, $username)) {
+  $username_new_or_changed = users_tweaks_docutracks_username_new_or_changed($account, $username);
+  if (!users_tweaks_docutracks_lookup_needed($account, $username_new_or_changed)) {
     return;
   }
 
@@ -62,14 +63,16 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
       $account->set('field_docutracks_id', (string) $docutracks_id);
     }
 
-    $config_result = users_tweaks_reconcile_docutracks_config($account, $payload);
-    if ($config_result !== NULL) {
-      \Drupal::messenger()->addStatus($config_result['message']);
-      \Drupal::logger('users_tweaks')->info('Docutracks config @action for @username: @details', [
-        '@action' => $config_result['action'],
-        '@username' => $username,
-        '@details' => users_tweaks_json_encode($config_result['details']),
-      ]);
+    if ($username_new_or_changed) {
+      $config_result = users_tweaks_reconcile_docutracks_config($account, $payload);
+      if ($config_result !== NULL) {
+        \Drupal::messenger()->addStatus($config_result['message']);
+        \Drupal::logger('users_tweaks')->info('Docutracks config @action for @username: @details', [
+          '@action' => $config_result['action'],
+          '@username' => $username,
+          '@details' => users_tweaks_json_encode($config_result['details']),
+        ]);
+      }
     }
   }
   catch (\Throwable $throwable) {
@@ -81,16 +84,23 @@ function users_tweaks_populate_docutracks_fields(UserInterface $account): void {
 }
 
 /**
- * Decide if a user save should refresh the Docutracks lookup.
+ * Decide if the Docutracks username is new or changed on this save.
  */
-function users_tweaks_docutracks_lookup_needed(UserInterface $account, string $username): bool {
+function users_tweaks_docutracks_username_new_or_changed(UserInterface $account, string $username): bool {
   $original = $account->original ?? NULL;
   if (!$original instanceof UserInterface || !$original->hasField('field_docutracks_username')) {
     return TRUE;
   }
 
   $original_username = trim((string) $original->get('field_docutracks_username')->value);
-  if ($original_username !== $username) {
+  return $original_username !== $username;
+}
+
+/**
+ * Decide if a user save should refresh the Docutracks lookup.
+ */
+function users_tweaks_docutracks_lookup_needed(UserInterface $account, bool $username_new_or_changed): bool {
+  if ($username_new_or_changed) {
     return TRUE;
   }
 
@@ -100,53 +110,7 @@ function users_tweaks_docutracks_lookup_needed(UserInterface $account, string $u
     }
   }
 
-  if (!$account->hasField('field_dt_config')) {
-    return FALSE;
-  }
-
-  if ($account->get('field_dt_config')->isEmpty()) {
-    return TRUE;
-  }
-
-  return users_tweaks_current_docutracks_config_is_invalid($account);
-}
-
-/**
- * Check the current environment's configured group against stored relations.
- */
-function users_tweaks_current_docutracks_config_is_invalid(UserInterface $account): bool {
-  if (
-    !$account->hasField('field_dt_config') ||
-    $account->get('field_dt_config')->isEmpty() ||
-    !$account->hasField('field_docutracks_json') ||
-    $account->get('field_docutracks_json')->isEmpty()
-  ) {
-    return FALSE;
-  }
-
-  $config = json_decode((string) $account->get('field_dt_config')->value, TRUE);
-  $docutracks_json = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
-  if (!is_array($config) || !is_array($docutracks_json)) {
-    return TRUE;
-  }
-
-  $environment_key = users_tweaks_side_api_environment_key();
-  $department = $config['department'][$environment_key] ?? NULL;
-  if (!is_array($department)) {
-    return TRUE;
-  }
-
-  $configured_group = users_tweaks_effective_department_group_id($department);
-  if ($configured_group === '') {
-    return TRUE;
-  }
-
-  $relation_groups = users_tweaks_extract_docutracks_relation_groups($docutracks_json);
-  if ($relation_groups === []) {
-    return TRUE;
-  }
-
-  return !in_array($configured_group, array_column($relation_groups, 'id'), TRUE);
+  return FALSE;
 }
 
 /**
