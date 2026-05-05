@@ -1169,7 +1169,7 @@ function incoming_related_field_extract_scalar_from_array(array $value): ?string
  * Write the Docutracks response to a temporary JSON file for inspection.
  */
 function incoming_related_field_write_debug_doc(array $doc, ?int $node_id = NULL): void {
-  $payload = json_encode($doc, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+  $payload = json_encode($doc, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
   if ($payload === FALSE) {
     return;
   }
@@ -1385,7 +1385,7 @@ function incoming_related_field_store_plan_docutracks_response(NodeInterface $no
   $updated = FALSE;
 
   if ($node->hasField('field_plan_dt_api_response')) {
-    $encoded = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $encoded = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     if ($encoded !== FALSE) {
       $existing = $node->get('field_plan_dt_api_response')->value ?? '';
       $entry = sprintf("[%s]\n%s", date('Y-m-d H:i:s'), $encoded);

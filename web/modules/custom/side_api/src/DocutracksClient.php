@@ -85,7 +85,7 @@ final class DocutracksClient {
             'base_url' => $resolvedBaseUrl,
             'timeout' => $timeout,
             'attempt' => $attempt,
-          ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+          ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
         ]);
         $this->httpClient->request('POST', $resolvedBaseUrl . '/services/authentication/login', [
           'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
@@ -160,7 +160,7 @@ final class DocutracksClient {
    * Format a document log line.
    */
   public static function formatDocumentLogLine(array $data): string {
-    $payload = Json::encode($data, JSON_UNESCAPED_UNICODE);
+    $payload = Json::encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $payload = str_replace(['true', 'false'], ['TRUE', 'FALSE'], $payload);
     return 'Document:' . $payload;
   }
@@ -525,7 +525,7 @@ final class DocutracksClient {
           'base_url' => $resolvedBaseUrl,
           'timeout' => $timeout,
           'payload' => $sanitized,
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
       ]);
       $response = $this->httpClient->request('POST', $resolvedBaseUrl . '/services/document/register', [
         'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
@@ -550,7 +550,7 @@ final class DocutracksClient {
         'base_url' => $resolvedBaseUrl,
         'payload' => $sanitized,
         'response' => $decoded,
-      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+      ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
     ]);
     return $decoded;
   }
@@ -795,7 +795,7 @@ final class DocutracksClient {
         'status' => $response->getStatusCode(),
         'content_type' => $contentType,
         'body_preview' => $preview,
-      ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+      ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
     ]);
   }
 
