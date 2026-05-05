@@ -2142,11 +2142,12 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
 
   $raw_department_id = $department['id'] ?? NULL;
   $raw_group_id = $department['groupid'] ?? NULL;
+  $settings_override = incoming_tweaks_get_supervisor_signature_group_override($account, $environment_key);
 
   // ToSign expects a Docutracks group target. Prefer explicit groupid over
   // department id; older configs may contain both, and id can refer to a local
   // department identifier that is invalid for the current SIDE environment.
-  $sign_id = $raw_group_id ?? $raw_department_id;
+  $sign_id = $settings_override ?? $raw_group_id ?? $raw_department_id;
   if (!is_scalar($sign_id) || trim((string) $sign_id) === '') {
     return NULL;
   }
@@ -2155,7 +2156,8 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
 
   return [
     'sign_id' => $sign_id,
-    'sign_id_source' => is_scalar($raw_group_id) && trim((string) $raw_group_id) !== '' ? 'groupid' : 'id',
+    'sign_id_source' => $settings_override !== NULL ? 'settings_override' : (is_scalar($raw_group_id) && trim((string) $raw_group_id) !== '' ? 'groupid' : 'id'),
+    'settings_override' => $settings_override,
     'group_id' => is_scalar($raw_group_id) && trim((string) $raw_group_id) !== '' ? trim((string) $raw_group_id) : NULL,
     'id' => is_scalar($raw_department_id) && trim((string) $raw_department_id) !== '' ? trim((string) $raw_department_id) : NULL,
     'environment_key' => $environment_key,
@@ -2163,6 +2165,50 @@ function incoming_tweaks_resolve_supervisor_signature(NodeInterface $node): ?arr
     'relation_group_ids' => $relation_group_ids,
     'valid_relation_group' => in_array($sign_id, $relation_group_ids, TRUE),
   ];
+}
+
+/**
+ * Resolve a supervisor ToSign group override from settings.local.php.
+ */
+function incoming_tweaks_get_supervisor_signature_group_override(\Drupal\user\UserInterface $account, string $environment_key): ?string {
+  $settings = Settings::get('incoming_tweaks', []);
+  $groups = is_array($settings) ? ($settings['supervisor_signature_groups'] ?? NULL) : NULL;
+  if (!is_array($groups)) {
+    return NULL;
+  }
+
+  $environment_groups = $groups[$environment_key] ?? NULL;
+  if (!is_array($environment_groups)) {
+    return NULL;
+  }
+
+  $keys = [
+    'uid:' . $account->id(),
+  ];
+
+  if ($account->hasField('field_docutracks_username') && !$account->get('field_docutracks_username')->isEmpty()) {
+    $username = trim((string) $account->get('field_docutracks_username')->value);
+    if ($username !== '') {
+      $keys[] = $username;
+      $keys[] = 'username:' . $username;
+    }
+  }
+
+  if ($account->hasField('field_docutracks_id') && !$account->get('field_docutracks_id')->isEmpty()) {
+    $docutracks_id = trim((string) $account->get('field_docutracks_id')->value);
+    if ($docutracks_id !== '') {
+      $keys[] = 'docutracks:' . $docutracks_id;
+    }
+  }
+
+  foreach ($keys as $key) {
+    $value = $environment_groups[$key] ?? NULL;
+    if (is_scalar($value) && trim((string) $value) !== '') {
+      return trim((string) $value);
+    }
+  }
+
+  return NULL;
 }
 
 /**
