@@ -133,9 +133,11 @@ function users_tweaks_reconcile_docutracks_config(UserInterface $account, array 
 
   $environment_key = users_tweaks_side_api_environment_key();
   $raw_config = trim((string) $account->get('field_dt_config')->value);
+  $field_config_created = $raw_config === '';
   $config = $raw_config === '' ? [] : json_decode($raw_config, TRUE);
   if (!is_array($config)) {
     $config = [];
+    $field_config_created = TRUE;
   }
 
   if (!isset($config['department']) || !is_array($config['department'])) {
@@ -156,23 +158,36 @@ function users_tweaks_reconcile_docutracks_config(UserInterface $account, array 
 
   $previous_group = $configured_group;
   $group_id = (string) $suggestion['id'];
-  $config['department'][$environment_key] = [
+  $department_config = [
     'name' => (string) ($suggestion['label'] ?? ''),
     'id' => users_tweaks_normalize_docutracks_id($group_id),
     'groupid' => users_tweaks_normalize_docutracks_id($group_id),
   ];
+  $populated_environments = [$environment_key];
+  $config['department'][$environment_key] = $department_config;
+
+  if ($field_config_created && $environment_key === 'test') {
+    $config['department']['live'] = $department_config;
+    $populated_environments[] = 'live';
+  }
 
   $account->set('field_dt_config', users_tweaks_json_encode($config));
 
   $created = $raw_config === '' || !is_array($department);
   $action = $created ? 'created' : 'corrected';
-  $message = $created
-    ? t('Docutracks config created for @env with group @group.', ['@env' => $environment_key, '@group' => $group_id])
-    : t('Docutracks config corrected for @env from @old to @new.', [
+  if ($created && $field_config_created && $environment_key === 'test') {
+    $message = t('Docutracks config created for test and live with group @group.', ['@group' => $group_id]);
+  }
+  elseif ($created) {
+    $message = t('Docutracks config created for @env with group @group.', ['@env' => $environment_key, '@group' => $group_id]);
+  }
+  else {
+    $message = t('Docutracks config corrected for @env from @old to @new.', [
       '@env' => $environment_key,
       '@old' => $previous_group !== '' ? $previous_group : '-',
       '@new' => $group_id,
     ]);
+  }
 
   return [
     'action' => $action,
@@ -181,6 +196,7 @@ function users_tweaks_reconcile_docutracks_config(UserInterface $account, array 
       'environment_key' => $environment_key,
       'previous_groupid' => $previous_group !== '' ? $previous_group : NULL,
       'new_groupid' => $group_id,
+      'populated_environments' => $populated_environments,
       'suggested_group_name' => (string) ($suggestion['label'] ?? ''),
       'all_relation_groups' => $relation_groups,
     ],
