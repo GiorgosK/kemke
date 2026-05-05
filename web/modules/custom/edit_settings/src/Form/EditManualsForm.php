@@ -105,7 +105,10 @@ final class EditManualsForm extends FormBase {
     }
 
     if (!$upload->isValid()) {
-      $form_state->setErrorByName('upload_file', $this->t('The uploaded file is not valid.'));
+      $error_code = $upload->getError();
+      $error_message = $this->getUploadErrorMessage($error_code);
+      $form_state->setErrorByName('upload_file', $this->t('The uploaded file is not valid. Error: @message (code: @code)', ['@message' => $error_message, '@code' => $error_code]));
+      \Drupal::logger('edit_settings')->error('File upload failed. Error code: @code, message: @message', ['@code' => $error_code, '@message' => $error_message]);
       return;
     }
 
@@ -118,6 +121,19 @@ final class EditManualsForm extends FormBase {
     if ($this->manualFileExists($filename)) {
       $form_state->setErrorByName('upload_file', $this->t('A file with that name already exists.'));
     }
+  }
+
+  private function getUploadErrorMessage(int $error_code): string {
+    return match ($error_code) {
+      UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize directive',
+      UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE directive',
+      UPLOAD_ERR_PARTIAL => 'Partial upload',
+      UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+      UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+      UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+      UPLOAD_ERR_EXTENSION => 'A PHP extension blocked the upload',
+      default => 'Unknown error',
+    };
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
