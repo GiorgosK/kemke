@@ -17,6 +17,123 @@ use Drupal\node\NodeInterface;
 const INCOMING_TWEAKS_UNTITLED_PLACEHOLDER = 'Χωρίς REF ID';
 
 /**
+ * Adds a simulated incoming add tab for non-AMKE users.
+ */
+function incoming_tweaks_menu_local_tasks_alter(array &$data, $route_name, $cacheable_metadata = NULL): void {
+  $account = \Drupal::currentUser();
+  if ($account->hasRole('amke_user')) {
+    return;
+  }
+
+  if ($cacheable_metadata) {
+    $cacheable_metadata->addCacheContexts(['route', 'user.roles', 'user.permissions']);
+  }
+
+  $incoming_routes = [
+    'view.incoming.page_1',
+    'view.incoming.page_4',
+    'view.incoming.page_5',
+  ];
+  $is_incoming_add = incoming_tweaks_is_incoming_add_route($route_name);
+  if (!in_array($route_name, $incoming_routes, TRUE) && !$is_incoming_add) {
+    return;
+  }
+
+  if ($is_incoming_add) {
+    $data['tabs'][0] = incoming_tweaks_build_incoming_primary_tabs(TRUE);
+    return;
+  }
+
+  $add_access = \Drupal::service('access_manager')
+    ->checkNamedRoute('node.add', ['node_type' => 'incoming'], $account, TRUE);
+  if (!$add_access->isAllowed()) {
+    if ($cacheable_metadata) {
+      $cacheable_metadata->addCacheableDependency($add_access);
+    }
+    return;
+  }
+
+  $data['tabs'][0]['incoming_tweaks.incoming_add_simulated'] = incoming_tweaks_build_incoming_add_tab(FALSE, $add_access);
+}
+
+/**
+ * Determines whether the current route is the incoming add form.
+ */
+function incoming_tweaks_is_incoming_add_route(string $route_name): bool {
+  if ($route_name !== 'node.add') {
+    return FALSE;
+  }
+
+  $node_type = \Drupal::routeMatch()->getParameter('node_type');
+  if (is_object($node_type) && method_exists($node_type, 'id')) {
+    return $node_type->id() === 'incoming';
+  }
+
+  return $node_type === 'incoming';
+}
+
+/**
+ * Builds the incoming primary tabs for the incoming add form.
+ */
+function incoming_tweaks_build_incoming_primary_tabs(bool $add_active): array {
+  $account = \Drupal::currentUser();
+  $access_manager = \Drupal::service('access_manager');
+  $tabs = [
+    'incoming_tweaks.incoming' => incoming_tweaks_build_local_task_tab('Έγγραφα προς ενέργεια', 'view.incoming.page_1', [], FALSE, 0),
+    'incoming_tweaks.incoming_completed' => incoming_tweaks_build_local_task_tab('Ολοκληρωμένα', 'view.incoming.page_5', [], FALSE, 5),
+    'incoming_tweaks.incoming_all' => incoming_tweaks_build_local_task_tab('Όλα τα Έγγραφα', 'view.incoming.page_4', [], FALSE, 10),
+  ];
+
+  foreach ($tabs as $route_name => &$tab) {
+    $tab['#access'] = $access_manager->checkNamedRoute($tab['#link']['url']->getRouteName(), [], $account, TRUE);
+  }
+  unset($tab);
+
+  $add_access = $access_manager->checkNamedRoute('node.add', ['node_type' => 'incoming'], $account, TRUE);
+  if ($add_access->isAllowed()) {
+    $tabs['incoming_tweaks.incoming_add_simulated'] = incoming_tweaks_build_incoming_add_tab($add_active, $add_access);
+  }
+
+  return $tabs;
+}
+
+/**
+ * Builds the simulated incoming add tab.
+ */
+function incoming_tweaks_build_incoming_add_tab(bool $active, $access): array {
+  return incoming_tweaks_build_local_task_tab(
+    'Δημιουργία Εγγράφου',
+    'node.add',
+    ['node_type' => 'incoming'],
+    $active,
+    12,
+    $access
+  );
+}
+
+/**
+ * Builds a local task render array.
+ */
+function incoming_tweaks_build_local_task_tab(string $title, string $route_name, array $route_parameters = [], bool $active = FALSE, int $weight = 0, $access = NULL): array {
+  $tab = [
+    '#theme' => 'menu_local_task',
+    '#link' => [
+      'title' => t($title),
+      'url' => Url::fromRoute($route_name, $route_parameters),
+      'localized_options' => [],
+    ],
+    '#active' => $active,
+    '#weight' => $weight,
+  ];
+
+  if ($access !== NULL) {
+    $tab['#access'] = $access;
+  }
+
+  return $tab;
+}
+
+/**
  * Implements hook_form_BASE_FORM_ID_alter() for node forms.
  */
 function incoming_tweaks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
