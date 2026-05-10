@@ -80,6 +80,11 @@ final class SideApiTestLabForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Load REGULAR sample JSON'),
       '#name' => 'load_regular_sample',
+      '#limit_validation_errors' => [],
+      '#ajax' => [
+        'callback' => '::regularPayloadAjaxCallback',
+        'wrapper' => 'regular-payload-wrapper',
+      ],
       '#submit' => ['::submitLoadRegularSample'],
     ];
     $form['register_regular']['regular_signature_help'] = [
@@ -120,7 +125,11 @@ final class SideApiTestLabForm extends FormBase {
         '#options' => ['' => $this->t('- Select suggestion -')] + $suggestions['created_group_options'],
       ],
     ];
-    $form['register_regular']['regular_payload_json'] = [
+    $form['register_regular']['regular_payload_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'regular-payload-wrapper'],
+    ];
+    $form['register_regular']['regular_payload_wrapper']['regular_payload_json'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Payload JSON'),
       '#rows' => 24,
@@ -255,9 +264,18 @@ final class SideApiTestLabForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {}
 
   public function submitLoadRegularSample(array &$form, FormStateInterface $form_state): void {
-    $form_state->set('regular_payload_json', $this->encodePrettyJson($this->buildSamplePayload('regular')));
+    $payload = $this->encodePrettyJson($this->buildSamplePayload('regular'));
+    $form_state->set('regular_payload_json', $payload);
+    $form_state->setValue('regular_payload_json', $payload);
+    $input = $form_state->getUserInput();
+    unset($input['regular_payload_json'], $input['regular_payload_wrapper']['regular_payload_json']);
+    $form_state->setUserInput($input);
     $this->messenger()->addStatus($this->t('Loaded REGULAR sample payload.'));
     $form_state->setRebuild(TRUE);
+  }
+
+  public function regularPayloadAjaxCallback(array &$form, FormStateInterface $form_state): array {
+    return $form['register_regular']['regular_payload_wrapper'];
   }
 
   public function submitLoadPlanSample(array &$form, FormStateInterface $form_state): void {
@@ -321,7 +339,11 @@ final class SideApiTestLabForm extends FormBase {
   }
 
   public function submitRegisterRegular(array &$form, FormStateInterface $form_state): void {
-    $raw = trim((string) ($form_state->getValue('regular_payload_json') ?? ''));
+    $raw = trim((string) (
+      $form_state->getValue(['regular_payload_wrapper', 'regular_payload_json'])
+      ?? $form_state->getValue('regular_payload_json')
+      ?? ''
+    ));
     $form_state->set('regular_payload_json', $raw);
 
     if ($raw === '') {
