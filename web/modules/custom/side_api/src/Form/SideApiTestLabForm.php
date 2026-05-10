@@ -517,6 +517,17 @@ final class SideApiTestLabForm extends FormBase {
         $defaults['signatures_tosign_id'],
         $defaults['signator_user_id']
       );
+      // For improved visibility tests, align with SIDE-visible plan shape:
+      // no CoSignatures section and no OwnedByGroup in document copies.
+      unset($payload['Document']['CoSignatures'], $payload['Document']['Cosignatures']);
+      if (isset($payload['Document']['DocumentCopies']) && is_array($payload['Document']['DocumentCopies'])) {
+        foreach ($payload['Document']['DocumentCopies'] as &$copy) {
+          if (is_array($copy) && isset($copy['OwnedByGroup'])) {
+            unset($copy['OwnedByGroup']);
+          }
+        }
+        unset($copy);
+      }
       $payload['Document']['Title'] = $this->nextSampleTitle('plan');
       $payload['Document']['Comments'] = '[TEST-LAB SAMPLE: PLAN IMPROVED] ' . date('Y-m-d H:i:s');
       return $payload;
