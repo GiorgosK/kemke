@@ -1,0 +1,5 @@
+side_api.test_lab:
+  title: 'SIDE test lab'
+  description: 'Fetch and register Docutracks documents with editable JSON payloads.'
+  route_name: side_api.test_lab
+  parent: system.admin_reports

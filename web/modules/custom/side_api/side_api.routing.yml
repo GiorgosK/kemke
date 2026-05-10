@@ -7,3 +7,11 @@ side_api.connection_check:
   requirements:
     _permission: 'administer site configuration'
     environment: 'dev|live'
+
+side_api.test_lab:
+  path: '/admin/reports/side-api/test-lab'
+  defaults:
+    _form: '\Drupal\side_api\Form\SideApiTestLabForm'
+    _title: 'SIDE test lab'
+  requirements:
+    _permission: 'administer site configuration'
