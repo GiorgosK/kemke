@@ -9,7 +9,6 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
 use Drupal\file\FileRepositoryInterface;
 use Drupal\side_api\DocutracksClient;
 use Drupal\user\UserInterface;
@@ -324,7 +323,6 @@ final class SideApiTestLabForm extends FormBase {
 
       $targetUri = sprintf('%s/manual_fetch_%d_%s.json', $targetDir, $docId, date('Ymd_His'));
       $this->fileRepository()->writeData($payload, $targetUri, FileSystemInterface::EXISTS_REPLACE);
-      $form_state->set('last_fetch_uri', $targetUri);
       $fileUrl = $this->fileUrlGenerator()->generateString($targetUri);
       $this->messenger()->addStatus($this->t('Saved JSON: <a href=":url" target="_blank">@url</a>', [
         ':url' => $fileUrl,
@@ -374,8 +372,6 @@ final class SideApiTestLabForm extends FormBase {
 
       $jar = $this->client()->loginToDocutracks();
       $response = $this->client()->registerDocument($payload, $jar);
-      $encodedResponse = $this->encodePrettyJson($response);
-      $form_state->set('last_register_regular_response', $encodedResponse);
       $this->saveRegisterDebugFiles('regular', $payload, $response);
       $this->messenger()->addStatus($this->t('Docutracks REGULAR register call completed.'));
     }
@@ -432,8 +428,6 @@ final class SideApiTestLabForm extends FormBase {
 
       $jar = $this->client()->loginToDocutracks();
       $response = $this->client()->registerDocument($payload, $jar);
-      $encodedResponse = $this->encodePrettyJson($response);
-      $form_state->set('last_register_plan_response', $encodedResponse);
       $this->saveRegisterDebugFiles('plan', $payload, $response);
       $this->messenger()->addStatus($this->t('Docutracks PLAN register call completed.'));
     }
@@ -741,7 +735,7 @@ final class SideApiTestLabForm extends FormBase {
       $this->addSettingsGroupSuggestion($options, $settings, 'defaults_test', 'owned_by_group');
     }
 
-    foreach ($this->extractGroupsFromSettingsFiles() as $groupId => $sources) {
+    foreach ($this->extractGroupsFromSettingsFiles() as $groupId => $_sources) {
       $label = sprintf('%d - from settings files', (int) $groupId);
       if (!isset($options[$groupId])) {
         $options[$groupId] = $label;
