@@ -501,6 +501,8 @@ final class SideApiTestLabForm extends FormBase {
       if (!isset($payload['Document']) || !is_array($payload['Document'])) {
         $payload['Document'] = [];
       }
+      $payload['Document']['CreatedBy'] = ['Id' => 14780192];
+      $payload['Document']['Kind'] = ['Id' => 50];
       $defaults = $this->getPlanImprovedDefaults();
       $payload = $this->applyOverrides(
         $payload,
@@ -1000,19 +1002,15 @@ final class SideApiTestLabForm extends FormBase {
    * @return array{to_sign_group_id:int,created_by_group_id:int,signator_user_id:int,coauthors_tosign_id:int,cosignatures_tosign_id:int,signatures_tosign_id:int}
    */
   private function getPlanImprovedDefaults(): array {
-    $defaults = $this->getPlanSampleDefaults();
-
-    // Prefer CreatedBy as Signator when available; this matched visible plans.
-    $createdBy = 0;
-    $base = $this->client()->getRequiredDocValues(FALSE, 3);
-    if (isset($base['Document']['CreatedBy']['Id']) && is_numeric((string) $base['Document']['CreatedBy']['Id'])) {
-      $createdBy = (int) $base['Document']['CreatedBy']['Id'];
-    }
-    if ($createdBy > 0) {
-      $defaults['signator_user_id'] = $createdBy;
-    }
-
-    return $defaults;
+    // Baseline copied from SIDE-visible plan pattern for kemke user.
+    return [
+      'to_sign_group_id' => 6727922,
+      'created_by_group_id' => 6727922,
+      'signator_user_id' => 14780192,
+      'coauthors_tosign_id' => 6727922,
+      'cosignatures_tosign_id' => 6727922,
+      'signatures_tosign_id' => 6727922,
+    ];
   }
 
 }
