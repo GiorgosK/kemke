@@ -169,6 +169,17 @@ final class SideApiTestLabForm extends FormBase {
       ],
       '#submit' => ['::submitLoadPlanSampleGeneric'],
     ];
+    $form['register_plan']['load_plan_sample_improved'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Load PLAN improved JSON'),
+      '#name' => 'load_plan_sample_improved',
+      '#limit_validation_errors' => [],
+      '#ajax' => [
+        'callback' => '::planPayloadAjaxCallback',
+        'wrapper' => 'plan-payload-wrapper',
+      ],
+      '#submit' => ['::submitLoadPlanSampleImproved'],
+    ];
     $form['register_plan']['plan_signature_help'] = [
       '#type' => 'details',
       '#title' => $this->t('Optional overrides'),
@@ -296,6 +307,17 @@ final class SideApiTestLabForm extends FormBase {
     unset($input['plan_payload_json'], $input['plan_payload_wrapper']['plan_payload_json']);
     $form_state->setUserInput($input);
     $this->messenger()->addStatus($this->t('Loaded PLAN generic sample payload.'));
+    $form_state->setRebuild(TRUE);
+  }
+
+  public function submitLoadPlanSampleImproved(array &$form, FormStateInterface $form_state): void {
+    $payload = $this->encodePrettyJson($this->buildSamplePayload('plan_improved'));
+    $form_state->set('plan_payload_json', $payload);
+    $form_state->setValue('plan_payload_json', $payload);
+    $input = $form_state->getUserInput();
+    unset($input['plan_payload_json'], $input['plan_payload_wrapper']['plan_payload_json']);
+    $form_state->setUserInput($input);
+    $this->messenger()->addStatus($this->t('Loaded PLAN improved sample payload.'));
     $form_state->setRebuild(TRUE);
   }
 
@@ -472,6 +494,29 @@ final class SideApiTestLabForm extends FormBase {
       }
       $payload['Document']['Title'] = $this->nextSampleTitle('plan');
       $payload['Document']['Comments'] = '[TEST-LAB SAMPLE: PLAN GENERIC] ' . date('Y-m-d H:i:s');
+      return $payload;
+    }
+    if ($sampleType === 'plan_improved') {
+      $payload = $this->client()->getRequiredDocValues(TRUE, 3);
+      if (!isset($payload['Document']) || !is_array($payload['Document'])) {
+        $payload['Document'] = [];
+      }
+      $defaults = $this->getPlanImprovedDefaults();
+      $payload = $this->applyOverrides(
+        $payload,
+        $defaults['to_sign_group_id'],
+        $defaults['signator_user_id'],
+        $defaults['created_by_group_id']
+      );
+      $payload = $this->applyPlanSignatureSectionOverrides(
+        $payload,
+        $defaults['coauthors_tosign_id'],
+        $defaults['cosignatures_tosign_id'],
+        $defaults['signatures_tosign_id'],
+        $defaults['signator_user_id']
+      );
+      $payload['Document']['Title'] = $this->nextSampleTitle('plan');
+      $payload['Document']['Comments'] = '[TEST-LAB SAMPLE: PLAN IMPROVED] ' . date('Y-m-d H:i:s');
       return $payload;
     }
     $payload = $this->client()->getRequiredDocValues(TRUE, 1);
@@ -947,6 +992,27 @@ final class SideApiTestLabForm extends FormBase {
       'cosignatures_tosign_id' => $firstGroupId,
       'signatures_tosign_id' => $firstGroupId,
     ];
+  }
+
+  /**
+   * Improved defaults prioritizing visibility to kemke user.
+   *
+   * @return array{to_sign_group_id:int,created_by_group_id:int,signator_user_id:int,coauthors_tosign_id:int,cosignatures_tosign_id:int,signatures_tosign_id:int}
+   */
+  private function getPlanImprovedDefaults(): array {
+    $defaults = $this->getPlanSampleDefaults();
+
+    // Prefer CreatedBy as Signator when available; this matched visible plans.
+    $createdBy = 0;
+    $base = $this->client()->getRequiredDocValues(FALSE, 3);
+    if (isset($base['Document']['CreatedBy']['Id']) && is_numeric((string) $base['Document']['CreatedBy']['Id'])) {
+      $createdBy = (int) $base['Document']['CreatedBy']['Id'];
+    }
+    if ($createdBy > 0) {
+      $defaults['signator_user_id'] = $createdBy;
+    }
+
+    return $defaults;
   }
 
 }
