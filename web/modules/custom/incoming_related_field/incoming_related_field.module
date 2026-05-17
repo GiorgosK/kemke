@@ -597,9 +597,26 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
       $doc = $client->fetchDocumentByProtocol($protocol_text, $protocol_year, $document_type_id, $jar);
       $doc_id = (string) incoming_related_field_extract_document_id($client, $doc);
       if ($doc_id === '' || $doc_id === '0') {
-        \Drupal::messenger()->addError(t('Το ΣΗΔΕ δεν επέστρεψε Α/Α εγγράφου.'));
-        $form_state->setRebuild(TRUE);
-        return;
+        $fallback_doc_id = trim((string) ($input[$dt_docid_name] ?? ''));
+        if ($fallback_doc_id === '' && $node->hasField('field_dt_docid')) {
+          $fallback_doc_id = trim((string) ($node->get('field_dt_docid')->value ?? ''));
+        }
+
+        if ($fallback_doc_id !== '') {
+          \Drupal::logger('incoming_related_field')->warning('Protocol lookup returned no Docutracks document id for node @nid (protocol @protocol/@year). Falling back to direct fetch using doc id @doc_id.', [
+            '@nid' => (string) $node->id(),
+            '@protocol' => $protocol_text,
+            '@year' => (string) $protocol_year,
+            '@doc_id' => $fallback_doc_id,
+          ]);
+          $doc = $client->fetchDocument($fallback_doc_id, $jar);
+          $doc_id = $fallback_doc_id;
+        }
+        else {
+          \Drupal::messenger()->addError(t('Το ΣΗΔΕ δεν επέστρεψε Α/Α εγγράφου.'));
+          $form_state->setRebuild(TRUE);
+          return;
+        }
       }
     }
     else {
