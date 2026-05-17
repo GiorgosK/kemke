@@ -658,6 +658,7 @@ function incoming_related_field_get_corrected_document_submit(array &$form, Form
 
     $node->set('field_dt_docid', $doc_id);
     incoming_related_field_apply_docutracks_fields($node, $doc, $force_update_fields);
+    incoming_related_field_apply_docutracks_assignees($node, $doc);
 
     \Drupal::messenger()->addStatus(t('Ορθή επανάληψη ελήφθη απο ΣΗΔΕ.'));
     $form_state->setRebuild(TRUE);
@@ -1071,6 +1072,172 @@ function incoming_related_field_apply_docutracks_fields(?NodeInterface $node, ar
 
   $node->setNewRevision(FALSE);
   $node->save();
+}
+
+/**
+ * Apply Docutracks assignees to incoming operators.
+ *
+ * MainAssignee => field_basic_operator
+ * ExtraAssignees[].Assignee => field_operators
+ */
+function incoming_related_field_apply_docutracks_assignees(?NodeInterface $node, array $doc): void {
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+  if (!$node->hasField('field_basic_operator') || !$node->hasField('field_operators')) {
+    return;
+  }
+
+  $main_ids = [];
+  $extra_ids = [];
+  $copies = incoming_related_field_extract_value_by_path($doc, 'Document.DocumentCopies');
+  if (!is_array($copies)) {
+    return;
+  }
+
+  foreach ($copies as $copy) {
+    if (!is_array($copy)) {
+      continue;
+    }
+
+    $main = $copy['MainAssignee'] ?? NULL;
+    if (is_array($main)) {
+      $main_id = incoming_related_field_normalize_docutracks_id($main['Id'] ?? NULL);
+      if ($main_id === NULL) {
+        $main_id = incoming_related_field_normalize_docutracks_id($main['UserId'] ?? NULL);
+      }
+      if ($main_id !== NULL) {
+        $main_ids[] = $main_id;
+      }
+    }
+
+    $extras = $copy['ExtraAssignees'] ?? [];
+    if (!is_array($extras)) {
+      continue;
+    }
+    foreach ($extras as $extra) {
+      if (!is_array($extra)) {
+        continue;
+      }
+      $assignee = $extra['Assignee'] ?? NULL;
+      if (!is_array($assignee)) {
+        continue;
+      }
+      $extra_id = incoming_related_field_normalize_docutracks_id($assignee['Id'] ?? NULL);
+      if ($extra_id === NULL) {
+        $extra_id = incoming_related_field_normalize_docutracks_id($assignee['UserId'] ?? NULL);
+      }
+      if ($extra_id !== NULL) {
+        $extra_ids[] = $extra_id;
+      }
+    }
+  }
+
+  $main_ids = array_values(array_unique($main_ids));
+  $extra_ids = array_values(array_unique($extra_ids));
+  $all_ids = array_values(array_unique(array_merge($main_ids, $extra_ids)));
+  if ($all_ids === []) {
+    return;
+  }
+
+  $uid_map = incoming_related_field_load_user_map_by_docutracks_ids($all_ids);
+  if ($uid_map === []) {
+    return;
+  }
+
+  $basic_uid = NULL;
+  foreach ($main_ids as $main_id) {
+    if (isset($uid_map[$main_id])) {
+      $basic_uid = (int) $uid_map[$main_id];
+      break;
+    }
+  }
+
+  $operator_uids = [];
+  foreach ($extra_ids as $extra_id) {
+    if (!isset($uid_map[$extra_id])) {
+      continue;
+    }
+    $uid = (int) $uid_map[$extra_id];
+    if ($basic_uid !== NULL && $uid === $basic_uid) {
+      continue;
+    }
+    $operator_uids[$uid] = $uid;
+  }
+
+  if ($basic_uid !== NULL) {
+    $node->set('field_basic_operator', ['target_id' => $basic_uid]);
+  }
+
+  $items = [];
+  foreach (array_values($operator_uids) as $uid) {
+    $items[] = ['target_id' => $uid];
+  }
+  $node->set('field_operators', $items);
+  $node->setNewRevision(FALSE);
+  $node->save();
+}
+
+/**
+ * Normalize Docutracks id to string when possible.
+ */
+function incoming_related_field_normalize_docutracks_id(mixed $value): ?string {
+  if (is_int($value)) {
+    return (string) $value;
+  }
+  if (is_string($value)) {
+    $value = trim($value);
+    return $value === '' ? NULL : $value;
+  }
+  if (is_float($value)) {
+    return (string) (int) $value;
+  }
+  return NULL;
+}
+
+/**
+ * Resolve Drupal user ids keyed by Docutracks ids.
+ *
+ * @param array<int, string> $docutracks_ids
+ *   Docutracks ids as strings.
+ *
+ * @return array<string, int>
+ *   Map of docutracks_id => uid.
+ */
+function incoming_related_field_load_user_map_by_docutracks_ids(array $docutracks_ids): array {
+  $docutracks_ids = array_values(array_unique(array_filter(array_map(static function ($value): string {
+    return trim((string) $value);
+  }, $docutracks_ids), static fn(string $value): bool => $value !== '')));
+
+  if ($docutracks_ids === []) {
+    return [];
+  }
+
+  $uids = \Drupal::entityQuery('user')
+    ->accessCheck(FALSE)
+    ->condition('field_docutracks_id', $docutracks_ids, 'IN')
+    ->execute();
+
+  if ($uids === []) {
+    return [];
+  }
+
+  $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadMultiple($uids);
+  $map = [];
+  foreach ($accounts as $account) {
+    if (!$account instanceof \Drupal\user\UserInterface || !$account->hasField('field_docutracks_id')) {
+      continue;
+    }
+    $doc_id = trim((string) ($account->get('field_docutracks_id')->value ?? ''));
+    if ($doc_id === '' || !in_array($doc_id, $docutracks_ids, TRUE)) {
+      continue;
+    }
+    if (!isset($map[$doc_id])) {
+      $map[$doc_id] = (int) $account->id();
+    }
+  }
+
+  return $map;
 }
 
 /**

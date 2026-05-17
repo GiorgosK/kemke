@@ -1653,6 +1653,9 @@ final class DocutracksClient {
       $main_assignee = $copy['MainAssignee'] ?? NULL;
       if (is_array($main_assignee)) {
         $main_id = $this->normalizeDocutracksId($main_assignee['Id'] ?? NULL);
+        if ($main_id === NULL) {
+          $main_id = $this->normalizeDocutracksId($main_assignee['UserId'] ?? NULL);
+        }
         if ($main_id !== NULL) {
           $main_ids[] = $main_id;
         }
@@ -1671,6 +1674,9 @@ final class DocutracksClient {
           continue;
         }
         $extra_id = $this->normalizeDocutracksId($assignee['Id'] ?? NULL);
+        if ($extra_id === NULL) {
+          $extra_id = $this->normalizeDocutracksId($assignee['UserId'] ?? NULL);
+        }
         if ($extra_id !== NULL) {
           $extra_ids[] = $extra_id;
         }
