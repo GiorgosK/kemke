@@ -2343,6 +2343,25 @@ function incoming_tweaks_resolve_plan_operator_docutracks(NodeInterface $node): 
   }
 
   $user_group_id = NULL;
+
+  // Prefer explicit env-aware mapping when available.
+  if ($account->hasField('field_dt_config') && !$account->get('field_dt_config')->isEmpty()) {
+    $decoded_config = json_decode((string) $account->get('field_dt_config')->value, TRUE);
+    if (is_array($decoded_config)) {
+      $environment_key = incoming_tweaks_side_api_environment_key();
+      $department = $decoded_config['department'][$environment_key] ?? NULL;
+      if (is_array($department)) {
+        $raw_group_id = $department['groupid'] ?? NULL;
+        $raw_department_id = $department['id'] ?? NULL;
+        $candidate_group_id = $raw_group_id ?? $raw_department_id;
+        if (is_scalar($candidate_group_id) && trim((string) $candidate_group_id) !== '') {
+          $user_group_id = trim((string) $candidate_group_id);
+        }
+      }
+    }
+  }
+
+  // Fallback to cached SIDE profile JSON relations.
   if ($account->hasField('field_docutracks_json') && !$account->get('field_docutracks_json')->isEmpty()) {
     $decoded = json_decode((string) $account->get('field_docutracks_json')->value, TRUE);
     if (is_array($decoded)) {
@@ -2358,7 +2377,7 @@ function incoming_tweaks_resolve_plan_operator_docutracks(NodeInterface $node): 
           }
 
           $group_id = $relation['Group']['Id'] ?? NULL;
-          if (is_scalar($group_id) && trim((string) $group_id) !== '') {
+          if (($user_group_id === NULL || $user_group_id === '') && is_scalar($group_id) && trim((string) $group_id) !== '') {
             $user_group_id = trim((string) $group_id);
             break;
           }
