@@ -2006,18 +2006,21 @@ function incoming_tweaks_send_plan(NodeInterface $node, array &$reverting, array
       $doc_payload['Document']['CreatedForGroup'] = ['Id' => $operator_docutracks['user_group_id']];
     }
 
-    if (incoming_tweaks_use_creator_to_sign() && $use_basic_operator_creator) {
-      $doc_payload['Document']['Signatures'] = [
-        [
-          'ToSign' => ['Id' => $operator_docutracks['user_group_id']],
-          'Type' => ['Id' => 1],
-        ],
-      ];
+    if ($use_basic_operator_creator) {
       $doc_payload['Document']['CoAuthorsWithSignature'] = [
         [
           'ToSign' => ['Id' => $operator_docutracks['user_group_id']],
           'Type' => ['Id' => 3],
           'Signator' => ['Id' => $operator_docutracks['user_id']],
+        ],
+      ];
+    }
+
+    if ($use_basic_operator_creator) {
+      $doc_payload['Document']['Signatures'] = [
+        [
+          'ToSign' => ['Id' => $operator_docutracks['user_group_id']],
+          'Type' => ['Id' => 1],
         ],
       ];
     }
