@@ -1280,6 +1280,7 @@ final class DocutracksClient {
   private function detectEnvironment(): array {
     $host = $_SERVER['HTTP_HOST'] ?? '';
     $settings = Settings::get('side_api', []);
+    $liveEnabled = !(is_array($settings) && array_key_exists('live', $settings) && $settings['live'] === FALSE);
 
     if (
       $host !== ''
@@ -1302,6 +1303,11 @@ final class DocutracksClient {
       $devHosts = array_values(array_filter($settings['dev_hosts'], static fn($value) => is_string($value) && $value !== ''));
     }
     $isDev = in_array($host, $devHosts, TRUE);
+    // In CLI (e.g. Drush), HTTP_HOST is usually empty. Respect side_api.live=FALSE
+    // to force test/dev credentials instead of falling back to live defaults.
+    if ($host === '' && !$liveEnabled) {
+      $isDev = TRUE;
+    }
 
     if ($isDev) {
       return [
